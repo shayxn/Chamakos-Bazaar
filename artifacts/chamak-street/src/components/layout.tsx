@@ -1,18 +1,24 @@
 import { Link, useLocation } from "wouter";
-import { useGetCart, useGetMe, useLogout } from "@workspace/api-client-react";
+import { useGetCart, useGetMe } from "@workspace/api-client-react";
+import { useUser, useClerk, Show } from "@clerk/react";
 import { ChamakLogo } from "./chamak-logo";
-import { ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
+import { ShoppingCart, User, Menu, X, LogOut, UserPlus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const [location, setLocation] = useLocation();
+  const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { data: cart } = useGetCart({ query: { queryKey: ["cart"] } });
-  const { data: user } = useGetMe({ query: { queryKey: ["me"], retry: false } });
-  const logout = useLogout();
+
+  // Admin session auth (cookie-session based)
+  const { data: adminUser } = useGetMe({ query: { queryKey: ["me"], retry: false } });
+
+  // Clerk auth (regular users)
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const { signOut } = useClerk();
 
   const cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
 
@@ -27,14 +33,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/shop", label: "Shop" },
   ];
 
-  if (user?.isAdmin) {
+  if (adminUser?.isAdmin) {
     navLinks.push({ href: "/admin", label: "Admin" });
   }
 
-  const handleLogout = () => {
-    logout.mutate(undefined, {
-      onSuccess: () => { window.location.reload(); }
-    });
+  // Display name priority: admin session > Clerk user
+  const displayName = adminUser
+    ? `@${adminUser.username}`
+    : clerkUser
+      ? clerkUser.firstName || clerkUser.emailAddresses[0]?.emailAddress?.split("@")[0] || "User"
+      : null;
+
+  const isLoggedIn = !!adminUser || !!clerkUser;
+
+  const handleSignOut = () => {
+    if (adminUser) {
+      // admin uses cookie-session logout
+      fetch("/api/auth/logout", { method: "POST", credentials: "include" }).then(() => {
+        window.location.href = "/";
+      });
+    } else {
+      signOut({ redirectUrl: "/" });
+    }
   };
 
   return (
@@ -76,20 +96,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4 z-50">
-            {user ? (
-              <div className="hidden md:flex items-center gap-4">
-                <span className="text-sm text-muted-foreground">@{user.username}</span>
-                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-                  <LogOut className="h-5 w-5" />
+          {/* Desktop Right Controls */}
+          <div className="hidden md:flex items-center gap-3 z-50">
+            {isLoggedIn ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground font-medium">{displayName}</span>
+                <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sign out" className="hover:text-primary transition-colors">
+                  <LogOut className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
-              <Link href="/login" className="hidden md:block">
-                <Button variant="ghost" size="icon" className="hover:text-primary transition-colors">
-                  <User className="h-5 w-5" />
-                </Button>
-              </Link>
+              clerkLoaded && (
+                <div className="flex items-center gap-2">
+                  <Link href="/sign-in">
+                    <Button variant="ghost" size="sm" className="font-bold uppercase tracking-wider text-xs hover:text-primary">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/sign-up">
+                    <Button size="sm" className="font-bold uppercase tracking-wider text-xs fire-gradient border-none px-4">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              )
             )}
 
             <Link href="/cart" className="relative group">
@@ -110,8 +140,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </AnimatePresence>
               </Button>
             </Link>
+          </div>
 
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          {/* Mobile: cart + hamburger */}
+          <div className="flex items-center gap-2 md:hidden z-50">
+            <Link href="/cart" className="relative group">
+              <Button variant="ghost" size="icon" className="group-hover:text-primary transition-colors">
+                <ShoppingCart className="h-5 w-5" />
+                <AnimatePresence>
+                  {cartCount > 0 && (
+                    <motion.span
+                      key={cartCount}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      className="absolute top-0 right-0 h-4 w-4 rounded-full bg-primary text-[10px] font-bold flex items-center justify-center text-primary-foreground border border-background"
+                    >
+                      {cartCount}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Button>
+            </Link>
+            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <AnimatePresence mode="wait" initial={false}>
                 {isMenuOpen ? (
                   <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
@@ -155,19 +206,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </motion.div>
                 ))}
                 <div className="h-px bg-border w-full my-2" />
-                {user ? (
+                {isLoggedIn ? (
                   <>
-                    <div className="text-muted-foreground text-sm">Signed in as @{user.username}</div>
-                    <Button variant="outline" className="justify-start w-full" onClick={() => { handleLogout(); setIsMenuOpen(false); }}>
-                      <LogOut className="h-4 w-4 mr-2" /> Logout
+                    <div className="text-muted-foreground text-sm">Signed in as {displayName}</div>
+                    <Button variant="outline" className="justify-start w-full" onClick={() => { handleSignOut(); setIsMenuOpen(false); }}>
+                      <LogOut className="h-4 w-4 mr-2" /> Sign Out
                     </Button>
                   </>
                 ) : (
-                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full justify-start">
-                      <User className="h-4 w-4 mr-2" /> Login
-                    </Button>
-                  </Link>
+                  <div className="flex flex-col gap-3">
+                    <Link href="/sign-in" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start">
+                        <User className="h-4 w-4 mr-2" /> Sign In
+                      </Button>
+                    </Link>
+                    <Link href="/sign-up" onClick={() => setIsMenuOpen(false)}>
+                      <Button className="w-full justify-start fire-gradient border-none">
+                        <UserPlus className="h-4 w-4 mr-2" /> Create Account
+                      </Button>
+                    </Link>
+                  </div>
                 )}
               </nav>
             </motion.div>
@@ -195,11 +253,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </ul>
           </div>
           <div>
-            <h4 className="font-bold uppercase tracking-wider mb-4">Legal</h4>
+            <h4 className="font-bold uppercase tracking-wider mb-4">Account</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Terms of Service</li>
-              <li>Privacy Policy</li>
-              <li>Returns & Exchanges</li>
+              <Show when="signed-out">
+                <li><Link href="/sign-in" className="hover:text-primary transition-colors">Sign In</Link></li>
+                <li><Link href="/sign-up" className="hover:text-primary transition-colors">Create Account</Link></li>
+              </Show>
+              <Show when="signed-in">
+                <li><button onClick={() => signOut({ redirectUrl: "/" })} className="hover:text-primary transition-colors text-left">Sign Out</button></li>
+              </Show>
             </ul>
           </div>
         </div>
