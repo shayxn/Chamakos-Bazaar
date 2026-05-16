@@ -1,45 +1,66 @@
-# [Project name]
+# Chamak Street
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A bold urban streetwear e-commerce site featuring the camel mascot Chamako — with a full shop, cart, checkout, and admin panel.
 
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/chamak-street run dev` — run the frontend (port varies)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string, `SESSION_SECRET` — session signing secret
+
+## Admin Credentials
+
+- Username: `admin`
+- Password: `chamak2024`
+- Admin panel: `/admin`
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React + Vite + Tailwind CSS + framer-motion
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
+- Sessions: cookie-session
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — OpenAPI contract (source of truth)
+- `lib/db/src/schema/` — DB schema (users, categories, products, cart_items, orders, order_items)
+- `artifacts/api-server/src/routes/` — API route handlers
+- `artifacts/chamak-street/src/` — React frontend
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Session-based auth via cookie-session (no JWT)
+- Cart is session-scoped — tied to cookie session ID, no login required
+- Admin check: `isAdmin` field on user record
+- All prices stored as numeric strings in DB, returned as numbers in API
+- Product images are optional — "No Image" placeholder shown when null
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Shop**: Browse all products with category filters and search
+- **Product detail**: View product, pick size, add to cart
+- **Cart**: Manage items, update quantities, proceed to checkout
+- **Checkout**: Enter customer info, place order
+- **Admin dashboard**: Store stats, revenue, recent orders, low stock alerts
+- **Admin products**: Create, edit, delete products
+- **Admin orders**: View all orders, update status
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Bold dark streetwear aesthetic — dark backgrounds, fire orange (#ff6600) and yellow (#ffcc00) gradients
+- Chamako the camel is the brand mascot — featured on the homepage hero
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Always run codegen after changing `lib/api-spec/openapi.yaml`
+- Sessions use `cookie-session` — the SESSION_SECRET env var must be set in production
+- Price is stored as numeric string in DB but returned as number from API

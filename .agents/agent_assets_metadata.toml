@@ -1,0 +1,32 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "iO1AJDxI4lC_OXhxtYrwv"
+uri = "file://artifacts/chamak-street/public/chamako-hero.png"
+type = "image"
+title = "Chamako camel in streetwear"
+
+[[generated]]
+id = "KXLEXI2Lyzhw2AhJBvHb0"
+uri = "file://artifacts/chamak-street/public/product-hoodie.png"
+type = "image"
+title = "Graffiti streetwear hoodie"
+
+[[generated]]
+id = "0PT-4u6WFAGiC6wB-EvXC"
+uri = "file://artifacts/chamak-street/public/product-sneakers.png"
+type = "image"
+title = "Vibrant streetwear sneakers"
+
+[[generated]]
+id = "UFb-Drt7n124R_7ykRGrd"
+uri = "file://artifacts/chamak-street/public/product-tshirt.png"
+type = "image"
+title = "Flaming camel t-shirt"
+
+[[generated]]
+id = "8rCynvAJbPpwLsJ27W1DB"
+uri = "file://artifacts/chamak-street/public/product-cap.png"
+type = "image"
+title = "Black snapback cap"
