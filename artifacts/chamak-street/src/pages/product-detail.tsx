@@ -9,6 +9,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+function MotionItem({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 28, filter: "blur(4px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      transition={{ duration: 0.6, delay, ease: EASE }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function ProductDetail() {
   const [, params] = useRoute("/product/:id");
   const id = params?.id ? parseInt(params.id) : 0;
@@ -39,7 +54,7 @@ export default function ProductDetail() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
           setAddedPulse(true);
-          setTimeout(() => setAddedPulse(false), 600);
+          setTimeout(() => setAddedPulse(false), 700);
           toast({ title: "Added to Cart", description: `${quantity}x ${product.name} added.` });
         },
         onError: () => {
@@ -74,110 +89,96 @@ export default function ProductDetail() {
   return (
     <PageTransition>
       <div className="container mx-auto px-4 py-12">
-        {/* Back button */}
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-8"
-        >
+        {/* Back */}
+        <MotionItem delay={0.05}>
           <Link href="/shop">
-            <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors font-bold uppercase tracking-wider">
+            <motion.button
+              whileHover={{ x: -4 }}
+              transition={{ type: "spring", stiffness: 400, damping: 24 }}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors font-bold uppercase tracking-wider mb-8"
+            >
               <ArrowLeft className="h-4 w-4" /> Back to Shop
-            </button>
+            </motion.button>
           </Link>
-        </motion.div>
+        </MotionItem>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-          {/* Product Image */}
+          {/* Image */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, scale: 1.04, filter: "blur(8px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            transition={{ duration: 0.75, ease: EASE }}
             className="relative aspect-square md:aspect-[4/5] bg-card rounded-lg overflow-hidden border border-border group"
           >
             {product.imageUrl ? (
               <motion.img
                 src={product.imageUrl}
                 alt={product.name}
-                className="w-full h-full object-cover object-center mix-blend-lighten"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.6 }}
+                className="w-full h-full object-cover object-center"
+                whileHover={{ scale: 1.06 }}
+                transition={{ duration: 0.65, ease: EASE }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono">
-                No Image
-              </div>
+              <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono">No Image</div>
             )}
-            {/* Glow effect on hover */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-              style={{ background: "radial-gradient(ellipse at 50% 80%, rgba(255,102,0,0.2), transparent 70%)" }}
+            {/* Glow */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              initial={{ opacity: 0 }}
+              whileHover={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              style={{ background: "radial-gradient(ellipse at 50% 85%, rgba(255,102,0,0.25), transparent 65%)" }}
             />
           </motion.div>
 
-          {/* Product Info */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col justify-center"
-          >
-            <motion.div className="mb-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+          {/* Info */}
+          <div className="flex flex-col justify-center">
+            <MotionItem delay={0.15}>
               <span className="text-xs font-black tracking-widest uppercase text-primary bg-primary/10 px-3 py-1.5 rounded-sm">
                 {product.categoryName}
               </span>
-            </motion.div>
+            </MotionItem>
 
-            <motion.h1
-              className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-            >
-              {product.name}
-            </motion.h1>
+            <MotionItem delay={0.22} className="mt-4">
+              <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+                {product.name}
+              </h1>
+            </MotionItem>
 
-            <motion.div
-              className="text-3xl font-mono font-black text-primary mb-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              AED {product.price.toFixed(2)}
-            </motion.div>
+            <MotionItem delay={0.29} className="mt-5">
+              <div className="text-3xl font-mono font-black text-primary">
+                AED {product.price.toFixed(2)}
+              </div>
+            </MotionItem>
 
             {product.description && (
-              <motion.p
-                className="text-muted-foreground leading-relaxed mb-8 border-l-2 border-primary/50 pl-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.35 }}
-              >
-                {product.description}
-              </motion.p>
+              <MotionItem delay={0.35} className="mt-6">
+                <p className="text-muted-foreground leading-relaxed border-l-2 border-primary/50 pl-4">
+                  {product.description}
+                </p>
+              </MotionItem>
             )}
 
-            <motion.div
-              className="space-y-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              {/* Size selector */}
+            <MotionItem delay={0.42} className="mt-8 space-y-8">
+              {/* Sizes */}
               {sizes.length > 0 && (
                 <div>
                   <h3 className="font-black uppercase tracking-wider text-sm mb-3">Size</h3>
                   <div className="flex flex-wrap gap-2">
-                    {sizes.map((size) => (
+                    {sizes.map((size, i) => (
                       <motion.button
                         key={size}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.48 + i * 0.05, ease: EASE }}
                         onClick={() => setSelectedSize(size)}
-                        whileHover={{ scale: 1.06 }}
-                        whileTap={{ scale: 0.94 }}
-                        className={`h-12 min-w-[3rem] px-4 font-bold border rounded-sm transition-all ${selectedSize === size
-                          ? "border-primary bg-primary text-primary-foreground shadow-[0_0_15px_rgba(255,102,0,0.35)]"
-                          : "border-border bg-card text-muted-foreground hover:border-primary/50"
-                          }`}
+                        whileHover={{ scale: 1.08, y: -2 }}
+                        whileTap={{ scale: 0.93 }}
+                        className={`h-12 min-w-[3rem] px-4 font-bold border rounded-sm transition-all duration-200 ${
+                          selectedSize === size
+                            ? "border-primary bg-primary text-primary-foreground shadow-[0_0_18px_rgba(255,102,0,0.45)]"
+                            : "border-border bg-card text-muted-foreground hover:border-primary/60 hover:text-foreground"
+                        }`}
                         data-testid={`size-${size}`}
                       >
                         {size}
@@ -192,9 +193,10 @@ export default function ProductDetail() {
                 <h3 className="font-black uppercase tracking-wider text-sm mb-3">Quantity</h3>
                 <div className="flex items-center h-12 w-36 border border-border rounded-sm bg-card overflow-hidden">
                   <motion.button
-                    whileTap={{ scale: 0.85 }}
+                    whileTap={{ scale: 0.82 }}
+                    whileHover={{ backgroundColor: "rgba(255,102,0,0.08)" }}
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="w-10 h-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted transition-colors disabled:opacity-50"
+                    className="w-10 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
                     disabled={isOutOfStock}
                     data-testid="button-quantity-minus"
                   >
@@ -203,19 +205,20 @@ export default function ProductDetail() {
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={quantity}
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.15 }}
+                      initial={{ opacity: 0, y: -10, scale: 0.8 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                      transition={{ duration: 0.18, ease: EASE }}
                       className="flex-1 text-center font-black font-mono text-lg"
                     >
                       {quantity}
                     </motion.div>
                   </AnimatePresence>
                   <motion.button
-                    whileTap={{ scale: 0.85 }}
+                    whileTap={{ scale: 0.82 }}
+                    whileHover={{ backgroundColor: "rgba(255,102,0,0.08)" }}
                     onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-                    className="w-10 h-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted transition-colors disabled:opacity-50"
+                    className="w-10 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
                     disabled={isOutOfStock || quantity >= product.stock}
                     data-testid="button-quantity-plus"
                   >
@@ -224,8 +227,8 @@ export default function ProductDetail() {
                 </div>
                 {product.stock <= 5 && product.stock > 0 && (
                   <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="text-destructive text-sm mt-2 font-bold flex items-center gap-1"
                   >
                     <AlertCircle className="h-4 w-4" /> Only {product.stock} left in stock
@@ -234,29 +237,42 @@ export default function ProductDetail() {
               </div>
 
               {/* Add to cart */}
-              <motion.div animate={addedPulse ? { scale: [1, 1.03, 1] } : {}}>
-                <Button
-                  size="lg"
-                  className={`w-full h-14 text-lg font-black uppercase tracking-widest ${isOutOfStock ? "" : "fire-gradient border-none shadow-[0_0_20px_rgba(255,102,0,0.3)] hover:shadow-[0_0_35px_rgba(255,102,0,0.55)] transition-all duration-300"}`}
-                  disabled={isOutOfStock || addToCart.isPending}
-                  onClick={handleAddToCart}
-                  data-testid="button-add-to-cart"
+              <motion.div
+                animate={addedPulse ? { scale: [1, 1.04, 1], filter: ["blur(0px)", "blur(0px)", "blur(0px)"] } : {}}
+                transition={{ duration: 0.4 }}
+              >
+                <motion.div
+                  whileHover={!isOutOfStock ? { scale: 1.02, filter: "brightness(1.08)" } : {}}
+                  whileTap={!isOutOfStock ? { scale: 0.97 } : {}}
+                  transition={{ type: "spring", stiffness: 380, damping: 22 }}
                 >
-                  <AnimatePresence mode="wait">
-                    {addToCart.isPending ? (
-                      <motion.span key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>Adding...</motion.span>
-                    ) : isOutOfStock ? (
-                      <motion.span key="sold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>Sold Out</motion.span>
-                    ) : (
-                      <motion.span key="add" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
-                        <ShoppingCart className="h-5 w-5" /> Add to Cart
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </Button>
+                  <Button
+                    size="lg"
+                    className={`w-full h-14 text-lg font-black uppercase tracking-widest transition-all duration-300 ${
+                      isOutOfStock
+                        ? "opacity-50 cursor-not-allowed"
+                        : "fire-gradient border-none shadow-[0_0_24px_rgba(255,102,0,0.35)] hover:shadow-[0_0_48px_rgba(255,102,0,0.6)]"
+                    }`}
+                    disabled={isOutOfStock || addToCart.isPending}
+                    onClick={handleAddToCart}
+                    data-testid="button-add-to-cart"
+                  >
+                    <AnimatePresence mode="wait">
+                      {addToCart.isPending ? (
+                        <motion.span key="loading" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>Adding...</motion.span>
+                      ) : isOutOfStock ? (
+                        <motion.span key="sold" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>Sold Out</motion.span>
+                      ) : (
+                        <motion.span key="add" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-2">
+                          <ShoppingCart className="h-5 w-5" /> Add to Cart
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          </motion.div>
+            </MotionItem>
+          </div>
         </div>
       </div>
     </PageTransition>

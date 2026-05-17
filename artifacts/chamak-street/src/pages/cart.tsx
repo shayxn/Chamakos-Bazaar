@@ -6,6 +6,8 @@ import { Minus, Plus, Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+
 export default function Cart() {
   const { data: cart, isLoading } = useGetCart({ query: { queryKey: getGetCartQueryKey() } });
   const updateItem = useUpdateCartItem();
@@ -31,7 +33,13 @@ export default function Cart() {
     return (
       <div className="container mx-auto px-4 py-20 space-y-6">
         {[1, 2, 3].map((n) => (
-          <div key={n} className="h-28 bg-muted rounded-lg animate-pulse" />
+          <motion.div
+            key={n}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: n * 0.08, ease: EASE }}
+            className="h-28 bg-muted rounded-lg animate-pulse"
+          />
         ))}
       </div>
     );
@@ -42,16 +50,25 @@ export default function Cart() {
       <PageTransition>
         <div className="container mx-auto px-4 py-40 text-center max-w-md">
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", stiffness: 200 }}
+            initial={{ opacity: 0, scale: 0.85, filter: "blur(6px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            transition={{ duration: 0.65, ease: EASE }}
           >
-            <ShoppingBag className="h-20 w-20 mx-auto text-muted-foreground/30 mb-8" />
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <ShoppingBag className="h-20 w-20 mx-auto text-muted-foreground/30 mb-8" />
+            </motion.div>
             <h1 className="text-4xl font-black uppercase tracking-tighter mb-4">Cart is Empty</h1>
             <p className="text-muted-foreground mb-10 text-lg">Looks like you haven't added any heat yet.</p>
             <Link href="/shop">
-              <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-                <Button size="lg" className="w-full font-black uppercase tracking-widest fire-gradient border-none h-14">
+              <motion.div
+                whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 380, damping: 22 }}
+              >
+                <Button size="lg" className="w-full font-black uppercase tracking-widest fire-gradient border-none h-14 shadow-[0_0_24px_rgba(255,102,0,0.35)]">
                   Browse the Shop <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </motion.div>
@@ -67,9 +84,9 @@ export default function Cart() {
       <div className="container mx-auto px-4 py-12">
         <motion.h1
           className="text-5xl font-black uppercase tracking-tighter mb-12"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          initial={{ opacity: 0, y: -24, filter: "blur(4px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.55, ease: EASE }}
         >
           Your Cart
         </motion.h1>
@@ -77,25 +94,30 @@ export default function Cart() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Items */}
           <div className="lg:col-span-2 space-y-4">
-            <AnimatePresence>
-              {cart.items.map((item) => (
+            <AnimatePresence initial={false}>
+              {cart.items.map((item, i) => (
                 <motion.div
                   key={item.id}
                   layout
-                  initial={{ opacity: 0, y: 20, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: -60, scale: 0.95, transition: { duration: 0.25 } }}
-                  className="flex gap-5 p-4 bg-card border border-border rounded-lg relative pr-14 hover:border-primary/30 transition-colors"
+                  initial={{ opacity: 0, y: 28, scale: 0.96, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, x: -80, scale: 0.92, filter: "blur(6px)", transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }}
+                  transition={{ duration: 0.5, delay: i * 0.06, ease: EASE }}
+                  className="flex gap-5 p-4 bg-card border border-border rounded-lg relative pr-14 hover:border-primary/35 transition-colors duration-300"
                   data-testid={`cart-item-${item.id}`}
                 >
                   {/* Thumbnail */}
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 bg-muted rounded-md overflow-hidden border border-border/50">
+                  <motion.div
+                    className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 bg-muted rounded-md overflow-hidden border border-border/50"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                  >
                     {item.productImageUrl ? (
-                      <img src={item.productImageUrl} alt={item.productName} className="w-full h-full object-cover mix-blend-lighten" />
+                      <img src={item.productImageUrl} alt={item.productName} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground font-mono">No Img</div>
                     )}
-                  </div>
+                  </motion.div>
 
                   {/* Info */}
                   <div className="flex flex-col justify-between py-1 flex-1">
@@ -109,12 +131,13 @@ export default function Cart() {
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
-                      {/* Quantity controls */}
+                      {/* Qty controls */}
                       <div className="flex items-center h-9 border border-border rounded-sm bg-background overflow-hidden">
                         <motion.button
-                          whileTap={{ scale: 0.8 }}
+                          whileTap={{ scale: 0.78 }}
+                          whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
                           onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
-                          className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
+                          className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                           disabled={updateItem.isPending}
                         >
                           <Minus className="h-3 w-3" />
@@ -122,19 +145,20 @@ export default function Cart() {
                         <AnimatePresence mode="wait">
                           <motion.div
                             key={item.quantity}
-                            initial={{ opacity: 0, y: -5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 5 }}
-                            transition={{ duration: 0.12 }}
+                            initial={{ opacity: 0, y: -6, scale: 0.8 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 6, scale: 0.8 }}
+                            transition={{ duration: 0.16, ease: EASE }}
                             className="w-8 text-center font-black font-mono text-sm"
                           >
                             {item.quantity}
                           </motion.div>
                         </AnimatePresence>
                         <motion.button
-                          whileTap={{ scale: 0.8 }}
+                          whileTap={{ scale: 0.78 }}
+                          whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
                           onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
-                          className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
+                          className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                           disabled={updateItem.isPending}
                         >
                           <Plus className="h-3 w-3" />
@@ -142,8 +166,9 @@ export default function Cart() {
                       </div>
                       <motion.div
                         key={item.price * item.quantity}
-                        initial={{ scale: 1.15, color: "#ff6600" }}
+                        initial={{ scale: 1.18, color: "#ffcc00" }}
                         animate={{ scale: 1, color: "#ff6600" }}
+                        transition={{ duration: 0.35, ease: EASE }}
                         className="font-mono font-black text-lg text-primary"
                       >
                         AED {(item.price * item.quantity).toFixed(2)}
@@ -153,11 +178,12 @@ export default function Cart() {
 
                   {/* Remove */}
                   <motion.button
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.25, color: "#ef4444" }}
+                    whileTap={{ scale: 0.88 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 20 }}
                     onClick={() => handleRemove(item.id)}
                     disabled={removeItem.isPending}
-                    className="absolute top-4 right-4 text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-md hover:bg-destructive/10"
+                    className="absolute top-4 right-4 text-muted-foreground transition-colors p-1.5 rounded-md hover:bg-destructive/10"
                     aria-label="Remove item"
                     data-testid={`button-remove-${item.id}`}
                   >
@@ -168,13 +194,13 @@ export default function Cart() {
             </AnimatePresence>
           </div>
 
-          {/* Order Summary */}
+          {/* Summary */}
           <div className="lg:col-span-1">
             <motion.div
               className="bg-card border border-border rounded-lg p-6 sticky top-24"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              initial={{ opacity: 0, y: 28, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ delay: 0.22, duration: 0.6, ease: EASE }}
             >
               <h2 className="text-xl font-black uppercase tracking-wider mb-6 pb-4 border-b border-border">Order Summary</h2>
 
@@ -192,21 +218,29 @@ export default function Cart() {
               <div className="border-t border-border pt-4 mb-8">
                 <div className="flex justify-between items-end">
                   <span className="font-black uppercase tracking-wider">Total</span>
-                  <motion.span
-                    key={cart.total}
-                    initial={{ scale: 1.1 }}
-                    animate={{ scale: 1 }}
-                    className="font-mono text-3xl font-black text-primary"
-                  >
-                    AED {(cart.total + 25).toFixed(2)}
-                  </motion.span>
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={cart.total}
+                      initial={{ opacity: 0, y: -8, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.28, ease: EASE }}
+                      className="font-mono text-3xl font-black text-primary"
+                    >
+                      AED {(cart.total + 25).toFixed(2)}
+                    </motion.span>
+                  </AnimatePresence>
                 </div>
               </div>
 
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <motion.div
+                whileHover={{ scale: 1.03, filter: "brightness(1.08)" }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 380, damping: 22 }}
+              >
                 <Button
                   size="lg"
-                  className="w-full h-14 font-black uppercase tracking-widest flex items-center justify-center gap-2 fire-gradient border-none shadow-[0_0_20px_rgba(255,102,0,0.3)] hover:shadow-[0_0_35px_rgba(255,102,0,0.5)] transition-all"
+                  className="w-full h-14 font-black uppercase tracking-widest flex items-center justify-center gap-2 fire-gradient border-none shadow-[0_0_24px_rgba(255,102,0,0.35)] hover:shadow-[0_0_48px_rgba(255,102,0,0.58)] transition-shadow duration-300"
                   onClick={() => setLocation("/checkout")}
                   data-testid="button-checkout"
                 >
