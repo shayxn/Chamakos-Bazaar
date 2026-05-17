@@ -52,7 +52,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 z-50">
             <motion.div whileHover={{ scale: 1.03 }} transition={{ type: "spring", stiffness: 300 }}>
-              <img src="/chamak-logo.png" alt="Chamak Street" className="h-10 w-auto object-contain" />
+              <img src="/chamak-logo.png" alt="Chamak Street" className="h-14 w-auto object-contain" />
             </motion.div>
           </Link>
 

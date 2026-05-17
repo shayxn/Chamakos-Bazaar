@@ -185,7 +185,7 @@ export default function Cart() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-mono text-primary font-bold">Free</span>
+                  <span className="font-mono font-bold text-primary">AED 25.00</span>
                 </div>
               </div>
 
@@ -198,7 +198,7 @@ export default function Cart() {
                     animate={{ scale: 1 }}
                     className="font-mono text-3xl font-black text-primary"
                   >
-                    AED {cart.total.toFixed(2)}
+                    AED {(cart.total + 25).toFixed(2)}
                   </motion.span>
                 </div>
               </div>

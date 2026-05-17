@@ -56,7 +56,8 @@ router.post("/orders", async (req, res) => {
     }));
   }
 
-  const total = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const SHIPPING_FEE = 25;
+  const total = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0) + SHIPPING_FEE;
 
   const [order] = await db.insert(ordersTable).values({
     ...parsed.data,
