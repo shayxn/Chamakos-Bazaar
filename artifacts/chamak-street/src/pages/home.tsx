@@ -111,43 +111,34 @@ export default function Home() {
 
               {/* Headline */}
               <motion.h1
-                className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-6"
+                className="text-[2.4rem] leading-[1] sm:text-5xl md:text-8xl font-black uppercase tracking-tight md:tracking-tighter mb-6"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                {"Ignite the".split("").map((char, i) => (
-                  <motion.span
-                    key={i}
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.2 + i * 0.025, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ display: char === " " ? "inline" : "inline-block" }}
-                  >
-                    {char === " " ? "\u00A0" : char}
-                  </motion.span>
-                ))}
-                <br />
-                <span className="gradient-text">
-                  {"Streets.".split("").map((char, i) => (
-                    <motion.span
-                      key={i}
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.45, delay: 0.55 + i * 0.04, ease: [0.22, 1, 0.36, 1] }}
-                      style={{ display: "inline-block" }}
-                    >
-                      {char}
-                    </motion.span>
-                  ))}
-                </span>
+                <motion.span
+                  className="block"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  Ignite the
+                </motion.span>
+                <motion.span
+                  className="gradient-text block"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  Streets.
+                </motion.span>
               </motion.h1>
 
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.9 }}
-                className="text-lg md:text-xl text-muted-foreground mb-10 max-w-lg leading-relaxed"
+                className="text-base md:text-xl text-muted-foreground mb-8 max-w-lg leading-relaxed"
               >
                 Bold aesthetic. Unmatched drip. Dress like you own the block with the new Chamako collection.
               </motion.p>
@@ -162,7 +153,7 @@ export default function Home() {
                   <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
                     <Button
                       size="lg"
-                      className="text-lg h-14 px-10 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_30px_rgba(255,102,0,0.45)] hover:shadow-[0_0_45px_rgba(255,102,0,0.65)] transition-all duration-300"
+                      className="text-base md:text-lg h-12 md:h-14 px-7 md:px-10 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_30px_rgba(255,102,0,0.45)] hover:shadow-[0_0_45px_rgba(255,102,0,0.65)] transition-all duration-300"
                     >
                       Shop Now <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
@@ -219,7 +210,7 @@ export default function Home() {
           <div className="container px-4 mx-auto">
             <AnimatedSection>
               <div className="mb-14">
-                <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">The Essentials</h2>
+                <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">The Essentials</h2>
                 <p className="text-muted-foreground mt-2 text-lg">Build your uniform.</p>
               </div>
             </AnimatedSection>
@@ -274,7 +265,7 @@ export default function Home() {
             <AnimatedSection>
               <div className="flex justify-between items-end mb-14">
                 <div>
-                  <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
+                  <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">
                     Heat <span className="gradient-text">Check</span>
                   </h2>
                   <p className="text-muted-foreground mt-2">The hottest pieces right now.</p>
@@ -351,7 +342,7 @@ export default function Home() {
               style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,102,0,0.1), transparent 70%)" }}
             />
             <div className="container mx-auto px-4 text-center">
-              <p className="text-5xl md:text-7xl font-black uppercase tracking-tighter gradient-text leading-none">
+              <p className="text-3xl sm:text-4xl md:text-7xl font-black uppercase tracking-tight md:tracking-tighter gradient-text leading-tight">
                 "Stay Dripped.<br />Stay Dangerous."
               </p>
               <p className="text-muted-foreground mt-6 text-lg">— Chamako</p>

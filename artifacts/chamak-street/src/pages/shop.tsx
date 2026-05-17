@@ -42,7 +42,7 @@ export default function Shop() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter">The Shop</h1>
+            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter">The Shop</h1>
             <p className="text-muted-foreground mt-2 text-lg">Latest drops and street essentials.</p>
           </motion.div>
 
