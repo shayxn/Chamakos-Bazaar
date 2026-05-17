@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { ChamakLogo } from "@/components/chamak-logo";
+
 import { Flame } from "lucide-react";
 
 export default function Login() {
@@ -73,7 +73,7 @@ export default function Login() {
         <div className="absolute top-0 left-0 right-0 h-0.5 fire-gradient rounded-t-xl" />
 
         <div className="flex justify-center mb-8">
-          <ChamakLogo size="md" animate={true} />
+          <img src="/chamak-logo.png" alt="Chamak Street" className="h-16 w-auto object-contain" />
         </div>
 
         <div className="flex items-center gap-2 justify-center mb-8">

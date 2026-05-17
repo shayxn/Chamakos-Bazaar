@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useGetCart, useGetMe, useLogout } from "@workspace/api-client-react";
-import { ChamakLogo } from "./chamak-logo";
+
 import { ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
@@ -52,7 +52,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 z-50">
             <motion.div whileHover={{ scale: 1.03 }} transition={{ type: "spring", stiffness: 300 }}>
-              <ChamakLogo size="sm" animate={true} />
+              <img src="/chamak-logo.png" alt="Chamak Street" className="h-10 w-auto object-contain" />
             </motion.div>
           </Link>
 
@@ -182,7 +182,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-border mt-20 py-12 bg-card">
         <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <ChamakLogo size="sm" animate={false} className="mb-4 opacity-70" />
+            <img src="/chamak-logo.png" alt="Chamak Street" className="h-10 w-auto object-contain mb-4 opacity-70" />
             <p className="text-muted-foreground text-sm max-w-sm">
               Premium streetwear for those who walk their own path.
               Bold designs, unmatched swagger.
