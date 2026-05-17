@@ -21,7 +21,7 @@ export default function AdminDashboard() {
             <DollarSign className="w-32 h-32" />
           </div>
           <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-2">Total Revenue</p>
-          <p className="text-4xl font-black font-mono text-primary">${stats.totalRevenue.toFixed(2)}</p>
+          <p className="text-4xl font-black font-mono text-primary">AED {stats.totalRevenue.toFixed(2)}</p>
         </div>
         
         <div className="bg-card border border-border p-6 rounded-lg relative overflow-hidden">
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
                     <p className="text-sm text-muted-foreground">{order.customerName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono font-bold text-primary">${order.total.toFixed(2)}</p>
+                    <p className="font-mono font-bold text-primary">AED {order.total.toFixed(2)}</p>
                     <span className="text-xs uppercase tracking-wider bg-secondary px-2 py-1 rounded mt-1 inline-block">
                       {order.status}
                     </span>

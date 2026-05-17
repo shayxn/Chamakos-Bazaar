@@ -181,7 +181,7 @@ export default function AdminProducts() {
                   <p className="text-xs uppercase text-muted-foreground tracking-widest">{product.categoryName}</p>
                   <h3 className="font-bold leading-tight line-clamp-1">{product.name}</h3>
                 </div>
-                <p className="font-mono font-bold text-primary">${product.price.toFixed(2)}</p>
+                <p className="font-mono font-bold text-primary">AED {product.price.toFixed(2)}</p>
               </div>
               <div className="mt-auto pt-4 flex justify-between items-center border-t border-border/50">
                 <div className={`font-mono text-xs font-bold px-2 py-1 rounded ${product.stock > 10 ? 'bg-secondary text-foreground' : product.stock > 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-destructive/20 text-destructive'}`}>

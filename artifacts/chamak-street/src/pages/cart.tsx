@@ -146,7 +146,7 @@ export default function Cart() {
                         animate={{ scale: 1, color: "#ff6600" }}
                         className="font-mono font-black text-lg text-primary"
                       >
-                        ${(item.price * item.quantity).toFixed(2)}
+                        AED {(item.price * item.quantity).toFixed(2)}
                       </motion.div>
                     </div>
                   </div>
@@ -181,7 +181,7 @@ export default function Cart() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-mono font-bold">${cart.total.toFixed(2)}</span>
+                  <span className="font-mono font-bold">AED {cart.total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
@@ -198,7 +198,7 @@ export default function Cart() {
                     animate={{ scale: 1 }}
                     className="font-mono text-3xl font-black text-primary"
                   >
-                    ${cart.total.toFixed(2)}
+                    AED {cart.total.toFixed(2)}
                   </motion.span>
                 </div>
               </div>

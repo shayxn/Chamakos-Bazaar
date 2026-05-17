@@ -185,7 +185,7 @@ export default function Checkout() {
                         </p>
                       </div>
                     </div>
-                    <div className="font-mono font-bold text-sm shrink-0">${(item.price * item.quantity).toFixed(2)}</div>
+                    <div className="font-mono font-bold text-sm shrink-0">AED {(item.price * item.quantity).toFixed(2)}</div>
                   </motion.div>
                 ))}
               </div>
@@ -193,7 +193,7 @@ export default function Checkout() {
               <div className="border-t border-border pt-4">
                 <div className="flex justify-between items-end">
                   <span className="font-black uppercase tracking-wider">Total</span>
-                  <span className="font-mono text-2xl font-black text-primary">${cart.total.toFixed(2)}</span>
+                  <span className="font-mono text-2xl font-black text-primary">AED {cart.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>

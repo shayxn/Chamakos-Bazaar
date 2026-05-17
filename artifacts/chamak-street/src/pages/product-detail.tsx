@@ -143,7 +143,7 @@ export default function ProductDetail() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              ${product.price.toFixed(2)}
+              AED {product.price.toFixed(2)}
             </motion.div>
 
             {product.description && (

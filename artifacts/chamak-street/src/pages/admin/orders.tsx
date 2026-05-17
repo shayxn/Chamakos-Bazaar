@@ -50,7 +50,7 @@ export default function AdminOrders() {
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 font-mono font-bold text-primary">
-                    ${order.total.toFixed(2)}
+                    AED {order.total.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">
                     {order.items.length} items

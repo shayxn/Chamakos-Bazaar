@@ -81,7 +81,7 @@ export default function OrderConfirmation() {
             </div>
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-black mb-1">Total</p>
-              <p className="font-mono font-black text-2xl text-primary">${order.total.toFixed(2)}</p>
+              <p className="font-mono font-black text-2xl text-primary">AED {order.total.toFixed(2)}</p>
             </div>
           </div>
 
@@ -107,7 +107,7 @@ export default function OrderConfirmation() {
                   {item.productName}
                   {item.size ? ` (${item.size})` : ""}
                 </span>
-                <span className="font-mono font-bold text-primary">${(item.price * item.quantity).toFixed(2)}</span>
+                <span className="font-mono font-bold text-primary">AED {(item.price * item.quantity).toFixed(2)}</span>
               </motion.div>
             ))}
           </div>

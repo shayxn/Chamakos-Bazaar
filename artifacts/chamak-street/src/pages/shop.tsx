@@ -188,7 +188,7 @@ export default function Shop() {
                           <div className="space-y-1 px-0.5">
                             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{product.categoryName}</p>
                             <h3 className="font-bold text-base leading-tight group-hover:text-primary transition-colors">{product.name}</h3>
-                            <p className="font-mono text-primary font-bold text-lg">${product.price.toFixed(2)}</p>
+                            <p className="font-mono text-primary font-bold text-lg">AED {product.price.toFixed(2)}</p>
                           </div>
                         </motion.div>
                       </Link>
