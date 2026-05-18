@@ -197,9 +197,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div>
             <h4 className="font-bold uppercase tracking-wider mb-4">Legal</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Terms of Service</li>
-              <li>Privacy Policy</li>
-              <li>Returns & Exchanges</li>
+              <li>
+  <Link href="/terms" className="hover:text-primary transition-colors">
+    Terms of Policy
+  </Link>
+</li>
+<li>Privacy Policy</li>
+<li>Returns & Exchanges</li>
             </ul>
           </div>
         </div>
