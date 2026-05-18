@@ -5,7 +5,15 @@
   "outputDirectory": "artifacts/chamak-street/dist/public",
   "rewrites": [
     {
-      "source": "/((?!api/.*).*)",
+      "source": "/api/:path*",
+      "destination": "https://chamakos-bazaar.onrender.com/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://chamakos-bazaar.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
