@@ -16,6 +16,7 @@ import AdminProducts from "@/pages/admin/products";
 import AdminOrders from "@/pages/admin/orders";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
+import Terms from "@/pages/terms";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ function MainRouter() {
             <Route path="/cart" component={Cart} />
             <Route path="/checkout" component={Checkout} />
             <Route path="/order/:id" component={OrderConfirmation} />
+            <Route path="/terms" component={Terms} />
             <Route component={NotFound} />
           </Switch>
         </Layout>
