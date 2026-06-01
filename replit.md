@@ -11,6 +11,7 @@ A bold urban streetwear e-commerce site featuring the camel mascot Chamako — w
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string, `SESSION_SECRET` — session signing secret
+- Image uploads use Cloudinary in production. Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET`; optionally set `CLOUDINARY_UPLOAD_FOLDER` to override the default `chamakos-bazaar/products` folder.
 
 ## Admin Credentials
 
@@ -43,6 +44,7 @@ A bold urban streetwear e-commerce site featuring the camel mascot Chamako — w
 - Admin check: `isAdmin` field on user record
 - All prices stored as numeric strings in DB, returned as numbers in API
 - Product images are optional — "No Image" placeholder shown when null
+- Admin product image uploads return Cloudinary `secure_url` values when Cloudinary env vars are configured. Without those env vars, the API falls back to local `/uploads` storage for development only.
 
 ## Product
 
