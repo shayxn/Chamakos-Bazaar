@@ -27,20 +27,20 @@ type CheckoutValues = z.infer<typeof checkoutSchema>;
 
 type PaymentMethod = "cod" | "apple_pay" | "ziina";
 
-async function createZiinaPaymentIntent(orderId: number): Promise<string> {
-  const response = await fetch("/api/payments/ziina-intent", {
+async function createZiinaCheckout(values: CheckoutValues): Promise<string> {
+  const response = await fetch("/api/payments/ziina-checkout", {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ orderId }),
+    body: JSON.stringify(values),
   });
 
-  const data = await response.json() as { redirectUrl?: string; error?: string };
-  if (!response.ok || !data.redirectUrl) {
-    throw new Error(data.error ?? "Ziina payment link could not be created");
+  const result = await response.json() as { redirectUrl?: string; error?: string };
+  if (!response.ok || !result.redirectUrl) {
+    throw new Error(result.error ?? "Ziina payment link could not be created");
   }
 
-  return data.redirectUrl;
+  return result.redirectUrl;
 }
 
 export default function Checkout() {
@@ -69,29 +69,35 @@ export default function Checkout() {
   const subtotal = cart.total;
   const grandTotal = subtotal + SHIPPING_FEE;
 
-  const onSubmit = (data: CheckoutValues) => {
+  const createStandardOrder = (data: CheckoutValues) => {
     setPaymentError(null);
     createOrder.mutate(
       { data },
       {
-        onSuccess: async (order) => {
+        onSuccess: (order) => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
-          if (paymentMethod === "ziina") {
-            setIsRedirectingToZiina(true);
-            try {
-              const redirectUrl = await createZiinaPaymentIntent(order.id);
-              window.location.assign(redirectUrl);
-            } catch (error) {
-              setIsRedirectingToZiina(false);
-              setPaymentError(error instanceof Error ? error.message : "Ziina payment failed to start");
-            }
-            return;
-          }
-
           setLocation(`/order/${order.id}`);
         }
       }
     );
+  };
+
+  const onSubmit = async (data: CheckoutValues) => {
+    setPaymentError(null);
+    if (paymentMethod === "ziina") {
+      setIsRedirectingToZiina(true);
+      try {
+        const redirectUrl = await createZiinaCheckout(data);
+        queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
+        window.location.assign(redirectUrl);
+      } catch (error) {
+        setIsRedirectingToZiina(false);
+        setPaymentError(error instanceof Error ? error.message : "Ziina payment failed to start");
+      }
+      return;
+    }
+
+    createStandardOrder(data);
   };
 
   return (

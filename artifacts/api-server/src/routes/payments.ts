@@ -1,5 +1,5 @@
 import { Router, type Request } from "express";
-import { db, ordersTable } from "@workspace/db";
+import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
 
@@ -13,6 +13,17 @@ type ZiinaPaymentIntentResponse = {
     message?: string;
     code?: string;
   };
+};
+
+type CheckoutBody = {
+  customerName?: unknown;
+  customerEmail?: unknown;
+  customerAddress?: unknown;
+};
+
+type OrderForPayment = {
+  id: number;
+  total: string;
 };
 
 const router = Router();
@@ -34,29 +45,50 @@ function getSiteBaseUrl(req: Request): string {
   return `${req.protocol}://${req.get("host")}`;
 }
 
-router.post("/payments/ziina-intent", async (req, res) => {
-  const orderId = getOrderId(req.body);
-  if (!orderId) {
-    res.status(400).json({ error: "Invalid input" });
-    return;
-  }
+function getCheckoutBody(body: unknown): { customerName: string; customerEmail: string; customerAddress: string } | null {
+  if (!body || typeof body !== "object") return null;
+  const value = body as CheckoutBody;
+  if (typeof value.customerName !== "string" || value.customerName.trim().length < 2) return null;
+  if (typeof value.customerEmail !== "string" || value.customerEmail.trim().length < 7) return null;
+  if (typeof value.customerAddress !== "string" || value.customerAddress.trim().length < 5) return null;
+  return {
+    customerName: value.customerName.trim(),
+    customerEmail: value.customerEmail.trim(),
+    customerAddress: value.customerAddress.trim(),
+  };
+}
 
+async function getCartItems(sessionId: string) {
+  const rawItems = await db
+    .select({
+      productId: cartItemsTable.productId,
+      productName: productsTable.name,
+      price: productsTable.price,
+      quantity: cartItemsTable.quantity,
+      size: cartItemsTable.size,
+    })
+    .from(cartItemsTable)
+    .leftJoin(productsTable, eq(cartItemsTable.productId, productsTable.id))
+    .where(eq(cartItemsTable.sessionId, sessionId));
+
+  return rawItems.map((item) => ({
+    productId: item.productId,
+    productName: item.productName ?? "Unknown",
+    price: Number(item.price ?? 0),
+    quantity: item.quantity,
+    size: item.size ?? null,
+  }));
+}
+
+async function createZiinaIntent(req: Request, order: OrderForPayment): Promise<ZiinaPaymentIntentResponse> {
   const accessToken = process.env.ZIINA_ACCESS_TOKEN;
   if (!accessToken) {
-    res.status(500).json({ error: "Ziina is not configured" });
-    return;
-  }
-
-  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
-  if (!order) {
-    res.status(404).json({ error: "Order not found" });
-    return;
+    throw new Error("Ziina is not configured");
   }
 
   const amount = Math.round(Number(order.total) * 100);
   if (!Number.isFinite(amount) || amount < 200) {
-    res.status(400).json({ error: "Ziina payments require a minimum amount of AED 2.00" });
-    return;
+    throw new Error("Ziina payments require a minimum amount of AED 2.00");
   }
 
   const siteBaseUrl = getSiteBaseUrl(req);
@@ -72,29 +104,99 @@ router.post("/payments/ziina-intent", async (req, res) => {
     allow_tips: false,
   };
 
+  const response = await fetch(ZIINA_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = (await response.json()) as ZiinaPaymentIntentResponse;
+  if (!response.ok) {
+    logger.error({ status: response.status, data }, "Ziina payment intent failed");
+    throw new Error(data.latest_error?.message ?? "Ziina payment intent failed");
+  }
+
+  if (!data.redirect_url) {
+    logger.error({ data }, "Ziina payment intent response missing redirect_url");
+    throw new Error("Ziina payment link was not returned");
+  }
+
+  return data;
+}
+
+router.post("/payments/ziina-checkout", async (req, res) => {
+  const parsed = getCheckoutBody(req.body);
+  if (!parsed) {
+    res.status(400).json({ error: "Invalid input" });
+    return;
+  }
+
+  const session = req.session as Record<string, unknown>;
+  const sessionId = session.cartId as string | undefined;
+  if (!sessionId) {
+    res.status(400).json({ error: "Cart is empty" });
+    return;
+  }
+
+  const cartItems = await getCartItems(sessionId);
+  if (cartItems.length === 0) {
+    res.status(400).json({ error: "Cart is empty" });
+    return;
+  }
+
+  const shippingFee = 25;
+  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) + shippingFee;
+
+  const [order] = await db.insert(ordersTable).values({
+    ...parsed,
+    total: String(total),
+    status: "pending",
+  }).returning();
+
+  await db.insert(orderItemsTable).values(
+    cartItems.map((item) => ({
+      orderId: order.id,
+      productId: item.productId,
+      productName: item.productName,
+      price: String(item.price),
+      quantity: item.quantity,
+      size: item.size,
+    })),
+  );
+
   try {
-    const response = await fetch(ZIINA_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
+    const data = await createZiinaIntent(req, order);
+    await db.delete(cartItemsTable).where(eq(cartItemsTable.sessionId, sessionId));
+    res.status(201).json({
+      orderId: order.id,
+      id: data.id,
+      redirectUrl: data.redirect_url,
+      embeddedUrl: data.embedded_url ?? null,
     });
+  } catch (error) {
+    logger.error({ err: error, orderId: order.id }, "Ziina checkout failed");
+    res.status(502).json({ error: error instanceof Error ? error.message : "Ziina payment request failed" });
+  }
+});
 
-    const data = (await response.json()) as ZiinaPaymentIntentResponse;
-    if (!response.ok) {
-      logger.error({ status: response.status, data }, "Ziina payment intent failed");
-      res.status(502).json({ error: data.latest_error?.message ?? "Ziina payment intent failed" });
-      return;
-    }
+router.post("/payments/ziina-intent", async (req, res) => {
+  const orderId = getOrderId(req.body);
+  if (!orderId) {
+    res.status(400).json({ error: "Invalid input" });
+    return;
+  }
 
-    if (!data.redirect_url) {
-      logger.error({ data }, "Ziina payment intent response missing redirect_url");
-      res.status(502).json({ error: "Ziina payment link was not returned" });
-      return;
-    }
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
 
+  try {
+    const data = await createZiinaIntent(req, order);
     res.status(201).json({
       id: data.id,
       redirectUrl: data.redirect_url,
