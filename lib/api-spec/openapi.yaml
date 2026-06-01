@@ -19,6 +19,8 @@ tags:
     description: Shopping cart
   - name: orders
     description: Order management
+  - name: payments
+    description: Payment processing
   - name: store
     description: Store stats and info
 paths:
@@ -393,6 +395,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/Order"
 
+  /payments/ziina-intent:
+    post:
+      operationId: createZiinaPaymentIntent
+      tags: [payments]
+      summary: Create a Ziina payment intent for an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ZiinaPaymentIntentInput"
+      responses:
+        "201":
+          description: Created Ziina payment intent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ZiinaPaymentIntent"
+
   /store/stats:
     get:
       operationId: getStoreStats
@@ -637,6 +658,24 @@ components:
         status:
           type: string
           enum: [pending, processing, shipped, delivered, cancelled]
+
+    ZiinaPaymentIntentInput:
+      type: object
+      required: [orderId]
+      properties:
+        orderId:
+          type: integer
+
+    ZiinaPaymentIntent:
+      type: object
+      required: [id, redirectUrl]
+      properties:
+        id:
+          type: string
+        redirectUrl:
+          type: string
+        embeddedUrl:
+          type: ["string", "null"]
 
     StoreStats:
       type: object
