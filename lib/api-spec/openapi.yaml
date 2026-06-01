@@ -414,6 +414,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/ZiinaPaymentIntent"
 
+  /payments/ziina-checkout:
+    post:
+      operationId: createZiinaCheckout
+      tags: [payments]
+      summary: Create an order and Ziina payment intent for checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created order and Ziina payment intent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ZiinaCheckout"
+
   /store/stats:
     get:
       operationId: getStoreStats
@@ -676,6 +695,15 @@ components:
           type: string
         embeddedUrl:
           type: ["string", "null"]
+
+    ZiinaCheckout:
+      allOf:
+        - $ref: "#/components/schemas/ZiinaPaymentIntent"
+        - type: object
+          required: [orderId]
+          properties:
+            orderId:
+              type: integer
 
     StoreStats:
       type: object
