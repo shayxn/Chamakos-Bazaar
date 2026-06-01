@@ -25,7 +25,23 @@ const checkoutSchema = z.object({
 
 type CheckoutValues = z.infer<typeof checkoutSchema>;
 
-type PaymentMethod = "cod" | "apple_pay" | "tabby";
+type PaymentMethod = "cod" | "apple_pay" | "ziina";
+
+async function createZiinaPaymentIntent(orderId: number): Promise<string> {
+  const response = await fetch("/api/payments/ziina-intent", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId }),
+  });
+
+  const data = await response.json() as { redirectUrl?: string; error?: string };
+  if (!response.ok || !data.redirectUrl) {
+    throw new Error(data.error ?? "Ziina payment link could not be created");
+  }
+
+  return data.redirectUrl;
+}
 
 export default function Checkout() {
   const { data: cart, isLoading } = useGetCart({ query: { queryKey: getGetCartQueryKey() } });
@@ -34,6 +50,8 @@ export default function Checkout() {
   const [, setLocation] = useLocation();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
   const [showBanner, setShowBanner] = useState(true);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [isRedirectingToZiina, setIsRedirectingToZiina] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setShowBanner(false), 5000);
@@ -52,11 +70,24 @@ export default function Checkout() {
   const grandTotal = subtotal + SHIPPING_FEE;
 
   const onSubmit = (data: CheckoutValues) => {
+    setPaymentError(null);
     createOrder.mutate(
       { data },
       {
-        onSuccess: (order) => {
+        onSuccess: async (order) => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
+          if (paymentMethod === "ziina") {
+            setIsRedirectingToZiina(true);
+            try {
+              const redirectUrl = await createZiinaPaymentIntent(order.id);
+              window.location.assign(redirectUrl);
+            } catch (error) {
+              setIsRedirectingToZiina(false);
+              setPaymentError(error instanceof Error ? error.message : "Ziina payment failed to start");
+            }
+            return;
+          }
+
           setLocation(`/order/${order.id}`);
         }
       }
@@ -202,24 +233,27 @@ export default function Checkout() {
                       </div>
                     </button>
 
-                    {/* Tabby */}
+                    {/* Ziina */}
                     <button
                       type="button"
-                      onClick={() => setPaymentMethod("tabby")}
-                      className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left ${paymentMethod === "tabby" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
+                      onClick={() => setPaymentMethod("ziina")}
+                      className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left ${paymentMethod === "ziina" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
                     >
-                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${paymentMethod === "tabby" ? "border-primary" : "border-muted-foreground"}`}>
-                        {paymentMethod === "tabby" && <div className="w-2 h-2 rounded-full bg-primary" />}
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${paymentMethod === "ziina" ? "border-primary" : "border-muted-foreground"}`}>
+                        {paymentMethod === "ziina" && <div className="w-2 h-2 rounded-full bg-primary" />}
                       </div>
                       <div className="flex items-center gap-2 flex-1">
-                        <div className="bg-[#3AAFA9] text-white font-black text-xs px-2 py-1 rounded shrink-0">tabby</div>
+                        <div className="bg-[#6C4CFF] text-white font-black text-xs px-2 py-1 rounded shrink-0">ziina</div>
                         <div>
-                          <p className="font-black uppercase tracking-wider text-sm">Tabby — Buy Now, Pay Later</p>
-                          <p className="text-xs text-muted-foreground">Split into 4 interest-free payments</p>
+                          <p className="font-black uppercase tracking-wider text-sm">Ziina Online Payment</p>
+                          <p className="text-xs text-muted-foreground">Pay securely by card, Apple Pay, or Google Pay</p>
                         </div>
                       </div>
                     </button>
                   </div>
+                  {paymentError && (
+                    <p className="text-xs font-bold text-destructive">{paymentError}</p>
+                  )}
                 </motion.div>
 
                 <motion.div
@@ -231,11 +265,11 @@ export default function Checkout() {
                       type="submit"
                       size="lg"
                       className="w-full h-14 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(255,102,0,0.3)] hover:shadow-[0_0_35px_rgba(255,102,0,0.55)] transition-all"
-                      disabled={createOrder.isPending}
+                      disabled={createOrder.isPending || isRedirectingToZiina}
                     >
-                      {createOrder.isPending ? (
+                      {createOrder.isPending || isRedirectingToZiina ? (
                         <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>
-                          Processing...
+                          {isRedirectingToZiina ? "Opening Ziina..." : "Processing..."}
                         </motion.span>
                       ) : (
                         <span className="flex items-center gap-2">
