@@ -25,7 +25,7 @@ const checkoutSchema = z.object({
 
 type CheckoutValues = z.infer<typeof checkoutSchema>;
 
-type PaymentMethod = "cod" | "apple_pay" | "ziina";
+type PaymentMethod = "cod" | "ziina";
 
 async function createZiinaCheckout(values: CheckoutValues): Promise<string> {
   const response = await fetch("/api/payments/ziina-checkout", {
@@ -218,27 +218,6 @@ export default function Checkout() {
                       </div>
                     </button>
 
-                    {/* Apple Pay */}
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("apple_pay")}
-                      className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left ${paymentMethod === "apple_pay" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
-                    >
-                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${paymentMethod === "apple_pay" ? "border-primary" : "border-muted-foreground"}`}>
-                        {paymentMethod === "apple_pay" && <div className="w-2 h-2 rounded-full bg-primary" />}
-                      </div>
-                      <div className="flex items-center gap-2 flex-1">
-                        <svg viewBox="0 0 814 1000" className="h-5 w-5 fill-white shrink-0" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-157.2-100.3C203.9 795.6 162 709.3 162 626.1c0-171.1 111.1-261.3 219.9-261.3 54.4 0 99.5 35.8 133.4 35.8 32.3 0 83.1-38.2 145.5-38.2 21.9 0 108.2 2 159.7 77.8z"/>
-                          <path d="M568.3 63.9c-.6-4.9-.6-9.9-.6-14.8 0-63.3 33.2-127 74.3-168.8 42.2-43.2 115.5-73.3 175-73.3.6 4.9.6 9.9.6 14.8 0 63.9-33.2 127.3-74.3 168.8-41.5 43.2-115.1 73.3-175 73.3z"/>
-                        </svg>
-                        <div>
-                          <p className="font-black uppercase tracking-wider text-sm">Apple Pay</p>
-                          <p className="text-xs text-muted-foreground">Fast & secure</p>
-                        </div>
-                      </div>
-                    </button>
-
                     {/* Ziina */}
                     <button
                       type="button"
@@ -252,7 +231,7 @@ export default function Checkout() {
                         <div className="bg-[#6C4CFF] text-white font-black text-xs px-2 py-1 rounded shrink-0">ziina</div>
                         <div>
                           <p className="font-black uppercase tracking-wider text-sm">Ziina Online Payment</p>
-                          <p className="text-xs text-muted-foreground">Pay securely by card, Apple Pay, or Google Pay</p>
+                          <p className="text-xs text-muted-foreground">Pay securely online through Ziina</p>
                         </div>
                       </div>
                     </button>
