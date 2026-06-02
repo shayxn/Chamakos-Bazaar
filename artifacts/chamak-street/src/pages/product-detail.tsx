@@ -8,6 +8,7 @@ import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
+import { parseProductMedia } from "@/lib/product-media";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -39,6 +40,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [addedPulse, setAddedPulse] = useState(false);
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
 
   const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()) : [];
 
@@ -85,6 +87,8 @@ export default function ProductDetail() {
   }
 
   const isOutOfStock = product.stock === 0;
+  const mediaItems = parseProductMedia(product.imageUrl);
+  const selectedMedia = mediaItems[selectedMediaIndex] ?? mediaItems[0] ?? null;
 
   return (
     <PageTransition>
@@ -103,33 +107,66 @@ export default function ProductDetail() {
         </MotionItem>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-          {/* Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 1.04, filter: "blur(8px)" }}
-            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-            transition={{ duration: 0.75, ease: EASE }}
-            className="relative aspect-square md:aspect-[4/5] bg-card rounded-lg overflow-hidden border border-border group"
-          >
-            {product.imageUrl ? (
-              <motion.img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-full object-cover object-center"
-                whileHover={{ scale: 1.06 }}
-                transition={{ duration: 0.65, ease: EASE }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono">No Image</div>
-            )}
-            {/* Glow */}
+          {/* Media gallery */}
+          <div className="space-y-3">
             <motion.div
-              className="absolute inset-0 pointer-events-none"
-              initial={{ opacity: 0 }}
-              whileHover={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              style={{ background: "radial-gradient(ellipse at 50% 85%, rgba(255,102,0,0.25), transparent 65%)" }}
-            />
-          </motion.div>
+              initial={{ opacity: 0, scale: 1.04, filter: "blur(8px)" }}
+              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              transition={{ duration: 0.75, ease: EASE }}
+              className="relative aspect-square md:aspect-[4/5] bg-card rounded-lg overflow-hidden border border-border group"
+            >
+              {selectedMedia ? (
+                selectedMedia.type === "video" ? (
+                  <video
+                    src={selectedMedia.url}
+                    className="w-full h-full object-cover object-center"
+                    controls
+                    playsInline
+                    preload="metadata"
+                  />
+                ) : (
+                  <motion.img
+                    src={selectedMedia.url}
+                    alt={product.name}
+                    className="w-full h-full object-cover object-center"
+                    whileHover={{ scale: 1.06 }}
+                    transition={{ duration: 0.65, ease: EASE }}
+                  />
+                )
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono">No Image</div>
+              )}
+              {/* Glow */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                initial={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                style={{ background: "radial-gradient(ellipse at 50% 85%, rgba(255,102,0,0.25), transparent 65%)" }}
+              />
+            </motion.div>
+            {mediaItems.length > 1 && (
+              <div className="grid grid-cols-5 gap-2">
+                {mediaItems.map((item, index) => (
+                  <button
+                    key={`${item.url}-${index}`}
+                    type="button"
+                    onClick={() => setSelectedMediaIndex(index)}
+                    className={`relative aspect-square overflow-hidden rounded-md border bg-card ${selectedMediaIndex === index ? "border-primary" : "border-border"}`}
+                  >
+                    {item.type === "video" ? (
+                      <>
+                        <video src={item.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                        <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-black uppercase text-white">Video</span>
+                      </>
+                    ) : (
+                      <img src={item.url} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Info */}
           <div className="flex flex-col justify-center">

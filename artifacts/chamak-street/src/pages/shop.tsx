@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { PageTransition, RevealSection } from "@/components/page-transition";
+import { getPrimaryProductMedia } from "@/lib/product-media";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -146,7 +147,9 @@ export default function Shop() {
                   exit="exit"
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
-                  {products?.map((product) => (
+                  {products?.map((product) => {
+                    const primaryMedia = getPrimaryProductMedia(product.imageUrl);
+                    return (
                     <motion.div key={product.id} variants={cardVariants} layout>
                       <Link href={`/product/${product.id}`}>
                         <motion.div
@@ -156,14 +159,24 @@ export default function Shop() {
                           data-testid={`card-product-${product.id}`}
                         >
                           <div className="relative aspect-square mb-4 overflow-hidden rounded-lg bg-card border border-border group-hover:border-primary/40 transition-colors duration-300 group-hover:shadow-[0_16px_40px_rgba(255,102,0,0.18)]" style={{ transition: "box-shadow 0.4s ease, border-color 0.25s" }}>
-                            {product.imageUrl ? (
+                            {primaryMedia ? (
+                              primaryMedia.type === "video" ? (
+                                <video
+                                  src={primaryMedia.url}
+                                  className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                                  muted
+                                  playsInline
+                                  preload="metadata"
+                                />
+                              ) : (
                               <motion.img
-                                src={product.imageUrl}
+                                src={primaryMedia.url}
                                 alt={product.name}
                                 className="w-full h-full object-cover object-center"
                                 whileHover={{ scale: 1.09 }}
                                 transition={{ duration: 0.5, ease: EASE }}
                               />
+                              )
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
                             )}
@@ -187,7 +200,8 @@ export default function Shop() {
                         </motion.div>
                       </Link>
                     </motion.div>
-                  ))}
+                    );
+                  })}
                 </motion.div>
               </AnimatePresence>
             )}

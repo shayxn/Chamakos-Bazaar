@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
+import { getPrimaryProductMedia } from "@/lib/product-media";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -95,7 +96,9 @@ export default function Cart() {
           {/* Items */}
           <div className="lg:col-span-2 space-y-4">
             <AnimatePresence initial={false}>
-              {cart.items.map((item, i) => (
+              {cart.items.map((item, i) => {
+                const primaryMedia = getPrimaryProductMedia(item.productImageUrl);
+                return (
                 <motion.div
                   key={item.id}
                   layout
@@ -112,8 +115,12 @@ export default function Cart() {
                     whileHover={{ scale: 1.05 }}
                     transition={{ type: "spring", stiffness: 300, damping: 22 }}
                   >
-                    {item.productImageUrl ? (
-                      <img src={item.productImageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                    {primaryMedia ? (
+                      primaryMedia.type === "video" ? (
+                        <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                      ) : (
+                        <img src={primaryMedia.url} alt={item.productName} className="w-full h-full object-cover" />
+                      )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground font-mono">No Img</div>
                     )}
@@ -190,7 +197,8 @@ export default function Cart() {
                     <Trash2 className="h-4 w-4" />
                   </motion.button>
                 </motion.div>
-              ))}
+                );
+              })}
             </AnimatePresence>
           </div>
 
