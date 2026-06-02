@@ -5,12 +5,44 @@ import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderSt
 
 const router = Router();
 
+type OrderMetadata = {
+  address: string | null;
+  phone: string | null;
+  paymentMethod: string | null;
+};
+
+function encodeOrderMetadata(address?: string | null, phone?: string | null, paymentMethod?: string | null): string {
+  return JSON.stringify({
+    address: address?.trim() || null,
+    phone: phone?.trim() || null,
+    paymentMethod: paymentMethod?.trim() || null,
+  });
+}
+
+function decodeOrderMetadata(value?: string | null): OrderMetadata {
+  if (!value) return { address: null, phone: null, paymentMethod: null };
+  try {
+    const parsed = JSON.parse(value) as { address?: unknown; phone?: unknown; paymentMethod?: unknown };
+    return {
+      address: typeof parsed.address === "string" ? parsed.address : value,
+      phone: typeof parsed.phone === "string" ? parsed.phone : null,
+      paymentMethod: typeof parsed.paymentMethod === "string" ? parsed.paymentMethod : null,
+    };
+  } catch {
+    return { address: value, phone: null, paymentMethod: null };
+  }
+}
+
 async function buildOrder(orderId: number) {
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
   if (!order) return null;
   const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, orderId));
+  const metadata = decodeOrderMetadata(order.customerAddress);
   return {
     ...order,
+    customerAddress: metadata.address,
+    customerPhone: metadata.phone,
+    paymentMethod: metadata.paymentMethod,
     total: Number(order.total),
     createdAt: order.createdAt.toISOString(),
     items: items.map((i) => ({ ...i, price: Number(i.price) })),
@@ -60,7 +92,9 @@ router.post("/orders", async (req, res) => {
   const total = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0) + SHIPPING_FEE;
 
   const [order] = await db.insert(ordersTable).values({
-    ...parsed.data,
+    customerName: parsed.data.customerName,
+    customerEmail: parsed.data.customerEmail,
+    customerAddress: encodeOrderMetadata(parsed.data.customerAddress, parsed.data.customerPhone, parsed.data.paymentMethod ?? "cod"),
     total: String(total || 0),
     status: "pending",
   }).returning();

@@ -280,7 +280,9 @@ export const ListOrdersResponseItem = zod.object({
   "id": zod.number(),
   "customerName": zod.string().nullish(),
   "customerEmail": zod.string().nullish(),
+  "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
+  "paymentMethod": zod.string().nullish(),
   "status": zod.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled']),
   "total": zod.number(),
   "createdAt": zod.string(),
@@ -302,7 +304,9 @@ export const ListOrdersResponse = zod.array(ListOrdersResponseItem)
 export const CreateOrderBody = zod.object({
   "customerName": zod.string(),
   "customerEmail": zod.string(),
-  "customerAddress": zod.string()
+  "customerPhone": zod.string(),
+  "customerAddress": zod.string(),
+  "paymentMethod": zod.string().optional()
 })
 
 
@@ -317,7 +321,9 @@ export const GetOrderResponse = zod.object({
   "id": zod.number(),
   "customerName": zod.string().nullish(),
   "customerEmail": zod.string().nullish(),
+  "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
+  "paymentMethod": zod.string().nullish(),
   "status": zod.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled']),
   "total": zod.number(),
   "createdAt": zod.string(),
@@ -347,7 +353,9 @@ export const UpdateOrderStatusResponse = zod.object({
   "id": zod.number(),
   "customerName": zod.string().nullish(),
   "customerEmail": zod.string().nullish(),
+  "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
+  "paymentMethod": zod.string().nullish(),
   "status": zod.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled']),
   "total": zod.number(),
   "createdAt": zod.string(),
@@ -374,7 +382,9 @@ export const GetStoreStatsResponse = zod.object({
   "id": zod.number(),
   "customerName": zod.string().nullish(),
   "customerEmail": zod.string().nullish(),
+  "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
+  "paymentMethod": zod.string().nullish(),
   "status": zod.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled']),
   "total": zod.number(),
   "createdAt": zod.string(),

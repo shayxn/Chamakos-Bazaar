@@ -15,7 +15,11 @@ export interface Order {
   /** @nullable */
   customerEmail?: string | null;
   /** @nullable */
+  customerPhone?: string | null;
+  /** @nullable */
   customerAddress?: string | null;
+  /** @nullable */
+  paymentMethod?: string | null;
   status: OrderStatus;
   total: number;
   createdAt: string;

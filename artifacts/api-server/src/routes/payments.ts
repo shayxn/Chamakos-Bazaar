@@ -18,6 +18,7 @@ type ZiinaPaymentIntentResponse = {
 type CheckoutBody = {
   customerName?: unknown;
   customerEmail?: unknown;
+  customerPhone?: unknown;
   customerAddress?: unknown;
 };
 
@@ -45,15 +46,21 @@ function getSiteBaseUrl(req: Request): string {
   return `${req.protocol}://${req.get("host")}`;
 }
 
-function getCheckoutBody(body: unknown): { customerName: string; customerEmail: string; customerAddress: string } | null {
+function encodeOrderMetadata(address: string, phone: string, paymentMethod: string): string {
+  return JSON.stringify({ address, phone, paymentMethod });
+}
+
+function getCheckoutBody(body: unknown): { customerName: string; customerEmail: string; customerPhone: string; customerAddress: string } | null {
   if (!body || typeof body !== "object") return null;
   const value = body as CheckoutBody;
   if (typeof value.customerName !== "string" || value.customerName.trim().length < 2) return null;
-  if (typeof value.customerEmail !== "string" || value.customerEmail.trim().length < 7) return null;
+  if (typeof value.customerEmail !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.customerEmail.trim())) return null;
+  if (typeof value.customerPhone !== "string" || value.customerPhone.trim().length < 7) return null;
   if (typeof value.customerAddress !== "string" || value.customerAddress.trim().length < 5) return null;
   return {
     customerName: value.customerName.trim(),
     customerEmail: value.customerEmail.trim(),
+    customerPhone: value.customerPhone.trim(),
     customerAddress: value.customerAddress.trim(),
   };
 }
@@ -151,7 +158,9 @@ router.post("/payments/ziina-checkout", async (req, res) => {
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) + shippingFee;
 
   const [order] = await db.insert(ordersTable).values({
-    ...parsed,
+    customerName: parsed.customerName,
+    customerEmail: parsed.customerEmail,
+    customerAddress: encodeOrderMetadata(parsed.customerAddress, parsed.customerPhone, "ziina"),
     total: String(total),
     status: "pending",
   }).returning();
