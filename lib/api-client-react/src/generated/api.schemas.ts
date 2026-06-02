@@ -130,7 +130,11 @@ export interface Order {
   /** @nullable */
   customerEmail?: string | null;
   /** @nullable */
+  customerPhone?: string | null;
+  /** @nullable */
   customerAddress?: string | null;
+  /** @nullable */
+  paymentMethod?: string | null;
   status: OrderStatus;
   total: number;
   createdAt: string;
@@ -140,7 +144,9 @@ export interface Order {
 export interface OrderInput {
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
   customerAddress: string;
+  paymentMethod?: string;
 }
 
 export type OrderStatusUpdateStatus = typeof OrderStatusUpdateStatus[keyof typeof OrderStatusUpdateStatus];

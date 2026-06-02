@@ -645,7 +645,11 @@ components:
           type: ["string", "null"]
         customerEmail:
           type: ["string", "null"]
+        customerPhone:
+          type: ["string", "null"]
         customerAddress:
+          type: ["string", "null"]
+        paymentMethod:
           type: ["string", "null"]
         status:
           type: string
@@ -661,13 +665,17 @@ components:
 
     OrderInput:
       type: object
-      required: [customerName, customerEmail, customerAddress]
+      required: [customerName, customerEmail, customerPhone, customerAddress]
       properties:
         customerName:
           type: string
         customerEmail:
           type: string
+        customerPhone:
+          type: string
         customerAddress:
+          type: string
+        paymentMethod:
           type: string
 
     OrderStatusUpdate:
