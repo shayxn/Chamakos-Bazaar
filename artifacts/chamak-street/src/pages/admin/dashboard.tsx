@@ -1,6 +1,7 @@
 import { useGetStoreStats, getGetStoreStatsQueryKey } from "@workspace/api-client-react";
 import { Package, ShoppingBag, DollarSign, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
+import { getPrimaryProductMedia } from "@/lib/product-media";
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useGetStoreStats({ query: { queryKey: getGetStoreStatsQueryKey() } });
@@ -88,11 +89,19 @@ export default function AdminDashboard() {
             {stats.lowStockProducts.length === 0 ? (
               <div className="p-6 text-center text-muted-foreground text-sm">Inventory looks good.</div>
             ) : (
-              stats.lowStockProducts.map(product => (
+              stats.lowStockProducts.map(product => {
+                const primaryMedia = getPrimaryProductMedia(product.imageUrl);
+                return (
                 <div key={product.id} className="p-4 flex justify-between items-center hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-muted rounded overflow-hidden">
-                      {product.imageUrl && <img src={product.imageUrl} className="w-full h-full object-cover" />}
+                      {primaryMedia && (
+                        primaryMedia.type === "video" ? (
+                          <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                        ) : (
+                          <img src={primaryMedia.url} className="w-full h-full object-cover" />
+                        )
+                      )}
                     </div>
                     <div>
                       <p className="font-bold text-sm line-clamp-1">{product.name}</p>
@@ -105,7 +114,8 @@ export default function AdminDashboard() {
                     </span>
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

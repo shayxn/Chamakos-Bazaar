@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Flame, Zap, Star } from "lucide-react";
 import { useRef } from "react";
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
+import { getPrimaryProductMedia } from "@/lib/product-media";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -251,7 +252,9 @@ export default function Home() {
             </RevealSection>
 
             <RevealList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" stagger={0.09}>
-              {featuredProducts?.map((product) => (
+              {featuredProducts?.map((product) => {
+                const primaryMedia = getPrimaryProductMedia(product.imageUrl);
+                return (
                 <motion.div key={product.id} variants={revealItem}>
                   <Link href={`/product/${product.id}`}>
                     <motion.div
@@ -260,14 +263,24 @@ export default function Home() {
                       transition={{ type: "spring", stiffness: 280, damping: 20 }}
                     >
                       <div className="relative aspect-square mb-4 overflow-hidden rounded-lg bg-card border border-border group-hover:border-primary/40 transition-colors duration-300 shadow-md group-hover:shadow-[0_16px_40px_rgba(255,102,0,0.18)]" style={{ transition: "box-shadow 0.4s ease" }}>
-                        {product.imageUrl ? (
+                        {primaryMedia ? (
+                          primaryMedia.type === "video" ? (
+                            <video
+                              src={primaryMedia.url}
+                              className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                              muted
+                              playsInline
+                              preload="metadata"
+                            />
+                          ) : (
                           <motion.img
-                            src={product.imageUrl}
+                            src={primaryMedia.url}
                             alt={product.name}
                             className="w-full h-full object-cover object-center"
                             whileHover={{ scale: 1.1 }}
                             transition={{ duration: 0.55, ease: EASE }}
                           />
+                          )
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
                         )}
@@ -286,7 +299,8 @@ export default function Home() {
                     </motion.div>
                   </Link>
                 </motion.div>
-              ))}
+                );
+              })}
 
               {(!featuredProducts || featuredProducts.length === 0) && (
                 <div className="col-span-full py-12 text-center text-muted-foreground">

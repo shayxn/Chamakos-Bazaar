@@ -28,16 +28,20 @@ const cloudinaryStorage = multer.memoryStorage();
 
 const upload = multer({
   storage: useCloudinary ? cloudinaryStorage : localStorage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) cb(null, true);
-    else cb(new Error("Only image files allowed"));
+    if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) cb(null, true);
+    else cb(new Error("Only image and video files allowed"));
   },
 });
 
 const router = Router();
 
-async function uploadToCloudinary(file: Express.Multer.File): Promise<string> {
+function getMediaType(file: Express.Multer.File): "image" | "video" {
+  return file.mimetype.startsWith("video/") ? "video" : "image";
+}
+
+async function uploadToCloudinary(file: Express.Multer.File): Promise<{ url: string; type: "image" | "video" }> {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
@@ -47,7 +51,7 @@ async function uploadToCloudinary(file: Express.Multer.File): Promise<string> {
   }
 
   if (!file.buffer) {
-    throw new Error("Uploaded image buffer is missing");
+    throw new Error("Uploaded file buffer is missing");
   }
 
   const timestamp = Math.round(Date.now() / 1000).toString();
@@ -62,7 +66,7 @@ async function uploadToCloudinary(file: Express.Multer.File): Promise<string> {
   formData.append("folder", folder);
   formData.append("signature", signature);
 
-  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
     method: "POST",
     body: formData,
   });
@@ -72,12 +76,15 @@ async function uploadToCloudinary(file: Express.Multer.File): Promise<string> {
     throw new Error(`Cloudinary upload failed: ${message}`);
   }
 
-  const data = (await response.json()) as { secure_url?: string };
+  const data = (await response.json()) as { secure_url?: string; resource_type?: string };
   if (!data.secure_url) {
     throw new Error("Cloudinary upload response did not include a secure_url");
   }
 
-  return data.secure_url;
+  return {
+    url: data.secure_url,
+    type: data.resource_type === "video" ? "video" : getMediaType(file),
+  };
 }
 
 router.post("/uploads", upload.single("file"), async (req, res) => {
@@ -87,16 +94,16 @@ router.post("/uploads", upload.single("file"), async (req, res) => {
   }
 
   if (!useCloudinary) {
-    res.json({ url: `/uploads/${req.file.filename}` });
+    res.json({ url: `/uploads/${req.file.filename}`, type: getMediaType(req.file) });
     return;
   }
 
   try {
-    const url = await uploadToCloudinary(req.file);
-    res.json({ url });
+    const media = await uploadToCloudinary(req.file);
+    res.json(media);
   } catch (error) {
     logger.error({ err: error }, "Image upload failed");
-    res.status(502).json({ error: "Image upload failed" });
+    res.status(502).json({ error: "Media upload failed" });
   }
 });
 

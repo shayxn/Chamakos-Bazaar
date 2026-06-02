@@ -11,9 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Lock, ArrowRight, MessageCircle, Truck, CreditCard, X } from "lucide-react";
+import { Lock, ArrowRight, MessageCircle, Truck, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
+import { getPrimaryProductMedia } from "@/lib/product-media";
 
 const SHIPPING_FEE = 25;
 
@@ -276,7 +277,9 @@ export default function Checkout() {
               <h2 className="text-lg font-black uppercase tracking-wider mb-6 pb-4 border-b border-border">Order Summary</h2>
 
               <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-1">
-                {cart.items.map((item, i) => (
+                {cart.items.map((item, i) => {
+                  const primaryMedia = getPrimaryProductMedia(item.productImageUrl);
+                  return (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
@@ -285,7 +288,13 @@ export default function Checkout() {
                   >
                     <div className="flex gap-3">
                       <div className="w-14 h-14 bg-muted rounded border border-border overflow-hidden shrink-0">
-                        {item.productImageUrl && <img src={item.productImageUrl} alt={item.productName} className="w-full h-full object-cover" />}
+                        {primaryMedia && (
+                          primaryMedia.type === "video" ? (
+                            <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                          ) : (
+                            <img src={primaryMedia.url} alt={item.productName} className="w-full h-full object-cover" />
+                          )
+                        )}
                       </div>
                       <div>
                         <h4 className="font-bold text-sm uppercase leading-tight line-clamp-2">{item.productName}</h4>
@@ -294,7 +303,8 @@ export default function Checkout() {
                     </div>
                     <div className="font-mono font-bold text-sm shrink-0">AED {(item.price * item.quantity).toFixed(2)}</div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="border-t border-border pt-4 space-y-3">

@@ -3,19 +3,20 @@ import { useListProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, 
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Edit, Trash2, Upload, Image, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, Image, CheckCircle, XCircle, X } from "lucide-react";
 import { Product, ProductInput } from "@workspace/api-client-react/generated/api.schemas";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { getPrimaryProductMedia, parseProductMedia, serializeProductMedia, type ProductMedia } from "@/lib/product-media";
 
-async function uploadImage(file: File): Promise<string> {
+async function uploadMedia(file: File): Promise<ProductMedia> {
   const formData = new FormData();
   formData.append("file", file);
   const res = await fetch("/api/uploads", { method: "POST", body: formData, credentials: "include" });
   if (!res.ok) throw new Error("Upload failed");
-  const data = await res.json();
-  return data.url as string;
+  const data = await res.json() as { url: string; type?: "image" | "video" };
+  return { url: data.url, type: data.type === "video" ? "video" : "image" };
 }
 
 export default function AdminProducts() {
@@ -31,7 +32,7 @@ export default function AdminProducts() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [inStock, setInStock] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [mediaItems, setMediaItems] = useState<ProductMedia[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<ProductInput>({
@@ -42,7 +43,7 @@ export default function AdminProducts() {
     setEditingId(product.id);
     const isInStock = product.stock > 0;
     setInStock(isInStock);
-    setPreviewUrl(product.imageUrl || "");
+    setMediaItems(parseProductMedia(product.imageUrl));
     setFormData({
       name: product.name,
       price: product.price,
@@ -59,7 +60,7 @@ export default function AdminProducts() {
   const openNew = () => {
     setEditingId(null);
     setInStock(true);
-    setPreviewUrl("");
+    setMediaItems([]);
     setFormData({
       name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL", featured: false, categoryId: categories?.[0]?.id,
     });
@@ -67,26 +68,39 @@ export default function AdminProducts() {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const localUrl = URL.createObjectURL(file);
-    setPreviewUrl(localUrl);
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
     setUploading(true);
     try {
-      const url = await uploadImage(file);
-      setFormData((prev) => ({ ...prev, imageUrl: url }));
-      setPreviewUrl(url);
+      const uploaded = await Promise.all(files.map(uploadMedia));
+      setMediaItems((prev) => {
+        const next = [...prev, ...uploaded];
+        setFormData((current) => ({ ...current, imageUrl: serializeProductMedia(next) }));
+        return next;
+      });
     } catch {
-      alert("Image upload failed. Try again.");
-      setPreviewUrl("");
+      alert("Media upload failed. Try again.");
     } finally {
       setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const removeMedia = (index: number) => {
+    setMediaItems((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      setFormData((current) => ({ ...current, imageUrl: next.length > 0 ? serializeProductMedia(next) : "" }));
+      return next;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const data = { ...formData, stock: inStock ? 100 : 0 };
+    const data = {
+      ...formData,
+      imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "",
+      stock: inStock ? 100 : 0,
+    };
     if (editingId) {
       updateProduct.mutate({ id: editingId, data }, {
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() }); setIsDialogOpen(false); }
@@ -170,15 +184,35 @@ export default function AdminProducts() {
                   </div>
                 </div>
 
-                {/* Image Upload */}
+                {/* Media Upload */}
                 <div className="space-y-2 col-span-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Image</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Media</label>
                   <div
                     className="border-2 border-dashed border-border rounded-lg p-4 flex items-center gap-4 hover:border-primary/50 transition-colors cursor-pointer"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    {previewUrl ? (
-                      <img src={previewUrl} alt="Preview" className="h-20 w-20 object-cover rounded-md border border-border shrink-0" />
+                    {mediaItems.length > 0 ? (
+                      <div className="grid grid-cols-4 gap-2 shrink-0">
+                        {mediaItems.slice(0, 4).map((item, index) => (
+                          <div key={`${item.url}-${index}`} className="relative h-16 w-16 overflow-hidden rounded-md border border-border bg-muted">
+                            {item.type === "video" ? (
+                              <>
+                                <video src={item.url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                                <span className="absolute bottom-0 left-0 right-0 bg-black/70 py-0.5 text-center text-[9px] font-black uppercase text-white">Video</span>
+                              </>
+                            ) : (
+                              <img src={item.url} alt="Preview" className="h-full w-full object-cover" />
+                            )}
+                            <button
+                              type="button"
+                              onClick={(event) => { event.stopPropagation(); removeMedia(index); }}
+                              className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/80 text-white hover:bg-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       <div className="h-20 w-20 bg-muted rounded-md flex items-center justify-center shrink-0">
                         <Image className="h-8 w-8 text-muted-foreground" />
@@ -187,14 +221,15 @@ export default function AdminProducts() {
                     <div>
                       <p className="font-bold text-sm flex items-center gap-2">
                         <Upload className="h-4 w-4 text-primary" />
-                        {uploading ? "Uploading..." : previewUrl ? "Change Photo" : "Choose from Photos"}
+                        {uploading ? "Uploading..." : mediaItems.length > 0 ? "Add more media" : "Choose photos or videos"}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WEBP — max 10MB</p>
+                      <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WEBP, MP4, MOV, WEBM - max 100MB each</p>
                     </div>
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/*,video/*"
+                      multiple
                       className="hidden"
                       onChange={handleFileChange}
                     />
@@ -221,15 +256,23 @@ export default function AdminProducts() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products?.map(product => (
+        {products?.map(product => {
+          const primaryMedia = getPrimaryProductMedia(product.imageUrl);
+          const mediaCount = parseProductMedia(product.imageUrl).length;
+          return (
           <div key={product.id} className="bg-card border border-border rounded-lg overflow-hidden flex flex-col group">
             <div className="aspect-[4/3] bg-muted relative border-b border-border">
-              {product.imageUrl ? (
-                <img src={product.imageUrl} className="w-full h-full object-cover" />
+              {primaryMedia ? (
+                primaryMedia.type === "video" ? (
+                  <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                ) : (
+                  <img src={primaryMedia.url} className="w-full h-full object-cover" />
+                )
               ) : (
                 <div className="w-full h-full flex items-center justify-center font-mono text-xs text-muted-foreground">No Image</div>
               )}
               {product.featured && <div className="absolute top-2 left-2 bg-primary text-black text-[10px] font-black uppercase tracking-widest px-2 py-1">Featured</div>}
+              {mediaCount > 1 && <div className="absolute bottom-2 left-2 bg-black/80 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1">{mediaCount} media</div>}
               {/* Stock badge */}
               <div className={`absolute top-2 right-2 text-[10px] font-black uppercase tracking-widest px-2 py-1 ${product.stock > 0 ? "bg-green-500/90 text-black" : "bg-red-500/90 text-white"}`}>
                 {product.stock > 0 ? "In Stock" : "Sold Out"}
@@ -255,7 +298,8 @@ export default function AdminProducts() {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
