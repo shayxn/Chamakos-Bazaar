@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useListProducts, useListCategories, getListProductsQueryKey, getListCategoriesQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,19 +22,31 @@ const gridVariants = {
   exit: {},
 };
 
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedValue(value), delayMs);
+    return () => window.clearTimeout(timeout);
+  }, [value, delayMs]);
+
+  return debouncedValue;
+}
+
 export default function Shop() {
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const debouncedSearch = useDebouncedValue(search.trim(), 300);
 
-  const { data: categories } = useListCategories({ query: { queryKey: getListCategoriesQueryKey() } });
+  const { data: categories } = useListCategories({ query: { queryKey: getListCategoriesQueryKey(), staleTime: 5 * 60_000 } });
 
   const queryParams = {
-    ...(search ? { search } : {}),
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
     ...(categoryId ? { categoryId } : {})
   };
 
   const { data: products, isLoading } = useListProducts(queryParams, {
-    query: { queryKey: getListProductsQueryKey(queryParams) }
+    query: { queryKey: getListProductsQueryKey(queryParams), staleTime: 2 * 60_000 }
   });
 
   return (

@@ -21,7 +21,7 @@ export default function Home() {
 
   const { data: featuredProducts } = useListProducts(
     { featured: true },
-    { query: { queryKey: getListProductsQueryKey({ featured: true }) } }
+    { query: { queryKey: getListProductsQueryKey({ featured: true }), staleTime: 2 * 60_000 } }
   );
 
   const categories = [

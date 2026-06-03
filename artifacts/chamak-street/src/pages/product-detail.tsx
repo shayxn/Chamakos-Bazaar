@@ -30,7 +30,7 @@ export default function ProductDetail() {
   const id = params?.id ? parseInt(params.id) : 0;
 
   const { data: product, isLoading } = useGetProduct(id, {
-    query: { enabled: !!id, queryKey: getGetProductQueryKey(id) }
+    query: { enabled: !!id, queryKey: getGetProductQueryKey(id), staleTime: 2 * 60_000 }
   });
 
   const addToCart = useAddToCart();
