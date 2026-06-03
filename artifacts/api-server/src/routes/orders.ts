@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody } from "@workspace/api-zod";
 
 const router = Router();
@@ -51,8 +51,34 @@ async function buildOrder(orderId: number) {
 
 router.get("/orders", async (_req, res) => {
   const orders = await db.select().from(ordersTable).orderBy(ordersTable.createdAt);
-  const result = await Promise.all(orders.map((o) => buildOrder(o.id)));
-  res.json(result.filter(Boolean));
+  if (orders.length === 0) {
+    res.json([]);
+    return;
+  }
+
+  const items = await db.select().from(orderItemsTable).where(inArray(orderItemsTable.orderId, orders.map((order) => order.id)));
+  const itemsByOrderId = new Map<number, typeof items>();
+  for (const item of items) {
+    let existing = itemsByOrderId.get(item.orderId);
+    if (!existing) {
+      existing = [];
+      itemsByOrderId.set(item.orderId, existing);
+    }
+    existing.push(item);
+  }
+
+  res.json(orders.map((order) => {
+    const metadata = decodeOrderMetadata(order.customerAddress);
+    return {
+      ...order,
+      customerAddress: metadata.address,
+      customerPhone: metadata.phone,
+      paymentMethod: metadata.paymentMethod,
+      total: Number(order.total),
+      createdAt: order.createdAt.toISOString(),
+      items: (itemsByOrderId.get(order.id) ?? []).map((item) => ({ ...item, price: Number(item.price) })),
+    };
+  }));
 });
 
 router.post("/orders", async (req, res) => {

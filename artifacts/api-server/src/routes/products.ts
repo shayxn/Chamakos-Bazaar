@@ -9,10 +9,26 @@ import {
   UpdateProductBody,
   DeleteProductParams,
 } from "@workspace/api-zod";
+import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 
 const router = Router();
+const productListCache = createTtlCache<unknown>(30_000);
+const productDetailCache = createTtlCache<unknown>(30_000);
+
+function clearProductCaches() {
+  productListCache.clear();
+  productDetailCache.clear();
+}
 
 router.get("/products", async (req, res) => {
+  const cacheKey = req.originalUrl;
+  const cached = productListCache.get(cacheKey);
+  if (cached) {
+    setPublicReadCacheHeaders(res);
+    res.json(cached);
+    return;
+  }
+
   const parsed = ListProductsQueryParams.safeParse({
     categoryId: req.query.categoryId ? Number(req.query.categoryId) : undefined,
     search: req.query.search,
@@ -46,11 +62,14 @@ router.get("/products", async (req, res) => {
     .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-  res.json(products.map((p) => ({
+  const result = products.map((p) => ({
     ...p,
     price: Number(p.price),
     createdAt: p.createdAt.toISOString(),
-  })));
+  }));
+  productListCache.set(cacheKey, result);
+  setPublicReadCacheHeaders(res);
+  res.json(result);
 });
 
 router.post("/products", async (req, res) => {
@@ -63,10 +82,19 @@ router.post("/products", async (req, res) => {
     ...parsed.data,
     price: String(parsed.data.price),
   }).returning();
+  clearProductCaches();
   res.status(201).json({ ...product, price: Number(product.price), createdAt: product.createdAt.toISOString() });
 });
 
 router.get("/products/:id", async (req, res) => {
+  const cacheKey = req.originalUrl;
+  const cached = productDetailCache.get(cacheKey);
+  if (cached) {
+    setPublicReadCacheHeaders(res);
+    res.json(cached);
+    return;
+  }
+
   const parsed = GetProductParams.safeParse({ id: Number(req.params.id) });
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid id" });
@@ -94,7 +122,10 @@ router.get("/products/:id", async (req, res) => {
     res.status(404).json({ error: "Not found" });
     return;
   }
-  res.json({ ...product, price: Number(product.price), createdAt: product.createdAt.toISOString() });
+  const result = { ...product, price: Number(product.price), createdAt: product.createdAt.toISOString() };
+  productDetailCache.set(cacheKey, result);
+  setPublicReadCacheHeaders(res);
+  res.json(result);
 });
 
 router.patch("/products/:id", async (req, res) => {
@@ -115,6 +146,7 @@ router.patch("/products/:id", async (req, res) => {
     res.status(404).json({ error: "Not found" });
     return;
   }
+  clearProductCaches();
   res.json({ ...product, price: Number(product.price), createdAt: product.createdAt.toISOString() });
 });
 
@@ -125,6 +157,7 @@ router.delete("/products/:id", async (req, res) => {
     return;
   }
   await db.delete(productsTable).where(eq(productsTable.id, parsed.data.id));
+  clearProductCaches();
   res.json({ message: "Deleted" });
 });
 

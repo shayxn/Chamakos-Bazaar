@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useGetCart, useGetMe, useLogout } from "@workspace/api-client-react";
+import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout } from "@workspace/api-client-react";
 
 import { ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -10,8 +10,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { data: cart } = useGetCart({ query: { queryKey: ["cart"] } });
-  const { data: user } = useGetMe({ query: { queryKey: ["me"], retry: false } });
+  const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 2 * 60_000 } });
+  const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 5 * 60_000 } });
   const logout = useLogout();
 
   const cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
