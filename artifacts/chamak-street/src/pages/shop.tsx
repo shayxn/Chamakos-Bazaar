@@ -193,8 +193,16 @@ export default function Shop() {
                               <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
+                            <div className="absolute top-2 left-2 flex flex-col gap-1">
+                              {product.featured && (
+                                <span className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Featured</span>
+                              )}
+                              {product.rep && (
+                                <span className="bg-black/85 text-white border border-white/20 text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">REP</span>
+                              )}
+                            </div>
                             {product.stock <= 5 && product.stock > 0 && (
-                              <div className="absolute top-2 left-2">
+                              <div className="absolute bottom-2 left-2">
                                 <span className="bg-destructive text-destructive-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Low Stock</span>
                               </div>
                             )}

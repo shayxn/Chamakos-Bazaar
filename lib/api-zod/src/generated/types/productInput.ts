@@ -14,5 +14,6 @@ export interface ProductInput {
   stock: number;
   categoryId?: number;
   featured?: boolean;
+  rep?: boolean;
   sizes?: string;
 }

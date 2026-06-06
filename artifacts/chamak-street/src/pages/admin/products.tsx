@@ -36,7 +36,7 @@ export default function AdminProducts() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<ProductInput>({
-    name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL", featured: false, categoryId: undefined,
+    name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL", featured: false, rep: false, categoryId: undefined,
   });
 
   const openEdit = (product: Product) => {
@@ -52,6 +52,7 @@ export default function AdminProducts() {
       description: product.description || "",
       sizes: product.sizes || "",
       featured: product.featured,
+      rep: product.rep,
       categoryId: product.categoryId || undefined,
     });
     setIsDialogOpen(true);
@@ -62,7 +63,7 @@ export default function AdminProducts() {
     setInStock(true);
     setMediaItems([]);
     setFormData({
-      name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL", featured: false, categoryId: categories?.[0]?.id,
+      name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL", featured: false, rep: false, categoryId: categories?.[0]?.id,
     });
     setIsDialogOpen(true);
   };
@@ -240,9 +241,15 @@ export default function AdminProducts() {
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sizes (comma separated)</label>
                   <Input value={formData.sizes || ""} onChange={e => setFormData({ ...formData, sizes: e.target.value })} className="bg-background font-mono" placeholder="S, M, L, XL" />
                 </div>
-                <div className="flex items-center space-x-2 col-span-2 mt-2">
-                  <input type="checkbox" id="featured" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" />
-                  <label htmlFor="featured" className="text-sm font-bold uppercase tracking-wider">Featured Product</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 col-span-2 mt-2">
+                  <label htmlFor="featured" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                    <input type="checkbox" id="featured" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" />
+                    Featured Product
+                  </label>
+                  <label htmlFor="rep" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                    <input type="checkbox" id="rep" checked={formData.rep} onChange={e => setFormData({ ...formData, rep: e.target.checked })} className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" />
+                    REP Product
+                  </label>
                 </div>
               </div>
               <div className="pt-4 flex justify-end">
@@ -271,7 +278,10 @@ export default function AdminProducts() {
               ) : (
                 <div className="w-full h-full flex items-center justify-center font-mono text-xs text-muted-foreground">No Image</div>
               )}
-              {product.featured && <div className="absolute top-2 left-2 bg-primary text-black text-[10px] font-black uppercase tracking-widest px-2 py-1">Featured</div>}
+              <div className="absolute top-2 left-2 flex flex-col gap-1">
+                {product.featured && <div className="bg-primary text-black text-[10px] font-black uppercase tracking-widest px-2 py-1">Featured</div>}
+                {product.rep && <div className="bg-[#111827] text-white border border-white/20 text-[10px] font-black uppercase tracking-widest px-2 py-1">REP</div>}
+              </div>
               {mediaCount > 1 && <div className="absolute bottom-2 left-2 bg-black/80 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1">{mediaCount} media</div>}
               {/* Stock badge */}
               <div className={`absolute top-2 right-2 text-[10px] font-black uppercase tracking-widest px-2 py-1 ${product.stock > 0 ? "bg-green-500/90 text-black" : "bg-red-500/90 text-white"}`}>

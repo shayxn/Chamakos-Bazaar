@@ -20,6 +20,7 @@ export interface Product {
   /** @nullable */
   categoryName?: string | null;
   featured: boolean;
+  rep: boolean;
   /** @nullable */
   sizes?: string | null;
   createdAt?: string;

@@ -17,7 +17,6 @@ type ZiinaPaymentIntentResponse = {
 
 type CheckoutBody = {
   customerName?: unknown;
-  customerEmail?: unknown;
   customerPhone?: unknown;
   customerAddress?: unknown;
 };
@@ -50,16 +49,14 @@ function encodeOrderMetadata(address: string, phone: string, paymentMethod: stri
   return JSON.stringify({ address, phone, paymentMethod });
 }
 
-function getCheckoutBody(body: unknown): { customerName: string; customerEmail: string; customerPhone: string; customerAddress: string } | null {
+function getCheckoutBody(body: unknown): { customerName: string; customerPhone: string; customerAddress: string } | null {
   if (!body || typeof body !== "object") return null;
   const value = body as CheckoutBody;
   if (typeof value.customerName !== "string" || value.customerName.trim().length < 2) return null;
-  if (typeof value.customerEmail !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.customerEmail.trim())) return null;
   if (typeof value.customerPhone !== "string" || value.customerPhone.trim().length < 7) return null;
   if (typeof value.customerAddress !== "string" || value.customerAddress.trim().length < 5) return null;
   return {
     customerName: value.customerName.trim(),
-    customerEmail: value.customerEmail.trim(),
     customerPhone: value.customerPhone.trim(),
     customerAddress: value.customerAddress.trim(),
   };
@@ -159,7 +156,7 @@ router.post("/payments/ziina-checkout", async (req, res) => {
 
   const [order] = await db.insert(ordersTable).values({
     customerName: parsed.customerName,
-    customerEmail: parsed.customerEmail,
+    customerEmail: null,
     customerAddress: encodeOrderMetadata(parsed.customerAddress, parsed.customerPhone, "ziina"),
     total: String(total),
     status: "pending",

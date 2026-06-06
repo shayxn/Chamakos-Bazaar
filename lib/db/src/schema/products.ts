@@ -11,6 +11,7 @@ export const productsTable = pgTable("products", {
   stock: integer("stock").notNull().default(0),
   categoryId: integer("category_id"),
   featured: boolean("featured").notNull().default(false),
+  rep: boolean("rep").notNull().default(false),
   sizes: text("sizes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

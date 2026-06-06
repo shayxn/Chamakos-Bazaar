@@ -287,8 +287,11 @@ export default function Home() {
                         <motion.div
                           className="absolute inset-0 bg-gradient-to-t from-primary/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400"
                         />
-                        <div className="absolute top-2 left-2">
+                        <div className="absolute top-2 left-2 flex flex-col gap-1">
                           <span className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Featured</span>
+                          {product.rep && (
+                            <span className="bg-black/85 text-white border border-white/20 text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">REP</span>
+                          )}
                         </div>
                       </div>
                       <div className="space-y-1 px-0.5">

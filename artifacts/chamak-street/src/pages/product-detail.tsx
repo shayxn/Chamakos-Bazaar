@@ -171,9 +171,21 @@ export default function ProductDetail() {
           {/* Info */}
           <div className="flex flex-col justify-center">
             <MotionItem delay={0.15}>
-              <span className="text-xs font-black tracking-widest uppercase text-primary bg-primary/10 px-3 py-1.5 rounded-sm">
-                {product.categoryName}
-              </span>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs font-black tracking-widest uppercase text-primary bg-primary/10 px-3 py-1.5 rounded-sm">
+                  {product.categoryName}
+                </span>
+                {product.featured && (
+                  <span className="text-xs font-black tracking-widest uppercase bg-primary text-primary-foreground px-3 py-1.5 rounded-sm">
+                    Featured
+                  </span>
+                )}
+                {product.rep && (
+                  <span className="text-xs font-black tracking-widest uppercase bg-black/85 text-white border border-white/20 px-3 py-1.5 rounded-sm">
+                    REP
+                  </span>
+                )}
+              </div>
             </MotionItem>
 
             <MotionItem delay={0.22} className="mt-4">

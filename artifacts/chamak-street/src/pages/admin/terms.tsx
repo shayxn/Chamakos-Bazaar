@@ -1,112 +1,89 @@
-export default function Terms() {
+import { useEffect, useState } from "react";
+import { FileText, Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+type ContentPage = {
+  slug: string;
+  title: string;
+  content: string;
+  updatedAt: string | null;
+};
+
+export default function AdminTerms() {
+  const [title, setTitle] = useState("Terms of Policy");
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/content/terms", { credentials: "include" })
+      .then((response) => response.json())
+      .then((page: ContentPage) => {
+        setTitle(page.title);
+        setContent(page.content);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    setMessage(null);
+    try {
+      const response = await fetch("/api/content/terms", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content }),
+      });
+      if (!response.ok) throw new Error("Save failed");
+      setMessage("Policy saved.");
+    } catch {
+      setMessage("Policy could not be saved. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div>Loading policy...</div>;
+
   return (
-    <div className="container mx-auto px-4 py-16 max-w-4xl">
-      <div className="mb-10">
-        <p className="text-primary font-bold uppercase tracking-[0.3em] text-sm mb-3">
-          Chamak Street
-        </p>
-        <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight">
-          Terms of Policy
-        </h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Terms & Policy</h1>
+        <p className="text-muted-foreground font-mono text-sm">Edit the public policy page shown at checkout/footer</p>
       </div>
 
-      <div className="space-y-8 text-muted-foreground leading-7">
-        <p>
-          Welcome to Chamak Street. By placing an order on our store, you agree
-          to the following Terms of Policy.
-        </p>
-
-        <section>
-          <h2 className="text-2xl font-black text-foreground uppercase mb-3">
-            1. Order Agreement
-          </h2>
-          <p>
-            By purchasing from Chamak Street, you confirm that you have read and
-            agreed to all policies, terms, and conditions listed below.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-black text-foreground uppercase mb-3">
-            2. Shipping & Delivery
-          </h2>
-          <p>
-            Delivery times may vary depending on location, product availability,
-            holidays, weather conditions, or courier delays. Some orders may
-            arrive later than expected.
-          </p>
-          <p className="mt-4">By placing an order, you understand and accept that:</p>
-          <ul className="list-disc pl-6 mt-3 space-y-2">
-            <li>Orders may be delayed</li>
-            <li>Shipping times are estimates only</li>
-            <li>
-              Chamak Street is not responsible for unexpected courier or transit
-              delays
-            </li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-black text-foreground uppercase mb-3">
-            3. No Refund Policy
-          </h2>
-          <p>All sales are final.</p>
-          <p className="mt-4">Once an order has been placed:</p>
-          <ul className="list-disc pl-6 mt-3 space-y-2">
-            <li>No refunds are allowed</li>
-            <li>No cancellations are allowed</li>
-            <li>No chargebacks should be attempted after purchase</li>
-          </ul>
-          <p className="mt-4">
-            Please make sure all information, sizes, colors, and products are
-            correct before checking out.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-black text-foreground uppercase mb-3">
-            4. Incorrect Information
-          </h2>
-          <p>Customers are responsible for entering the correct:</p>
-          <ul className="list-disc pl-6 mt-3 space-y-2">
-            <li>Name</li>
-            <li>Address</li>
-            <li>Phone number</li>
-            <li>Delivery details</li>
-          </ul>
-          <p className="mt-4">
-            Chamak Street is not responsible for failed deliveries caused by
-            incorrect customer information.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-black text-foreground uppercase mb-3">
-            5. Product Availability
-          </h2>
-          <p>
-            Some products may have limited stock. We reserve the right to cancel
-            or limit orders if items become unavailable.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-black text-foreground uppercase mb-3">
-            6. Changes to Policy
-          </h2>
-          <p>
-            Chamak Street may update or change these policies at any time
-            without prior notice.
-          </p>
-        </section>
-
-        <div className="border-t border-border pt-8">
-          <p className="font-bold text-foreground">
-            By ordering from Chamak Street, you automatically agree to all Terms
-            of Policy listed above.
-          </p>
+      <form onSubmit={handleSave} className="bg-card border border-border rounded-lg p-6 space-y-5">
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <FileText className="h-4 w-4 text-primary" />
+            Page Title
+          </label>
+          <Input value={title} onChange={(event) => setTitle(event.target.value)} className="bg-background" />
         </div>
-      </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Policy Content</label>
+          <Textarea
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+            className="min-h-[520px] bg-background font-mono text-sm leading-6"
+            placeholder="Use ## for section headings and - for bullet points."
+          />
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">{message}</p>
+          <Button type="submit" disabled={saving} className="font-bold uppercase tracking-wider bg-primary hover:bg-primary/90">
+            <Save className="mr-2 h-4 w-4" />
+            {saving ? "Saving..." : "Save Policy"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

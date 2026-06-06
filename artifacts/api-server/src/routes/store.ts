@@ -50,6 +50,7 @@ router.get("/store/stats", async (_req, res) => {
         categoryId: productsTable.categoryId,
         categoryName: categoriesTable.name,
         featured: productsTable.featured,
+        rep: productsTable.rep,
         sizes: productsTable.sizes,
         createdAt: productsTable.createdAt,
       })
