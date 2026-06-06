@@ -55,6 +55,7 @@ router.get("/products", async (req, res) => {
       categoryId: productsTable.categoryId,
       categoryName: categoriesTable.name,
       featured: productsTable.featured,
+      rep: productsTable.rep,
       sizes: productsTable.sizes,
       createdAt: productsTable.createdAt,
     })
@@ -111,6 +112,7 @@ router.get("/products/:id", async (req, res) => {
       categoryId: productsTable.categoryId,
       categoryName: categoriesTable.name,
       featured: productsTable.featured,
+      rep: productsTable.rep,
       sizes: productsTable.sizes,
       createdAt: productsTable.createdAt,
     })

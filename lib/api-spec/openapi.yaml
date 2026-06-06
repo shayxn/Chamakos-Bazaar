@@ -369,6 +369,23 @@ paths:
                 $ref: "#/components/schemas/Order"
         "404":
           description: Not found
+    delete:
+      operationId: deleteOrder
+      tags: [orders]
+      summary: Delete an order (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
 
   /orders/{id}/status:
     patch:
@@ -446,6 +463,48 @@ paths:
               schema:
                 $ref: "#/components/schemas/StoreStats"
 
+  /content/{slug}:
+    get:
+      operationId: getContentPage
+      tags: [content]
+      summary: Get a content page
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Content page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentPage"
+    put:
+      operationId: updateContentPage
+      tags: [content]
+      summary: Update a content page (admin only)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContentPageInput"
+      responses:
+        "200":
+          description: Updated content page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentPage"
+
 components:
   schemas:
     HealthStatus:
@@ -504,7 +563,7 @@ components:
 
     Product:
       type: object
-      required: [id, name, price, stock, categoryId, featured]
+      required: [id, name, price, stock, categoryId, featured, rep]
       properties:
         id:
           type: integer
@@ -523,6 +582,8 @@ components:
         categoryName:
           type: ["string", "null"]
         featured:
+          type: boolean
+        rep:
           type: boolean
         sizes:
           type: ["string", "null"]
@@ -547,6 +608,8 @@ components:
           type: integer
         featured:
           type: boolean
+        rep:
+          type: boolean
         sizes:
           type: string
 
@@ -566,6 +629,8 @@ components:
         categoryId:
           type: integer
         featured:
+          type: boolean
+        rep:
           type: boolean
         sizes:
           type: string
@@ -665,17 +730,37 @@ components:
 
     OrderInput:
       type: object
-      required: [customerName, customerEmail, customerPhone, customerAddress]
+      required: [customerName, customerPhone, customerAddress]
       properties:
         customerName:
-          type: string
-        customerEmail:
           type: string
         customerPhone:
           type: string
         customerAddress:
           type: string
         paymentMethod:
+          type: string
+
+    ContentPage:
+      type: object
+      required: [slug, title, content]
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        updatedAt:
+          type: ["string", "null"]
+
+    ContentPageInput:
+      type: object
+      required: [title, content]
+      properties:
+        title:
+          type: string
+        content:
           type: string
 
     OrderStatusUpdate:

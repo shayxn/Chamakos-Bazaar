@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable } from "@workspace/db";
 import { eq, inArray } from "drizzle-orm";
-import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody } from "@workspace/api-zod";
+import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody, DeleteOrderParams } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -119,7 +119,7 @@ router.post("/orders", async (req, res) => {
 
   const [order] = await db.insert(ordersTable).values({
     customerName: parsed.data.customerName,
-    customerEmail: parsed.data.customerEmail,
+    customerEmail: null,
     customerAddress: encodeOrderMetadata(parsed.data.customerAddress, parsed.data.customerPhone, parsed.data.paymentMethod ?? "cod"),
     total: String(total || 0),
     status: "pending",
@@ -173,6 +173,18 @@ router.patch("/orders/:id/status", async (req, res) => {
     return;
   }
   res.json(order);
+});
+
+router.delete("/orders/:id", async (req, res) => {
+  const parsed = DeleteOrderParams.safeParse({ id: Number(req.params.id) });
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+
+  await db.delete(orderItemsTable).where(eq(orderItemsTable.orderId, parsed.data.id));
+  await db.delete(ordersTable).where(eq(ordersTable.id, parsed.data.id));
+  res.json({ message: "Deleted" });
 });
 
 export default router;

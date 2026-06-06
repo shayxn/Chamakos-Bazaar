@@ -99,6 +99,7 @@ export const ListProductsResponseItem = zod.object({
   "categoryId": zod.number().nullable(),
   "categoryName": zod.string().nullish(),
   "featured": zod.boolean(),
+  "rep": zod.boolean(),
   "sizes": zod.string().nullish(),
   "createdAt": zod.string().optional()
 })
@@ -116,6 +117,7 @@ export const CreateProductBody = zod.object({
   "stock": zod.number(),
   "categoryId": zod.number().optional(),
   "featured": zod.boolean().optional(),
+  "rep": zod.boolean().optional(),
   "sizes": zod.string().optional()
 })
 
@@ -137,6 +139,7 @@ export const GetProductResponse = zod.object({
   "categoryId": zod.number().nullable(),
   "categoryName": zod.string().nullish(),
   "featured": zod.boolean(),
+  "rep": zod.boolean(),
   "sizes": zod.string().nullish(),
   "createdAt": zod.string().optional()
 })
@@ -157,6 +160,7 @@ export const UpdateProductBody = zod.object({
   "stock": zod.number().optional(),
   "categoryId": zod.number().optional(),
   "featured": zod.boolean().optional(),
+  "rep": zod.boolean().optional(),
   "sizes": zod.string().optional()
 })
 
@@ -170,6 +174,7 @@ export const UpdateProductResponse = zod.object({
   "categoryId": zod.number().nullable(),
   "categoryName": zod.string().nullish(),
   "featured": zod.boolean(),
+  "rep": zod.boolean(),
   "sizes": zod.string().nullish(),
   "createdAt": zod.string().optional()
 })
@@ -303,7 +308,6 @@ export const ListOrdersResponse = zod.array(ListOrdersResponseItem)
  */
 export const CreateOrderBody = zod.object({
   "customerName": zod.string(),
-  "customerEmail": zod.string(),
   "customerPhone": zod.string(),
   "customerAddress": zod.string(),
   "paymentMethod": zod.string().optional()
@@ -371,6 +375,18 @@ export const UpdateOrderStatusResponse = zod.object({
 
 
 /**
+ * @summary Delete an order (admin only)
+ */
+export const DeleteOrderParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteOrderResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
  * @summary Get store statistics (admin)
  */
 export const GetStoreStatsResponse = zod.object({
@@ -407,6 +423,7 @@ export const GetStoreStatsResponse = zod.object({
   "categoryId": zod.number().nullable(),
   "categoryName": zod.string().nullish(),
   "featured": zod.boolean(),
+  "rep": zod.boolean(),
   "sizes": zod.string().nullish(),
   "createdAt": zod.string().optional()
 }))

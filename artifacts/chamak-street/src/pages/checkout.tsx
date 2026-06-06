@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Lock, ArrowRight, MessageCircle, Truck, X, Mail } from "lucide-react";
+import { Lock, ArrowRight, MessageCircle, Truck, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
@@ -20,7 +20,6 @@ const SHIPPING_FEE = 25;
 
 const checkoutSchema = z.object({
   customerName: z.string().min(2, "Name is required"),
-  customerEmail: z.string().email("Enter a valid email address"),
   customerPhone: z.string().min(7, "Enter a valid WhatsApp number"),
   customerAddress: z.string().min(5, "Address is required"),
 });
@@ -62,7 +61,7 @@ export default function Checkout() {
 
   const form = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { customerName: "", customerEmail: "", customerPhone: "", customerAddress: "" },
+    defaultValues: { customerName: "", customerPhone: "", customerAddress: "" },
   });
 
   if (isLoading) return <div className="p-20 text-center font-bold uppercase">Loading...</div>;
@@ -159,29 +158,8 @@ export default function Checkout() {
                   )} />
                 </motion.div>
 
-                {/* Email */}
-                <motion.div initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.22 }}>
-                  <FormField control={form.control} name="customerEmail" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="uppercase text-[10px] font-black tracking-widest text-muted-foreground flex items-center gap-2">
-                        <Mail className="h-3 w-3 text-primary" />
-                        Email Address
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="you@example.com"
-                          className="bg-card border-border h-11 focus-visible:ring-primary"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                </motion.div>
-
                 {/* WhatsApp Number */}
-                <motion.div initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}>
+                <motion.div initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.22 }}>
                   <FormField control={form.control} name="customerPhone" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="uppercase text-[10px] font-black tracking-widest text-muted-foreground flex items-center gap-2">

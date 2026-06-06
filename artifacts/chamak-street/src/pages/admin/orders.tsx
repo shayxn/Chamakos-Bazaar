@@ -1,19 +1,29 @@
 import { useState } from "react";
-import { useListOrders, useUpdateOrderStatus, getListOrdersQueryKey } from "@workspace/api-client-react";
+import { useDeleteOrder, useListOrders, useUpdateOrderStatus, getListOrdersQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OrderStatusUpdateStatus } from "@workspace/api-client-react/generated/api.schemas";
-import { Mail, MapPin, MessageCircle, Package, WalletCards } from "lucide-react";
+import { MapPin, MessageCircle, Package, Trash2, WalletCards } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function AdminOrders() {
   const { data: orders, isLoading } = useListOrders({ query: { queryKey: getListOrdersQueryKey() } });
   const updateStatus = useUpdateOrderStatus();
+  const deleteOrder = useDeleteOrder();
   const queryClient = useQueryClient();
 
   const handleStatusChange = (id: number, status: OrderStatusUpdateStatus) => {
     updateStatus.mutate(
       { id, data: { status } },
       { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() }) }
+    );
+  };
+
+  const handleDeleteOrder = (id: number) => {
+    if (!confirm(`Delete order #${id}? This cannot be undone.`)) return;
+    deleteOrder.mutate(
+      { id },
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() }) },
     );
   };
 
@@ -45,6 +55,7 @@ export default function AdminOrders() {
                 <th className="px-6 py-4 font-bold text-muted-foreground">Total</th>
                 <th className="px-6 py-4 font-bold text-muted-foreground">Items</th>
                 <th className="px-6 py-4 font-bold text-muted-foreground">Status</th>
+                <th className="px-6 py-4 font-bold text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -59,10 +70,6 @@ export default function AdminOrders() {
                   </td>
                   <td className="px-6 py-4 min-w-48">
                     <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Mail className="h-3.5 w-3.5 text-primary" />
-                        <span className="break-all">{order.customerEmail || "No email"}</span>
-                      </p>
                       <p className="flex items-center gap-2 text-xs text-muted-foreground">
                         <MessageCircle className="h-3.5 w-3.5 text-[#25D366]" />
                         <span>{order.customerPhone || "No WhatsApp"}</span>
@@ -121,11 +128,23 @@ export default function AdminOrders() {
                       </SelectContent>
                     </Select>
                   </td>
+                  <td className="px-6 py-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteOrder(order.id)}
+                      disabled={deleteOrder.isPending}
+                      className="h-8 w-8 hover:text-destructive"
+                      title="Delete order"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </td>
                 </tr>
               ))}
               {orders?.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
                     No orders found.
                   </td>
                 </tr>

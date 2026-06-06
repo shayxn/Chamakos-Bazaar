@@ -1,6 +1,6 @@
 import { useGetMe } from "@workspace/api-client-react";
 import { Link, useLocation, Redirect } from "wouter";
-import { LayoutDashboard, Package, ShoppingBag, LogOut, ArrowLeft } from "lucide-react";
+import { FileText, LayoutDashboard, Package, ShoppingBag, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/products", label: "Products", icon: Package },
     { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+    { href: "/admin/terms", label: "Terms", icon: FileText },
   ];
 
   return (

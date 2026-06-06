@@ -48,6 +48,7 @@ export interface Product {
   /** @nullable */
   categoryName?: string | null;
   featured: boolean;
+  rep: boolean;
   /** @nullable */
   sizes?: string | null;
   createdAt?: string;
@@ -61,6 +62,7 @@ export interface ProductInput {
   stock: number;
   categoryId?: number;
   featured?: boolean;
+  rep?: boolean;
   sizes?: string;
 }
 
@@ -72,6 +74,7 @@ export interface ProductUpdate {
   stock?: number;
   categoryId?: number;
   featured?: boolean;
+  rep?: boolean;
   sizes?: string;
 }
 
@@ -143,7 +146,6 @@ export interface Order {
 
 export interface OrderInput {
   customerName: string;
-  customerEmail: string;
   customerPhone: string;
   customerAddress: string;
   paymentMethod?: string;
