@@ -197,8 +197,10 @@ export default function Shop() {
                               {product.featured && (
                                 <span className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Featured</span>
                               )}
-                              {product.rep && (
+                              {product.rep ? (
                                 <span className="bg-black/85 text-white border border-white/20 text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">REP</span>
+                              ) : (
+                                <span className="bg-green-500/90 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Original</span>
                               )}
                             </div>
                             {product.stock <= 5 && product.stock > 0 && (

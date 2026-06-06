@@ -180,9 +180,13 @@ export default function ProductDetail() {
                     Featured
                   </span>
                 )}
-                {product.rep && (
+                {product.rep ? (
                   <span className="text-xs font-black tracking-widest uppercase bg-black/85 text-white border border-white/20 px-3 py-1.5 rounded-sm">
                     REP
+                  </span>
+                ) : (
+                  <span className="text-xs font-black tracking-widest uppercase bg-green-500/90 text-black px-3 py-1.5 rounded-sm">
+                    Original
                   </span>
                 )}
               </div>

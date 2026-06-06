@@ -241,15 +241,30 @@ export default function AdminProducts() {
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sizes (comma separated)</label>
                   <Input value={formData.sizes || ""} onChange={e => setFormData({ ...formData, sizes: e.target.value })} className="bg-background font-mono" placeholder="S, M, L, XL" />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 col-span-2 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-2 mt-2">
                   <label htmlFor="featured" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
                     <input type="checkbox" id="featured" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" />
                     Featured Product
                   </label>
-                  <label htmlFor="rep" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
-                    <input type="checkbox" id="rep" checked={formData.rep} onChange={e => setFormData({ ...formData, rep: e.target.checked })} className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" />
-                    REP Product
-                  </label>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Type</label>
+                    <div className="grid grid-cols-2 border border-border rounded-sm overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, rep: false })}
+                        className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors ${!formData.rep ? "bg-green-500 text-black" : "bg-background text-muted-foreground hover:text-foreground"}`}
+                      >
+                        Original
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, rep: true })}
+                        className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors ${formData.rep ? "bg-[#111827] text-white" : "bg-background text-muted-foreground hover:text-foreground"}`}
+                      >
+                        REP
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="pt-4 flex justify-end">
@@ -280,7 +295,11 @@ export default function AdminProducts() {
               )}
               <div className="absolute top-2 left-2 flex flex-col gap-1">
                 {product.featured && <div className="bg-primary text-black text-[10px] font-black uppercase tracking-widest px-2 py-1">Featured</div>}
-                {product.rep && <div className="bg-[#111827] text-white border border-white/20 text-[10px] font-black uppercase tracking-widest px-2 py-1">REP</div>}
+                {product.rep ? (
+                  <div className="bg-[#111827] text-white border border-white/20 text-[10px] font-black uppercase tracking-widest px-2 py-1">REP</div>
+                ) : (
+                  <div className="bg-green-500/90 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1">Original</div>
+                )}
               </div>
               {mediaCount > 1 && <div className="absolute bottom-2 left-2 bg-black/80 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1">{mediaCount} media</div>}
               {/* Stock badge */}
