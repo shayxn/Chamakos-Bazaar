@@ -7,6 +7,7 @@ export function setPublicReadCacheHeaders(res: Response, maxAgeSeconds = PUBLIC_
 }
 
 export function createTtlCache<T>(ttlMs: number) {
+  const maxEntries = 50;
   const cache = new Map<string, { expiresAt: number; value: T }>();
 
   return {
@@ -20,6 +21,10 @@ export function createTtlCache<T>(ttlMs: number) {
       return entry.value;
     },
     set(key: string, value: T) {
+      if (!cache.has(key) && cache.size >= maxEntries) {
+        const oldestKey = cache.keys().next().value;
+        if (oldestKey !== undefined) cache.delete(oldestKey);
+      }
       cache.set(key, { expiresAt: Date.now() + ttlMs, value });
     },
     clear() {
