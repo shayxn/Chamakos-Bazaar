@@ -4,6 +4,9 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { Blob } from "node:buffer";
+import type { RequestHandler } from "express";
+import { db, usersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
 
 const useCloudinary = Boolean(
@@ -25,10 +28,11 @@ const localStorage = multer.diskStorage({
 });
 
 const cloudinaryStorage = multer.memoryStorage();
+const maxUploadSize = useCloudinary ? 15 * 1024 * 1024 : 100 * 1024 * 1024;
 
 const upload = multer({
   storage: useCloudinary ? cloudinaryStorage : localStorage,
-  limits: { fileSize: 100 * 1024 * 1024 },
+  limits: { fileSize: maxUploadSize },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) cb(null, true);
     else cb(new Error("Only image and video files allowed"));
@@ -37,11 +41,29 @@ const upload = multer({
 
 const router = Router();
 
+const requireAdmin: RequestHandler = async (req, res, next) => {
+  const session = req.session as Record<string, unknown>;
+  const userId = session?.userId as number | undefined;
+
+  if (!userId) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user?.isAdmin) {
+    res.status(403).json({ error: "Admin access required" });
+    return;
+  }
+
+  next();
+};
+
 function getMediaType(file: Express.Multer.File): "image" | "video" {
   return file.mimetype.startsWith("video/") ? "video" : "image";
 }
 
-async function uploadToCloudinary(file: Express.Multer.File): Promise<{ url: string; type: "image" | "video" }> {
+function getCloudinaryConfig() {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
@@ -50,14 +72,34 @@ async function uploadToCloudinary(file: Express.Multer.File): Promise<{ url: str
     throw new Error("Cloudinary environment variables are not configured");
   }
 
-  if (!file.buffer) {
-    throw new Error("Uploaded file buffer is missing");
-  }
+  return { cloudName, apiKey, apiSecret };
+}
 
+function createCloudinarySignature() {
+  const { cloudName, apiKey, apiSecret } = getCloudinaryConfig();
   const timestamp = Math.round(Date.now() / 1000).toString();
   const folder = process.env.CLOUDINARY_UPLOAD_FOLDER ?? "chamakos-bazaar/products";
   const paramsToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
   const signature = crypto.createHash("sha1").update(paramsToSign).digest("hex");
+
+  return {
+    apiKey,
+    cloudName,
+    folder,
+    signature,
+    timestamp,
+    uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+  };
+}
+
+async function uploadToCloudinary(file: Express.Multer.File): Promise<{ url: string; type: "image" | "video" }> {
+  const { cloudName, apiKey } = getCloudinaryConfig();
+
+  if (!file.buffer) {
+    throw new Error("Uploaded file buffer is missing");
+  }
+
+  const { folder, signature, timestamp } = createCloudinarySignature();
 
   const formData = new FormData();
   formData.append("file", new Blob([file.buffer], { type: file.mimetype }), file.originalname);
@@ -87,7 +129,21 @@ async function uploadToCloudinary(file: Express.Multer.File): Promise<{ url: str
   };
 }
 
-router.post("/uploads", upload.single("file"), async (req, res) => {
+router.post("/uploads/sign", requireAdmin, (_req, res) => {
+  if (!useCloudinary) {
+    res.status(404).json({ error: "Cloudinary uploads are not configured" });
+    return;
+  }
+
+  try {
+    res.json(createCloudinarySignature());
+  } catch (error) {
+    logger.error({ err: error }, "Cloudinary signature creation failed");
+    res.status(500).json({ error: "Cloudinary signature creation failed" });
+  }
+});
+
+router.post("/uploads", requireAdmin, upload.single("file"), async (req, res) => {
   if (!req.file) {
     res.status(400).json({ error: "No file uploaded" });
     return;
