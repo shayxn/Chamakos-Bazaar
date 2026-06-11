@@ -10,39 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { getPrimaryProductMedia, parseProductMedia, serializeProductMedia, type ProductMedia } from "@/lib/product-media";
 
-type CloudinarySignature = {
-  apiKey: string;
-  folder: string;
-  signature: string;
-  timestamp: string;
-  uploadUrl: string;
-};
-
 async function uploadMedia(file: File): Promise<ProductMedia> {
-  const signatureRes = await fetch("/api/uploads/sign", { method: "POST", credentials: "include" });
-  if (signatureRes.ok) {
-    const signature = await signatureRes.json() as CloudinarySignature;
-    const cloudinaryForm = new FormData();
-    cloudinaryForm.append("file", file);
-    cloudinaryForm.append("api_key", signature.apiKey);
-    cloudinaryForm.append("timestamp", signature.timestamp);
-    cloudinaryForm.append("folder", signature.folder);
-    cloudinaryForm.append("signature", signature.signature);
-
-    const uploadRes = await fetch(signature.uploadUrl, { method: "POST", body: cloudinaryForm });
-    if (!uploadRes.ok) throw new Error("Cloudinary upload failed");
-
-    const data = await uploadRes.json() as { secure_url?: string; resource_type?: string };
-    if (!data.secure_url) throw new Error("Cloudinary upload response missing URL");
-
-    return {
-      url: data.secure_url,
-      type: data.resource_type === "video" || file.type.startsWith("video/") ? "video" : "image",
-    };
-  }
-
-  if (signatureRes.status !== 404) throw new Error("Upload signing failed");
-
   const formData = new FormData();
   formData.append("file", file);
   const res = await fetch("/api/uploads", { method: "POST", body: formData, credentials: "include" });
@@ -105,10 +73,7 @@ export default function AdminProducts() {
     if (files.length === 0) return;
     setUploading(true);
     try {
-      const uploaded: ProductMedia[] = [];
-      for (const file of files) {
-        uploaded.push(await uploadMedia(file));
-      }
+      const uploaded = await Promise.all(files.map(uploadMedia));
       setMediaItems((prev) => {
         const next = [...prev, ...uploaded];
         setFormData((current) => ({ ...current, imageUrl: serializeProductMedia(next) }));
