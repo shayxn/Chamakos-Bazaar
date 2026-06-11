@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: chamakos-bazaar
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run render:build
+    startCommand: pnpm run render:start
+    envVars:
+      - key: NODE_ENV
+        value: production
