@@ -4,12 +4,14 @@ import { useGetProduct, useAddToCart, useListProducts, getGetProductQueryKey, ge
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft } from "lucide-react";
+import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
 import { parseProductMedia, getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
+import { useSettings } from "@/lib/use-settings";
+import { useRef } from "react";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -34,12 +36,24 @@ export default function ProductDetail() {
     query: { enabled: !!id, queryKey: getGetProductQueryKey(id), staleTime: 2 * 60_000 }
   });
 
+  const settings = useSettings();
+  const recVisible = settings.recommended_visible !== "false";
+  const recTitle = settings.recommended_title || "You May Also Like";
+  const recCount = Math.max(2, Math.min(12, Number(settings.recommended_count) || 6));
+  const sliderRef = useRef<HTMLDivElement>(null);
+
   const categoryId = product?.categoryId ?? undefined;
   const { data: relatedProducts } = useListProducts(
     categoryId ? { categoryId } : undefined,
-    { query: { enabled: !!categoryId, queryKey: getListProductsQueryKey(categoryId ? { categoryId } : undefined), staleTime: 2 * 60_000 } }
+    { query: { enabled: !!categoryId && recVisible, queryKey: getListProductsQueryKey(categoryId ? { categoryId } : undefined), staleTime: 2 * 60_000 } }
   );
-  const related = (relatedProducts ?? []).filter((p) => p.id !== id).slice(0, 6);
+  const related = (relatedProducts ?? []).filter((p) => p.id !== id).slice(0, recCount);
+
+  const scrollSlider = (dir: "left" | "right") => {
+    if (!sliderRef.current) return;
+    const amount = sliderRef.current.clientWidth * 0.7;
+    sliderRef.current.scrollBy({ left: dir === "right" ? amount : -amount, behavior: "smooth" });
+  };
 
   const addToCart = useAddToCart();
   const queryClient = useQueryClient();
@@ -337,7 +351,7 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        {related.length > 0 && (
+        {recVisible && related.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -346,41 +360,76 @@ export default function ProductDetail() {
           >
             <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-[10px] text-primary uppercase tracking-widest font-black mb-1">Style Up</p>
-                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">Complete the Look</h2>
+                <p className="text-[10px] text-primary uppercase tracking-widest font-black mb-1">Curated for You</p>
+                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">{recTitle}</h2>
               </div>
-              <Link href="/shop" className="text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-                View All →
-              </Link>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => scrollSlider("left")}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-primary/60 hover:text-primary transition-all"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => scrollSlider("right")}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-primary/60 hover:text-primary transition-all"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <Link href="/shop" className="text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors ml-2">
+                  View All →
+                </Link>
+              </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+
+            <div
+              ref={sliderRef}
+              className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
               {related.map((p, i) => {
                 const media = getPrimaryProductMedia(p.imageUrl);
                 return (
                   <motion.div
                     key={p.id}
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.45, delay: 0.5 + i * 0.07, ease: EASE }}
-                    className="group"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: 0.45 + i * 0.06, ease: EASE }}
+                    className="group snap-start shrink-0 w-[180px] sm:w-[200px] md:w-[220px]"
                   >
                     <Link href={`/product/${p.id}`}>
                       <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}>
-                        <div className="relative aspect-square mb-3 overflow-hidden rounded-lg bg-card border border-border group-hover:border-primary/40 transition-colors group-hover:shadow-[0_8px_24px_rgba(255,102,0,0.18)]">
+                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-card border border-border group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-[0_8px_28px_rgba(255,102,0,0.2)]">
                           {media ? (
-                            <img src={media.url} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                            <img
+                              src={media.url}
+                              alt={p.name}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              loading="lazy"
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Image</div>
                           )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           <button
                             onClick={(e) => { e.preventDefault(); setQuickViewId(p.id); }}
-                            className="absolute inset-x-2 bottom-2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-background/90 backdrop-blur-sm text-foreground text-[10px] font-black uppercase tracking-widest py-1.5 rounded-md border border-border hover:border-primary/50 hover:text-primary"
+                            className="absolute inset-x-2 bottom-2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 bg-background/90 backdrop-blur-sm text-foreground text-[10px] font-black uppercase tracking-widest py-1.5 rounded-lg border border-border hover:border-primary/50 hover:text-primary"
                           >
                             Quick View
                           </button>
+                          {p.featured && (
+                            <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-black px-1.5 py-0.5 uppercase tracking-wider rounded-sm">
+                              Featured
+                            </span>
+                          )}
                         </div>
-                        <p className="text-xs font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">{p.name}</p>
-                        <p className="text-xs font-mono text-primary font-bold mt-0.5">AED {p.price.toFixed(2)}</p>
+                        <div className="px-0.5">
+                          {p.categoryName && (
+                            <p className="text-[9px] text-muted-foreground uppercase tracking-widest mb-0.5">{p.categoryName}</p>
+                          )}
+                          <p className="text-xs font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">{p.name}</p>
+                          <p className="text-sm font-mono text-primary font-bold mt-1">AED {p.price.toFixed(2)}</p>
+                        </div>
                       </motion.div>
                     </Link>
                   </motion.div>

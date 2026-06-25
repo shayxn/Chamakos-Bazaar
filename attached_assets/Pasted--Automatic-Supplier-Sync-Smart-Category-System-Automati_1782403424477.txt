@@ -1,0 +1,77 @@
+## Automatic Supplier Sync & Smart Category System
+
+### Automatic Supplier Sync
+
+Create an automatic supplier synchronization system.
+
+The website should check the following supplier websites **once every day** for new products:
+
+* fashioncage.me
+* stealstreetwear.com
+
+Use official APIs, supplier feeds, CSV imports, or any approved integration methods where available. Do not use methods that violate the suppliers' terms of service.
+
+Whenever a new product is found, the website should automatically:
+
+* Import the product.
+* Import all product images.
+* Import the product name.
+* Import the description.
+* Import the category.
+* Import sizes.
+* Import colors.
+* Import stock availability.
+* Import the original supplier price.
+
+After importing, automatically calculate the selling price using this formula:
+
+**Selling Price = (Supplier Price + 25 AED) × 1.3**
+
+The calculated selling price should automatically become the price displayed on my website.
+
+After the import is complete, the product should automatically:
+
+* Be published on the website.
+* Appear in the correct category.
+* Appear in the Featured Products section.
+* Be available for customers to purchase immediately.
+
+The admin panel should still allow me to:
+
+* Edit any imported product.
+* Change the price.
+* Replace images.
+* Change categories.
+* Hide or publish products.
+* Delete products.
+* Force a manual sync at any time.
+
+---
+
+## Smart Category System
+
+When creating or editing a product, I want to choose its category from a dropdown menu.
+
+As soon as I select a category:
+
+* The category's custom banner/image should automatically be assigned to that product page.
+* The product should inherit that category's default settings.
+* The category's default pricing rules should automatically apply.
+* The default price or pricing formula for that category should be suggested automatically (while still allowing me to override it manually if needed).
+
+Every category should have its own:
+
+* Banner image
+* Thumbnail image
+* Background image
+* Accent color
+* Default pricing settings
+* Display layout
+
+For example:
+
+* Shoes → Shoe banner + shoe pricing settings.
+* Hoodies → Hoodie banner + hoodie pricing settings.
+* Perfumes → Perfume banner + perfume pricing settings.
+
+Everything should be fully editable from the admin panel without coding, and any changes should automatically update wherever that category is used.

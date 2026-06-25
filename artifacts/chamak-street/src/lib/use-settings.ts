@@ -58,6 +58,10 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   tiktok_btn_text: "Follow on TikTok",
   tiktok_btn_color: "#000000",
   tiktok_btn_visible: "true",
+  recommended_visible: "true",
+  recommended_title: "You May Also Like",
+  recommended_count: "6",
+  recommended_mode: "auto",
 };
 
 export function useSetting(key: string): string {

@@ -142,7 +142,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <p className="text-xs text-muted-foreground">@{user.username}</p>
         </div>
 
-        <div className="pt-3 pb-1">
+        <div className="px-4 pt-3 pb-2 flex gap-2">
+          <Link href="/" className="flex-1">
+            <Button variant="outline" size="sm" className="w-full justify-start text-xs font-bold uppercase tracking-wider">
+              <ArrowLeft className="h-3.5 w-3.5 mr-2" /> Back to Store
+            </Button>
+          </Link>
+          <a href="/" target="_blank" rel="noopener noreferrer">
+            <Button variant="ghost" size="sm" className="px-2 text-muted-foreground" title="View Site">
+              <Globe className="h-3.5 w-3.5" />
+            </Button>
+          </a>
+        </div>
+
+        <div className="pb-1">
           <GlobalSearch />
         </div>
 
@@ -173,18 +186,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border space-y-2">
-          <Link href="/">
-            <Button variant="outline" size="sm" className="w-full justify-start text-xs font-bold uppercase tracking-wider">
-              <ArrowLeft className="h-3.5 w-3.5 mr-2" /> Back to Store
-            </Button>
-          </Link>
-          <a href="/" target="_blank" rel="noopener noreferrer">
-            <Button variant="ghost" size="sm" className="w-full justify-start text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              <Globe className="h-3.5 w-3.5 mr-2" /> View Site
-            </Button>
-          </a>
-        </div>
       </aside>
 
       <main className="flex-1 overflow-auto">

@@ -412,6 +412,24 @@ export default function AdminSiteSettings() {
                 <ToggleInput label="Show Reviews Section" settingKey="reviews_section_visible" settings={settings} onChange={onChange} />
                 <SettingInput label="Section Title" settingKey="reviews_section_title" settings={settings} onChange={onChange} />
               </div>
+              <div className="p-4 bg-muted/30 rounded-xl space-y-3 border border-border/40">
+                <h3 className="font-black uppercase tracking-wide text-sm">Recommended Products</h3>
+                <p className="text-xs text-muted-foreground">Shown at the bottom of every product page — automatically picks similar products from the same category.</p>
+                <ToggleInput label="Show Recommended Products" settingKey="recommended_visible" settings={settings} onChange={onChange} />
+                <SettingInput label='Section Title (e.g. "You May Also Like")' settingKey="recommended_title" settings={settings} onChange={onChange} placeholder="You May Also Like" />
+                <div>
+                  <label className="label-xs mb-1.5 block">Number of Products to Show</label>
+                  <select
+                    value={settings["recommended_count"] || "6"}
+                    onChange={(e) => onChange("recommended_count", e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:border-primary/50"
+                  >
+                    {[2, 3, 4, 6, 8, 10, 12].map((n) => (
+                      <option key={n} value={String(n)}>{n} products</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         )}
