@@ -7,6 +7,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+app.set("trust proxy", 1);
 
 app.use(
   pinoHttp({
@@ -36,7 +37,7 @@ app.use(
     secret: process.env.SESSION_SECRET ?? (process.env.NODE_ENV === "production" ? (() => { throw new Error("SESSION_SECRET env var is required in production"); })() : "chamak_street_dev_only_secret"),
     maxAge: 7 * 24 * 60 * 60 * 1000,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    sameSite: "lax",
   }),
 );
 

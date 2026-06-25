@@ -1,7 +1,12 @@
 import { Router, type Request } from "express";
-import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable } from "@workspace/db";
+import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
+
+function generateOrderNumber(): string {
+  const num = 100000 + Math.floor(Math.random() * 900000);
+  return `CHM-${num}`;
+}
 
 const ZIINA_API_URL = "https://api-v2.ziina.com/api/payment_intent";
 
@@ -45,10 +50,6 @@ function getSiteBaseUrl(req: Request): string {
   return `${req.protocol}://${req.get("host")}`;
 }
 
-function encodeOrderMetadata(address: string, phone: string, paymentMethod: string): string {
-  return JSON.stringify({ address, phone, paymentMethod });
-}
-
 function getCheckoutBody(body: unknown): { customerName: string; customerPhone: string; customerAddress: string } | null {
   if (!body || typeof body !== "object") return null;
   const value = body as CheckoutBody;
@@ -70,6 +71,7 @@ async function getCartItems(sessionId: string) {
       price: productsTable.price,
       quantity: cartItemsTable.quantity,
       size: cartItemsTable.size,
+      isPreOrder: productsTable.isPreOrder,
     })
     .from(cartItemsTable)
     .leftJoin(productsTable, eq(cartItemsTable.productId, productsTable.id))
@@ -81,6 +83,7 @@ async function getCartItems(sessionId: string) {
     price: Number(item.price ?? 0),
     quantity: item.quantity,
     size: item.size ?? null,
+    isPreOrder: item.isPreOrder ?? false,
   }));
 }
 
@@ -154,12 +157,27 @@ router.post("/payments/ziina-checkout", async (req, res) => {
   const shippingFee = 25;
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) + shippingFee;
 
+  const hasPreOrder = cartItems.some((item) => item.isPreOrder);
+
+  let orderNumber = generateOrderNumber();
+  let attempts = 0;
+  while (attempts < 5) {
+    const existing = await db.select({ id: ordersTable.id }).from(ordersTable).where(eq(ordersTable.orderNumber, orderNumber));
+    if (existing.length === 0) break;
+    orderNumber = generateOrderNumber();
+    attempts++;
+  }
+
   const [order] = await db.insert(ordersTable).values({
+    orderNumber,
     customerName: parsed.customerName,
     customerEmail: null,
-    customerAddress: encodeOrderMetadata(parsed.customerAddress, parsed.customerPhone, "ziina"),
+    customerPhone: parsed.customerPhone,
+    customerAddress: parsed.customerAddress,
+    paymentMethod: "ziina",
     total: String(total),
     status: "pending",
+    hasPreOrder,
   }).returning();
 
   await db.insert(orderItemsTable).values(
@@ -170,8 +188,17 @@ router.post("/payments/ziina-checkout", async (req, res) => {
       price: String(item.price),
       quantity: item.quantity,
       size: item.size,
+      isPreOrder: item.isPreOrder,
     })),
   );
+
+  await db.insert(orderTrackingEventsTable).values({
+    orderId: order.id,
+    status: "pending",
+    note: "Order placed — awaiting Ziina payment",
+  });
+
+  (req.session as Record<string, unknown>).lastOrderId = order.id;
 
   try {
     const data = await createZiinaIntent(req, order);
