@@ -38,8 +38,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     logout.mutate(undefined, { onSuccess: () => { window.location.reload(); } });
   };
 
-  const logoUrl = settings.logo_url || "";
-  const useCustomLogo = !!logoUrl && logoUrl !== "/chamak-logo.png";
+  const rawLogoUrl = settings.logo_url || "";
+  const logoUrl = (!rawLogoUrl || rawLogoUrl === "/chamak-logo.png") ? "/chamak-logo-transparent.png" : rawLogoUrl;
+  const useCustomLogo = true;
   const logoHeight = Number(settings.logo_height ?? 56) || 56;
   const logoBgColor = settings.logo_bg_color || "transparent";
   const logoOpacity = Number(settings.logo_opacity ?? 1) || 1;
