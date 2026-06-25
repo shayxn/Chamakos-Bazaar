@@ -21,6 +21,7 @@ import AdminCategories from "@/pages/admin/categories";
 import AdminSiteSettings from "@/pages/admin/site-settings";
 import AdminReviews from "@/pages/admin/reviews";
 import AdminTiktok from "@/pages/admin/tiktok";
+import AdminImport from "@/pages/admin/import";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
 import Terms from "@/pages/terms";
@@ -50,6 +51,7 @@ function AdminRouter() {
         <Route path="/admin/reviews" component={AdminReviews} />
         <Route path="/admin/tiktok" component={AdminTiktok} />
         <Route path="/admin/terms" component={AdminTerms} />
+        <Route path="/admin/import" component={AdminImport} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>

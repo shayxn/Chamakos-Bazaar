@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSettings } from "@/lib/use-settings";
+import { ChamakLogo } from "./chamak-logo";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -37,7 +38,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
     logout.mutate(undefined, { onSuccess: () => { window.location.reload(); } });
   };
 
-  const logoUrl = settings.logo_url || "/chamak-logo.png";
+  const logoUrl = settings.logo_url || "";
+  const useCustomLogo = !!logoUrl && logoUrl !== "/chamak-logo.png";
   const logoHeight = Number(settings.logo_height ?? 56) || 56;
   const logoBgColor = settings.logo_bg_color || "transparent";
   const logoOpacity = Number(settings.logo_opacity ?? 1) || 1;
@@ -47,6 +49,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const logoBorderRadius = Number(settings.logo_border_radius ?? 0) || 0;
   const logoBrightness = Number(settings.logo_brightness ?? 1) || 1;
   const logoContrast = Number(settings.logo_contrast ?? 1) || 1;
+
+  const logoSize: "sm" | "md" | "lg" = logoHeight <= 40 ? "sm" : logoHeight <= 70 ? "md" : "lg";
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
@@ -63,21 +67,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 z-50">
             <motion.div whileHover={{ scale: 1.03 }} transition={{ type: "spring", stiffness: 300 }}>
-              <img
-                src={logoUrl}
-                alt="Chamak Street"
-                style={{
-                  height: `${logoHeight}px`,
-                  width: "auto",
-                  objectFit: "contain",
-                  backgroundColor: logoBgColor,
-                  opacity: logoOpacity,
-                  filter: `blur(${logoBlur}px) brightness(${logoBrightness}) contrast(${logoContrast})`,
-                  mixBlendMode: logoBlendMode as React.CSSProperties["mixBlendMode"],
-                  padding: `${logoPadding}px`,
-                  borderRadius: `${logoBorderRadius}px`,
-                }}
-              />
+              {useCustomLogo ? (
+                <img
+                  src={logoUrl}
+                  alt="Chamak Street"
+                  style={{
+                    height: `${logoHeight}px`,
+                    width: "auto",
+                    objectFit: "contain",
+                    backgroundColor: logoBgColor,
+                    opacity: logoOpacity,
+                    filter: `blur(${logoBlur}px) brightness(${logoBrightness}) contrast(${logoContrast})`,
+                    mixBlendMode: logoBlendMode as React.CSSProperties["mixBlendMode"],
+                    padding: `${logoPadding}px`,
+                    borderRadius: `${logoBorderRadius}px`,
+                  }}
+                />
+              ) : (
+                <div style={{ opacity: logoOpacity }}>
+                  <ChamakLogo size={logoSize} animate />
+                </div>
+              )}
             </motion.div>
           </Link>
 
@@ -206,22 +216,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-border mt-20 py-12 bg-card">
         <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <img
-              src={logoUrl}
-              alt="Chamak Street"
-              style={{
-                height: "40px",
-                width: "auto",
-                objectFit: "contain",
-                backgroundColor: logoBgColor,
-                opacity: 0.7,
-                filter: `brightness(${logoBrightness}) contrast(${logoContrast})`,
-                mixBlendMode: logoBlendMode as React.CSSProperties["mixBlendMode"],
-                padding: `${logoPadding}px`,
-                borderRadius: `${logoBorderRadius}px`,
-                marginBottom: "16px",
-              }}
-            />
+            {useCustomLogo ? (
+              <img
+                src={logoUrl}
+                alt="Chamak Street"
+                style={{
+                  height: "40px",
+                  width: "auto",
+                  objectFit: "contain",
+                  backgroundColor: logoBgColor,
+                  opacity: 0.7,
+                  filter: `brightness(${logoBrightness}) contrast(${logoContrast})`,
+                  mixBlendMode: logoBlendMode as React.CSSProperties["mixBlendMode"],
+                  padding: `${logoPadding}px`,
+                  borderRadius: `${logoBorderRadius}px`,
+                  marginBottom: "16px",
+                }}
+              />
+            ) : (
+              <div style={{ opacity: 0.7, marginBottom: "16px" }}>
+                <ChamakLogo size="sm" animate={false} />
+              </div>
+            )}
             <p className="text-muted-foreground text-sm max-w-sm">
               {settings.footer_description || "Premium streetwear for those who walk their own path."}
             </p>

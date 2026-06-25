@@ -12,6 +12,7 @@ import contentRouter from "./content";
 import settingsRouter from "./settings";
 import reviewsRouter from "./reviews";
 import tiktokRouter from "./tiktok";
+import importRouter from "./import";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(contentRouter);
 router.use(settingsRouter);
 router.use(reviewsRouter);
 router.use(tiktokRouter);
+router.use(importRouter);
 
 export default router;

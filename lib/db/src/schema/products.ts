@@ -14,10 +14,14 @@ export const productsTable = pgTable("products", {
   featured: boolean("featured").notNull().default(false),
   rep: boolean("rep").notNull().default(false),
   sizes: text("sizes"),
+  colors: text("colors"),
   isPreOrder: boolean("is_pre_order").notNull().default(false),
   preOrderLabel: text("pre_order_label"),
   preOrderDate: text("pre_order_date"),
   preOrderNote: text("pre_order_note"),
+  supplierPrice: numeric("supplier_price", { precision: 10, scale: 2 }),
+  importSource: text("import_source"),
+  externalId: text("external_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

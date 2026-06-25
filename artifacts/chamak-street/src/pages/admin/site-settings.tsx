@@ -1,13 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGetAllSettings, useBulkUpsertSettings } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff } from "lucide-react";
+import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SETTING_DEFAULTS } from "@/lib/use-settings";
+
+const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
+async function uploadImageFile(file: File): Promise<string> {
+  const signRes = await fetch(`${BASE}/api/uploads/sign`, { method: "POST", credentials: "include" });
+  if (signRes.ok) {
+    const sig = await signRes.json() as { apiKey: string; folder: string; signature: string; timestamp: string; uploadUrl: string };
+    const form = new FormData();
+    form.append("file", file);
+    form.append("api_key", sig.apiKey);
+    form.append("timestamp", sig.timestamp);
+    form.append("folder", sig.folder);
+    form.append("signature", sig.signature);
+    const upRes = await fetch(sig.uploadUrl, { method: "POST", body: form });
+    if (!upRes.ok) throw new Error("Cloudinary upload failed");
+    const data = await upRes.json() as { secure_url?: string };
+    if (!data.secure_url) throw new Error("No URL returned");
+    return data.secure_url;
+  }
+  const form = new FormData();
+  form.append("file", file);
+  const upRes = await fetch(`${BASE}/api/uploads`, { method: "POST", body: form, credentials: "include" });
+  if (!upRes.ok) throw new Error("Upload failed");
+  const data = await upRes.json() as { url: string };
+  return data.url;
+}
 
 type SettingsMap = Record<string, string>;
 
@@ -40,6 +66,62 @@ function SettingInput({
         <Textarea value={val} onChange={(e) => onChange(settingKey, e.target.value)} placeholder={placeholder ?? SETTING_DEFAULTS[settingKey]} className="min-h-[80px]" />
       ) : (
         <Input type={type} value={val} onChange={(e) => onChange(settingKey, e.target.value)} placeholder={placeholder ?? SETTING_DEFAULTS[settingKey]} />
+      )}
+    </div>
+  );
+}
+
+function ImageSettingInput({
+  label, settingKey, settings, onChange,
+}: {
+  label: string;
+  settingKey: string;
+  settings: SettingsMap;
+  onChange: (key: string, val: string) => void;
+}) {
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const val = settings[settingKey] ?? SETTING_DEFAULTS[settingKey] ?? "";
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImageFile(file);
+      onChange(settingKey, url);
+      toast({ title: "Image uploaded!" });
+    } catch {
+      toast({ title: "Upload failed", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div>
+      <label className="label-xs mb-1.5 block">{label}</label>
+      <div className="flex gap-2">
+        <Input value={val} onChange={(e) => onChange(settingKey, e.target.value)} placeholder="https://... or upload from device" className="flex-1" />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="shrink-0 gap-1.5 font-bold uppercase tracking-wide text-xs border-primary/40 hover:border-primary"
+        >
+          <Upload className="h-3.5 w-3.5" />
+          {uploading ? "Uploading…" : "Upload"}
+        </Button>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      </div>
+      {val && (
+        <div className="mt-2 rounded-lg overflow-hidden border border-border/40 h-24">
+          <img src={val} alt="preview" className="w-full h-full object-cover object-center" />
+        </div>
       )}
     </div>
   );
@@ -230,12 +312,7 @@ export default function AdminSiteSettings() {
         {activeTab === "hero" && (
           <div className="space-y-5">
             <h2 className="font-black uppercase tracking-wider text-primary mb-6">Hero Section</h2>
-            <SettingInput label="Hero Image URL" settingKey="hero_image" settings={settings} onChange={onChange} placeholder="/chamako-hero.png" />
-            {settings.hero_image && (
-              <div className="rounded-xl overflow-hidden h-36 border border-border/40">
-                <img src={settings.hero_image} alt="Hero preview" className="w-full h-full object-cover object-center" />
-              </div>
-            )}
+            <ImageSettingInput label="Hero Image" settingKey="hero_image" settings={settings} onChange={onChange} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <SettingInput label="Hero Title Line 1" settingKey="hero_title" settings={settings} onChange={onChange} />
               <SettingInput label="Hero Title Line 2 (gradient)" settingKey="hero_subtitle" settings={settings} onChange={onChange} />
@@ -251,7 +328,7 @@ export default function AdminSiteSettings() {
           <div className="space-y-5">
             <h2 className="font-black uppercase tracking-wider text-primary mb-6">Logo Blending Tool</h2>
             <p className="text-sm text-muted-foreground">Adjust how your logo appears in the header without touching code.</p>
-            <SettingInput label="Logo Image URL" settingKey="logo_url" settings={settings} onChange={onChange} placeholder="/chamak-logo.png" />
+            <ImageSettingInput label="Custom Logo Image (leave empty to use the built-in animated SVG logo)" settingKey="logo_url" settings={settings} onChange={onChange} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <SliderInput label="Height (px)" settingKey="logo_height" settings={settings} onChange={onChange} min={20} max={100} step={1} />
