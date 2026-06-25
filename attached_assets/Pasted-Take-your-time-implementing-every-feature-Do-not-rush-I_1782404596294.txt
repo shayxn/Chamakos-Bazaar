@@ -1,0 +1,220 @@
+Take your time implementing every feature. Do not rush. I would rather wait 1–2 hours for everything to be implemented correctly than have missing features or bugs. Make every feature polished, reliable, and fully functional.
+
+## Admin Panel
+
+I want complete control over the entire website from the admin panel without touching the code.
+
+The admin panel should allow me to edit:
+
+### Homepage
+
+* Homepage sections
+* Hero banner
+* Camel opening image
+* Homepage text
+* Homepage images
+* Featured Products section
+* Trust section
+* TikTok section
+* Customer Reviews section
+* Recommended Products section
+* Footer
+
+### Branding
+
+* Chamak Street logo
+* Logo size
+* Logo position
+* Logo background blending
+* Logo transparency
+* Logo brightness
+* Logo contrast
+* Logo padding
+* Logo rounded corners
+* Logo replacement
+
+### Products
+
+* Add products
+* Edit products
+* Delete products
+* Hide/Publish products
+* Duplicate products
+* Bulk edit products
+* Upload unlimited images
+* Product videos
+* Product descriptions
+* Product specifications
+* Product tags
+* Product badges
+* Featured Products toggle
+* Best Seller toggle
+* Trending toggle
+* Limited Edition toggle
+* New Arrival toggle
+
+### Categories
+
+Every category should have its own:
+
+* Banner image
+* Thumbnail image
+* Background image
+* Accent color
+* Display layout
+* Default pricing settings
+* Display order
+
+When selecting a category while creating or editing a product:
+
+* Automatically assign the category banner.
+* Automatically apply that category's pricing settings.
+* Allow overriding the price manually if needed.
+
+### Pricing
+
+* Individual product pricing
+* Category pricing
+* Bulk price updates
+* Discount percentages
+* Sale prices
+* Automatic pricing formulas
+
+### Supplier Import
+
+Connect to:
+
+* fashioncage.me
+* stealstreetwear.com
+
+Automatically import:
+
+* Product names
+* Images
+* Descriptions
+* Categories
+* Sizes
+* Colors
+* Stock
+* Supplier prices
+
+Automatically calculate every imported product using:
+
+**(Supplier Price + 25 AED) × 1.3**
+
+Automatically:
+
+* Publish imported products
+* Add them to Featured Products
+* Place them in the correct category
+
+Check both suppliers once every day for new products and automatically import any new items.
+
+Admin controls:
+
+* Manual Sync Now
+* Last Sync Time
+* Next Sync Time
+* Products Imported
+* Failed Imports
+* Enable/Disable Auto Sync
+
+### Orders
+
+* View orders
+* Search orders
+* Update order status
+* Cancel orders
+* Mark delivered
+* Print invoices
+* Generate order numbers
+* View customer details
+
+### Order Tracking
+
+Allow customers to track orders using:
+
+* Order Number
+* WhatsApp Number
+
+### Pre-Orders
+
+For every product:
+
+* Enable/Disable Pre-Order
+* Change button to "Pre-Order Now"
+* Add release date
+* Add pre-order notice
+* Mark pre-order orders in admin
+
+### Reviews
+
+* Add reviews
+* Edit reviews
+* Delete reviews
+* Approve reviews
+* Pin reviews
+* Upload customer photos
+* Add star ratings
+* Verified Purchase badge
+
+### TikTok
+
+* Change TikTok account
+* Add or remove TikTok videos
+* Edit section title
+* Show/Hide section
+
+### WhatsApp
+
+* Change WhatsApp number
+* Change button text
+* Change button icon
+* Show/Hide button
+* Default message
+
+### Footer
+
+* Edit links
+* Edit social media
+* Edit contact information
+* Edit copyright
+* Show/Hide sections
+
+### Website Settings
+
+* Colors
+* Fonts
+* Backgrounds
+* Buttons
+* Navigation
+* Animations
+* Loading screen
+* Maintenance mode
+* SEO settings
+
+## Customer Features
+
+* Wishlist
+* Recently Viewed
+* Recommended Products below every product
+* Complete the Look
+* Product search
+* Smart filters
+* Coupon codes
+* Discount system
+* Cash on Delivery
+* UAE shipping
+* Order Tracking
+* Smooth scrolling through all products
+* Featured Products
+* Best Sellers
+* New Arrivals
+* Trending Products
+* Customer Reviews
+* TikTok section
+* WhatsApp support
+* Fast checkout
+* Secure checkout
+
+Everything should be editable from the admin panel and work reliably. Take your time implementing these features correctly, even if it takes several hours. Quality and reliability are far more important than speed.

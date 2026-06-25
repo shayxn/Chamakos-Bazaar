@@ -1,0 +1,85 @@
+## Automatic Supplier Import & Smart Product Management
+
+Please implement this feature carefully and take your time. I would rather wait longer and have everything work perfectly than have a rushed implementation.
+
+### Automatic Supplier Import
+
+Create a complete automatic supplier import system for:
+
+* fashioncage.me
+* stealstreetwear.com
+
+The system should automatically check both suppliers **once every day** for new products.
+
+Whenever new products are found, automatically import:
+
+* Product name
+* Product images
+* Description
+* Category
+* Sizes
+* Colors
+* Stock availability
+* Supplier price
+
+Automatically calculate the selling price using:
+
+**(Supplier Price + 25 AED) × 1.3**
+
+The calculated price should automatically become the selling price on my website.
+
+### Automatic Publishing
+
+After importing a product, automatically:
+
+* Publish it on the website.
+* Add it to the **Featured Products** section.
+* Place it in the correct category.
+* Make it immediately available for customers to purchase.
+
+### Smart Category System
+
+Each category should have its own:
+
+* Banner image
+* Thumbnail image
+* Background image
+* Default pricing settings
+* Accent color
+
+When I select a category while creating or editing a product:
+
+* Automatically assign that category's images.
+* Automatically apply that category's pricing settings.
+* Allow me to manually override the price if I want.
+
+### Duplicate Protection
+
+Every time a manual import or automatic daily sync runs, the system must check if the product already exists.
+
+Check duplicates using:
+
+* Supplier Product ID
+* SKU (if available)
+* Product URL
+* Product Name
+
+If the product already exists:
+
+* Do **not** create a duplicate.
+* Instead, update the existing product's stock, supplier price, images, and description where appropriate while preserving any manual edits that don't conflict.
+
+### Admin Panel
+
+Add:
+
+* **Sync Now** button
+* Last Sync Time
+* Next Scheduled Sync
+* Products Imported
+* Products Updated
+* Duplicate Products Skipped
+* Import History Log
+* Enable/Disable Automatic Daily Sync
+
+Everything should be implemented in a smooth, optimized, and reliable way without causing lag or slowing down the website.

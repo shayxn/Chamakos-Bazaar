@@ -1,12 +1,9 @@
 import { Router } from "express";
-import { db, productsTable, categoriesTable } from "@workspace/db";
+import { db, productsTable, categoriesTable, siteSettingsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 
 const router = Router();
-
-const FASHIONCAGE_URL = "https://fashioncage.me";
-const SUPPLIER_NAME = "fashioncage";
 
 type ShopifyVariant = {
   title: string;
@@ -38,6 +35,16 @@ type ShopifyProduct = {
   images: ShopifyImage[];
 };
 
+type SyncStats = {
+  lastSyncAt: string | null;
+  nextSyncAt: string | null;
+  lastImportCount: number;
+  lastUpdateCount: number;
+  lastSkipCount: number;
+  lastErrorMsg: string | null;
+  autoSyncEnabled: boolean;
+};
+
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -53,12 +60,13 @@ function calcSellingPrice(supplierPrice: number): number {
   return Math.round((supplierPrice + 25) * 1.3 * 100) / 100;
 }
 
-async function fetchAllProducts(): Promise<ShopifyProduct[]> {
+async function fetchShopifyProducts(baseUrl: string): Promise<ShopifyProduct[]> {
   const all: ShopifyProduct[] = [];
   let page = 1;
   while (true) {
-    const res = await fetch(`${FASHIONCAGE_URL}/products.json?limit=250&page=${page}`, {
-      headers: { "Accept": "application/json" },
+    const res = await fetch(`${baseUrl}/products.json?limit=250&page=${page}`, {
+      headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0 ChamakStreet/1.0" },
+      signal: AbortSignal.timeout(30_000),
     });
     if (!res.ok) break;
     const data = (await res.json()) as { products: ShopifyProduct[] };
@@ -89,7 +97,6 @@ function parseShopifyProduct(p: ShopifyProduct) {
 
   const inStock = p.variants.some((v) => v.available);
   const description = stripHtml(p.body_html) || null;
-
   const imageUrls = p.images.map((img) => ({ url: img.src, type: "image" as const }));
 
   return {
@@ -107,19 +114,53 @@ function parseShopifyProduct(p: ShopifyProduct) {
   };
 }
 
-router.get("/import/fashioncage/preview", requireAdmin, async (_req, res) => {
-  try {
-    const products = await fetchAllProducts();
-    const preview = products.slice(0, 100).map(parseShopifyProduct);
-    res.json({ count: products.length, products: preview });
-  } catch {
-    res.status(502).json({ error: "Failed to fetch from fashioncage.me" });
+async function getSyncStats(supplier: string): Promise<SyncStats> {
+  const keys = [
+    `sync_last_at_${supplier}`,
+    `sync_next_at_${supplier}`,
+    `sync_import_count_${supplier}`,
+    `sync_update_count_${supplier}`,
+    `sync_skip_count_${supplier}`,
+    `sync_error_${supplier}`,
+    `sync_auto_enabled_${supplier}`,
+  ];
+  const rows = await db
+    .select()
+    .from(siteSettingsTable)
+    .where(
+      eq(siteSettingsTable.key, keys[0])
+    );
+  const map: Record<string, string> = {};
+  for (const key of keys) {
+    const row = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, key));
+    if (row[0]) map[key] = row[0].value;
   }
-});
+  return {
+    lastSyncAt: map[`sync_last_at_${supplier}`] ?? null,
+    nextSyncAt: map[`sync_next_at_${supplier}`] ?? null,
+    lastImportCount: Number(map[`sync_import_count_${supplier}`] ?? 0),
+    lastUpdateCount: Number(map[`sync_update_count_${supplier}`] ?? 0),
+    lastSkipCount: Number(map[`sync_skip_count_${supplier}`] ?? 0),
+    lastErrorMsg: map[`sync_error_${supplier}`] ?? null,
+    autoSyncEnabled: map[`sync_auto_enabled_${supplier}`] !== "false",
+  };
+}
 
-router.post("/import/fashioncage", requireAdmin, async (req, res) => {
+async function setSyncStat(supplier: string, key: string, value: string) {
+  const fullKey = `${key}_${supplier}`;
+  const existing = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, fullKey));
+  if (existing.length > 0) {
+    await db.update(siteSettingsTable).set({ value }).where(eq(siteSettingsTable.key, fullKey));
+  } else {
+    await db.insert(siteSettingsTable).values({ key: fullKey, value });
+  }
+}
+
+async function runSupplierImport(baseUrl: string, supplierName: string): Promise<{
+  imported: number; updated: number; skipped: number; total: number; error?: string;
+}> {
   try {
-    const shopifyProducts = await fetchAllProducts();
+    const shopifyProducts = await fetchShopifyProducts(baseUrl);
 
     const existingCategories = await db.select().from(categoriesTable);
     const categoryMap = new Map(existingCategories.map((c) => [c.name.toLowerCase(), c.id]));
@@ -127,11 +168,12 @@ router.post("/import/fashioncage", requireAdmin, async (req, res) => {
     const existingImported = await db
       .select({ externalId: productsTable.externalId, id: productsTable.id })
       .from(productsTable)
-      .where(eq(productsTable.importSource, SUPPLIER_NAME));
+      .where(eq(productsTable.importSource, supplierName));
     const existingByExternalId = new Map(existingImported.map((p) => [p.externalId, p.id]));
 
     let imported = 0;
     let updated = 0;
+    let skipped = 0;
 
     for (const sp of shopifyProducts) {
       const parsed = parseShopifyProduct(sp);
@@ -142,7 +184,10 @@ router.post("/import/fashioncage", requireAdmin, async (req, res) => {
         if (categoryMap.has(key)) {
           categoryId = categoryMap.get(key)!;
         } else {
-          const [cat] = await db.insert(categoriesTable).values({ name: parsed.categoryName, slug: slugify(parsed.categoryName) }).returning();
+          const [cat] = await db
+            .insert(categoriesTable)
+            .values({ name: parsed.categoryName, slug: slugify(parsed.categoryName) })
+            .returning();
           categoryMap.set(key, cat.id);
           categoryId = cat.id;
         }
@@ -163,7 +208,7 @@ router.post("/import/fashioncage", requireAdmin, async (req, res) => {
             supplierPrice: String(parsed.supplierPrice),
             categoryId,
           })
-          .where(and(eq(productsTable.id, existingId), eq(productsTable.importSource, SUPPLIER_NAME)));
+          .where(and(eq(productsTable.id, existingId), eq(productsTable.importSource, supplierName)));
         updated++;
       } else {
         await db.insert(productsTable).values({
@@ -171,7 +216,7 @@ router.post("/import/fashioncage", requireAdmin, async (req, res) => {
           description: parsed.description,
           price: String(parsed.sellingPrice),
           supplierPrice: String(parsed.supplierPrice),
-          importSource: SUPPLIER_NAME,
+          importSource: supplierName,
           externalId: parsed.externalId,
           sizes: parsed.sizes,
           colors: parsed.colors,
@@ -180,25 +225,101 @@ router.post("/import/fashioncage", requireAdmin, async (req, res) => {
           imageUrls: parsed.imageUrls,
           categoryId,
           featured: true,
-          rep: false,
+          rep: true,
           isPreOrder: false,
         });
         imported++;
       }
     }
 
-    res.json({ imported, updated, total: shopifyProducts.length });
+    const now = new Date().toISOString();
+    const nextSync = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    await setSyncStat(supplierName, "sync_last_at", now);
+    await setSyncStat(supplierName, "sync_next_at", nextSync);
+    await setSyncStat(supplierName, "sync_import_count", String(imported));
+    await setSyncStat(supplierName, "sync_update_count", String(updated));
+    await setSyncStat(supplierName, "sync_skip_count", String(skipped));
+    await setSyncStat(supplierName, "sync_error", "");
+
+    return { imported, updated, skipped, total: shopifyProducts.length };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Import failed";
-    res.status(502).json({ error: message });
+    await setSyncStat(supplierName, "sync_error", message);
+    return { imported: 0, updated: 0, skipped: 0, total: 0, error: message };
   }
+}
+
+router.get("/import/fashioncage/preview", requireAdmin, async (_req, res) => {
+  try {
+    const products = await fetchShopifyProducts("https://fashioncage.me");
+    const preview = products.slice(0, 100).map(parseShopifyProduct);
+    res.json({ count: products.length, products: preview });
+  } catch {
+    res.status(502).json({ error: "Failed to fetch from fashioncage.me" });
+  }
+});
+
+router.post("/import/fashioncage", requireAdmin, async (_req, res) => {
+  const result = await runSupplierImport("https://fashioncage.me", "fashioncage");
+  if (result.error) {
+    res.status(502).json({ error: result.error });
+  } else {
+    res.json(result);
+  }
+});
+
+router.get("/import/stealstreetwear/preview", requireAdmin, async (_req, res) => {
+  try {
+    const products = await fetchShopifyProducts("https://stealstreetwear.com");
+    const preview = products.slice(0, 100).map(parseShopifyProduct);
+    res.json({ count: products.length, products: preview });
+  } catch {
+    res.status(502).json({ error: "Failed to fetch from stealstreetwear.com" });
+  }
+});
+
+router.post("/import/stealstreetwear", requireAdmin, async (_req, res) => {
+  const result = await runSupplierImport("https://stealstreetwear.com", "stealstreetwear");
+  if (result.error) {
+    res.status(502).json({ error: result.error });
+  } else {
+    res.json(result);
+  }
+});
+
+router.post("/import/sync-all", requireAdmin, async (_req, res) => {
+  const [fc, ss] = await Promise.allSettled([
+    runSupplierImport("https://fashioncage.me", "fashioncage"),
+    runSupplierImport("https://stealstreetwear.com", "stealstreetwear"),
+  ]);
+  res.json({
+    fashioncage: fc.status === "fulfilled" ? fc.value : { error: (fc as PromiseRejectedResult).reason?.message },
+    stealstreetwear: ss.status === "fulfilled" ? ss.value : { error: (ss as PromiseRejectedResult).reason?.message },
+  });
+});
+
+router.get("/import/stats", requireAdmin, async (_req, res) => {
+  const [fc, ss] = await Promise.all([
+    getSyncStats("fashioncage"),
+    getSyncStats("stealstreetwear"),
+  ]);
+  res.json({ fashioncage: fc, stealstreetwear: ss });
+});
+
+router.post("/import/toggle-autosync", requireAdmin, async (req, res) => {
+  const { supplier, enabled } = req.body as { supplier: string; enabled: boolean };
+  if (!["fashioncage", "stealstreetwear"].includes(supplier)) {
+    res.status(400).json({ error: "Unknown supplier" });
+    return;
+  }
+  await setSyncStat(supplier, "sync_auto_enabled", enabled ? "true" : "false");
+  res.json({ ok: true });
 });
 
 router.post("/import/recalculate-prices", requireAdmin, async (_req, res) => {
   const products = await db
     .select({ id: productsTable.id, supplierPrice: productsTable.supplierPrice })
-    .from(productsTable)
-    .where(eq(productsTable.importSource, SUPPLIER_NAME));
+    .from(productsTable);
 
   let updated = 0;
   for (const p of products) {
@@ -212,4 +333,5 @@ router.post("/import/recalculate-prices", requireAdmin, async (_req, res) => {
   res.json({ updated });
 });
 
+export { runSupplierImport };
 export default router;
