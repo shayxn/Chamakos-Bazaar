@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRoute } from "wouter";
-import { useGetProduct, useAddToCart, getGetProductQueryKey, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useGetProduct, useAddToCart, useListProducts, getGetProductQueryKey, getGetCartQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -8,7 +8,8 @@ import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
-import { parseProductMedia } from "@/lib/product-media";
+import { parseProductMedia, getPrimaryProductMedia } from "@/lib/product-media";
+import { QuickViewModal } from "@/components/quick-view-modal";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -33,6 +34,13 @@ export default function ProductDetail() {
     query: { enabled: !!id, queryKey: getGetProductQueryKey(id), staleTime: 2 * 60_000 }
   });
 
+  const categoryId = product?.categoryId ?? undefined;
+  const { data: relatedProducts } = useListProducts(
+    categoryId ? { categoryId } : undefined,
+    { query: { enabled: !!categoryId, queryKey: getListProductsQueryKey(categoryId ? { categoryId } : undefined), staleTime: 2 * 60_000 } }
+  );
+  const related = (relatedProducts ?? []).filter((p) => p.id !== id).slice(0, 6);
+
   const addToCart = useAddToCart();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -41,6 +49,7 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [addedPulse, setAddedPulse] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
+  const [quickViewId, setQuickViewId] = useState<number | null>(null);
 
   const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()) : [];
 
@@ -327,7 +336,61 @@ export default function ProductDetail() {
             </MotionItem>
           </div>
         </div>
+
+        {related.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: EASE }}
+            className="mt-24 border-t border-border pt-16"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <p className="text-[10px] text-primary uppercase tracking-widest font-black mb-1">Style Up</p>
+                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">Complete the Look</h2>
+              </div>
+              <Link href="/shop" className="text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+                View All →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {related.map((p, i) => {
+                const media = getPrimaryProductMedia(p.imageUrl);
+                return (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: 0.5 + i * 0.07, ease: EASE }}
+                    className="group"
+                  >
+                    <Link href={`/product/${p.id}`}>
+                      <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}>
+                        <div className="relative aspect-square mb-3 overflow-hidden rounded-lg bg-card border border-border group-hover:border-primary/40 transition-colors group-hover:shadow-[0_8px_24px_rgba(255,102,0,0.18)]">
+                          {media ? (
+                            <img src={media.url} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Image</div>
+                          )}
+                          <button
+                            onClick={(e) => { e.preventDefault(); setQuickViewId(p.id); }}
+                            className="absolute inset-x-2 bottom-2 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-background/90 backdrop-blur-sm text-foreground text-[10px] font-black uppercase tracking-widest py-1.5 rounded-md border border-border hover:border-primary/50 hover:text-primary"
+                          >
+                            Quick View
+                          </button>
+                        </div>
+                        <p className="text-xs font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">{p.name}</p>
+                        <p className="text-xs font-mono text-primary font-bold mt-0.5">AED {p.price.toFixed(2)}</p>
+                      </motion.div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
       </div>
+      <QuickViewModal productId={quickViewId} onClose={() => setQuickViewId(null)} />
     </PageTransition>
   );
 }

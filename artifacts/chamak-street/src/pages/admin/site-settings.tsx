@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload } from "lucide-react";
+import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SETTING_DEFAULTS } from "@/lib/use-settings";
 
@@ -42,6 +42,7 @@ const TABS = [
   { id: "logo", label: "Logo Blending", icon: Image },
   { id: "trust", label: "Trust Cards", icon: Star },
   { id: "sections", label: "Sections", icon: Video },
+  { id: "social", label: "Social Buttons", icon: MessageCircle },
   { id: "site", label: "Site Info", icon: Globe },
   { id: "shipping", label: "Shipping", icon: Truck },
   { id: "content", label: "Content", icon: Type },
@@ -410,6 +411,59 @@ export default function AdminSiteSettings() {
                 <h3 className="font-black uppercase tracking-wide text-sm">Reviews Section</h3>
                 <ToggleInput label="Show Reviews Section" settingKey="reviews_section_visible" settings={settings} onChange={onChange} />
                 <SettingInput label="Section Title" settingKey="reviews_section_title" settings={settings} onChange={onChange} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "social" && (
+          <div className="space-y-5">
+            <h2 className="font-black uppercase tracking-wider text-primary mb-6">Social Buttons</h2>
+
+            <div className="p-4 bg-muted/30 rounded-xl space-y-3 border border-border/40">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageCircle className="h-4 w-4 text-[#25D366]" />
+                <h3 className="font-black uppercase tracking-wide text-sm">WhatsApp Button</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">A floating WhatsApp button appears on every page so customers can contact you instantly.</p>
+              <ToggleInput label="Show WhatsApp Button" settingKey="whatsapp_visible" settings={settings} onChange={onChange} />
+              <SettingInput label="WhatsApp Number (with country code)" settingKey="whatsapp_number" settings={settings} onChange={onChange} placeholder="+971521142341" />
+              <SettingInput label="Button Text" settingKey="whatsapp_text" settings={settings} onChange={onChange} placeholder="Chat with Us" />
+              <SettingInput label="Pre-filled Message" settingKey="whatsapp_message" settings={settings} onChange={onChange} placeholder="Hello! I'm interested in one of your products." multiline />
+              <div>
+                <label className="label-xs mb-1.5 block">Button Color</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={settings["whatsapp_color"] || "#25D366"}
+                    onChange={(e) => onChange("whatsapp_color", e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer border border-border"
+                  />
+                  <span className="text-xs text-muted-foreground font-mono">{settings["whatsapp_color"] || "#25D366"}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-muted/30 rounded-xl space-y-3 border border-border/40">
+              <div className="flex items-center gap-2 mb-2">
+                <Music2 className="h-4 w-4" />
+                <h3 className="font-black uppercase tracking-wide text-sm">TikTok Button</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">Shown in the footer, links to your TikTok profile.</p>
+              <ToggleInput label="Show TikTok Button" settingKey="tiktok_btn_visible" settings={settings} onChange={onChange} />
+              <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@chamakstreet" />
+              <SettingInput label="Button Text" settingKey="tiktok_btn_text" settings={settings} onChange={onChange} placeholder="Follow on TikTok" />
+              <div>
+                <label className="label-xs mb-1.5 block">Button Color</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={settings["tiktok_btn_color"] || "#000000"}
+                    onChange={(e) => onChange("tiktok_btn_color", e.target.value)}
+                    className="w-10 h-10 rounded cursor-pointer border border-border"
+                  />
+                  <span className="text-xs text-muted-foreground font-mono">{settings["tiktok_btn_color"] || "#000000"}</span>
+                </div>
               </div>
             </div>
           </div>

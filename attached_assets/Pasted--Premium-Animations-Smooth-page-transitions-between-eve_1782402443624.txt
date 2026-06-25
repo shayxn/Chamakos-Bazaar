@@ -1,0 +1,67 @@
+## Premium Animations
+
+* Smooth page transitions between every page.
+* Custom animated loading screen with the Chamak Street logo.
+* Sections fade and slide into view while scrolling.
+* Product cards gently lift, glow, and tilt slightly on hover.
+* Buttons have a premium ripple animation when clicked.
+* Images smoothly zoom on hover.
+* Navigation bar smoothly shrinks while scrolling.
+* Mega menu slides down with staggered animations.
+* Shopping cart slides in from the side with smooth animations.
+* Checkout progress bar animates as the customer moves through each step.
+* Product gallery changes with a smooth fade instead of instantly switching.
+* Quantity buttons animate when pressed.
+* Add-to-cart button morphs into a checkmark after adding a product.
+* Wishlist heart fills with a smooth animation.
+* Favorite products have a subtle sparkle animation.
+* Success notifications slide in and fade out.
+* Search bar expands smoothly when opened.
+* Product filters slide open and closed.
+* Mobile menu opens with a smooth blur transition.
+* Page content fades in after loading.
+* Images reveal progressively instead of popping in.
+* Smooth horizontal scrolling for featured collections.
+* Customer reviews auto-scroll slowly with pause on hover.
+* TikTok section scrolls like a premium carousel.
+* Footer fades in when reaching the bottom.
+* Every animation should be smooth, lightweight, GPU-accelerated, and optimized.
+
+## Luxury Features
+
+* Interactive hero banner with multiple slides.
+* Animated countdown for limited drops.
+* Limited Edition product badge.
+* Trending Now section.
+* New Arrivals section.
+* Best Sellers section.
+* Complete the Look section.
+* Frequently Bought Together section.
+* Recently Viewed products.
+* You May Also Like recommendations.
+* Outfit Inspiration gallery.
+* Staff Picks section.
+* Flash Sale section.
+* Gift Cards.
+* Store Credit system.
+* Rewards & Loyalty Points.
+* Referral system.
+* Birthday discount system.
+* VIP Members Club.
+* Back in Stock notifications.
+* Recently Restocked section.
+* Live inventory indicator.
+* Product comparison tool.
+* Multiple wishlists.
+* Quick View popup without leaving the page.
+* One-click Buy Now button.
+* Recently purchased popup (optional).
+* Live visitor counter (optional).
+* Floating WhatsApp support button.
+* AI product recommendations based on browsing history.
+* Dark/Light theme switcher.
+* Multi-language support.
+* Currency switcher.
+* Maintenance mode with a custom page.
+* Seasonal themes (Ramadan, Eid, National Day, etc.) that can be enabled from the admin panel.
+* Everything on the website should be editable from the admin panel, including animations, section order, colors, images, text, and feature visibility.

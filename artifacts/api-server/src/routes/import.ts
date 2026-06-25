@@ -179,7 +179,7 @@ router.post("/import/fashioncage", requireAdmin, async (req, res) => {
           imageUrl: parsed.imageUrl,
           imageUrls: parsed.imageUrls,
           categoryId,
-          featured: false,
+          featured: true,
           rep: false,
           isPreOrder: false,
         });

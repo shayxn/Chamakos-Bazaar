@@ -4,9 +4,10 @@ import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, Eye } from "lucide-react";
 import { PageTransition, RevealSection } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
+import { QuickViewModal } from "@/components/quick-view-modal";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -36,6 +37,7 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 export default function Shop() {
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [quickViewId, setQuickViewId] = useState<number | null>(null);
   const debouncedSearch = useDebouncedValue(search.trim(), 300);
 
   const { data: categories } = useListCategories({ query: { queryKey: getListCategoriesQueryKey(), staleTime: 5 * 60_000 } });
@@ -216,7 +218,17 @@ export default function Shop() {
                           <div className="space-y-1 px-0.5">
                             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{product.categoryName}</p>
                             <h3 className="font-bold text-base leading-tight group-hover:text-primary transition-colors duration-200">{product.name}</h3>
-                            <p className="font-mono text-primary font-bold text-lg">AED {product.price.toFixed(2)}</p>
+                            <div className="flex items-center justify-between">
+                              <p className="font-mono text-primary font-bold text-lg">AED {product.price.toFixed(2)}</p>
+                              <motion.button
+                                whileHover={{ scale: 1.08 }}
+                                whileTap={{ scale: 0.93 }}
+                                onClick={(e) => { e.preventDefault(); setQuickViewId(product.id); }}
+                                className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded border border-border hover:border-primary/40 bg-background/80"
+                              >
+                                <Eye className="h-3 w-3" /> Quick View
+                              </motion.button>
+                            </div>
                           </div>
                         </motion.div>
                       </Link>
@@ -229,6 +241,7 @@ export default function Shop() {
           </div>
         </div>
       </div>
+      <QuickViewModal productId={quickViewId} onClose={() => setQuickViewId(null)} />
     </PageTransition>
   );
 }

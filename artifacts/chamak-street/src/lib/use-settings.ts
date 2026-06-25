@@ -50,6 +50,14 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   faq_text: "",
   primary_color: "#ff6600",
   accent_color: "#ffcc00",
+  whatsapp_number: "+971521142341",
+  whatsapp_text: "Chat with Us",
+  whatsapp_message: "Hello! I'm interested in one of your products.",
+  whatsapp_color: "#25D366",
+  whatsapp_visible: "true",
+  tiktok_btn_text: "Follow on TikTok",
+  tiktok_btn_color: "#000000",
+  tiktok_btn_visible: "true",
 };
 
 export function useSetting(key: string): string {

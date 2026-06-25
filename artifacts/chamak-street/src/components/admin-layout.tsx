@@ -1,10 +1,94 @@
-import { useGetMe } from "@workspace/api-client-react";
+import { useGetMe, useListProducts, useListCategories } from "@workspace/api-client-react";
 import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag,
-  ArrowLeft, Tag, Settings, Star, Video, Globe, Download
+  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState, useRef, useEffect } from "react";
+
+function GlobalSearch() {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const debouncedQuery = query.trim();
+
+  const { data: products } = useListProducts(
+    debouncedQuery.length >= 2 ? { search: debouncedQuery } : undefined,
+    { query: { enabled: debouncedQuery.length >= 2, staleTime: 10_000, queryKey: ["admin-search-products", debouncedQuery] } }
+  );
+  const { data: categories } = useListCategories({ query: { staleTime: 60_000, queryKey: ["admin-search-categories"] } });
+
+  const filteredCategories = debouncedQuery.length >= 2
+    ? (categories ?? []).filter((c) => c.name.toLowerCase().includes(debouncedQuery.toLowerCase()))
+    : [];
+
+  const hasResults = (products?.length ?? 0) > 0 || filteredCategories.length > 0;
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative px-3 mb-3">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          placeholder="Search products, categories..."
+          className="w-full pl-8 pr-8 py-2 text-xs bg-muted border border-border rounded-lg focus:outline-none focus:border-primary/50 text-foreground placeholder:text-muted-foreground"
+        />
+        {query && (
+          <button onClick={() => { setQuery(""); setOpen(false); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+      {open && debouncedQuery.length >= 2 && (
+        <div className="absolute left-3 right-3 top-full mt-1 z-50 bg-card border border-border rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
+          {!hasResults ? (
+            <p className="text-xs text-muted-foreground px-4 py-3">No results for "{debouncedQuery}"</p>
+          ) : (
+            <>
+              {(products?.slice(0, 5) ?? []).map((p) => (
+                <Link key={p.id} href={`/admin/products`} onClick={() => { setQuery(""); setOpen(false); }}>
+                  <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-muted cursor-pointer">
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} alt={p.name} className="w-7 h-7 rounded object-cover border border-border shrink-0" />
+                    ) : (
+                      <div className="w-7 h-7 rounded bg-muted border border-border shrink-0 flex items-center justify-center">
+                        <Package className="h-3 w-3 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold truncate">{p.name}</p>
+                      <p className="text-[10px] text-muted-foreground">AED {p.price.toFixed(2)} · {p.categoryName ?? "No category"}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+              {filteredCategories.slice(0, 3).map((c) => (
+                <Link key={c.id} href="/admin/categories" onClick={() => { setQuery(""); setOpen(false); }}>
+                  <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-muted cursor-pointer">
+                    <Tag className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <p className="text-xs font-bold">{c.name}</p>
+                  </div>
+                </Link>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -58,7 +142,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <p className="text-xs text-muted-foreground">@{user.username}</p>
         </div>
 
-        <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-5">
+        <div className="pt-3 pb-1">
+          <GlobalSearch />
+        </div>
+
+        <nav className="flex-1 py-2 px-3 overflow-y-auto space-y-5">
           {linkGroups.map((group) => (
             <div key={group.label}>
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-black px-3 mb-2">{group.label}</p>
