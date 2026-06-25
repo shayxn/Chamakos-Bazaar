@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Chamak Street"
+version = "1.0.0"
+id = "artifacts/chamak-street"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19768
+
+[services.development]
+run = "pnpm --filter @workspace/chamak-street run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/chamak-street", "run", "build" ]
+publicDir = "artifacts/chamak-street/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19768"
+BASE_PATH = "/"
