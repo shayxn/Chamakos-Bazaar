@@ -1,15 +1,16 @@
 import { Link, useLocation } from "wouter";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout } from "@workspace/api-client-react";
-
-import { ShoppingCart, User, Menu, X, LogOut } from "lucide-react";
+import { ShoppingCart, User, Menu, X, LogOut, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSettings } from "@/lib/use-settings";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const settings = useSettings();
   const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 2 * 60_000 } });
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 5 * 60_000 } });
   const logout = useLogout();
@@ -25,6 +26,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/shop", label: "Shop" },
+    { href: "/order-tracking", label: "Order Tracking" },
   ];
 
   if (user?.isAdmin) {
@@ -32,10 +34,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }
 
   const handleLogout = () => {
-    logout.mutate(undefined, {
-      onSuccess: () => { window.location.reload(); }
-    });
+    logout.mutate(undefined, { onSuccess: () => { window.location.reload(); } });
   };
+
+  const logoUrl = settings.logo_url || "/chamak-logo.png";
+  const logoHeight = Number(settings.logo_height ?? 56) || 56;
+  const logoBgColor = settings.logo_bg_color || "transparent";
+  const logoOpacity = Number(settings.logo_opacity ?? 1) || 1;
+  const logoBlur = Number(settings.logo_blur ?? 0) || 0;
+  const logoBlendMode = settings.logo_blend_mode || "normal";
+  const logoPadding = Number(settings.logo_padding ?? 0) || 0;
+  const logoBorderRadius = Number(settings.logo_border_radius ?? 0) || 0;
+  const logoBrightness = Number(settings.logo_brightness ?? 1) || 1;
+  const logoContrast = Number(settings.logo_contrast ?? 1) || 1;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
@@ -52,12 +63,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 z-50">
             <motion.div whileHover={{ scale: 1.03 }} transition={{ type: "spring", stiffness: 300 }}>
-              <img src="/chamak-logo.png" alt="Chamak Street" className="h-10 md:h-14 w-auto object-contain" />
+              <img
+                src={logoUrl}
+                alt="Chamak Street"
+                style={{
+                  height: `${logoHeight}px`,
+                  width: "auto",
+                  objectFit: "contain",
+                  backgroundColor: logoBgColor,
+                  opacity: logoOpacity,
+                  filter: `blur(${logoBlur}px) brightness(${logoBrightness}) contrast(${logoContrast})`,
+                  mixBlendMode: logoBlendMode as React.CSSProperties["mixBlendMode"],
+                  padding: `${logoPadding}px`,
+                  borderRadius: `${logoBorderRadius}px`,
+                }}
+              />
             </motion.div>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -127,7 +151,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
@@ -148,8 +171,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <Link
                       href={link.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className={`text-2xl font-black uppercase tracking-wider ${location === link.href ? "text-primary" : "text-foreground"}`}
+                      className={`text-2xl font-black uppercase tracking-wider flex items-center gap-3 ${location === link.href ? "text-primary" : "text-foreground"}`}
                     >
+                      {link.href === "/order-tracking" && <MapPin className="h-5 w-5" />}
                       {link.label}
                     </Link>
                   </motion.div>
@@ -182,28 +206,53 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-border mt-20 py-12 bg-card">
         <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <img src="/chamak-logo.png" alt="Chamak Street" className="h-10 w-auto object-contain mb-4 opacity-70" />
+            <img
+              src={logoUrl}
+              alt="Chamak Street"
+              style={{
+                height: "40px",
+                width: "auto",
+                objectFit: "contain",
+                backgroundColor: logoBgColor,
+                opacity: 0.7,
+                filter: `brightness(${logoBrightness}) contrast(${logoContrast})`,
+                mixBlendMode: logoBlendMode as React.CSSProperties["mixBlendMode"],
+                padding: `${logoPadding}px`,
+                borderRadius: `${logoBorderRadius}px`,
+                marginBottom: "16px",
+              }}
+            />
             <p className="text-muted-foreground text-sm max-w-sm">
-              Premium streetwear for those who walk their own path.
-              Bold designs, unmatched swagger.
+              {settings.footer_description || "Premium streetwear for those who walk their own path."}
             </p>
+            <div className="flex gap-4 mt-4">
+              {settings.contact_instagram && (
+                <a href={`https://instagram.com/${settings.contact_instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest font-bold">
+                  Instagram
+                </a>
+              )}
+              {settings.contact_tiktok && (
+                <a href={`https://tiktok.com/@${settings.contact_tiktok.replace("@", "")}`} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest font-bold">
+                  TikTok
+                </a>
+              )}
+            </div>
           </div>
           <div>
             <h4 className="font-bold uppercase tracking-wider mb-4">Shop</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/shop" className="hover:text-primary transition-colors">All Products</Link></li>
+              <li><Link href="/order-tracking" className="hover:text-primary transition-colors">Track Order</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold uppercase tracking-wider mb-4">Legal</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-  <Link href="/terms" className="hover:text-primary transition-colors">
-    Terms of Policy
-  </Link>
-</li>
-<li>Privacy Policy</li>
-<li>Returns & Exchanges</li>
+              <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/shipping" className="hover:text-primary transition-colors">Shipping Info</Link></li>
             </ul>
           </div>
         </div>

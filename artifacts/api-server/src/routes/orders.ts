@@ -1,96 +1,93 @@
 import { Router } from "express";
-import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable } from "@workspace/db";
+import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable } from "@workspace/db";
 import { eq, inArray } from "drizzle-orm";
-import { CreateOrderBody, GetOrderParams, UpdateOrderStatusParams, UpdateOrderStatusBody, DeleteOrderParams } from "@workspace/api-zod";
+import { requireAdmin } from "../lib/auth-middleware";
 
 const router = Router();
 
-type OrderMetadata = {
-  address: string | null;
-  phone: string | null;
-  paymentMethod: string | null;
-};
-
-function encodeOrderMetadata(address?: string | null, phone?: string | null, paymentMethod?: string | null): string {
-  return JSON.stringify({
-    address: address?.trim() || null,
-    phone: phone?.trim() || null,
-    paymentMethod: paymentMethod?.trim() || null,
-  });
+function generateOrderNumber(): string {
+  const num = 100000 + Math.floor(Math.random() * 900000);
+  return `CHM-${num}`;
 }
 
-function decodeOrderMetadata(value?: string | null): OrderMetadata {
-  if (!value) return { address: null, phone: null, paymentMethod: null };
-  try {
-    const parsed = JSON.parse(value) as { address?: unknown; phone?: unknown; paymentMethod?: unknown };
-    return {
-      address: typeof parsed.address === "string" ? parsed.address : value,
-      phone: typeof parsed.phone === "string" ? parsed.phone : null,
-      paymentMethod: typeof parsed.paymentMethod === "string" ? parsed.paymentMethod : null,
-    };
-  } catch {
-    return { address: value, phone: null, paymentMethod: null };
-  }
-}
-
-async function buildOrder(orderId: number) {
-  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
-  if (!order) return null;
-  const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, orderId));
-  const metadata = decodeOrderMetadata(order.customerAddress);
+function serializeOrder(order: typeof ordersTable.$inferSelect, items: Array<typeof orderItemsTable.$inferSelect>) {
   return {
     ...order,
-    customerAddress: metadata.address,
-    customerPhone: metadata.phone,
-    paymentMethod: metadata.paymentMethod,
     total: Number(order.total),
     createdAt: order.createdAt.toISOString(),
     items: items.map((i) => ({ ...i, price: Number(i.price) })),
   };
 }
 
-router.get("/orders", async (_req, res) => {
+async function buildOrder(orderId: number) {
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
+  if (!order) return null;
+  const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, orderId));
+  return serializeOrder(order, items);
+}
+
+router.get("/orders", requireAdmin, async (_req, res) => {
   const orders = await db.select().from(ordersTable).orderBy(ordersTable.createdAt);
-  if (orders.length === 0) {
-    res.json([]);
+  if (orders.length === 0) { res.json([]); return; }
+
+  const items = await db
+    .select()
+    .from(orderItemsTable)
+    .where(inArray(orderItemsTable.orderId, orders.map((o) => o.id)));
+  const itemsByOrderId = new Map<number, typeof items>();
+  for (const item of items) {
+    if (!itemsByOrderId.has(item.orderId)) itemsByOrderId.set(item.orderId, []);
+    itemsByOrderId.get(item.orderId)!.push(item);
+  }
+
+  res.json(orders.map((order) => serializeOrder(order, itemsByOrderId.get(order.id) ?? [])));
+});
+
+router.get("/orders/track", async (req, res) => {
+  const { orderNumber, phone } = req.query as { orderNumber?: string; phone?: string };
+  if (!orderNumber || !phone) {
+    res.status(400).json({ error: "orderNumber and phone required" });
+    return;
+  }
+  const [order] = await db
+    .select()
+    .from(ordersTable)
+    .where(eq(ordersTable.orderNumber, orderNumber));
+
+  if (!order || order.customerPhone !== phone.trim()) {
+    res.status(404).json({ error: "Order not found" });
     return;
   }
 
-  const items = await db.select().from(orderItemsTable).where(inArray(orderItemsTable.orderId, orders.map((order) => order.id)));
-  const itemsByOrderId = new Map<number, typeof items>();
-  for (const item of items) {
-    let existing = itemsByOrderId.get(item.orderId);
-    if (!existing) {
-      existing = [];
-      itemsByOrderId.set(item.orderId, existing);
-    }
-    existing.push(item);
-  }
+  const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, order.id));
+  const events = await db
+    .select()
+    .from(orderTrackingEventsTable)
+    .where(eq(orderTrackingEventsTable.orderId, order.id))
+    .orderBy(orderTrackingEventsTable.createdAt);
 
-  res.json(orders.map((order) => {
-    const metadata = decodeOrderMetadata(order.customerAddress);
-    return {
-      ...order,
-      customerAddress: metadata.address,
-      customerPhone: metadata.phone,
-      paymentMethod: metadata.paymentMethod,
-      total: Number(order.total),
-      createdAt: order.createdAt.toISOString(),
-      items: (itemsByOrderId.get(order.id) ?? []).map((item) => ({ ...item, price: Number(item.price) })),
-    };
-  }));
+  res.json({
+    ...serializeOrder(order, items),
+    events: events.map((e) => ({ ...e, createdAt: e.createdAt.toISOString() })),
+  });
 });
 
 router.post("/orders", async (req, res) => {
-  const parsed = CreateOrderBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid input" });
+  const body = req.body as {
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    paymentMethod?: string;
+  };
+  if (!body.customerName || !body.customerPhone || !body.customerAddress) {
+    res.status(400).json({ error: "customerName, customerPhone and customerAddress required" });
     return;
   }
+
   const session = req.session as Record<string, unknown>;
   const sessionId = session.cartId as string | undefined;
 
-  let cartItems: Array<{ productId: number; productName: string; price: number; quantity: number; size: string | null }> = [];
+  let cartItems: Array<{ productId: number; productName: string; price: number; quantity: number; size: string | null; isPreOrder: boolean }> = [];
 
   if (sessionId) {
     const rawItems = await db
@@ -100,6 +97,7 @@ router.post("/orders", async (req, res) => {
         price: productsTable.price,
         quantity: cartItemsTable.quantity,
         size: cartItemsTable.size,
+        isPreOrder: productsTable.isPreOrder,
       })
       .from(cartItemsTable)
       .leftJoin(productsTable, eq(cartItemsTable.productId, productsTable.id))
@@ -111,18 +109,33 @@ router.post("/orders", async (req, res) => {
       price: Number(i.price ?? 0),
       quantity: i.quantity,
       size: i.size ?? null,
+      isPreOrder: i.isPreOrder ?? false,
     }));
   }
 
   const SHIPPING_FEE = 25;
   const total = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0) + SHIPPING_FEE;
+  const hasPreOrder = cartItems.some((i) => i.isPreOrder);
+
+  let orderNumber = generateOrderNumber();
+  let attempts = 0;
+  while (attempts < 5) {
+    const existing = await db.select({ id: ordersTable.id }).from(ordersTable).where(eq(ordersTable.orderNumber, orderNumber));
+    if (existing.length === 0) break;
+    orderNumber = generateOrderNumber();
+    attempts++;
+  }
 
   const [order] = await db.insert(ordersTable).values({
-    customerName: parsed.data.customerName,
+    orderNumber,
+    customerName: body.customerName,
     customerEmail: null,
-    customerAddress: encodeOrderMetadata(parsed.data.customerAddress, parsed.data.customerPhone, parsed.data.paymentMethod ?? "cod"),
+    customerPhone: body.customerPhone,
+    customerAddress: body.customerAddress,
+    paymentMethod: body.paymentMethod ?? "cod",
     total: String(total || 0),
     status: "pending",
+    hasPreOrder,
   }).returning();
 
   if (cartItems.length > 0) {
@@ -134,6 +147,7 @@ router.post("/orders", async (req, res) => {
         price: String(i.price),
         quantity: i.quantity,
         size: i.size,
+        isPreOrder: i.isPreOrder,
       }))
     );
     if (sessionId) {
@@ -141,49 +155,63 @@ router.post("/orders", async (req, res) => {
     }
   }
 
+  await db.insert(orderTrackingEventsTable).values({
+    orderId: order.id,
+    status: "pending",
+    note: "Order placed successfully",
+  });
+
   const fullOrder = await buildOrder(order.id);
   res.status(201).json(fullOrder);
 });
 
-router.get("/orders/:id", async (req, res) => {
-  const parsed = GetOrderParams.safeParse({ id: Number(req.params.id) });
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid id" });
-    return;
-  }
-  const order = await buildOrder(parsed.data.id);
-  if (!order) {
-    res.status(404).json({ error: "Not found" });
-    return;
-  }
+router.get("/orders/:id", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const order = await buildOrder(id);
+  if (!order) { res.status(404).json({ error: "Not found" }); return; }
   res.json(order);
 });
 
-router.patch("/orders/:id/status", async (req, res) => {
-  const paramsParsed = UpdateOrderStatusParams.safeParse({ id: Number(req.params.id) });
-  const bodyParsed = UpdateOrderStatusBody.safeParse(req.body);
-  if (!paramsParsed.success || !bodyParsed.success) {
-    res.status(400).json({ error: "Invalid input" });
-    return;
-  }
-  await db.update(ordersTable).set({ status: bodyParsed.data.status }).where(eq(ordersTable.id, paramsParsed.data.id));
-  const order = await buildOrder(paramsParsed.data.id);
-  if (!order) {
-    res.status(404).json({ error: "Not found" });
-    return;
-  }
+router.patch("/orders/:id", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const [order] = await db.update(ordersTable).set(req.body).where(eq(ordersTable.id, id)).returning();
+  if (!order) { res.status(404).json({ error: "Not found" }); return; }
+  const fullOrder = await buildOrder(id);
+  res.json(fullOrder);
+});
+
+router.patch("/orders/:id/status", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const { status } = req.body as { status: string };
+  if (!status) { res.status(400).json({ error: "status required" }); return; }
+  await db.update(ordersTable).set({ status }).where(eq(ordersTable.id, id));
+  const order = await buildOrder(id);
+  if (!order) { res.status(404).json({ error: "Not found" }); return; }
   res.json(order);
 });
 
-router.delete("/orders/:id", async (req, res) => {
-  const parsed = DeleteOrderParams.safeParse({ id: Number(req.params.id) });
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid id" });
-    return;
-  }
+router.post("/orders/:id/tracking", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const { status, note } = req.body as { status: string; note?: string };
+  if (!status) { res.status(400).json({ error: "status required" }); return; }
+  const [event] = await db.insert(orderTrackingEventsTable).values({
+    orderId: id,
+    status,
+    note: note ?? null,
+  }).returning();
+  res.status(201).json({ ...event, createdAt: event.createdAt.toISOString() });
+});
 
-  await db.delete(orderItemsTable).where(eq(orderItemsTable.orderId, parsed.data.id));
-  await db.delete(ordersTable).where(eq(ordersTable.id, parsed.data.id));
+router.delete("/orders/:id", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  await db.delete(orderItemsTable).where(eq(orderItemsTable.orderId, id));
+  await db.delete(orderTrackingEventsTable).where(eq(orderTrackingEventsTable.orderId, id));
+  await db.delete(ordersTable).where(eq(ordersTable.id, id));
   res.json({ message: "Deleted" });
 });
 

@@ -128,3 +128,8 @@
 .fire-gradient {
   @apply bg-gradient-to-r from-[#ff6600] to-[#ffcc00];
 }
+.label-xs {
+  @apply text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

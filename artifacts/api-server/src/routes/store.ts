@@ -5,26 +5,6 @@ import { sql } from "drizzle-orm";
 
 const router = Router();
 
-type OrderMetadata = {
-  address: string | null;
-  phone: string | null;
-  paymentMethod: string | null;
-};
-
-function decodeOrderMetadata(value?: string | null): OrderMetadata {
-  if (!value) return { address: null, phone: null, paymentMethod: null };
-  try {
-    const parsed = JSON.parse(value) as { address?: unknown; phone?: unknown; paymentMethod?: unknown };
-    return {
-      address: typeof parsed.address === "string" ? parsed.address : value,
-      phone: typeof parsed.phone === "string" ? parsed.phone : null,
-      paymentMethod: typeof parsed.paymentMethod === "string" ? parsed.paymentMethod : null,
-    };
-  } catch {
-    return { address: value, phone: null, paymentMethod: null };
-  }
-}
-
 router.get("/store/stats", async (_req, res) => {
   const [
     [productCount],
@@ -46,12 +26,17 @@ router.get("/store/stats", async (_req, res) => {
         description: productsTable.description,
         price: productsTable.price,
         imageUrl: productsTable.imageUrl,
+        imageUrls: productsTable.imageUrls,
         stock: productsTable.stock,
         categoryId: productsTable.categoryId,
         categoryName: categoriesTable.name,
         featured: productsTable.featured,
         rep: productsTable.rep,
         sizes: productsTable.sizes,
+        isPreOrder: productsTable.isPreOrder,
+        preOrderLabel: productsTable.preOrderLabel,
+        preOrderDate: productsTable.preOrderDate,
+        preOrderNote: productsTable.preOrderNote,
         createdAt: productsTable.createdAt,
       })
       .from(productsTable)
@@ -61,30 +46,20 @@ router.get("/store/stats", async (_req, res) => {
   ]);
 
   const recentOrderItems = recentOrdersRaw.length > 0
-    ? await db.select().from(orderItemsTable).where(inArray(orderItemsTable.orderId, recentOrdersRaw.map((order) => order.id)))
+    ? await db.select().from(orderItemsTable).where(inArray(orderItemsTable.orderId, recentOrdersRaw.map((o) => o.id)))
     : [];
   const itemsByOrderId = new Map<number, typeof recentOrderItems>();
   for (const item of recentOrderItems) {
-    let existing = itemsByOrderId.get(item.orderId);
-    if (!existing) {
-      existing = [];
-      itemsByOrderId.set(item.orderId, existing);
-    }
-    existing.push(item);
+    if (!itemsByOrderId.has(item.orderId)) itemsByOrderId.set(item.orderId, []);
+    itemsByOrderId.get(item.orderId)!.push(item);
   }
 
-  const recentOrders = recentOrdersRaw.map((order) => {
-    const metadata = decodeOrderMetadata(order.customerAddress);
-    return {
-      ...order,
-      customerAddress: metadata.address,
-      customerPhone: metadata.phone,
-      paymentMethod: metadata.paymentMethod,
-      total: Number(order.total),
-      createdAt: order.createdAt.toISOString(),
-      items: (itemsByOrderId.get(order.id) ?? []).map((item) => ({ ...item, price: Number(item.price) })),
-    };
-  });
+  const recentOrders = recentOrdersRaw.map((order) => ({
+    ...order,
+    total: Number(order.total),
+    createdAt: order.createdAt.toISOString(),
+    items: (itemsByOrderId.get(order.id) ?? []).map((item) => ({ ...item, price: Number(item.price) })),
+  }));
 
   res.json({
     totalProducts: productCount.count,

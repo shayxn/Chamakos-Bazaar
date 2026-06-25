@@ -1,0 +1,63 @@
+import { useGetAllSettings } from "@workspace/api-client-react";
+
+export const SETTING_DEFAULTS: Record<string, string> = {
+  hero_image: "/chamako-hero.png",
+  hero_title: "Ignite the",
+  hero_subtitle: "Streets.",
+  hero_description: "Bold aesthetic. Unmatched drip. Dress like you own the block with the new Chamako collection.",
+  hero_cta_text: "Shop Now",
+  logo_url: "/chamak-logo.png",
+  logo_bg_color: "transparent",
+  logo_opacity: "1",
+  logo_blur: "0",
+  logo_blend_mode: "normal",
+  logo_padding: "0",
+  logo_border_radius: "8",
+  logo_brightness: "1",
+  logo_contrast: "1",
+  logo_height: "56",
+  trust_1_icon: "🚚",
+  trust_1_title: "Fast UAE Shipping",
+  trust_1_desc: "Fast delivery across the UAE.",
+  trust_1_visible: "true",
+  trust_2_icon: "🏆",
+  trust_2_title: "Premium Quality",
+  trust_2_desc: "Carefully selected products with excellent craftsmanship.",
+  trust_2_visible: "true",
+  trust_3_icon: "📦",
+  trust_3_title: "Secure Packaging",
+  trust_3_desc: "Every order is professionally packed to arrive in perfect condition.",
+  trust_3_visible: "true",
+  trust_4_icon: "⭐",
+  trust_4_title: "5-Star Support",
+  trust_4_desc: "Fast replies, order updates, and friendly customer service.",
+  trust_4_visible: "true",
+  tiktok_section_title: "Follow Us on TikTok",
+  tiktok_section_visible: "true",
+  reviews_section_title: "What They Say",
+  reviews_section_visible: "true",
+  site_name: "Chamak Street",
+  site_tagline: "Premium Streetwear — Dubai",
+  footer_description: "Premium streetwear for those who walk their own path. Bold designs, unmatched swagger.",
+  contact_email: "",
+  contact_phone: "",
+  contact_instagram: "",
+  contact_tiktok: "",
+  shipping_text: "We ship across the UAE. Flat fee of AED 25. Cash on Delivery available.",
+  about_text: "Chamak Street is a premium Dubai-based streetwear brand inspired by the energy of the streets and the luxury of the desert.",
+  privacy_policy: "Your privacy is important to us. We only collect information necessary to process your order.",
+  terms_of_service: "",
+  faq_text: "",
+  primary_color: "#ff6600",
+  accent_color: "#ffcc00",
+};
+
+export function useSetting(key: string): string {
+  const { data: settings } = useGetAllSettings({ query: { staleTime: 60_000, queryKey: ["settings", key] } });
+  return settings?.[key] ?? SETTING_DEFAULTS[key] ?? "";
+}
+
+export function useSettings(): Record<string, string> {
+  const { data: settings } = useGetAllSettings({ query: { staleTime: 60_000, queryKey: ["settings", "all"] } });
+  return { ...SETTING_DEFAULTS, ...(settings ?? {}) };
+}

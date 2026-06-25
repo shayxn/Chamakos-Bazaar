@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
 import { type ReactNode } from "react";
 
+const EASE_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
 export function PageTransition({ children }: { children: ReactNode }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24, scale: 0.985, filter: "blur(6px)" }}
       animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
       exit={{ opacity: 0, y: -12, scale: 1.01, filter: "blur(3px)" }}
-      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.55, ease: EASE_EXPO }}
     >
       {children}
     </motion.div>
@@ -30,7 +32,7 @@ export function RevealSection({
       initial={{ opacity: 0, y: 56, scale: 0.97, filter: "blur(4px)" }}
       whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
       viewport={{ once: true, amount }}
-      transition={{ duration: 0.75, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.75, delay, ease: EASE_EXPO }}
       className={className}
     >
       {children}
@@ -70,6 +72,6 @@ export const revealItem = {
     y: 0,
     scale: 1,
     filter: "blur(0px)",
-    transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.65, ease: EASE_EXPO },
   },
 };

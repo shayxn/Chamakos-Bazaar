@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, numeric } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, numeric, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -10,6 +10,7 @@ export const orderItemsTable = pgTable("order_items", {
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   quantity: integer("quantity").notNull(),
   size: text("size"),
+  isPreOrder: boolean("is_pre_order").notNull().default(false),
 });
 
 export const insertOrderItemSchema = createInsertSchema(orderItemsTable).omit({ id: true });

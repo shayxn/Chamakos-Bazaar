@@ -3,19 +3,16 @@ import { useListProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, 
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Edit, Trash2, Upload, Image, CheckCircle, XCircle, X } from "lucide-react";
-import { Product, ProductInput } from "@workspace/api-client-react/generated/api.schemas";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Edit, Trash2, Upload, Image, CheckCircle, XCircle, X, Calendar, Package } from "lucide-react";
+import type { Product, ProductInput } from "@workspace/api-client-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getPrimaryProductMedia, parseProductMedia, serializeProductMedia, type ProductMedia } from "@/lib/product-media";
 
 type CloudinarySignature = {
-  apiKey: string;
-  folder: string;
-  signature: string;
-  timestamp: string;
-  uploadUrl: string;
+  apiKey: string; folder: string; signature: string; timestamp: string; uploadUrl: string;
 };
 
 async function uploadMedia(file: File): Promise<ProductMedia> {
@@ -28,21 +25,13 @@ async function uploadMedia(file: File): Promise<ProductMedia> {
     cloudinaryForm.append("timestamp", signature.timestamp);
     cloudinaryForm.append("folder", signature.folder);
     cloudinaryForm.append("signature", signature.signature);
-
     const uploadRes = await fetch(signature.uploadUrl, { method: "POST", body: cloudinaryForm });
     if (!uploadRes.ok) throw new Error("Cloudinary upload failed");
-
     const data = await uploadRes.json() as { secure_url?: string; resource_type?: string };
     if (!data.secure_url) throw new Error("Cloudinary upload response missing URL");
-
-    return {
-      url: data.secure_url,
-      type: data.resource_type === "video" || file.type.startsWith("video/") ? "video" : "image",
-    };
+    return { url: data.secure_url, type: data.resource_type === "video" || file.type.startsWith("video/") ? "video" : "image" };
   }
-
   if (signatureRes.status !== 404) throw new Error("Upload signing failed");
-
   const formData = new FormData();
   formData.append("file", file);
   const res = await fetch("/api/uploads", { method: "POST", body: formData, credentials: "include" });
@@ -50,6 +39,13 @@ async function uploadMedia(file: File): Promise<ProductMedia> {
   const data = await res.json() as { url: string; type?: "image" | "video" };
   return { url: data.url, type: data.type === "video" ? "video" : "image" };
 }
+
+type ProductFormData = ProductInput & {
+  isPreOrder?: boolean;
+  preOrderLabel?: string | null;
+  preOrderDate?: string | null;
+  preOrderNote?: string | null;
+};
 
 export default function AdminProducts() {
   const { data: products, isLoading } = useListProducts(undefined, { query: { queryKey: getListProductsQueryKey() } });
@@ -67,8 +63,10 @@ export default function AdminProducts() {
   const [mediaItems, setMediaItems] = useState<ProductMedia[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [formData, setFormData] = useState<ProductInput>({
-    name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL", featured: false, rep: false, categoryId: undefined,
+  const [formData, setFormData] = useState<ProductFormData>({
+    name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
+    featured: false, rep: false, categoryId: undefined,
+    isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
   });
 
   const openEdit = (product: Product) => {
@@ -86,6 +84,10 @@ export default function AdminProducts() {
       featured: product.featured,
       rep: product.rep,
       categoryId: product.categoryId || undefined,
+      isPreOrder: (product as ProductFormData).isPreOrder ?? false,
+      preOrderLabel: (product as ProductFormData).preOrderLabel ?? "",
+      preOrderDate: (product as ProductFormData).preOrderDate ?? "",
+      preOrderNote: (product as ProductFormData).preOrderNote ?? "",
     });
     setIsDialogOpen(true);
   };
@@ -95,7 +97,9 @@ export default function AdminProducts() {
     setInStock(true);
     setMediaItems([]);
     setFormData({
-      name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL", featured: false, rep: false, categoryId: categories?.[0]?.id,
+      name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
+      featured: false, rep: false, categoryId: categories?.[0]?.id,
+      isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
     });
     setIsDialogOpen(true);
   };
@@ -106,12 +110,10 @@ export default function AdminProducts() {
     setUploading(true);
     try {
       const uploaded: ProductMedia[] = [];
-      for (const file of files) {
-        uploaded.push(await uploadMedia(file));
-      }
+      for (const file of files) { uploaded.push(await uploadMedia(file)); }
       setMediaItems((prev) => {
         const next = [...prev, ...uploaded];
-        setFormData((current) => ({ ...current, imageUrl: serializeProductMedia(next) }));
+        setFormData((current: ProductFormData) => ({ ...current, imageUrl: serializeProductMedia(next) }));
         return next;
       });
     } catch {
@@ -125,7 +127,7 @@ export default function AdminProducts() {
   const removeMedia = (index: number) => {
     setMediaItems((prev) => {
       const next = prev.filter((_, i) => i !== index);
-      setFormData((current) => ({ ...current, imageUrl: next.length > 0 ? serializeProductMedia(next) : "" }));
+      setFormData((current: ProductFormData) => ({ ...current, imageUrl: next.length > 0 ? serializeProductMedia(next) : "" }));
       return next;
     });
   };
@@ -138,11 +140,11 @@ export default function AdminProducts() {
       stock: inStock ? 100 : 0,
     };
     if (editingId) {
-      updateProduct.mutate({ id: editingId, data }, {
+      updateProduct.mutate({ id: editingId, data: data as ProductInput }, {
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() }); setIsDialogOpen(false); }
       });
     } else {
-      createProduct.mutate({ data }, {
+      createProduct.mutate({ data: data as ProductInput }, {
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() }); setIsDialogOpen(false); }
       });
     }
@@ -154,14 +156,14 @@ export default function AdminProducts() {
     }
   };
 
-  if (isLoading) return <div>Loading inventory...</div>;
+  if (isLoading) return <div className="py-20 text-center text-muted-foreground">Loading inventory...</div>;
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Inventory</h1>
-          <p className="text-muted-foreground font-mono text-sm">Manage products and stock</p>
+          <p className="text-muted-foreground text-sm">Manage products, stock, and pre-order items.</p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -170,7 +172,7 @@ export default function AdminProducts() {
               <Plus className="mr-2 h-4 w-4" /> Drop New Item
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl bg-card border border-border">
+          <DialogContent className="max-w-2xl bg-card border border-border max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-black uppercase tracking-wider text-xl">
                 {editingId ? "Edit Item" : "New Drop"}
@@ -188,7 +190,7 @@ export default function AdminProducts() {
                   <select
                     value={formData.categoryId || ""}
                     onChange={e => setFormData({ ...formData, categoryId: parseInt(e.target.value) || undefined })}
-                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                   >
                     <option value="">Select Category</option>
                     {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -199,22 +201,15 @@ export default function AdminProducts() {
                   <Input type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })} required className="bg-background font-mono" />
                 </div>
 
-                {/* In Stock / Sold Out Toggle */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Availability</label>
                   <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setInStock(true)}
-                      className={`flex-1 flex items-center justify-center gap-2 h-10 rounded-md border-2 text-xs font-black uppercase tracking-wider transition-all ${inStock ? "border-green-500 bg-green-500/10 text-green-400" : "border-border text-muted-foreground hover:border-green-500/50"}`}
-                    >
+                    <button type="button" onClick={() => setInStock(true)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 h-10 rounded-md border-2 text-xs font-black uppercase tracking-wider transition-all ${inStock ? "border-green-500 bg-green-500/10 text-green-400" : "border-border text-muted-foreground"}`}>
                       <CheckCircle className="h-4 w-4" /> In Stock
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setInStock(false)}
-                      className={`flex-1 flex items-center justify-center gap-2 h-10 rounded-md border-2 text-xs font-black uppercase tracking-wider transition-all ${!inStock ? "border-red-500 bg-red-500/10 text-red-400" : "border-border text-muted-foreground hover:border-red-500/50"}`}
-                    >
+                    <button type="button" onClick={() => setInStock(false)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 h-10 rounded-md border-2 text-xs font-black uppercase tracking-wider transition-all ${!inStock ? "border-red-500 bg-red-500/10 text-red-400" : "border-border text-muted-foreground"}`}>
                       <XCircle className="h-4 w-4" /> Sold Out
                     </button>
                   </div>
@@ -222,14 +217,11 @@ export default function AdminProducts() {
 
                 {/* Media Upload */}
                 <div className="space-y-2 col-span-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Media</label>
-                  <div
-                    className="border-2 border-dashed border-border rounded-lg p-4 flex items-center gap-4 hover:border-primary/50 transition-colors cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Media (up to 8)</label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                     {mediaItems.length > 0 ? (
-                      <div className="grid grid-cols-4 gap-2 shrink-0">
-                        {mediaItems.slice(0, 4).map((item, index) => (
+                      <div className="grid grid-cols-4 gap-2">
+                        {mediaItems.map((item, index) => (
                           <div key={`${item.url}-${index}`} className="relative h-16 w-16 overflow-hidden rounded-md border border-border bg-muted">
                             {item.type === "video" ? (
                               <>
@@ -239,71 +231,106 @@ export default function AdminProducts() {
                             ) : (
                               <img src={item.url} alt="Preview" className="h-full w-full object-cover" />
                             )}
-                            <button
-                              type="button"
-                              onClick={(event) => { event.stopPropagation(); removeMedia(index); }}
-                              className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/80 text-white hover:bg-destructive"
-                            >
-                              <X className="h-3 w-3" />
+                            <button type="button" onClick={(e) => { e.stopPropagation(); removeMedia(index); }}
+                              className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/80 text-white hover:bg-destructive">
+                              <X className="h-2.5 w-2.5" />
                             </button>
                           </div>
                         ))}
+                        {mediaItems.length < 8 && (
+                          <div className="h-16 w-16 rounded-md border-2 border-dashed border-border flex items-center justify-center text-muted-foreground">
+                            <Plus className="h-5 w-5" />
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <div className="h-20 w-20 bg-muted rounded-md flex items-center justify-center shrink-0">
-                        <Image className="h-8 w-8 text-muted-foreground" />
+                      <div className="flex items-center gap-4">
+                        <div className="h-16 w-16 bg-muted rounded-md flex items-center justify-center shrink-0">
+                          <Image className="h-7 w-7 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm flex items-center gap-2">
+                            <Upload className="h-4 w-4 text-primary" />
+                            {uploading ? "Uploading..." : "Choose photos or videos"}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WEBP, MP4, MOV — max 100MB each · up to 8 files</p>
+                        </div>
                       </div>
                     )}
-                    <div>
-                      <p className="font-bold text-sm flex items-center gap-2">
-                        <Upload className="h-4 w-4 text-primary" />
-                        {uploading ? "Uploading..." : mediaItems.length > 0 ? "Add more media" : "Choose photos or videos"}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WEBP, MP4, MOV, WEBM - max 100MB each</p>
-                    </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,video/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleFileChange}
-                    />
+                    <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFileChange} />
                   </div>
+                  {uploading && (
+                    <p className="text-xs text-primary font-bold animate-pulse">Uploading media...</p>
+                  )}
+                </div>
+
+                <div className="space-y-2 col-span-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Description</label>
+                  <Textarea value={formData.description || ""} onChange={e => setFormData({ ...formData, description: e.target.value })} className="bg-background min-h-[70px]" placeholder="Product description..." />
                 </div>
 
                 <div className="space-y-2 col-span-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sizes (comma separated)</label>
                   <Input value={formData.sizes || ""} onChange={e => setFormData({ ...formData, sizes: e.target.value })} className="bg-background font-mono" placeholder="S, M, L, XL" />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-2 mt-2">
-                  <label htmlFor="featured" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+
+                {/* Pre-Order Section */}
+                <div className="col-span-2 border border-border/50 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-yellow-400" />
+                      Pre-Order Mode
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, isPreOrder: !formData.isPreOrder })}
+                      className={`relative inline-flex w-10 h-5 rounded-full transition-colors ${formData.isPreOrder ? "bg-yellow-500" : "bg-muted"}`}
+                    >
+                      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${formData.isPreOrder ? "translate-x-5" : "translate-x-0.5"}`} />
+                    </button>
+                  </div>
+                  {formData.isPreOrder && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Pre-Order Badge Label</label>
+                        <Input value={formData.preOrderLabel ?? ""} onChange={e => setFormData({ ...formData, preOrderLabel: e.target.value })} placeholder="Pre-Order" className="bg-background h-9" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Expected Ship Date</label>
+                        <Input value={formData.preOrderDate ?? ""} onChange={e => setFormData({ ...formData, preOrderDate: e.target.value })} placeholder="e.g. August 2025" className="bg-background h-9" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Pre-Order Note</label>
+                        <Input value={formData.preOrderNote ?? ""} onChange={e => setFormData({ ...formData, preOrderNote: e.target.value })} placeholder="Ships when available. No charge until shipped." className="bg-background h-9" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-2">
+                  <label htmlFor="featured" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider cursor-pointer">
                     <input type="checkbox" id="featured" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" />
                     Featured Product
                   </label>
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Type</label>
                     <div className="grid grid-cols-2 border border-border rounded-sm overflow-hidden">
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, rep: false })}
-                        className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors ${!formData.rep ? "bg-green-500 text-black" : "bg-background text-muted-foreground hover:text-foreground"}`}
-                      >
+                      <button type="button" onClick={() => setFormData({ ...formData, rep: false })}
+                        className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors ${!formData.rep ? "bg-green-500 text-black" : "bg-background text-muted-foreground"}`}>
                         Original
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, rep: true })}
-                        className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors ${formData.rep ? "bg-[#111827] text-white" : "bg-background text-muted-foreground hover:text-foreground"}`}
-                      >
+                      <button type="button" onClick={() => setFormData({ ...formData, rep: true })}
+                        className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors ${formData.rep ? "bg-[#111827] text-white" : "bg-background text-muted-foreground"}`}>
                         REP
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="pt-4 flex justify-end">
-                <Button type="submit" disabled={uploading} className="font-bold uppercase tracking-wider bg-primary hover:bg-primary/90">
+
+              <div className="pt-4 flex justify-end gap-3">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={uploading || createProduct.isPending || updateProduct.isPending} className="font-bold uppercase tracking-wider fire-gradient border-none">
                   {editingId ? "Save Changes" : "Create Item"}
                 </Button>
               </div>
@@ -312,46 +339,48 @@ export default function AdminProducts() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {products?.map(product => {
           const primaryMedia = getPrimaryProductMedia(product.imageUrl);
           const mediaCount = parseProductMedia(product.imageUrl).length;
+          const isPreOrder = (product as ProductFormData).isPreOrder;
           return (
-          <div key={product.id} className="bg-card border border-border rounded-lg overflow-hidden flex flex-col group">
-            <div className="aspect-[4/3] bg-muted relative border-b border-border">
-              {primaryMedia ? (
-                primaryMedia.type === "video" ? (
-                  <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+            <div key={product.id} className="bg-card border border-border rounded-xl overflow-hidden flex flex-col group hover:border-primary/30 transition-colors">
+              <div className="aspect-[4/3] bg-muted relative border-b border-border">
+                {primaryMedia ? (
+                  primaryMedia.type === "video" ? (
+                    <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                  ) : (
+                    <img src={primaryMedia.url} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
+                  )
                 ) : (
-                  <img src={primaryMedia.url} className="w-full h-full object-cover" />
-                )
-              ) : (
-                <div className="w-full h-full flex items-center justify-center font-mono text-xs text-muted-foreground">No Image</div>
-              )}
-              <div className="absolute top-2 left-2 flex flex-col gap-1">
-                {product.featured && <div className="bg-primary text-black text-[10px] font-black uppercase tracking-widest px-2 py-1">Featured</div>}
-                {product.rep ? (
-                  <div className="bg-[#111827] text-white border border-white/20 text-[10px] font-black uppercase tracking-widest px-2 py-1">REP</div>
-                ) : (
-                  <div className="bg-green-500/90 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1">Original</div>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package className="h-10 w-10 text-muted-foreground/30" />
+                  </div>
                 )}
-              </div>
-              {mediaCount > 1 && <div className="absolute bottom-2 left-2 bg-black/80 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1">{mediaCount} media</div>}
-              {/* Stock badge */}
-              <div className={`absolute top-2 right-2 text-[10px] font-black uppercase tracking-widest px-2 py-1 ${product.stock > 0 ? "bg-green-500/90 text-black" : "bg-red-500/90 text-white"}`}>
-                {product.stock > 0 ? "In Stock" : "Sold Out"}
-              </div>
-            </div>
-            <div className="p-4 flex-1 flex flex-col">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="text-xs uppercase text-muted-foreground tracking-widest">{product.categoryName}</p>
-                  <h3 className="font-bold leading-tight line-clamp-1">{product.name}</h3>
+                <div className="absolute top-2 left-2 flex flex-col gap-1">
+                  {product.featured && <div className="bg-primary text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">Featured</div>}
+                  {isPreOrder && <div className="bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">Pre-Order</div>}
+                  {product.rep ? (
+                    <div className="bg-[#111827] text-white border border-white/20 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">REP</div>
+                  ) : (
+                    <div className="bg-green-500/90 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">Original</div>
+                  )}
                 </div>
-                <p className="font-mono font-bold text-primary shrink-0 ml-2">AED {product.price.toFixed(2)}</p>
+                {mediaCount > 1 && <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">{mediaCount} imgs</div>}
+                <div className={`absolute top-2 right-2 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm ${product.stock > 0 ? "bg-green-500/90 text-black" : "bg-red-500/90 text-white"}`}>
+                  {product.stock > 0 ? "In Stock" : "Sold Out"}
+                </div>
               </div>
-              <div className="mt-auto pt-4 flex justify-end items-center border-t border-border/50">
-                <div className="flex gap-2">
+              <div className="p-4 flex-1 flex flex-col">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-xs uppercase text-muted-foreground tracking-widest">{product.categoryName}</p>
+                    <h3 className="font-bold leading-tight">{product.name}</h3>
+                  </div>
+                  <p className="font-mono font-bold text-primary shrink-0 ml-2">AED {product.price.toFixed(2)}</p>
+                </div>
+                <div className="mt-auto pt-3 flex justify-end gap-2 border-t border-border/50">
                   <Button variant="ghost" size="icon" onClick={() => openEdit(product)} className="h-8 w-8 hover:text-primary">
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -361,7 +390,6 @@ export default function AdminProducts() {
                 </div>
               </div>
             </div>
-          </div>
           );
         })}
       </div>

@@ -4,17 +4,23 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { Layout } from "@/components/layout";
+import { LoadingScreen } from "@/components/loading-screen";
 import Home from "@/pages/home";
 import Shop from "@/pages/shop";
 import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import OrderConfirmation from "@/pages/order";
+import OrderTracking from "@/pages/order-tracking";
 import Login from "@/pages/login";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminProducts from "@/pages/admin/products";
 import AdminOrders from "@/pages/admin/orders";
 import AdminTerms from "@/pages/admin/terms";
+import AdminCategories from "@/pages/admin/categories";
+import AdminSiteSettings from "@/pages/admin/site-settings";
+import AdminReviews from "@/pages/admin/reviews";
+import AdminTiktok from "@/pages/admin/tiktok";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
 import Terms from "@/pages/terms";
@@ -37,6 +43,10 @@ function AdminRouter() {
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/products" component={AdminProducts} />
         <Route path="/admin/orders" component={AdminOrders} />
+        <Route path="/admin/categories" component={AdminCategories} />
+        <Route path="/admin/site-settings" component={AdminSiteSettings} />
+        <Route path="/admin/reviews" component={AdminReviews} />
+        <Route path="/admin/tiktok" component={AdminTiktok} />
         <Route path="/admin/terms" component={AdminTerms} />
         <Route component={NotFound} />
       </Switch>
@@ -58,6 +68,7 @@ function MainRouter() {
             <Route path="/cart" component={Cart} />
             <Route path="/checkout" component={Checkout} />
             <Route path="/order/:id" component={OrderConfirmation} />
+            <Route path="/order-tracking" component={OrderTracking} />
             <Route path="/terms" component={Terms} />
             <Route component={NotFound} />
           </Switch>
@@ -71,6 +82,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <LoadingScreen />
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <MainRouter />
         </WouterRouter>

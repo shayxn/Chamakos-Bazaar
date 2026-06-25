@@ -1,28 +1,24 @@
 openapi: 3.1.0
 info:
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: Chamak Street e-commerce API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
   - name: auth
-    description: Authentication
   - name: products
-    description: Product management
   - name: categories
-    description: Category management
   - name: cart
-    description: Shopping cart
   - name: orders
-    description: Order management
   - name: payments
-    description: Payment processing
   - name: store
-    description: Store stats and info
+  - name: content
+  - name: settings
+  - name: reviews
+  - name: tiktok
 paths:
   /healthz:
     get:
@@ -41,7 +37,7 @@ paths:
     post:
       operationId: login
       tags: [auth]
-      summary: Login with username and password
+      summary: Login
       requestBody:
         required: true
         content:
@@ -75,7 +71,7 @@ paths:
     get:
       operationId: getMe
       tags: [auth]
-      summary: Get current logged-in user
+      summary: Get current user
       responses:
         "200":
           description: Current user
@@ -103,7 +99,7 @@ paths:
     post:
       operationId: createCategory
       tags: [categories]
-      summary: Create a category (admin only)
+      summary: Create a category (admin)
       requestBody:
         required: true
         content:
@@ -112,17 +108,40 @@ paths:
               $ref: "#/components/schemas/CategoryInput"
       responses:
         "201":
-          description: Created category
+          description: Created
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Category"
 
   /categories/{id}:
+    patch:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update a category (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
     delete:
       operationId: deleteCategory
       tags: [categories]
-      summary: Delete a category (admin only)
+      summary: Delete a category (admin)
       parameters:
         - name: id
           in: path
@@ -141,7 +160,7 @@ paths:
     get:
       operationId: listProducts
       tags: [products]
-      summary: List products with optional filters
+      summary: List products
       parameters:
         - name: categoryId
           in: query
@@ -167,7 +186,7 @@ paths:
     post:
       operationId: createProduct
       tags: [products]
-      summary: Create a product (admin only)
+      summary: Create a product (admin)
       requestBody:
         required: true
         content:
@@ -176,7 +195,7 @@ paths:
               $ref: "#/components/schemas/ProductInput"
       responses:
         "201":
-          description: Created product
+          description: Created
           content:
             application/json:
               schema:
@@ -186,7 +205,7 @@ paths:
     get:
       operationId: getProduct
       tags: [products]
-      summary: Get a product by ID
+      summary: Get a product
       parameters:
         - name: id
           in: path
@@ -205,7 +224,7 @@ paths:
     patch:
       operationId: updateProduct
       tags: [products]
-      summary: Update a product (admin only)
+      summary: Update a product (admin)
       parameters:
         - name: id
           in: path
@@ -220,7 +239,7 @@ paths:
               $ref: "#/components/schemas/ProductUpdate"
       responses:
         "200":
-          description: Updated product
+          description: Updated
           content:
             application/json:
               schema:
@@ -228,7 +247,7 @@ paths:
     delete:
       operationId: deleteProduct
       tags: [products]
-      summary: Delete a product (admin only)
+      summary: Delete a product (admin)
       parameters:
         - name: id
           in: path
@@ -247,10 +266,10 @@ paths:
     get:
       operationId: getCart
       tags: [cart]
-      summary: Get the current session cart
+      summary: Get cart
       responses:
         "200":
-          description: Cart with items
+          description: Cart
           content:
             application/json:
               schema:
@@ -260,7 +279,7 @@ paths:
     post:
       operationId: addToCart
       tags: [cart]
-      summary: Add an item to the cart
+      summary: Add to cart
       requestBody:
         required: true
         content:
@@ -279,7 +298,7 @@ paths:
     patch:
       operationId: updateCartItem
       tags: [cart]
-      summary: Update cart item quantity
+      summary: Update cart item
       parameters:
         - name: id
           in: path
@@ -302,7 +321,7 @@ paths:
     delete:
       operationId: removeCartItem
       tags: [cart]
-      summary: Remove item from cart
+      summary: Remove from cart
       parameters:
         - name: id
           in: path
@@ -321,10 +340,10 @@ paths:
     get:
       operationId: listOrders
       tags: [orders]
-      summary: List all orders (admin) or user's orders
+      summary: List all orders (admin)
       responses:
         "200":
-          description: List of orders
+          description: Orders
           content:
             application/json:
               schema:
@@ -334,7 +353,7 @@ paths:
     post:
       operationId: createOrder
       tags: [orders]
-      summary: Create an order (checkout)
+      summary: Create order (checkout)
       requestBody:
         required: true
         content:
@@ -349,11 +368,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/Order"
 
+  /orders/track:
+    get:
+      operationId: trackOrder
+      tags: [orders]
+      summary: Track an order by order number and phone
+      parameters:
+        - name: orderNumber
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: phone
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order tracking info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderTracking"
+        "404":
+          description: Not found
+
   /orders/{id}:
     get:
       operationId: getOrder
       tags: [orders]
-      summary: Get an order by ID
+      summary: Get order
       parameters:
         - name: id
           in: path
@@ -369,10 +414,33 @@ paths:
                 $ref: "#/components/schemas/Order"
         "404":
           description: Not found
+    patch:
+      operationId: updateOrder
+      tags: [orders]
+      summary: Update order (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdate"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
     delete:
       operationId: deleteOrder
       tags: [orders]
-      summary: Delete an order (admin only)
+      summary: Delete order (admin)
       parameters:
         - name: id
           in: path
@@ -391,7 +459,7 @@ paths:
     patch:
       operationId: updateOrderStatus
       tags: [orders]
-      summary: Update order status (admin only)
+      summary: Update order status (admin)
       parameters:
         - name: id
           in: path
@@ -406,17 +474,42 @@ paths:
               $ref: "#/components/schemas/OrderStatusUpdate"
       responses:
         "200":
-          description: Updated order
+          description: Updated
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Order"
 
+  /orders/{id}/tracking:
+    post:
+      operationId: addTrackingEvent
+      tags: [orders]
+      summary: Add tracking event (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrackingEventInput"
+      responses:
+        "201":
+          description: Event added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingEvent"
+
   /payments/ziina-intent:
     post:
       operationId: createZiinaPaymentIntent
       tags: [payments]
-      summary: Create a Ziina payment intent for an order
+      summary: Create Ziina payment intent
       requestBody:
         required: true
         content:
@@ -425,7 +518,7 @@ paths:
               $ref: "#/components/schemas/ZiinaPaymentIntentInput"
       responses:
         "201":
-          description: Created Ziina payment intent
+          description: Created
           content:
             application/json:
               schema:
@@ -435,7 +528,7 @@ paths:
     post:
       operationId: createZiinaCheckout
       tags: [payments]
-      summary: Create an order and Ziina payment intent for checkout
+      summary: Create order + Ziina intent
       requestBody:
         required: true
         content:
@@ -444,7 +537,7 @@ paths:
               $ref: "#/components/schemas/OrderInput"
       responses:
         "201":
-          description: Created order and Ziina payment intent
+          description: Created
           content:
             application/json:
               schema:
@@ -454,10 +547,10 @@ paths:
     get:
       operationId: getStoreStats
       tags: [store]
-      summary: Get store statistics (admin)
+      summary: Store statistics (admin)
       responses:
         "200":
-          description: Store stats
+          description: Stats
           content:
             application/json:
               schema:
@@ -467,7 +560,7 @@ paths:
     get:
       operationId: getContentPage
       tags: [content]
-      summary: Get a content page
+      summary: Get content page
       parameters:
         - name: slug
           in: path
@@ -484,7 +577,7 @@ paths:
     put:
       operationId: updateContentPage
       tags: [content]
-      summary: Update a content page (admin only)
+      summary: Update content page (admin)
       parameters:
         - name: slug
           in: path
@@ -499,11 +592,216 @@ paths:
               $ref: "#/components/schemas/ContentPageInput"
       responses:
         "200":
-          description: Updated content page
+          description: Updated
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ContentPage"
+
+  /settings:
+    get:
+      operationId: getAllSettings
+      tags: [settings]
+      summary: Get all site settings
+      responses:
+        "200":
+          description: Settings map
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingsMap"
+
+  /settings/{key}:
+    put:
+      operationId: upsertSetting
+      tags: [settings]
+      summary: Set a site setting (admin)
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Setting"
+
+  /settings/bulk:
+    post:
+      operationId: bulkUpsertSettings
+      tags: [settings]
+      summary: Bulk update settings (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsMap"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingsMap"
+
+  /reviews:
+    get:
+      operationId: listReviews
+      tags: [reviews]
+      summary: List visible reviews
+      responses:
+        "200":
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create review (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /reviews/{id}:
+    patch:
+      operationId: updateReview
+      tags: [reviews]
+      summary: Update review (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+    delete:
+      operationId: deleteReview
+      tags: [reviews]
+      summary: Delete review (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /tiktok:
+    get:
+      operationId: listTiktokVideos
+      tags: [tiktok]
+      summary: List TikTok videos
+      responses:
+        "200":
+          description: Videos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TiktokVideo"
+    post:
+      operationId: createTiktokVideo
+      tags: [tiktok]
+      summary: Add TikTok video (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TiktokVideoInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiktokVideo"
+
+  /tiktok/{id}:
+    patch:
+      operationId: updateTiktokVideo
+      tags: [tiktok]
+      summary: Update TikTok video (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TiktokVideoUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiktokVideo"
+    delete:
+      operationId: deleteTiktokVideo
+      tags: [tiktok]
+      summary: Delete TikTok video (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
 
 components:
   schemas:
@@ -512,16 +810,14 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
     MessageResponse:
       type: object
       properties:
         message:
           type: string
-      required:
-        - message
+      required: [message]
 
     LoginInput:
       type: object
@@ -545,7 +841,7 @@ components:
 
     Category:
       type: object
-      required: [id, name]
+      required: [id, name, slug]
       properties:
         id:
           type: integer
@@ -553,6 +849,22 @@ components:
           type: string
         slug:
           type: string
+        bannerImageUrl:
+          type: ["string", "null"]
+        thumbnailImageUrl:
+          type: ["string", "null"]
+        iconEmoji:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        bgImageUrl:
+          type: ["string", "null"]
+        accentColor:
+          type: ["string", "null"]
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
 
     CategoryInput:
       type: object
@@ -560,10 +872,48 @@ components:
       properties:
         name:
           type: string
+        bannerImageUrl:
+          type: string
+        thumbnailImageUrl:
+          type: string
+        iconEmoji:
+          type: string
+        description:
+          type: string
+        bgImageUrl:
+          type: string
+        accentColor:
+          type: string
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
+
+    CategoryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        bannerImageUrl:
+          type: string
+        thumbnailImageUrl:
+          type: string
+        iconEmoji:
+          type: string
+        description:
+          type: string
+        bgImageUrl:
+          type: string
+        accentColor:
+          type: string
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
 
     Product:
       type: object
-      required: [id, name, price, stock, categoryId, featured, rep]
+      required: [id, name, price, stock, featured, rep]
       properties:
         id:
           type: integer
@@ -574,6 +924,8 @@ components:
         price:
           type: number
         imageUrl:
+          type: ["string", "null"]
+        imageUrls:
           type: ["string", "null"]
         stock:
           type: integer
@@ -586,6 +938,14 @@ components:
         rep:
           type: boolean
         sizes:
+          type: ["string", "null"]
+        isPreOrder:
+          type: boolean
+        preOrderLabel:
+          type: ["string", "null"]
+        preOrderDate:
+          type: ["string", "null"]
+        preOrderNote:
           type: ["string", "null"]
         createdAt:
           type: string
@@ -602,6 +962,8 @@ components:
           type: number
         imageUrl:
           type: string
+        imageUrls:
+          type: string
         stock:
           type: integer
         categoryId:
@@ -611,6 +973,14 @@ components:
         rep:
           type: boolean
         sizes:
+          type: string
+        isPreOrder:
+          type: boolean
+        preOrderLabel:
+          type: string
+        preOrderDate:
+          type: string
+        preOrderNote:
           type: string
 
     ProductUpdate:
@@ -624,6 +994,8 @@ components:
           type: number
         imageUrl:
           type: string
+        imageUrls:
+          type: string
         stock:
           type: integer
         categoryId:
@@ -633,6 +1005,14 @@ components:
         rep:
           type: boolean
         sizes:
+          type: string
+        isPreOrder:
+          type: boolean
+        preOrderLabel:
+          type: string
+        preOrderDate:
+          type: string
+        preOrderNote:
           type: string
 
     CartItem:
@@ -699,6 +1079,8 @@ components:
           type: integer
         size:
           type: ["string", "null"]
+        isPreOrder:
+          type: boolean
 
     Order:
       type: object
@@ -706,6 +1088,8 @@ components:
       properties:
         id:
           type: integer
+        orderNumber:
+          type: ["string", "null"]
         customerName:
           type: ["string", "null"]
         customerEmail:
@@ -716,11 +1100,19 @@ components:
           type: ["string", "null"]
         paymentMethod:
           type: ["string", "null"]
+        courierName:
+          type: ["string", "null"]
+        estimatedDelivery:
+          type: ["string", "null"]
         status:
           type: string
-          enum: [pending, processing, shipped, delivered, cancelled]
+          enum: [pending, confirmed, packed, shipped, out_for_delivery, delivered, cancelled]
         total:
           type: number
+        hasPreOrder:
+          type: boolean
+        trackingNote:
+          type: ["string", "null"]
         createdAt:
           type: string
         items:
@@ -740,6 +1132,234 @@ components:
           type: string
         paymentMethod:
           type: string
+
+    OrderUpdate:
+      type: object
+      properties:
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        customerAddress:
+          type: string
+        paymentMethod:
+          type: string
+        courierName:
+          type: string
+        estimatedDelivery:
+          type: string
+        status:
+          type: string
+        trackingNote:
+          type: string
+
+    OrderStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, packed, shipped, out_for_delivery, delivered, cancelled]
+
+    TrackingEvent:
+      type: object
+      required: [id, orderId, status, createdAt]
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        status:
+          type: string
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    TrackingEventInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+        note:
+          type: string
+
+    OrderTracking:
+      type: object
+      required: [orderNumber, status, total, createdAt, items]
+      properties:
+        orderNumber:
+          type: string
+        customerName:
+          type: ["string", "null"]
+        customerPhone:
+          type: ["string", "null"]
+        customerAddress:
+          type: ["string", "null"]
+        status:
+          type: string
+        courierName:
+          type: ["string", "null"]
+        estimatedDelivery:
+          type: ["string", "null"]
+        total:
+          type: number
+        trackingNote:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackingEvent"
+
+    Setting:
+      type: object
+      required: [key, value]
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        updatedAt:
+          type: ["string", "null"]
+
+    SettingInput:
+      type: object
+      required: [value]
+      properties:
+        value:
+          type: string
+
+    SettingsMap:
+      type: object
+      additionalProperties:
+        type: string
+
+    Review:
+      type: object
+      required: [id, customerName, rating, body, isVerified, isPinned, isVisible]
+      properties:
+        id:
+          type: integer
+        customerName:
+          type: string
+        customerAvatar:
+          type: ["string", "null"]
+        rating:
+          type: integer
+        body:
+          type: string
+        imageUrls:
+          type: ["string", "null"]
+        isVerified:
+          type: boolean
+        isPinned:
+          type: boolean
+        isVisible:
+          type: boolean
+        displayOrder:
+          type: integer
+        createdAt:
+          type: string
+
+    ReviewInput:
+      type: object
+      required: [customerName, rating, body]
+      properties:
+        customerName:
+          type: string
+        customerAvatar:
+          type: string
+        rating:
+          type: integer
+        body:
+          type: string
+        imageUrls:
+          type: string
+        isVerified:
+          type: boolean
+        isPinned:
+          type: boolean
+        isVisible:
+          type: boolean
+        displayOrder:
+          type: integer
+
+    ReviewUpdate:
+      type: object
+      properties:
+        customerName:
+          type: string
+        customerAvatar:
+          type: string
+        rating:
+          type: integer
+        body:
+          type: string
+        imageUrls:
+          type: string
+        isVerified:
+          type: boolean
+        isPinned:
+          type: boolean
+        isVisible:
+          type: boolean
+        displayOrder:
+          type: integer
+
+    TiktokVideo:
+      type: object
+      required: [id, embedUrl, isVisible]
+      properties:
+        id:
+          type: integer
+        title:
+          type: ["string", "null"]
+        embedUrl:
+          type: string
+        thumbnailUrl:
+          type: ["string", "null"]
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
+        createdAt:
+          type: string
+
+    TiktokVideoInput:
+      type: object
+      required: [embedUrl]
+      properties:
+        title:
+          type: string
+        embedUrl:
+          type: string
+        thumbnailUrl:
+          type: string
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
+
+    TiktokVideoUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        embedUrl:
+          type: string
+        thumbnailUrl:
+          type: string
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
 
     ContentPage:
       type: object
@@ -762,14 +1382,6 @@ components:
           type: string
         content:
           type: string
-
-    OrderStatusUpdate:
-      type: object
-      required: [status]
-      properties:
-        status:
-          type: string
-          enum: [pending, processing, shipped, delivered, cancelled]
 
     ZiinaPaymentIntentInput:
       type: object

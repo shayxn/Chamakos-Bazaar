@@ -9,6 +9,9 @@ import storeRouter from "./store";
 import uploadsRouter from "./uploads";
 import paymentsRouter from "./payments";
 import contentRouter from "./content";
+import settingsRouter from "./settings";
+import reviewsRouter from "./reviews";
+import tiktokRouter from "./tiktok";
 
 const router: IRouter = Router();
 
@@ -22,5 +25,8 @@ router.use(storeRouter);
 router.use(uploadsRouter);
 router.use(paymentsRouter);
 router.use(contentRouter);
+router.use(settingsRouter);
+router.use(reviewsRouter);
+router.use(tiktokRouter);
 
 export default router;

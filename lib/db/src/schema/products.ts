@@ -8,11 +8,16 @@ export const productsTable = pgTable("products", {
   description: text("description"),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   imageUrl: text("image_url"),
+  imageUrls: text("image_urls"),
   stock: integer("stock").notNull().default(0),
   categoryId: integer("category_id"),
   featured: boolean("featured").notNull().default(false),
   rep: boolean("rep").notNull().default(false),
   sizes: text("sizes"),
+  isPreOrder: boolean("is_pre_order").notNull().default(false),
+  preOrderLabel: text("pre_order_label"),
+  preOrderDate: text("pre_order_date"),
+  preOrderNote: text("pre_order_note"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

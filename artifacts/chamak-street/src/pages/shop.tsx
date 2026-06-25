@@ -8,7 +8,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { PageTransition, RevealSection } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
+const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const cardVariants = {
   hidden: { opacity: 0, y: 36, scale: 0.95, filter: "blur(4px)" },
@@ -95,10 +95,9 @@ export default function Shop() {
                   key={cat.id ?? "all"}
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.25 + i * 0.05, ease: EASE }}
+                  transition={{ delay: 0.25 + i * 0.05, ease: EASE, type: "spring", stiffness: 400, damping: 24 }}
                   whileHover={{ x: 5 }}
                   whileTap={{ scale: 0.97 }}
-                  transition2={{ type: "spring", stiffness: 400, damping: 24 }}
                   onClick={() => setCategoryId(cat.id)}
                   className={`block w-full text-left px-3 py-2.5 text-sm rounded-md font-bold transition-all duration-200 ${
                     categoryId === cat.id

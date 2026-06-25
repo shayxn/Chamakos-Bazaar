@@ -17,8 +17,8 @@ export function ChamakLogo({ className = "", animate = true, size = "md" }: Cham
   const { width, height } = sizes[size];
 
   const shimmer = animate ? {
-    animate: { opacity: [0.7, 1, 0.7] },
-    transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
+    animate: { opacity: [0.7, 1, 0.7] as number[] },
+    transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" as const },
   } : {};
 
   const sparkleVariants = {

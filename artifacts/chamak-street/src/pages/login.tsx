@@ -12,7 +12,7 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const login = useLogin();
-  const { data: user } = useGetMe({ query: { retry: false } });
+  const { data: user } = useGetMe({ query: { retry: false, queryKey: ["auth", "me-login"] } });
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
