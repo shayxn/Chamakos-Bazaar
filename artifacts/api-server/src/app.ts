@@ -25,8 +25,8 @@ app.use(
 
 app.use(cors({ origin: true, credentials: true }));
 
-// Serve uploaded product images
-app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
+// Serve uploaded product images under /api/uploads so they are routed to this service
+app.use("/api/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

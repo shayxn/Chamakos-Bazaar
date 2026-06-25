@@ -150,7 +150,7 @@ router.post("/uploads", requireAdmin, upload.single("file"), async (req, res) =>
   }
 
   if (!useCloudinary) {
-    res.json({ url: `/uploads/${req.file.filename}`, type: getMediaType(req.file) });
+    res.json({ url: `/api/uploads/${req.file.filename}`, type: getMediaType(req.file) });
     return;
   }
 
