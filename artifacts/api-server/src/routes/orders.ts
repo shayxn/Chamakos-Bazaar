@@ -162,12 +162,23 @@ router.post("/orders", async (req, res) => {
   });
 
   const fullOrder = await buildOrder(order.id);
+  (req.session as Record<string, unknown>).lastOrderId = order.id;
   res.status(201).json(fullOrder);
 });
 
-router.get("/orders/:id", requireAdmin, async (req, res) => {
+router.get("/orders/:id", async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+
+  const session = req.session as Record<string, unknown>;
+  const userId = session.userId as number | undefined;
+  const lastOrderId = session.lastOrderId as number | undefined;
+
+  if (!userId && lastOrderId !== id) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
   const order = await buildOrder(id);
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
   res.json(order);

@@ -102,7 +102,7 @@ async function uploadToCloudinary(file: Express.Multer.File): Promise<{ url: str
   const { folder, signature, timestamp } = createCloudinarySignature();
 
   const formData = new FormData();
-  formData.append("file", new Blob([file.buffer], { type: file.mimetype }), file.originalname);
+  formData.append("file", new Blob([file.buffer as unknown as ArrayBuffer], { type: file.mimetype }), file.originalname);
   formData.append("api_key", apiKey);
   formData.append("timestamp", timestamp);
   formData.append("folder", folder);

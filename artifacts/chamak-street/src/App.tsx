@@ -24,6 +24,8 @@ import AdminTiktok from "@/pages/admin/tiktok";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
 import Terms from "@/pages/terms";
+import Privacy from "@/pages/privacy";
+import Shipping from "@/pages/shipping";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,6 +72,8 @@ function MainRouter() {
             <Route path="/order/:id" component={OrderConfirmation} />
             <Route path="/order-tracking" component={OrderTracking} />
             <Route path="/terms" component={Terms} />
+            <Route path="/privacy" component={Privacy} />
+            <Route path="/shipping" component={Shipping} />
             <Route component={NotFound} />
           </Switch>
         </Layout>

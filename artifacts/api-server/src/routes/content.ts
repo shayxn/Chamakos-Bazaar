@@ -81,7 +81,7 @@ router.put("/content/:slug", requireAdmin, async (req, res) => {
 
   const [page] = await db
     .insert(contentPagesTable)
-    .values({ slug: req.params.slug, title, content, updatedAt: new Date() })
+    .values({ slug: req.params.slug as string, title, content, updatedAt: new Date() })
     .onConflictDoUpdate({
       target: contentPagesTable.slug,
       set: { title, content, updatedAt: new Date() },

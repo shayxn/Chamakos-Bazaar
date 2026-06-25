@@ -3,11 +3,21 @@ import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { LoginBody } from "@workspace/api-zod";
 import * as crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 const router = Router();
 
-function hashPassword(password: string): string {
+const BCRYPT_ROUNDS = 12;
+
+function legacySha256Hash(password: string): string {
   return crypto.createHash("sha256").update(password + "chamak_salt_2024").digest("hex");
+}
+
+async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  if (storedHash.startsWith("$2")) {
+    return bcrypt.compare(password, storedHash);
+  }
+  return storedHash === legacySha256Hash(password);
 }
 
 router.post("/auth/login", async (req, res) => {
@@ -18,10 +28,16 @@ router.post("/auth/login", async (req, res) => {
   }
   const { username, password } = parsed.data;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.username, username));
-  if (!user || user.passwordHash !== hashPassword(password)) {
+  if (!user || !(await verifyPassword(password, user.passwordHash))) {
     res.status(401).json({ error: "Invalid credentials" });
     return;
   }
+
+  if (!user.passwordHash.startsWith("$2")) {
+    const newHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    await db.update(usersTable).set({ passwordHash: newHash }).where(eq(usersTable.id, user.id));
+  }
+
   (req.session as Record<string, unknown>).userId = user.id;
   res.json({ id: user.id, username: user.username, isAdmin: user.isAdmin });
 });
