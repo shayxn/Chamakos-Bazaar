@@ -2,10 +2,11 @@ import { Router } from "express";
 import { db, productsTable, ordersTable, orderItemsTable, categoriesTable } from "@workspace/db";
 import { eq, inArray, lt, desc } from "drizzle-orm";
 import { sql } from "drizzle-orm";
+import { requireAdmin } from "../lib/auth-middleware";
 
 const router = Router();
 
-router.get("/store/stats", async (_req, res) => {
+router.get("/store/stats", requireAdmin, async (_req, res) => {
   const [
     [productCount],
     [orderCount],

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db, contentPagesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { requireAdmin } from "../lib/auth-middleware";
 
 const router = Router();
 
@@ -70,7 +71,7 @@ router.get("/content/:slug", async (req, res) => {
   res.json(page);
 });
 
-router.put("/content/:slug", async (req, res) => {
+router.put("/content/:slug", requireAdmin, async (req, res) => {
   const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
   const content = typeof req.body?.content === "string" ? req.body.content.trim() : "";
   if (title.length < 2 || content.length < 10) {
