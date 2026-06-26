@@ -53,26 +53,25 @@ app.use("/api", router);
 
 async function seedAdminUser() {
   try {
+    const adminPassword = process.env.ADMIN_PASSWORD ?? "chamak2024";
+    const hash = await bcrypt.hash(adminPassword, 12);
     const [existing] = await db
       .select()
       .from(usersTable)
       .where(eq(usersTable.username, "admin"));
     if (!existing) {
-      const hash = await bcrypt.hash("chamak2024", 12);
       await db.insert(usersTable).values({
         username: "admin",
         passwordHash: hash,
         isAdmin: true,
       });
       logger.info("Admin user seeded successfully");
-    } else if (!existing.isAdmin) {
+    } else {
       await db
         .update(usersTable)
-        .set({ isAdmin: true })
+        .set({ passwordHash: hash, isAdmin: true })
         .where(eq(usersTable.id, existing.id));
-      logger.info("Admin user promoted to admin");
-    } else {
-      logger.info("Admin user already exists");
+      logger.info("Admin user credentials synced");
     }
   } catch (err) {
     logger.error({ err }, "Failed to seed admin user");
