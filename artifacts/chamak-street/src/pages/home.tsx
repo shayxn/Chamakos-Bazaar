@@ -194,12 +194,18 @@ export default function Home() {
         </section>
 
         {/* ── EVENT HOMEPAGE BANNER ── */}
-        <div className="container mx-auto px-4 mt-6">
+        <RevealSection amount={0.1} className="container mx-auto px-4 mt-6">
           <EventHomepageBanner />
-        </div>
+        </RevealSection>
 
         {/* ── MARQUEE ── */}
-        <div className="fire-gradient py-3 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.55, ease: EASE }}
+          className="fire-gradient py-3 overflow-hidden"
+        >
           <motion.div
             animate={{ x: [0, -1400] }}
             transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
@@ -217,7 +223,7 @@ export default function Home() {
               </span>
             ))}
           </motion.div>
-        </div>
+        </motion.div>
 
         {/* ── CATEGORIES (from DB) ── */}
         {categories && categories.length > 0 && (

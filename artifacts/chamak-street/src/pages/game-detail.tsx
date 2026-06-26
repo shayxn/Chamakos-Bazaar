@@ -108,8 +108,13 @@ export default function GameDetail() {
           loop
           playsInline
           controls={false}
-          className="w-full"
-          style={{ display: "block", maxHeight: "calc(100vh - 140px)", objectFit: "cover" }}
+          disablePictureInPicture
+          className="w-full block"
+          style={{
+            maxHeight: "62vh",
+            objectFit: "cover",
+            WebkitAppearance: "none",
+          }}
         />
 
         {/* Pre-Order Button */}
