@@ -24,6 +24,27 @@ const gridVariants = {
   exit: {},
 };
 
+function SplitText({ text, className }: { text: string; className?: string }) {
+  return (
+    <div className={`overflow-hidden ${className ?? ""}`}>
+      <div className="flex flex-wrap">
+        {text.split("").map((char, i) => (
+          <motion.span
+            key={i}
+            className="inline-block"
+            initial={{ y: "110%", opacity: 0, rotateX: 40 }}
+            animate={{ y: 0, opacity: 1, rotateX: 0 }}
+            transition={{ delay: 0.05 + i * 0.038, duration: 0.55, ease: EASE }}
+            style={{ transformOrigin: "bottom center" }}
+          >
+            {char === " " ? "\u00a0" : char}
+          </motion.span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -56,10 +77,17 @@ export default function Shop() {
     <PageTransition>
       <div className="container mx-auto px-4 py-12">
         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-14">
-          <RevealSection>
-            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter">The Shop</h1>
-            <p className="text-muted-foreground mt-2 text-lg">Latest drops and street essentials.</p>
-          </RevealSection>
+          <div>
+            <SplitText text="The Shop" className="text-4xl md:text-6xl font-black uppercase tracking-tighter" />
+            <motion.p
+              className="text-muted-foreground mt-2 text-lg"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.42, duration: 0.5, ease: EASE }}
+            >
+              Latest drops and street essentials.
+            </motion.p>
+          </div>
 
           <motion.div
             className="w-full md:w-auto"
