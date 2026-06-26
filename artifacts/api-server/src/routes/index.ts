@@ -16,11 +16,17 @@ import importRouter from "./import";
 import gamesRouter from "./games";
 import eventsRouter from "./events";
 import stockAlertsRouter from "./stock-alerts";
+import productRequestsRouter from "./product-requests";
+import refundRequestsRouter from "./refund-requests";
+import customerAccountsRouter from "./customer-accounts";
+import salesReportsRouter from "./sales-reports";
+import abandonedCartsRouter from "./abandoned-carts";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(authRouter);
+router.use(customerAccountsRouter);
 router.use(categoriesRouter);
 router.use(productsRouter);
 router.use(cartRouter);
@@ -36,5 +42,9 @@ router.use(importRouter);
 router.use(gamesRouter);
 router.use(eventsRouter);
 router.use(stockAlertsRouter);
+router.use(productRequestsRouter);
+router.use(refundRequestsRouter);
+router.use(salesReportsRouter);
+router.use(abandonedCartsRouter);
 
 export default router;

@@ -44,6 +44,8 @@ async function createZiinaCheckout(values: CheckoutValues): Promise<string> {
   return result.redirectUrl;
 }
 
+const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
 export default function Checkout() {
   const { data: cart, isLoading } = useGetCart({ query: { queryKey: getGetCartQueryKey() } });
   const createOrder = useCreateOrder();
@@ -53,6 +55,7 @@ export default function Checkout() {
   const [showBanner, setShowBanner] = useState(true);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [isRedirectingToZiina, setIsRedirectingToZiina] = useState(false);
+  const [cartTracked, setCartTracked] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setShowBanner(false), 5000);
@@ -69,6 +72,17 @@ export default function Checkout() {
 
   const subtotal = cart.total;
   const grandTotal = subtotal + SHIPPING_FEE;
+
+  const trackAbandonedCart = (name: string, phone: string) => {
+    if (cartTracked || !cart || cart.items.length === 0) return;
+    const cartData = JSON.stringify(cart.items.map(i => ({ name: i.productName, qty: i.quantity, price: i.price })));
+    fetch(`${BASE}/api/abandoned-carts/track`, {
+      method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customerName: name, customerPhone: phone, cartData, totalValue: cart.total, itemCount: cart.items.length }),
+    }).catch(() => {});
+    setCartTracked(true);
+  };
 
   const createStandardOrder = (data: CheckoutValues) => {
     setPaymentError(null);
@@ -172,6 +186,11 @@ export default function Checkout() {
                           placeholder="+971 50 000 0000"
                           className="bg-card border-border h-11 focus-visible:ring-primary"
                           {...field}
+                          onBlur={e => {
+                            field.onBlur();
+                            const name = form.getValues("customerName");
+                            if (name && e.target.value) trackAbandonedCart(name, e.target.value);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

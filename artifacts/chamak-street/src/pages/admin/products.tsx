@@ -4,19 +4,22 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Upload, Image, CheckCircle, XCircle, X, Calendar, Package } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, Image, CheckCircle, XCircle, X, Calendar, Package, ChevronDown, EyeOff, Eye } from "lucide-react";
 import type { Product, ProductInput } from "@workspace/api-client-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getPrimaryProductMedia, parseProductMedia, serializeProductMedia, type ProductMedia } from "@/lib/product-media";
+import { useToast } from "@/hooks/use-toast";
+
+const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
 type CloudinarySignature = {
   apiKey: string; folder: string; signature: string; timestamp: string; uploadUrl: string;
 };
 
 async function uploadMedia(file: File): Promise<ProductMedia> {
-  const signatureRes = await fetch("/api/uploads/sign", { method: "POST", credentials: "include" });
+  const signatureRes = await fetch(`${BASE}/api/uploads/sign`, { method: "POST", credentials: "include" });
   if (signatureRes.ok) {
     const signature = await signatureRes.json() as CloudinarySignature;
     const cloudinaryForm = new FormData();
@@ -34,7 +37,7 @@ async function uploadMedia(file: File): Promise<ProductMedia> {
   if (signatureRes.status !== 404) throw new Error("Upload signing failed");
   const formData = new FormData();
   formData.append("file", file);
-  const res = await fetch("/api/uploads", { method: "POST", body: formData, credentials: "include" });
+  const res = await fetch(`${BASE}/api/uploads`, { method: "POST", body: formData, credentials: "include" });
   if (!res.ok) throw new Error("Upload failed");
   const data = await res.json() as { url: string; type?: "image" | "video" };
   return { url: data.url, type: data.type === "video" ? "video" : "image" };
@@ -47,7 +50,20 @@ type ProductFormData = ProductInput & {
   preOrderNote?: string | null;
   sellingFast?: boolean;
   spotlight?: boolean;
+  hidden?: boolean;
+  publishAt?: string | null;
+  unpublishAt?: string | null;
 };
+
+const BULK_ACTIONS = [
+  { value: "hide", label: "Hide Selected" },
+  { value: "show", label: "Show Selected" },
+  { value: "feature", label: "Mark as Featured" },
+  { value: "unfeature", label: "Remove from Featured" },
+  { value: "preorder", label: "Enable Pre-Order" },
+  { value: "unpreorder", label: "Disable Pre-Order" },
+  { value: "delete", label: "Delete Selected" },
+];
 
 export default function AdminProducts() {
   const { data: products, isLoading } = useListProducts(undefined, { query: { queryKey: getListProductsQueryKey() } });
@@ -57,6 +73,7 @@ export default function AdminProducts() {
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -65,12 +82,56 @@ export default function AdminProducts() {
   const [mediaItems, setMediaItems] = useState<ProductMedia[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkAction, setBulkAction] = useState("");
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   const [formData, setFormData] = useState<ProductFormData>({
     name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
     featured: false, rep: false, categoryId: undefined,
     isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
-    sellingFast: false, spotlight: false,
+    sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
   });
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(s => {
+      const n = new Set(s);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === products?.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(products?.map(p => p.id) ?? []));
+    }
+  };
+
+  const executeBulkAction = async () => {
+    if (!bulkAction || selectedIds.size === 0) return;
+    if (bulkAction === "delete" && !confirm(`Delete ${selectedIds.size} products? This cannot be undone.`)) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch(`${BASE}/api/products/bulk-action`, {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action: bulkAction }),
+      });
+      if (res.ok) {
+        const data = await res.json() as { affected: number };
+        toast({ title: `Done — ${data.affected} products updated` });
+        setSelectedIds(new Set());
+        setBulkAction("");
+        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+      } else {
+        toast({ title: "Bulk action failed", variant: "destructive" });
+      }
+    } finally {
+      setBulkLoading(false);
+    }
+  };
 
   const openEdit = (product: Product) => {
     setEditingId(product.id);
@@ -93,6 +154,9 @@ export default function AdminProducts() {
       preOrderNote: (product as ProductFormData).preOrderNote ?? "",
       sellingFast: (product as ProductFormData).sellingFast ?? false,
       spotlight: (product as ProductFormData).spotlight ?? false,
+      hidden: (product as ProductFormData).hidden ?? false,
+      publishAt: (product as ProductFormData).publishAt ?? null,
+      unpublishAt: (product as ProductFormData).unpublishAt ?? null,
     });
     setIsDialogOpen(true);
   };
@@ -105,7 +169,7 @@ export default function AdminProducts() {
       name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
       featured: false, rep: false, categoryId: categories?.[0]?.id,
       isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
-      sellingFast: false, spotlight: false,
+      sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
     });
     setIsDialogOpen(true);
   };
@@ -313,6 +377,37 @@ export default function AdminProducts() {
                   )}
                 </div>
 
+                {/* Scheduled Publishing */}
+                <div className="col-span-2 border border-border/50 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      Visibility & Scheduling
+                    </label>
+                  </div>
+                  <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
+                    <input type="checkbox" checked={formData.hidden ?? false} onChange={e => setFormData({ ...formData, hidden: e.target.checked })}
+                      className="rounded border-border bg-background h-4 w-4" />
+                    Hidden (not visible to customers)
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">Publish At (optional)</label>
+                      <Input type="datetime-local" value={formData.publishAt ? formData.publishAt.slice(0, 16) : ""}
+                        onChange={e => setFormData({ ...formData, publishAt: e.target.value || null })}
+                        className="bg-background h-9 text-xs" />
+                      <p className="text-[10px] text-muted-foreground mt-1">Auto-publish at this date/time</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">Unpublish At (optional)</label>
+                      <Input type="datetime-local" value={formData.unpublishAt ? formData.unpublishAt.slice(0, 16) : ""}
+                        onChange={e => setFormData({ ...formData, unpublishAt: e.target.value || null })}
+                        className="bg-background h-9 text-xs" />
+                      <p className="text-[10px] text-muted-foreground mt-1">Auto-hide at this date/time</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-2">
                   <label htmlFor="featured" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider cursor-pointer">
                     <input type="checkbox" id="featured" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" />
@@ -353,13 +448,44 @@ export default function AdminProducts() {
         </Dialog>
       </div>
 
+      {/* Bulk Actions Bar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
+          <input type="checkbox" className="h-4 w-4"
+            checked={selectedIds.size > 0 && selectedIds.size === products?.length}
+            onChange={toggleAll} />
+          {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select All"}
+        </label>
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2">
+            <select value={bulkAction} onChange={e => setBulkAction(e.target.value)}
+              className="h-8 px-3 text-xs bg-background border border-border rounded-lg focus:outline-none">
+              <option value="">Bulk action...</option>
+              {BULK_ACTIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+            </select>
+            <Button size="sm" onClick={executeBulkAction} disabled={!bulkAction || bulkLoading}
+              className={`text-xs font-black uppercase tracking-wider h-8 ${bulkAction === "delete" ? "bg-destructive hover:bg-destructive/90 text-white" : "bg-primary text-primary-foreground"}`}>
+              {bulkLoading ? "Working..." : "Apply"}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())} className="text-xs h-8 text-muted-foreground">
+              Clear
+            </Button>
+          </div>
+        )}
+        <span className="ml-auto text-xs text-muted-foreground">{products?.length ?? 0} items total</span>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {products?.map(product => {
           const primaryMedia = getPrimaryProductMedia(product.imageUrl);
           const mediaCount = parseProductMedia(product.imageUrl).length;
           const isPreOrder = (product as ProductFormData).isPreOrder;
+          const isHidden = (product as ProductFormData).hidden;
+          const isSelected = selectedIds.has(product.id);
           return (
-            <div key={product.id} className="bg-card border border-border rounded-xl overflow-hidden flex flex-col group hover:border-primary/30 transition-colors">
+            <div key={product.id}
+              onClick={() => toggleSelect(product.id)}
+              className={`bg-card border rounded-xl overflow-hidden flex flex-col group hover:border-primary/30 transition-all cursor-pointer ${isSelected ? "border-primary ring-2 ring-primary/30" : "border-border"}`}>
               <div className="aspect-[4/3] bg-muted relative border-b border-border">
                 {primaryMedia ? (
                   primaryMedia.type === "video" ? (
@@ -370,6 +496,18 @@ export default function AdminProducts() {
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Package className="h-10 w-10 text-muted-foreground/30" />
+                  </div>
+                )}
+                {isHidden && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="flex items-center gap-2 bg-black/80 text-white text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-lg">
+                      <EyeOff className="h-3.5 w-3.5" /> Hidden
+                    </div>
+                  </div>
+                )}
+                {isSelected && (
+                  <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center z-10">
+                    <CheckCircle className="h-4 w-4 text-primary-foreground" />
                   </div>
                 )}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -384,9 +522,9 @@ export default function AdminProducts() {
                   )}
                 </div>
                 {mediaCount > 1 && <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">{mediaCount} imgs</div>}
-                <div className={`absolute top-2 right-2 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm ${product.stock > 0 ? "bg-green-500/90 text-black" : "bg-red-500/90 text-white"}`}>
+                {!isSelected && !isHidden && <div className={`absolute top-2 right-2 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm ${product.stock > 0 ? "bg-green-500/90 text-black" : "bg-red-500/90 text-white"}`}>
                   {product.stock > 0 ? "In Stock" : "Sold Out"}
-                </div>
+                </div>}
               </div>
               <div className="p-4 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-2">
@@ -397,10 +535,10 @@ export default function AdminProducts() {
                   <p className="font-mono font-bold text-primary shrink-0 ml-2">AED {product.price.toFixed(2)}</p>
                 </div>
                 <div className="mt-auto pt-3 flex justify-end gap-2 border-t border-border/50">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(product)} className="h-8 w-8 hover:text-primary">
+                  <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(product); }} className="h-8 w-8 hover:text-primary">
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)} className="h-8 w-8 hover:text-destructive">
+                  <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }} className="h-8 w-8 hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

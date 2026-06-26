@@ -24,6 +24,9 @@ export const productsTable = pgTable("products", {
   externalId: text("external_id"),
   sellingFast: boolean("selling_fast").notNull().default(false),
   spotlight: boolean("spotlight").notNull().default(false),
+  hidden: boolean("hidden").notNull().default(false),
+  publishAt: timestamp("publish_at", { withTimezone: true }),
+  unpublishAt: timestamp("unpublish_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

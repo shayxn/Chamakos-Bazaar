@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, productsTable, categoriesTable } from "@workspace/db";
-import { eq, ilike, and, type SQL } from "drizzle-orm";
+import { eq, ilike, and, inArray, type SQL } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 
@@ -19,20 +19,33 @@ function serializeProduct(p: {
   categoryId: number | null; categoryName?: string | null; featured: boolean;
   rep: boolean; sizes: string | null; isPreOrder: boolean; preOrderLabel: string | null;
   preOrderDate: string | null; preOrderNote: string | null; createdAt: Date | string;
-  sellingFast?: boolean;
-  spotlight?: boolean;
+  sellingFast?: boolean; spotlight?: boolean; hidden?: boolean;
+  publishAt?: Date | string | null; unpublishAt?: Date | string | null;
 }) {
   return {
     ...p,
     price: Number(p.price),
     createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : p.createdAt,
+    publishAt: p.publishAt instanceof Date ? p.publishAt.toISOString() : (p.publishAt ?? null),
+    unpublishAt: p.unpublishAt instanceof Date ? p.unpublishAt.toISOString() : (p.unpublishAt ?? null),
   };
 }
 
+function isPublished(p: { hidden: boolean; publishAt: Date | null; unpublishAt: Date | null }): boolean {
+  if (p.hidden) return false;
+  const now = new Date();
+  if (p.publishAt && now < p.publishAt) return false;
+  if (p.unpublishAt && now > p.unpublishAt) return false;
+  return true;
+}
+
 router.get("/products", async (req, res) => {
-  const cacheKey = req.originalUrl;
-  const cached = productListCache.get(cacheKey);
-  if (cached) { setPublicReadCacheHeaders(res); res.json(cached); return; }
+  const isAdmin = (req as any).session?.userId != null;
+  const cacheKey = isAdmin ? null : req.originalUrl;
+  if (cacheKey) {
+    const cached = productListCache.get(cacheKey);
+    if (cached) { setPublicReadCacheHeaders(res); res.json(cached); return; }
+  }
 
   const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
   const search = typeof req.query.search === "string" ? req.query.search : undefined;
@@ -63,15 +76,18 @@ router.get("/products", async (req, res) => {
       preOrderNote: productsTable.preOrderNote,
       sellingFast: productsTable.sellingFast,
       spotlight: productsTable.spotlight,
+      hidden: productsTable.hidden,
+      publishAt: productsTable.publishAt,
+      unpublishAt: productsTable.unpublishAt,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
     .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-  const result = products.map(serializeProduct);
-  productListCache.set(cacheKey, result);
-  setPublicReadCacheHeaders(res);
+  const filtered = isAdmin ? products : products.filter(p => isPublished(p as any));
+  const result = filtered.map(serializeProduct);
+  if (cacheKey) { productListCache.set(cacheKey, result); setPublicReadCacheHeaders(res); }
   res.json(result);
 });
 
@@ -81,6 +97,7 @@ router.post("/products", requireAdmin, async (req, res) => {
     imageUrls?: string; stock?: number; categoryId?: number; featured?: boolean;
     rep?: boolean; sizes?: string; isPreOrder?: boolean; preOrderLabel?: string;
     preOrderDate?: string; preOrderNote?: string; sellingFast?: boolean; spotlight?: boolean;
+    hidden?: boolean; publishAt?: string | null; unpublishAt?: string | null;
   };
   if (!body.name || body.price === undefined) {
     res.status(400).json({ error: "name and price required" });
@@ -103,6 +120,9 @@ router.post("/products", requireAdmin, async (req, res) => {
     preOrderNote: body.preOrderNote ?? null,
     sellingFast: body.sellingFast ?? false,
     spotlight: body.spotlight ?? false,
+    hidden: body.hidden ?? false,
+    publishAt: body.publishAt ? new Date(body.publishAt) : null,
+    unpublishAt: body.unpublishAt ? new Date(body.unpublishAt) : null,
   }).returning();
   clearProductCaches();
   res.status(201).json(serializeProduct({ ...product, categoryName: null }));
@@ -135,6 +155,9 @@ router.get("/products/:id", async (req, res) => {
       preOrderNote: productsTable.preOrderNote,
       sellingFast: productsTable.sellingFast,
       spotlight: productsTable.spotlight,
+      hidden: productsTable.hidden,
+      publishAt: productsTable.publishAt,
+      unpublishAt: productsTable.unpublishAt,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
@@ -153,6 +176,8 @@ router.patch("/products/:id", requireAdmin, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const updateData: Record<string, unknown> = { ...req.body };
   if (updateData.price !== undefined) updateData.price = String(updateData.price);
+  if (updateData.publishAt !== undefined) updateData.publishAt = updateData.publishAt ? new Date(updateData.publishAt as string) : null;
+  if (updateData.unpublishAt !== undefined) updateData.unpublishAt = updateData.unpublishAt ? new Date(updateData.unpublishAt as string) : null;
   if (updateData.spotlight === true) {
     await db.update(productsTable).set({ spotlight: false }).where(eq(productsTable.spotlight, true));
   }
@@ -168,6 +193,61 @@ router.delete("/products/:id", requireAdmin, async (req, res) => {
   await db.delete(productsTable).where(eq(productsTable.id, id));
   clearProductCaches();
   res.json({ message: "Deleted" });
+});
+
+router.post("/products/bulk-action", requireAdmin, async (req, res) => {
+  const { ids, action, value } = req.body as {
+    ids: number[];
+    action: "delete" | "hide" | "show" | "feature" | "unfeature" | "preorder" | "unpreorder" | "category" | "price";
+    value?: unknown;
+  };
+  if (!ids || ids.length === 0) { res.status(400).json({ error: "No product IDs provided" }); return; }
+
+  let affected = 0;
+  switch (action) {
+    case "delete":
+      await db.delete(productsTable).where(inArray(productsTable.id, ids));
+      affected = ids.length;
+      break;
+    case "hide":
+      await db.update(productsTable).set({ hidden: true }).where(inArray(productsTable.id, ids));
+      affected = ids.length;
+      break;
+    case "show":
+      await db.update(productsTable).set({ hidden: false }).where(inArray(productsTable.id, ids));
+      affected = ids.length;
+      break;
+    case "feature":
+      await db.update(productsTable).set({ featured: true }).where(inArray(productsTable.id, ids));
+      affected = ids.length;
+      break;
+    case "unfeature":
+      await db.update(productsTable).set({ featured: false }).where(inArray(productsTable.id, ids));
+      affected = ids.length;
+      break;
+    case "preorder":
+      await db.update(productsTable).set({ isPreOrder: true }).where(inArray(productsTable.id, ids));
+      affected = ids.length;
+      break;
+    case "unpreorder":
+      await db.update(productsTable).set({ isPreOrder: false }).where(inArray(productsTable.id, ids));
+      affected = ids.length;
+      break;
+    case "category":
+      await db.update(productsTable).set({ categoryId: value as number }).where(inArray(productsTable.id, ids));
+      affected = ids.length;
+      break;
+    case "price":
+      for (const id of ids) {
+        await db.update(productsTable).set({ price: String(value) }).where(eq(productsTable.id, id));
+      }
+      affected = ids.length;
+      break;
+    default:
+      res.status(400).json({ error: "Unknown action" }); return;
+  }
+  clearProductCaches();
+  res.json({ ok: true, affected });
 });
 
 export default router;

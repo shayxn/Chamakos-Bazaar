@@ -290,11 +290,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/shop" className="hover:text-primary transition-colors">All Products</Link></li>
               <li><Link href="/order-tracking" className="hover:text-primary transition-colors">Track Order</Link></li>
+              <li><Link href="/request-product" className="hover:text-primary transition-colors">Request a Product</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold uppercase tracking-wider mb-4">Legal</h4>
+            <h4 className="font-bold uppercase tracking-wider mb-4">Support</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/returns" className="hover:text-primary transition-colors">Returns & Refunds</Link></li>
+              <li><Link href="/account" className="hover:text-primary transition-colors">My Account</Link></li>
               <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
               <li><Link href="/shipping" className="hover:text-primary transition-colors">Shipping Info</Link></li>
