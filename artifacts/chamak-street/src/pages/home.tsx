@@ -229,6 +229,35 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
+        {/* ── REVERSE MARQUEE ── */}
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.55, ease: EASE }}
+          className="bg-background border-y border-primary/20 py-3 overflow-hidden"
+        >
+          <motion.div
+            animate={{ x: [-1400, 0] }}
+            transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+            className="flex items-center gap-12 whitespace-nowrap font-black uppercase text-sm tracking-[0.3em]"
+            style={{ width: "max-content" }}
+          >
+            {[...Array(10)].map((_, i) => (
+              <span key={i} className="flex items-center gap-10 text-muted-foreground">
+                <span className="gradient-text">Dubai Drip</span>
+                <span>✦</span>
+                <span>Limited Edition</span>
+                <span className="gradient-text">✦</span>
+                <span>Exclusive Drops</span>
+                <span>✦</span>
+                <span className="gradient-text">Street Culture</span>
+                <span>✦</span>
+              </span>
+            ))}
+          </motion.div>
+        </motion.div>
+
         {/* ── CATEGORIES (from DB) ── */}
         {categories && categories.length > 0 && (
           <section className="py-24 bg-card border-y border-border/50 overflow-hidden">
