@@ -19,6 +19,7 @@ function serializeProduct(p: {
   categoryId: number | null; categoryName?: string | null; featured: boolean;
   rep: boolean; sizes: string | null; isPreOrder: boolean; preOrderLabel: string | null;
   preOrderDate: string | null; preOrderNote: string | null; createdAt: Date | string;
+  sellingFast?: boolean;
 }) {
   return {
     ...p,
@@ -59,6 +60,7 @@ router.get("/products", async (req, res) => {
       preOrderLabel: productsTable.preOrderLabel,
       preOrderDate: productsTable.preOrderDate,
       preOrderNote: productsTable.preOrderNote,
+      sellingFast: productsTable.sellingFast,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
@@ -76,7 +78,7 @@ router.post("/products", requireAdmin, async (req, res) => {
     name: string; description?: string; price: number; imageUrl?: string;
     imageUrls?: string; stock?: number; categoryId?: number; featured?: boolean;
     rep?: boolean; sizes?: string; isPreOrder?: boolean; preOrderLabel?: string;
-    preOrderDate?: string; preOrderNote?: string;
+    preOrderDate?: string; preOrderNote?: string; sellingFast?: boolean;
   };
   if (!body.name || body.price === undefined) {
     res.status(400).json({ error: "name and price required" });
@@ -97,6 +99,7 @@ router.post("/products", requireAdmin, async (req, res) => {
     preOrderLabel: body.preOrderLabel ?? null,
     preOrderDate: body.preOrderDate ?? null,
     preOrderNote: body.preOrderNote ?? null,
+    sellingFast: body.sellingFast ?? false,
   }).returning();
   clearProductCaches();
   res.status(201).json(serializeProduct({ ...product, categoryName: null }));
@@ -127,6 +130,7 @@ router.get("/products/:id", async (req, res) => {
       preOrderLabel: productsTable.preOrderLabel,
       preOrderDate: productsTable.preOrderDate,
       preOrderNote: productsTable.preOrderNote,
+      sellingFast: productsTable.sellingFast,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)

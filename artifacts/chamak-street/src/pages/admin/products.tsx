@@ -45,6 +45,7 @@ type ProductFormData = ProductInput & {
   preOrderLabel?: string | null;
   preOrderDate?: string | null;
   preOrderNote?: string | null;
+  sellingFast?: boolean;
 };
 
 export default function AdminProducts() {
@@ -67,6 +68,7 @@ export default function AdminProducts() {
     name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
     featured: false, rep: false, categoryId: undefined,
     isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
+    sellingFast: false,
   });
 
   const openEdit = (product: Product) => {
@@ -88,6 +90,7 @@ export default function AdminProducts() {
       preOrderLabel: (product as ProductFormData).preOrderLabel ?? "",
       preOrderDate: (product as ProductFormData).preOrderDate ?? "",
       preOrderNote: (product as ProductFormData).preOrderNote ?? "",
+      sellingFast: (product as ProductFormData).sellingFast ?? false,
     });
     setIsDialogOpen(true);
   };
@@ -100,6 +103,7 @@ export default function AdminProducts() {
       name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
       featured: false, rep: false, categoryId: categories?.[0]?.id,
       isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
+      sellingFast: false,
     });
     setIsDialogOpen(true);
   };
@@ -312,6 +316,10 @@ export default function AdminProducts() {
                     <input type="checkbox" id="featured" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" />
                     Featured Product
                   </label>
+                  <label htmlFor="sellingFast" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider cursor-pointer">
+                    <input type="checkbox" id="sellingFast" checked={formData.sellingFast ?? false} onChange={e => setFormData({ ...formData, sellingFast: e.target.checked })} className="rounded border-border bg-background text-orange-500 focus:ring-orange-500 h-4 w-4" />
+                    🔥 Selling Fast
+                  </label>
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Type</label>
                     <div className="grid grid-cols-2 border border-border rounded-sm overflow-hidden">
@@ -361,6 +369,7 @@ export default function AdminProducts() {
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
                   {product.featured && <div className="bg-primary text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">Featured</div>}
                   {isPreOrder && <div className="bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">Pre-Order</div>}
+                  {(product as ProductFormData).sellingFast && <div className="bg-orange-500 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">🔥 Selling Fast</div>}
                   {product.rep ? (
                     <div className="bg-[#111827] text-white border border-white/20 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">REP</div>
                   ) : (

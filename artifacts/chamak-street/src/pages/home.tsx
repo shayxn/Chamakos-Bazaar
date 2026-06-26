@@ -336,6 +336,9 @@ export default function Home() {
                               <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Pre-Order</span>
                             )}
                             <span className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Featured</span>
+                            {(product as any).sellingFast && (
+                              <span className="bg-orange-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">🔥 Selling Fast</span>
+                            )}
                           </div>
                         </div>
                         <div className="space-y-1 px-0.5">

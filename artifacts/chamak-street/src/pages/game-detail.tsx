@@ -2,7 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRoute, Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, Volume2, VolumeX, ShoppingCart, Loader2 } from "lucide-react";
-import gameVideo from "@assets/ScreenRecording_06-26-2026_09-43-06_1_1782475298874.mp4";
+import gameVideo from "@assets/ScreenRecording_06-26-2026_09-43-06_1_1782476344444.mov";
+import gameMusic from "@assets/GTA_6_-_Official_Main_Theme_Music_1782476132021.mp3";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -29,6 +30,7 @@ export default function GameDetail() {
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -40,10 +42,25 @@ export default function GameDetail() {
   }, [id]);
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = muted;
+    if (videoRef.current) videoRef.current.muted = muted;
+    if (audioRef.current) {
+      audioRef.current.muted = muted;
+      if (!muted) {
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.pause();
+      }
     }
   }, [muted]);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
 
   const handlePreOrder = async () => {
     if (!game || adding || added) return;
@@ -84,6 +101,9 @@ export default function GameDetail() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
+      {/* Hidden audio - plays GTA theme when unmuted */}
+      <audio ref={audioRef} src={gameMusic} loop preload="auto" muted />
+
       {/* Nav */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-4">
         <Link href="/games">
@@ -91,11 +111,20 @@ export default function GameDetail() {
             <ArrowLeft className="h-4 w-4" /> Games
           </button>
         </Link>
-        <button
+        <motion.button
           onClick={() => setMuted((m) => !m)}
-          className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+          whileTap={{ scale: 0.88 }}
+          className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors relative"
+        >
           {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-        </button>
+          {!muted && (
+            <motion.span
+              className="absolute inset-0 rounded-full border border-white/40"
+              animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
+              transition={{ duration: 1.8, repeat: Infinity }}
+            />
+          )}
+        </motion.button>
       </div>
 
       {/* Video */}
@@ -128,7 +157,7 @@ export default function GameDetail() {
 
           <motion.button
             initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: added ? 1 : 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, ease: EASE }}
             whileHover={{ scale: adding || added ? 1 : 1.04 }}
             whileTap={{ scale: adding || added ? 1 : 0.97 }}
@@ -159,6 +188,14 @@ export default function GameDetail() {
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
               className="text-white/35 text-xs text-center max-w-sm leading-relaxed">
               {game.description}
+            </motion.p>
+          )}
+
+          {/* Music hint */}
+          {muted && (
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}
+              className="text-white/25 text-xs flex items-center gap-1.5">
+              <Volume2 className="h-3 w-3" /> Tap the sound icon for the full experience
             </motion.p>
           )}
         </div>

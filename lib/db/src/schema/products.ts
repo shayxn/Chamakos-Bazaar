@@ -22,6 +22,7 @@ export const productsTable = pgTable("products", {
   supplierPrice: numeric("supplier_price", { precision: 10, scale: 2 }),
   importSource: text("import_source"),
   externalId: text("external_id"),
+  sellingFast: boolean("selling_fast").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
