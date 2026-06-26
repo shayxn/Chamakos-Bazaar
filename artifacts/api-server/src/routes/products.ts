@@ -20,6 +20,7 @@ function serializeProduct(p: {
   rep: boolean; sizes: string | null; isPreOrder: boolean; preOrderLabel: string | null;
   preOrderDate: string | null; preOrderNote: string | null; createdAt: Date | string;
   sellingFast?: boolean;
+  spotlight?: boolean;
 }) {
   return {
     ...p,
@@ -61,6 +62,7 @@ router.get("/products", async (req, res) => {
       preOrderDate: productsTable.preOrderDate,
       preOrderNote: productsTable.preOrderNote,
       sellingFast: productsTable.sellingFast,
+      spotlight: productsTable.spotlight,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
@@ -78,7 +80,7 @@ router.post("/products", requireAdmin, async (req, res) => {
     name: string; description?: string; price: number; imageUrl?: string;
     imageUrls?: string; stock?: number; categoryId?: number; featured?: boolean;
     rep?: boolean; sizes?: string; isPreOrder?: boolean; preOrderLabel?: string;
-    preOrderDate?: string; preOrderNote?: string; sellingFast?: boolean;
+    preOrderDate?: string; preOrderNote?: string; sellingFast?: boolean; spotlight?: boolean;
   };
   if (!body.name || body.price === undefined) {
     res.status(400).json({ error: "name and price required" });
@@ -100,6 +102,7 @@ router.post("/products", requireAdmin, async (req, res) => {
     preOrderDate: body.preOrderDate ?? null,
     preOrderNote: body.preOrderNote ?? null,
     sellingFast: body.sellingFast ?? false,
+    spotlight: body.spotlight ?? false,
   }).returning();
   clearProductCaches();
   res.status(201).json(serializeProduct({ ...product, categoryName: null }));
@@ -131,6 +134,7 @@ router.get("/products/:id", async (req, res) => {
       preOrderDate: productsTable.preOrderDate,
       preOrderNote: productsTable.preOrderNote,
       sellingFast: productsTable.sellingFast,
+      spotlight: productsTable.spotlight,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
@@ -149,6 +153,9 @@ router.patch("/products/:id", requireAdmin, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const updateData: Record<string, unknown> = { ...req.body };
   if (updateData.price !== undefined) updateData.price = String(updateData.price);
+  if (updateData.spotlight === true) {
+    await db.update(productsTable).set({ spotlight: false }).where(eq(productsTable.spotlight, true));
+  }
   const [product] = await db.update(productsTable).set(updateData).where(eq(productsTable.id, id)).returning();
   if (!product) { res.status(404).json({ error: "Not found" }); return; }
   clearProductCaches();

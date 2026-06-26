@@ -9,6 +9,7 @@ import { ChamakLogo } from "./chamak-logo";
 import { SmartSearchModal } from "./smart-search";
 import { EventBanner } from "./event-banner";
 import { AnnouncementBanner } from "./announcement-banner";
+import { useCartFly } from "./cart-fly-context";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -20,6 +21,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const logout = useLogout();
 
   const cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
+  const { cartBounceKey } = useCartFly();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -134,23 +136,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </Link>
             )}
 
-            <Link href="/cart" className="relative group">
-              <Button variant="ghost" size="icon" className="group-hover:text-primary transition-colors">
-                <ShoppingCart className="h-5 w-5" />
-                <AnimatePresence>
-                  {cartCount > 0 && (
-                    <motion.span
-                      key={cartCount}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      className="absolute top-0 right-0 h-4 w-4 rounded-full bg-primary text-[10px] font-bold flex items-center justify-center text-primary-foreground border border-background"
-                    >
-                      {cartCount}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Button>
+            <Link href="/cart" id="nav-cart-btn" className="relative group">
+              <motion.div
+                key={`cart-bounce-${cartBounceKey}`}
+                animate={cartBounceKey > 0 ? { scale: [1, 1.4, 0.85, 1.18, 1] } : undefined}
+                transition={{ duration: 0.45 }}
+              >
+                <Button variant="ghost" size="icon" className="group-hover:text-primary transition-colors">
+                  <ShoppingCart className="h-5 w-5" />
+                  <AnimatePresence>
+                    {cartCount > 0 && (
+                      <motion.span
+                        key={cartCount}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        className="absolute top-0 right-0 h-4 w-4 rounded-full bg-primary text-[10px] font-bold flex items-center justify-center text-primary-foreground border border-background"
+                      >
+                        {cartCount}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </Button>
+              </motion.div>
             </Link>
 
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>

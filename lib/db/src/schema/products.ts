@@ -23,6 +23,7 @@ export const productsTable = pgTable("products", {
   importSource: text("import_source"),
   externalId: text("external_id"),
   sellingFast: boolean("selling_fast").notNull().default(false),
+  spotlight: boolean("spotlight").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

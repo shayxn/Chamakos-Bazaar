@@ -11,6 +11,7 @@ import { TrustSection } from "@/components/trust-section";
 import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
 import { EventHomepageBanner } from "@/components/event-homepage-banner";
+import { SpotlightBanner } from "@/components/spotlight-banner";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -192,6 +193,9 @@ export default function Home() {
             </motion.div>
           </motion.div>
         </section>
+
+        {/* ── SPOTLIGHT BANNER ── */}
+        <SpotlightBanner />
 
         {/* ── EVENT HOMEPAGE BANNER ── */}
         <RevealSection amount={0.1} className="container mx-auto px-4 mt-6">

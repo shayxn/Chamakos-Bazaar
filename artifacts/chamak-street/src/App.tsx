@@ -7,6 +7,8 @@ import { Layout } from "@/components/layout";
 import { LoadingScreen } from "@/components/loading-screen";
 import { SiteSplash } from "@/components/site-splash";
 import { EventPopup } from "@/components/event-popup";
+import { CartFlyProvider } from "@/components/cart-fly-context";
+import { WelcomePopup } from "@/components/welcome-popup";
 import Home from "@/pages/home";
 import Shop from "@/pages/shop";
 import ProductDetail from "@/pages/product-detail";
@@ -104,6 +106,7 @@ function CustomerOverlays() {
     <>
       <SiteSplash />
       <EventPopup />
+      <WelcomePopup />
     </>
   );
 }
@@ -112,12 +115,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <CustomerOverlays />
-        <LoadingScreen />
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <MainRouter />
-        </WouterRouter>
-        <Toaster />
+        <CartFlyProvider>
+          <CustomerOverlays />
+          <LoadingScreen />
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <MainRouter />
+          </WouterRouter>
+          <Toaster />
+        </CartFlyProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

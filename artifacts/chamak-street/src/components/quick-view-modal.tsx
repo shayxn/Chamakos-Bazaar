@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingCart, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGetProduct, useAddToCart, getGetCartQueryKey, getGetProductQueryKey } from "@workspace/api-client-react";
+import { useCartFly } from "./cart-fly-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -26,6 +27,8 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
   const addToCart = useAddToCart();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { triggerFly } = useCartFly();
+  const imgRef = useRef<HTMLDivElement>(null);
 
   const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [];
   const primaryMedia = product ? getPrimaryProductMedia(product.imageUrl) : null;
@@ -44,7 +47,10 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
           setAddedPulse(true);
           setTimeout(() => setAddedPulse(false), 700);
-          toast({ title: "Added to Cart", description: `${product.name} added to your cart.` });
+          toast({ title: "Added to cart", description: `${product.name} added.` });
+          if (imgRef.current && primaryMedia?.url) {
+            triggerFly(primaryMedia.url, imgRef.current);
+          }
         },
       }
     );
@@ -78,7 +84,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
                 </div>
               ) : (
                 <div className="flex flex-col sm:flex-row">
-                  <div className="relative w-full sm:w-64 aspect-square sm:aspect-auto sm:h-auto bg-muted shrink-0 overflow-hidden">
+                  <div ref={imgRef} className="relative w-full sm:w-64 aspect-square sm:aspect-auto sm:h-auto bg-muted shrink-0 overflow-hidden">
                     {primaryMedia ? (
                       primaryMedia.type === "video" ? (
                         <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline autoPlay loop />

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useRoute } from "wouter";
 import { useGetProduct, useAddToCart, useListProducts, getGetProductQueryKey, getGetCartQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
+import { useCartFly } from "@/components/cart-fly-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -165,6 +166,8 @@ export default function ProductDetail() {
   const addToCart = useAddToCart();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { triggerFly } = useCartFly();
+  const imgContainerRef = useRef<HTMLDivElement>(null);
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -187,7 +190,10 @@ export default function ProductDetail() {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
           setAddedPulse(true);
           setTimeout(() => setAddedPulse(false), 700);
-          toast({ title: "Added to Cart", description: `${quantity}x ${product.name} added.` });
+          toast({ title: "Added to cart", description: `${product.name} added.` });
+          if (imgContainerRef.current && selectedMedia?.url) {
+            triggerFly(selectedMedia.url, imgContainerRef.current);
+          }
         },
         onError: () => {
           toast({ title: "Error", description: "Failed to add item to cart.", variant: "destructive" });
@@ -240,6 +246,7 @@ export default function ProductDetail() {
           {/* Media gallery */}
           <div className="space-y-3">
             <motion.div
+              ref={imgContainerRef}
               initial={{ opacity: 0, scale: 1.04, filter: "blur(8px)" }}
               animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
               transition={{ duration: 0.75, ease: EASE }}
