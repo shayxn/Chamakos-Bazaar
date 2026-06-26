@@ -10,3 +10,5 @@ export * from "./reviews";
 export * from "./tiktok_videos";
 export * from "./order_tracking_events";
 export * from "./games";
+export * from "./events";
+export * from "./stock_alerts";

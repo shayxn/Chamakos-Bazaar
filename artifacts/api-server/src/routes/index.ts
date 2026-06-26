@@ -14,6 +14,8 @@ import reviewsRouter from "./reviews";
 import tiktokRouter from "./tiktok";
 import importRouter from "./import";
 import gamesRouter from "./games";
+import eventsRouter from "./events";
+import stockAlertsRouter from "./stock-alerts";
 
 const router: IRouter = Router();
 
@@ -32,5 +34,7 @@ router.use(reviewsRouter);
 router.use(tiktokRouter);
 router.use(importRouter);
 router.use(gamesRouter);
+router.use(eventsRouter);
+router.use(stockAlertsRouter);
 
 export default router;

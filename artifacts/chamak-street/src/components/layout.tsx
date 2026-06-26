@@ -6,6 +6,8 @@ import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSettings } from "@/lib/use-settings";
 import { ChamakLogo } from "./chamak-logo";
+import { SmartSearchModal } from "./smart-search";
+import { EventBanner } from "./event-banner";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -56,6 +58,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
+      <EventBanner />
       <motion.header
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${
           scrolled
@@ -113,6 +116,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-4 z-50">
+            <SmartSearchModal />
             {user ? (
               <div className="hidden md:flex items-center gap-4">
                 <span className="text-sm text-muted-foreground">@{user.username}</span>

@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { Layout } from "@/components/layout";
 import { LoadingScreen } from "@/components/loading-screen";
+import { SiteSplash } from "@/components/site-splash";
 import Home from "@/pages/home";
 import Shop from "@/pages/shop";
 import ProductDetail from "@/pages/product-detail";
@@ -23,6 +24,8 @@ import AdminReviews from "@/pages/admin/reviews";
 import AdminTiktok from "@/pages/admin/tiktok";
 import AdminImport from "@/pages/admin/import";
 import AdminGames from "@/pages/admin/games";
+import AdminEvents from "@/pages/admin/events";
+import AdminStockAlerts from "@/pages/admin/stock-alerts";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
 import Terms from "@/pages/terms";
@@ -56,6 +59,8 @@ function AdminRouter() {
         <Route path="/admin/terms" component={AdminTerms} />
         <Route path="/admin/import" component={AdminImport} />
         <Route path="/admin/games" component={AdminGames} />
+        <Route path="/admin/events" component={AdminEvents} />
+        <Route path="/admin/stock-alerts" component={AdminStockAlerts} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>
@@ -94,6 +99,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <SiteSplash />
         <LoadingScreen />
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <MainRouter />

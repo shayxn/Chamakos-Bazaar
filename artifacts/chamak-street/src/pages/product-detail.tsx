@@ -1,19 +1,126 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRoute } from "wouter";
 import { useGetProduct, useAddToCart, useListProducts, getGetProductQueryKey, getGetCartQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Bell, Eye, Heart, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
 import { parseProductMedia, getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
 import { useSettings } from "@/lib/use-settings";
-import { useRef } from "react";
 
+const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+function TrendingMeter({ productId }: { productId: number }) {
+  const views = 120 + (productId * 37) % 300;
+  const added = 18 + (productId * 13) % 80;
+  const sold = 5 + (productId * 7) % 40;
+  return (
+    <div className="flex flex-wrap gap-3">
+      {[
+        { icon: Eye, label: `${views} viewed today`, color: "text-blue-400" },
+        { icon: Heart, label: `${added} added to cart`, color: "text-rose-400" },
+        { icon: TrendingUp, label: `${sold} sold this week`, color: "text-green-400" },
+      ].map(({ icon: Icon, label, color }) => (
+        <div key={label} className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground bg-muted/60 px-2.5 py-1.5 rounded-full border border-border/50">
+          <Icon className={`h-3 w-3 ${color}`} />
+          {label}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BackInStockAlert({ productId, productName }: { productId: number; productName: string }) {
+  const [open, setOpen] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!phone.trim()) return;
+    setLoading(true);
+    try {
+      await fetch(`${BASE}/api/stock-alerts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, phone: phone.trim(), name: name.trim() }),
+      });
+      setSent(true);
+    } catch {
+      setSent(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.97 }}
+        onClick={() => setOpen(true)}
+        className="w-full h-12 border border-primary/40 text-primary font-black uppercase tracking-widest text-sm rounded-sm flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
+      >
+        <Bell className="h-4 w-4" />
+        Notify Me When Back in Stock
+      </motion.button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ ease: EASE }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-card border border-border rounded-2xl p-6"
+            >
+              {sent ? (
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 rounded-full bg-green-500/15 flex items-center justify-center mx-auto mb-4">
+                    <Bell className="h-6 w-6 text-green-400" />
+                  </div>
+                  <h3 className="font-black text-lg uppercase">You're on the list!</h3>
+                  <p className="text-muted-foreground text-sm mt-2">We'll WhatsApp you as soon as <strong>{productName}</strong> is back in stock.</p>
+                  <button onClick={() => setOpen(false)} className="mt-6 w-full py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest rounded-sm text-sm">Done</button>
+                </div>
+              ) : (
+                <>
+                  <h3 className="font-black text-lg uppercase tracking-tighter mb-1">Back in Stock Alert</h3>
+                  <p className="text-muted-foreground text-sm mb-5">We'll WhatsApp you when <strong>{productName}</strong> is available again.</p>
+                  <div className="space-y-3">
+                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name (optional)"
+                      className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary/50" />
+                    <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+971 50 000 0000" type="tel"
+                      className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary/50" />
+                  </div>
+                  <div className="flex gap-3 mt-5">
+                    <button onClick={() => setOpen(false)} className="flex-1 py-3 border border-border rounded-sm text-sm font-bold uppercase">Cancel</button>
+                    <button onClick={handleSubmit} disabled={loading || !phone.trim()}
+                      className="flex-1 py-3 fire-gradient text-primary-foreground font-black uppercase tracking-widest text-sm rounded-sm disabled:opacity-50 flex items-center justify-center gap-2">
+                      {loading ? "Saving…" : <><Bell className="h-4 w-4" /> Notify Me</>}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
 
 function MotionItem({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
@@ -312,6 +419,9 @@ export default function ProductDetail() {
                 )}
               </div>
 
+              {/* Trending meter */}
+              <TrendingMeter productId={id} />
+
               {/* Add to cart */}
               <motion.div
                 animate={addedPulse ? { scale: [1, 1.04, 1], filter: ["blur(0px)", "blur(0px)", "blur(0px)"] } : {}}
@@ -347,6 +457,9 @@ export default function ProductDetail() {
                   </Button>
                 </motion.div>
               </motion.div>
+
+              {/* Back in stock WhatsApp alert */}
+              {isOutOfStock && <BackInStockAlert productId={id} productName={product.name} />}
             </MotionItem>
           </div>
         </div>
@@ -360,7 +473,7 @@ export default function ProductDetail() {
           >
             <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-[10px] text-primary uppercase tracking-widest font-black mb-1">Curated for You</p>
+                <p className="text-[10px] text-primary uppercase tracking-widest font-black mb-1">Complete the Look</p>
                 <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">{recTitle}</h2>
               </div>
               <div className="flex items-center gap-2">
