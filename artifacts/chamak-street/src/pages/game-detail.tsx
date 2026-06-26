@@ -3,7 +3,7 @@ import { useRoute, Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, Volume2, VolumeX, ShoppingCart, Loader2 } from "lucide-react";
 import gameVideo from "@assets/ScreenRecording_06-26-2026_09-43-06_1_1782476344444.mov";
-import gameMusic from "@assets/GTA_6_-_Official_Main_Theme_Music_1782476132021.mp3";
+import gameMusic from "@assets/GTA_6_-_Official_Main_Theme_Music_1782478430643.mp3";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
