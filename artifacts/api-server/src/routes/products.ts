@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, productsTable, categoriesTable } from "@workspace/db";
-import { eq, ilike, and, inArray, type SQL } from "drizzle-orm";
+import { eq, ilike, and, inArray, ne, isNotNull, type SQL } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 
@@ -126,6 +126,59 @@ router.post("/products", requireAdmin, async (req, res) => {
   }).returning();
   clearProductCaches();
   res.status(201).json(serializeProduct({ ...product, categoryName: null }));
+});
+
+router.get("/products/complete-the-look", async (req, res) => {
+  const productId = req.query.productId ? Number(req.query.productId) : null;
+  if (!productId) { res.json([]); return; }
+
+  const [current] = await db
+    .select({ importSource: productsTable.importSource })
+    .from(productsTable)
+    .where(eq(productsTable.id, productId))
+    .limit(1);
+
+  if (!current) { res.json([]); return; }
+
+  const ALL_SOURCES = ["fashioncage", "stealstreetwear", "reesdxb"];
+  const otherSources = current.importSource
+    ? ALL_SOURCES.filter((s) => s !== current.importSource)
+    : ALL_SOURCES;
+
+  const picks: ReturnType<typeof serializeProduct>[] = [];
+
+  for (const source of otherSources) {
+    for (const tryFeatured of [true, false]) {
+      if (picks.find((p) => (p as any).importSource === source)) break;
+      const conds: SQL[] = [
+        eq(productsTable.importSource, source),
+        ne(productsTable.id, productId),
+        isNotNull(productsTable.imageUrl),
+      ];
+      if (tryFeatured) conds.push(eq(productsTable.featured, true));
+
+      const [row] = await db
+        .select({
+          id: productsTable.id, name: productsTable.name, description: productsTable.description,
+          price: productsTable.price, imageUrl: productsTable.imageUrl, imageUrls: productsTable.imageUrls,
+          stock: productsTable.stock, categoryId: productsTable.categoryId,
+          categoryName: categoriesTable.name, featured: productsTable.featured,
+          rep: productsTable.rep, sizes: productsTable.sizes, isPreOrder: productsTable.isPreOrder,
+          preOrderLabel: productsTable.preOrderLabel, preOrderDate: productsTable.preOrderDate,
+          preOrderNote: productsTable.preOrderNote, importSource: productsTable.importSource,
+          createdAt: productsTable.createdAt,
+        })
+        .from(productsTable)
+        .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+        .where(and(...conds))
+        .limit(1);
+
+      if (row) picks.push(serializeProduct(row));
+    }
+  }
+
+  setPublicReadCacheHeaders(res);
+  res.json(picks);
 });
 
 router.get("/products/:id", async (req, res) => {

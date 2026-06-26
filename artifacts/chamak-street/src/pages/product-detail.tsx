@@ -1,11 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRoute } from "wouter";
 import { useGetProduct, useAddToCart, useListProducts, getGetProductQueryKey, getGetCartQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { useCartFly } from "@/components/cart-fly-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Bell, Eye, Heart, TrendingUp } from "lucide-react";
+import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Bell, Eye, Heart, TrendingUp, Check, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
@@ -132,6 +132,229 @@ function MotionItem({ children, delay = 0, className = "" }: { children: React.R
       className={className}
     >
       {children}
+    </motion.div>
+  );
+}
+
+type LookProduct = {
+  id: number; name: string; price: number; imageUrl: string | null;
+  imageUrls: string | null; stock: number; sizes: string | null;
+  categoryName?: string | null; featured: boolean; rep: boolean;
+};
+
+function useCompleteTheLook(productId: number) {
+  const [items, setItems] = useState<LookProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!productId) return;
+    setLoading(true);
+    fetch(`${BASE}/api/products/complete-the-look?productId=${productId}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => { setItems(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [productId]);
+  return { items, loading };
+}
+
+function CompleteTheLookSection({
+  productId,
+  currentProduct,
+}: {
+  productId: number;
+  currentProduct: { name: string; price: number; imageUrl: string | null; imageUrls: string | null };
+}) {
+  const { items, loading } = useCompleteTheLook(productId);
+  const addToCart = useAddToCart();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
+  const [addingId, setAddingId] = useState<number | null>(null);
+  const [addingAll, setAddingAll] = useState(false);
+  const [allAdded, setAllAdded] = useState(false);
+
+  if (loading || items.length === 0) return null;
+
+  const currentMedia = getPrimaryProductMedia(currentProduct.imageUrl);
+  const lookTotal = items.reduce((s, p) => s + p.price, 0) + currentProduct.price;
+
+  const handleAddOne = (item: LookProduct) => {
+    if (addedIds.has(item.id)) return;
+    setAddingId(item.id);
+    addToCart.mutate(
+      { data: { productId: item.id, quantity: 1 } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
+          setAddedIds((prev) => new Set([...prev, item.id]));
+          setAddingId(null);
+          toast({ title: "Added to cart", description: item.name });
+        },
+        onError: () => { setAddingId(null); },
+      }
+    );
+  };
+
+  const handleAddAll = async () => {
+    setAddingAll(true);
+    for (const item of items) {
+      if (addedIds.has(item.id)) continue;
+      await new Promise<void>((resolve) => {
+        addToCart.mutate(
+          { data: { productId: item.id, quantity: 1 } },
+          { onSuccess: () => { setAddedIds((prev) => new Set([...prev, item.id])); resolve(); }, onError: () => resolve() }
+        );
+      });
+    }
+    queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
+    setAddingAll(false);
+    setAllAdded(true);
+    toast({ title: "Full look added!", description: `${items.length} pieces added to your cart.` });
+    setTimeout(() => setAllAdded(false), 3000);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 48 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
+      className="mt-20 border-t border-border pt-14"
+    >
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <p className="text-[10px] text-primary uppercase tracking-[0.2em] font-black">Style Guide</p>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter">Complete the Look</h2>
+          <p className="text-muted-foreground text-sm mt-1.5">Pair with these pieces for the full fit.</p>
+        </div>
+        <div className="sm:text-right shrink-0">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Full Look Total</p>
+          <p className="text-2xl font-black font-mono text-primary">AED {lookTotal.toFixed(2)}</p>
+        </div>
+      </div>
+
+      {/* Outfit Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+        {/* Current Piece */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.35, ease: EASE }}
+          className="relative group"
+        >
+          <div className="relative aspect-square rounded-xl overflow-hidden bg-card border-2 border-primary/50 shadow-[0_0_20px_rgba(255,102,0,0.15)]">
+            {currentMedia ? (
+              <img
+                src={currentMedia.url}
+                alt={currentProduct.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Image</div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+            <div className="absolute top-2 left-2">
+              <span className="bg-primary text-primary-foreground text-[9px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">This Piece</span>
+            </div>
+          </div>
+          <div className="mt-2.5 px-0.5">
+            <p className="text-xs font-bold leading-tight line-clamp-2 mb-1">{currentProduct.name}</p>
+            <p className="text-sm font-mono font-bold text-primary">AED {currentProduct.price.toFixed(2)}</p>
+          </div>
+        </motion.div>
+
+        {/* Complementary Items */}
+        {items.map((item, i) => {
+          const media = getPrimaryProductMedia(item.imageUrl);
+          const isAdded = addedIds.has(item.id);
+          const isAdding = addingId === item.id;
+          return (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.4 + i * 0.08, ease: EASE }}
+              className="relative group"
+            >
+              <Link href={`/product/${item.id}`}>
+                <div className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-[0_6px_24px_rgba(255,102,0,0.18)]">
+                  {media ? (
+                    <img
+                      src={media.url}
+                      alt={item.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
+                      style={{ scale: "1" }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Image</div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  {item.featured && (
+                    <div className="absolute top-2 left-2">
+                      <span className="bg-black/60 text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Featured</span>
+                    </div>
+                  )}
+                  {isAdded && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
+                        <Check className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Link>
+              <div className="mt-2.5 px-0.5">
+                {item.categoryName && (
+                  <p className="text-[9px] text-muted-foreground uppercase tracking-widest mb-0.5">{item.categoryName}</p>
+                )}
+                <p className="text-xs font-bold leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">{item.name}</p>
+                <div className="flex items-center justify-between gap-1">
+                  <p className="text-sm font-mono font-bold text-primary">AED {item.price.toFixed(2)}</p>
+                  <motion.button
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.93 }}
+                    onClick={(e) => { e.preventDefault(); handleAddOne(item); }}
+                    disabled={isAdding || isAdded}
+                    className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black border transition-all ${
+                      isAdded
+                        ? "bg-green-500/15 border-green-500/40 text-green-500"
+                        : "border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                    }`}
+                  >
+                    {isAdded ? <Check className="h-3.5 w-3.5" /> : isAdding ? "…" : <Plus className="h-3.5 w-3.5" />}
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Add All CTA */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4 border-t border-border/50">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={handleAddAll}
+          disabled={addingAll || allAdded}
+          className={`flex items-center gap-2.5 px-8 py-3.5 rounded-sm font-black uppercase tracking-widest text-sm transition-all ${
+            allAdded
+              ? "bg-green-500/15 border border-green-500/40 text-green-400"
+              : "fire-gradient text-primary-foreground shadow-[0_0_28px_rgba(255,102,0,0.3)] hover:shadow-[0_0_44px_rgba(255,102,0,0.5)]"
+          }`}
+        >
+          {allAdded ? (
+            <><Check className="h-4 w-4" /> Full Look Added to Cart</>
+          ) : (
+            <><ShoppingCart className="h-4 w-4" /> {addingAll ? "Adding Pieces…" : `Add All Pieces — AED ${items.reduce((s, p) => s + p.price, 0).toFixed(2)}`}</>
+          )}
+        </motion.button>
+        <p className="text-xs text-muted-foreground">
+          {items.length} complementary piece{items.length !== 1 ? "s" : ""} • Full look total AED {lookTotal.toFixed(2)}
+        </p>
+      </div>
     </motion.div>
   );
 }
@@ -471,6 +694,17 @@ export default function ProductDetail() {
           </div>
         </div>
 
+        {/* Complete the Look */}
+        <CompleteTheLookSection
+          productId={id}
+          currentProduct={{
+            name: product.name,
+            price: product.price,
+            imageUrl: product.imageUrl ?? null,
+            imageUrls: product.imageUrls ?? null,
+          }}
+        />
+
         {recVisible && related.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -480,7 +714,6 @@ export default function ProductDetail() {
           >
             <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-[10px] text-primary uppercase tracking-widest font-black mb-1">Complete the Look</p>
                 <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">{recTitle}</h2>
               </div>
               <div className="flex items-center gap-2">
