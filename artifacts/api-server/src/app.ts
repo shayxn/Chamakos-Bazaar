@@ -36,13 +36,15 @@ app.use(express.urlencoded({ extended: true }));
 const sessionSecret =
   process.env.SESSION_SECRET ?? "chamak_street_fallback_secret_2024_do_not_use_in_prod";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 app.use(
   cookieSession({
     name: "chamak_session",
     secret: sessionSecret,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    secure: false,
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     httpOnly: true,
   }),
 );
