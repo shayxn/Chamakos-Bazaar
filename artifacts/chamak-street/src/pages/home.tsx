@@ -10,6 +10,7 @@ import { useSettings } from "@/lib/use-settings";
 import { TrustSection } from "@/components/trust-section";
 import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
+import { EventHomepageBanner } from "@/components/event-homepage-banner";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -191,6 +192,11 @@ export default function Home() {
             </motion.div>
           </motion.div>
         </section>
+
+        {/* ── EVENT HOMEPAGE BANNER ── */}
+        <div className="container mx-auto px-4 mt-6">
+          <EventHomepageBanner />
+        </div>
 
         {/* ── MARQUEE ── */}
         <div className="fire-gradient py-3 overflow-hidden">

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
 import { LoadingScreen } from "@/components/loading-screen";
 import { SiteSplash } from "@/components/site-splash";
+import { EventPopup } from "@/components/event-popup";
 import Home from "@/pages/home";
 import Shop from "@/pages/shop";
 import ProductDetail from "@/pages/product-detail";
@@ -95,11 +96,23 @@ function MainRouter() {
   );
 }
 
+function CustomerOverlays() {
+  const isAdmin = window.location.pathname.startsWith(import.meta.env.BASE_URL + "admin") ||
+    window.location.pathname.startsWith("/admin");
+  if (isAdmin) return null;
+  return (
+    <>
+      <SiteSplash />
+      <EventPopup />
+    </>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <SiteSplash />
+        <CustomerOverlays />
         <LoadingScreen />
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <MainRouter />

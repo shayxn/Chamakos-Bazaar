@@ -8,6 +8,7 @@ import { Search, SlidersHorizontal, Eye } from "lucide-react";
 import { PageTransition, RevealSection } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
+import { EventProductBadge } from "@/components/event-product-badge";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -195,6 +196,7 @@ export default function Shop() {
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
                             <div className="absolute top-2 left-2 flex flex-col gap-1">
+                              <EventProductBadge />
                               {product.featured && (
                                 <span className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Featured</span>
                               )}
