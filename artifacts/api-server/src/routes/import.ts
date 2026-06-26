@@ -5,6 +5,12 @@ import { requireAdmin } from "../lib/auth-middleware";
 
 const router = Router();
 
+const SUPPLIERS: Record<string, string> = {
+  fashioncage: "https://fashioncage.me",
+  stealstreetwear: "https://stealstreetwear.com",
+  reesdxb: "https://reesdxb.store",
+};
+
 type ShopifyVariant = {
   title: string;
   option1: string | null;
@@ -124,12 +130,6 @@ async function getSyncStats(supplier: string): Promise<SyncStats> {
     `sync_error_${supplier}`,
     `sync_auto_enabled_${supplier}`,
   ];
-  const rows = await db
-    .select()
-    .from(siteSettingsTable)
-    .where(
-      eq(siteSettingsTable.key, keys[0])
-    );
   const map: Record<string, string> = {};
   for (const key of keys) {
     const row = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, key));
@@ -249,9 +249,10 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
   }
 }
 
+/* ─── fashioncage ─── */
 router.get("/import/fashioncage/preview", requireAdmin, async (_req, res) => {
   try {
-    const products = await fetchShopifyProducts("https://fashioncage.me");
+    const products = await fetchShopifyProducts(SUPPLIERS.fashioncage);
     const preview = products.slice(0, 100).map(parseShopifyProduct);
     res.json({ count: products.length, products: preview });
   } catch {
@@ -260,17 +261,15 @@ router.get("/import/fashioncage/preview", requireAdmin, async (_req, res) => {
 });
 
 router.post("/import/fashioncage", requireAdmin, async (_req, res) => {
-  const result = await runSupplierImport("https://fashioncage.me", "fashioncage");
-  if (result.error) {
-    res.status(502).json({ error: result.error });
-  } else {
-    res.json(result);
-  }
+  const result = await runSupplierImport(SUPPLIERS.fashioncage, "fashioncage");
+  if (result.error) res.status(502).json({ error: result.error });
+  else res.json(result);
 });
 
+/* ─── stealstreetwear ─── */
 router.get("/import/stealstreetwear/preview", requireAdmin, async (_req, res) => {
   try {
-    const products = await fetchShopifyProducts("https://stealstreetwear.com");
+    const products = await fetchShopifyProducts(SUPPLIERS.stealstreetwear);
     const preview = products.slice(0, 100).map(parseShopifyProduct);
     res.json({ count: products.length, products: preview });
   } catch {
@@ -279,36 +278,70 @@ router.get("/import/stealstreetwear/preview", requireAdmin, async (_req, res) =>
 });
 
 router.post("/import/stealstreetwear", requireAdmin, async (_req, res) => {
-  const result = await runSupplierImport("https://stealstreetwear.com", "stealstreetwear");
-  if (result.error) {
-    res.status(502).json({ error: result.error });
-  } else {
-    res.json(result);
+  const result = await runSupplierImport(SUPPLIERS.stealstreetwear, "stealstreetwear");
+  if (result.error) res.status(502).json({ error: result.error });
+  else res.json(result);
+});
+
+/* ─── reesdxb.store ─── */
+router.get("/import/reesdxb/preview", requireAdmin, async (_req, res) => {
+  try {
+    const products = await fetchShopifyProducts(SUPPLIERS.reesdxb);
+    const preview = products.slice(0, 100).map(parseShopifyProduct);
+    res.json({ count: products.length, products: preview });
+  } catch {
+    res.status(502).json({ error: "Failed to fetch from reesdxb.store" });
   }
 });
 
+router.post("/import/reesdxb", requireAdmin, async (_req, res) => {
+  const result = await runSupplierImport(SUPPLIERS.reesdxb, "reesdxb");
+  if (result.error) res.status(502).json({ error: result.error });
+  else res.json(result);
+});
+
+/* ─── delete by source ─── */
+router.delete("/import/delete-by-source/:supplier", requireAdmin, async (req, res) => {
+  const supplier = req.params.supplier as string;
+  if (!Object.keys(SUPPLIERS).includes(supplier)) {
+    res.status(400).json({ error: "Unknown supplier" });
+    return;
+  }
+  const deleted = await db
+    .delete(productsTable)
+    .where(eq(productsTable.importSource, supplier))
+    .returning({ id: productsTable.id });
+  res.json({ deleted: deleted.length, supplier });
+});
+
+/* ─── sync all ─── */
 router.post("/import/sync-all", requireAdmin, async (_req, res) => {
-  const [fc, ss] = await Promise.allSettled([
-    runSupplierImport("https://fashioncage.me", "fashioncage"),
-    runSupplierImport("https://stealstreetwear.com", "stealstreetwear"),
+  const [fc, ss, re] = await Promise.allSettled([
+    runSupplierImport(SUPPLIERS.fashioncage, "fashioncage"),
+    runSupplierImport(SUPPLIERS.stealstreetwear, "stealstreetwear"),
+    runSupplierImport(SUPPLIERS.reesdxb, "reesdxb"),
   ]);
   res.json({
     fashioncage: fc.status === "fulfilled" ? fc.value : { error: (fc as PromiseRejectedResult).reason?.message },
     stealstreetwear: ss.status === "fulfilled" ? ss.value : { error: (ss as PromiseRejectedResult).reason?.message },
+    reesdxb: re.status === "fulfilled" ? re.value : { error: (re as PromiseRejectedResult).reason?.message },
   });
 });
 
+/* ─── stats ─── */
 router.get("/import/stats", requireAdmin, async (_req, res) => {
-  const [fc, ss] = await Promise.all([
+  const [fc, ss, re] = await Promise.all([
     getSyncStats("fashioncage"),
     getSyncStats("stealstreetwear"),
+    getSyncStats("reesdxb"),
   ]);
-  res.json({ fashioncage: fc, stealstreetwear: ss });
+  res.json({ fashioncage: fc, stealstreetwear: ss, reesdxb: re });
 });
 
+/* ─── toggle autosync ─── */
 router.post("/import/toggle-autosync", requireAdmin, async (req, res) => {
   const { supplier, enabled } = req.body as { supplier: string; enabled: boolean };
-  if (!["fashioncage", "stealstreetwear"].includes(supplier)) {
+  if (!Object.keys(SUPPLIERS).includes(supplier)) {
     res.status(400).json({ error: "Unknown supplier" });
     return;
   }
@@ -316,6 +349,7 @@ router.post("/import/toggle-autosync", requireAdmin, async (req, res) => {
   res.json({ ok: true });
 });
 
+/* ─── recalculate prices ─── */
 router.post("/import/recalculate-prices", requireAdmin, async (_req, res) => {
   const products = await db
     .select({ id: productsTable.id, supplierPrice: productsTable.supplierPrice })

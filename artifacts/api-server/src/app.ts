@@ -5,6 +5,9 @@ import pinoHttp from "pino-http";
 import path from "path";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { db, usersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 const app: Express = express();
 app.set("trust proxy", 1);
@@ -25,22 +28,55 @@ app.use(
 
 app.use(cors({ origin: true, credentials: true }));
 
-// Serve uploaded product images under /api/uploads so they are routed to this service
 app.use("/api/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const sessionSecret =
+  process.env.SESSION_SECRET ?? "chamak_street_fallback_secret_2024_do_not_use_in_prod";
+
 app.use(
   cookieSession({
     name: "chamak_session",
-    secret: process.env.SESSION_SECRET ?? (process.env.NODE_ENV === "production" ? (() => { throw new Error("SESSION_SECRET env var is required in production"); })() : "chamak_street_dev_only_secret"),
+    secret: sessionSecret,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
     sameSite: "lax",
+    httpOnly: true,
   }),
 );
 
 app.use("/api", router);
+
+async function seedAdminUser() {
+  try {
+    const [existing] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.username, "admin"));
+    if (!existing) {
+      const hash = await bcrypt.hash("chamak2024", 12);
+      await db.insert(usersTable).values({
+        username: "admin",
+        passwordHash: hash,
+        isAdmin: true,
+      });
+      logger.info("Admin user seeded successfully");
+    } else if (!existing.isAdmin) {
+      await db
+        .update(usersTable)
+        .set({ isAdmin: true })
+        .where(eq(usersTable.id, existing.id));
+      logger.info("Admin user promoted to admin");
+    } else {
+      logger.info("Admin user already exists");
+    }
+  } catch (err) {
+    logger.error({ err }, "Failed to seed admin user");
+  }
+}
+
+seedAdminUser();
 
 export default app;

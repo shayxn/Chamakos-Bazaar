@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Download, RefreshCw, CheckCircle2, AlertCircle, Package,
   ChevronDown, ChevronRight, Zap, Clock, Calendar, ToggleLeft,
-  ToggleRight, Tag, TrendingUp, SkipForward,
+  ToggleRight, Tag, TrendingUp, SkipForward, Trash2,
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
@@ -49,6 +49,7 @@ type SyncStats = {
 type AllStats = {
   fashioncage: SyncStats;
   stealstreetwear: SyncStats;
+  reesdxb: SyncStats;
 };
 
 const SUPPLIERS = [
@@ -65,6 +66,13 @@ const SUPPLIERS = [
     domain: "stealstreetwear.com",
     color: "text-blue-400",
     dot: "bg-blue-400",
+  },
+  {
+    id: "reesdxb",
+    label: "Rees DXB",
+    domain: "reesdxb.store",
+    color: "text-purple-400",
+    dot: "bg-purple-400",
   },
 ] as const;
 
@@ -104,6 +112,7 @@ function SupplierTab({
   const [result, setResult] = useState<ImportResult | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [togglingAuto, setTogglingAuto] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPreview = async () => {
     setLoadingPreview(true);
@@ -138,6 +147,24 @@ function SupplierTab({
       toast({ title: "Import failed", description: msg, variant: "destructive" });
     } finally {
       setImporting(false);
+    }
+  };
+
+  const deleteBySource = async () => {
+    if (!confirm(`⚠️ Delete ALL products imported from ${supplier.domain}? This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`${BASE}/api/import/delete-by-source/${supplier.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = (await res.json()) as { deleted: number };
+      onRefreshStats();
+      toast({ title: `Deleted ${data.deleted} products from ${supplier.domain}` });
+    } catch {
+      toast({ title: "Failed to delete products", variant: "destructive" });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -277,6 +304,16 @@ function SupplierTab({
               {importing ? "Importing…" : "Import All Products"}
             </Button>
           </motion.div>
+
+          <Button
+            onClick={deleteBySource}
+            disabled={deleting}
+            variant="ghost"
+            className="font-black uppercase tracking-wider gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive border border-destructive/20"
+          >
+            <Trash2 className="h-4 w-4" />
+            {deleting ? "Deleting…" : "Delete All from Supplier"}
+          </Button>
         </div>
 
         <AnimatePresence>
@@ -501,13 +538,14 @@ export default function AdminImport() {
       const data = (await res.json()) as {
         fashioncage: ImportResult & { error?: string };
         stealstreetwear: ImportResult & { error?: string };
+        reesdxb: ImportResult & { error?: string };
       };
       fetchStats();
-      const totalNew = (data.fashioncage.imported ?? 0) + (data.stealstreetwear.imported ?? 0);
-      const totalUpdated = (data.fashioncage.updated ?? 0) + (data.stealstreetwear.updated ?? 0);
+      const totalNew = (data.fashioncage.imported ?? 0) + (data.stealstreetwear.imported ?? 0) + (data.reesdxb?.imported ?? 0);
+      const totalUpdated = (data.fashioncage.updated ?? 0) + (data.stealstreetwear.updated ?? 0) + (data.reesdxb?.updated ?? 0);
       toast({
         title: "Sync All Complete",
-        description: `${totalNew} new · ${totalUpdated} updated across both suppliers`,
+        description: `${totalNew} new · ${totalUpdated} updated across all 3 suppliers`,
       });
     } catch {
       toast({ title: "Sync failed", variant: "destructive" });
@@ -547,8 +585,9 @@ export default function AdminImport() {
           <h1 className="text-3xl font-black uppercase tracking-tighter">Product Importer</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Auto-import & sync from{" "}
-            <span className="text-orange-400 font-bold">fashioncage.me</span> and{" "}
-            <span className="text-blue-400 font-bold">stealstreetwear.com</span>
+            <span className="text-orange-400 font-bold">fashioncage.me</span>,{" "}
+            <span className="text-blue-400 font-bold">stealstreetwear.com</span>, and{" "}
+            <span className="text-purple-400 font-bold">reesdxb.store</span>
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -602,7 +641,7 @@ export default function AdminImport() {
           >
             <span className={`w-2 h-2 rounded-full ${s.dot}`} />
             {s.label}
-            {!loadingStats && stats && (
+            {!loadingStats && stats && stats[s.id] && (
               <span className={`text-[10px] font-mono ml-1 ${s.color}`}>
                 {stats[s.id].lastSyncAt ? "synced" : "not synced"}
               </span>
@@ -622,7 +661,7 @@ export default function AdminImport() {
         >
           <SupplierTab
             supplier={activeSupplier}
-            stats={stats ? stats[activeTab] : undefined}
+            stats={stats ? (stats[activeTab] ?? undefined) : undefined}
             onRefreshStats={fetchStats}
           />
         </motion.div>

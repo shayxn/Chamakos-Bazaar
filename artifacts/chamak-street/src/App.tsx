@@ -22,11 +22,14 @@ import AdminSiteSettings from "@/pages/admin/site-settings";
 import AdminReviews from "@/pages/admin/reviews";
 import AdminTiktok from "@/pages/admin/tiktok";
 import AdminImport from "@/pages/admin/import";
+import AdminGames from "@/pages/admin/games";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
 import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
 import Shipping from "@/pages/shipping";
+import GamesPage from "@/pages/games";
+import GameDetail from "@/pages/game-detail";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +55,7 @@ function AdminRouter() {
         <Route path="/admin/tiktok" component={AdminTiktok} />
         <Route path="/admin/terms" component={AdminTerms} />
         <Route path="/admin/import" component={AdminImport} />
+        <Route path="/admin/games" component={AdminGames} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>
@@ -76,6 +80,8 @@ function MainRouter() {
             <Route path="/terms" component={Terms} />
             <Route path="/privacy" component={Privacy} />
             <Route path="/shipping" component={Shipping} />
+            <Route path="/games" component={GamesPage} />
+            <Route path="/games/:id" component={GameDetail} />
             <Route component={NotFound} />
           </Switch>
         </Layout>

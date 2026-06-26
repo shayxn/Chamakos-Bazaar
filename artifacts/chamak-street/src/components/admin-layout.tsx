@@ -2,7 +2,7 @@ import { useGetMe, useListProducts, useListCategories } from "@workspace/api-cli
 import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag,
-  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X
+  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Gamepad2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -118,6 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: "/admin/categories", label: "Categories", icon: Tag },
         { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
         { href: "/admin/import", label: "Import Products", icon: Download },
+        { href: "/admin/games", label: "Games", icon: Gamepad2 },
       ],
     },
     {
