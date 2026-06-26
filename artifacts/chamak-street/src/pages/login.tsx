@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLogin, useGetMe } from "@workspace/api-client-react";
 import { useLocation, Redirect } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +13,7 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const login = useLogin();
+  const queryClient = useQueryClient();
   const { data: user } = useGetMe({ query: { retry: false, queryKey: ["auth", "me-login"] } });
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -24,12 +26,14 @@ export default function Login() {
     login.mutate(
       { data: { username, password } },
       {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
+          await queryClient.invalidateQueries();
           if (data.isAdmin) setLocation("/admin");
           else setLocation("/");
         },
-        onError: () => {
-          toast({ title: "Login failed", description: "Invalid credentials.", variant: "destructive" });
+        onError: (err: unknown) => {
+          const msg = (err as { data?: { error?: string } })?.data?.error ?? "Please check your credentials and try again.";
+          toast({ title: "Login failed", description: msg, variant: "destructive" });
         }
       }
     );
