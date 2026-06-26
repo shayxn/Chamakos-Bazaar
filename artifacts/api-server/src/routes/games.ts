@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, gamesTable } from "@workspace/db";
-import { eq, asc } from "drizzle-orm";
+import { db, gamesTable, productsTable, cartItemsTable } from "@workspace/db";
+import { eq, asc, and } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 
 const router = Router();
@@ -76,6 +76,45 @@ router.patch("/games/:id", requireAdmin, async (req, res) => {
   const [game] = await db.update(gamesTable).set(patch).where(eq(gamesTable.id, id)).returning();
   if (!game) { res.status(404).json({ error: "Game not found" }); return; }
   res.json(serialize(game));
+});
+
+router.post("/games/:id/preorder-cart", async (req, res) => {
+  const id = parseInt(req.params.id as string);
+  const [game] = await db.select().from(gamesTable).where(eq(gamesTable.id, id));
+  if (!game) { res.status(404).json({ error: "Game not found" }); return; }
+
+  const externalId = `game-preorder-${id}`;
+  let [product] = await db.select().from(productsTable).where(eq(productsTable.externalId, externalId));
+  if (!product) {
+    [product] = await db.insert(productsTable).values({
+      name: `${game.name} – Pre-Order`,
+      description: game.description ?? undefined,
+      price: game.preOrderPrice ?? "299.00",
+      imageUrl: game.coverImage ?? undefined,
+      stock: 9999,
+      isPreOrder: true,
+      preOrderDate: game.preOrderDate ?? undefined,
+      preOrderNote: game.preOrderNote ?? undefined,
+      externalId,
+    }).returning();
+  }
+
+  const session = req.session as Record<string, unknown>;
+  if (!session.cartId) {
+    session.cartId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
+  const sessionId = session.cartId as string;
+
+  const [existing] = await db.select().from(cartItemsTable).where(
+    and(eq(cartItemsTable.sessionId, sessionId), eq(cartItemsTable.productId, product.id))
+  );
+  if (existing) {
+    await db.update(cartItemsTable).set({ quantity: existing.quantity + 1 }).where(eq(cartItemsTable.id, existing.id));
+  } else {
+    await db.insert(cartItemsTable).values({ sessionId, productId: product.id, quantity: 1 });
+  }
+
+  res.json({ ok: true, productId: product.id });
 });
 
 router.delete("/games/:id", requireAdmin, async (req, res) => {
