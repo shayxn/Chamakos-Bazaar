@@ -1,0 +1,20 @@
+{
+  "framework": "vite",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @workspace/chamak-street run build",
+  "outputDirectory": "artifacts/chamak-street/dist/public",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://chamakos-bazaar.onrender.com/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://chamakos-bazaar.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}
