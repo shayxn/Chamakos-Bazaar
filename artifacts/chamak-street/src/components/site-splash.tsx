@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import gtaPoster from "@assets/IMG_0055_1782472977785.jpeg";
+import gtaPoster from "@assets/IMG_0054_1782479264132.jpeg";
 import { X } from "lucide-react";
 
 export function SiteSplash() {
