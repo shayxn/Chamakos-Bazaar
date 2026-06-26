@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { ArrowLeft, Volume2, VolumeX, ShoppingBag, Clock, Star, Gamepad2, ChevronDown } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, ShoppingBag, Clock, Star, Gamepad2, ChevronDown, X, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import gtaPoster from "@assets/IMG_0051_1782471586956.jpeg";
 import gtaMusic from "@assets/GTA_6_-_Official_Main_Theme_Music_1782459811057.mp3";
@@ -378,9 +378,31 @@ export default function GameDetail() {
     if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
 
+  const [showPreOrderModal, setShowPreOrderModal] = useState(false);
+  const [preOrderForm, setPreOrderForm] = useState({ name: "", phone: "", platform: "PS5" });
+  const [preOrderDone, setPreOrderDone] = useState(false);
+  const [preOrderLoading, setPreOrderLoading] = useState(false);
+  const [, navigate] = useLocation();
+
   const handlePreOrder = () => {
-    setOrdered(true);
-    toast({ title: "Pre-Order Received!", description: `Your pre-order for ${game?.name} has been received. We'll contact you via WhatsApp.` });
+    setShowPreOrderModal(true);
+  };
+
+  const submitPreOrder = async () => {
+    if (!preOrderForm.name.trim() || !preOrderForm.phone.trim()) return;
+    setPreOrderLoading(true);
+    try {
+      const msg = `Hi! I'd like to pre-order ${game?.name} (${preOrderForm.platform}).\nName: ${preOrderForm.name}\nPhone: ${preOrderForm.phone}`;
+      const waUrl = `https://wa.me/971521142341?text=${encodeURIComponent(msg)}`;
+      setPreOrderDone(true);
+      setOrdered(true);
+      setTimeout(() => {
+        window.open(waUrl, "_blank");
+        setShowPreOrderModal(false);
+      }, 1200);
+    } finally {
+      setPreOrderLoading(false);
+    }
   };
 
   if (loading) {
@@ -574,6 +596,120 @@ export default function GameDetail() {
           </div>
         </div>
       )}
+
+      {/* Pre-Order Modal */}
+      <AnimatePresence>
+        {showPreOrderModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => !preOrderLoading && setShowPreOrderModal(false)}
+              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 24 }}
+              transition={{ ease: EASE, duration: 0.45 }}
+              className="fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-md bg-[#0d0d1a] border border-white/10 rounded-2xl p-6 shadow-2xl"
+            >
+              {preOrderDone ? (
+                <div className="text-center py-6">
+                  <motion.div
+                    initial={{ scale: 0 }} animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                    className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+                    style={{ background: "linear-gradient(135deg,#ff3ca0,#bf00ff,#00e5ff)" }}
+                  >
+                    <Check className="h-8 w-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-white font-black text-xl uppercase tracking-tighter mb-2">Pre-Order Confirmed!</h3>
+                  <p className="text-white/50 text-sm">Opening WhatsApp to complete your order…</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-0.5">Chamak Street</p>
+                      <h3 className="text-white font-black text-lg uppercase tracking-tighter">Pre-Order GTA VI</h3>
+                    </div>
+                    <button onClick={() => setShowPreOrderModal(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 mb-5">
+                    <div>
+                      <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-1.5">Your Name</label>
+                      <input
+                        value={preOrderForm.name}
+                        onChange={(e) => setPreOrderForm((f) => ({ ...f, name: e.target.value }))}
+                        placeholder="e.g. Ahmed Al Rashidi"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-white/30 placeholder:text-white/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-1.5">WhatsApp Number</label>
+                      <input
+                        value={preOrderForm.phone}
+                        onChange={(e) => setPreOrderForm((f) => ({ ...f, phone: e.target.value }))}
+                        placeholder="+971 50 000 0000"
+                        type="tel"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-white/30 placeholder:text-white/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-1.5">Platform</label>
+                      <div className="flex gap-2">
+                        {["PS5", "Xbox Series X|S"].map((p) => (
+                          <button
+                            key={p}
+                            onClick={() => setPreOrderForm((f) => ({ ...f, platform: p }))}
+                            className={`flex-1 py-2.5 text-sm font-black uppercase tracking-wider rounded-lg border transition-all ${
+                              preOrderForm.platform === p
+                                ? "border-transparent text-white"
+                                : "border-white/10 text-white/40 hover:border-white/20"
+                            }`}
+                            style={preOrderForm.platform === p ? {
+                              background: "linear-gradient(135deg,#ff3ca0,#bf00ff,#00e5ff)"
+                            } : {}}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    {game.preOrderPrice != null && (
+                      <div className="flex-shrink-0 text-right">
+                        <p className="text-white/30 text-[9px] font-black uppercase">Total</p>
+                        <p className="text-white font-black font-mono text-lg">AED {game.preOrderPrice.toFixed(2)}</p>
+                      </div>
+                    )}
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={submitPreOrder}
+                      disabled={preOrderLoading || !preOrderForm.name.trim() || !preOrderForm.phone.trim()}
+                      className="flex-1 py-3 font-black uppercase tracking-widest text-sm text-white rounded-lg disabled:opacity-40 flex items-center justify-center gap-2"
+                      style={{ background: "linear-gradient(135deg,#ff3ca0,#bf00ff,#00e5ff)" }}
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      {preOrderLoading ? "Processing…" : "Complete Pre-Order"}
+                    </motion.button>
+                  </div>
+
+                  <p className="text-white/20 text-[10px] text-center mt-3">
+                    You'll be directed to WhatsApp to confirm your order with our team.
+                  </p>
+                </>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { useSettings } from "@/lib/use-settings";
 import { ChamakLogo } from "./chamak-logo";
 import { SmartSearchModal } from "./smart-search";
 import { EventBanner } from "./event-banner";
+import { AnnouncementBanner } from "./announcement-banner";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -58,6 +59,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
+      <AnnouncementBanner />
       <EventBanner />
       <motion.header
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${

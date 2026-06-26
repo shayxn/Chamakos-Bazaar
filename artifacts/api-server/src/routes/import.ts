@@ -174,6 +174,7 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
     let imported = 0;
     let updated = 0;
     let skipped = 0;
+    let importedCount = 0;
 
     for (const sp of shopifyProducts) {
       const parsed = parseShopifyProduct(sp);
@@ -211,6 +212,7 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
           .where(and(eq(productsTable.id, existingId), eq(productsTable.importSource, supplierName)));
         updated++;
       } else {
+        const isFeatured = importedCount % 2 === 0;
         await db.insert(productsTable).values({
           name: parsed.name,
           description: parsed.description,
@@ -224,10 +226,11 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
           imageUrl: parsed.imageUrl,
           imageUrls: parsed.imageUrls,
           categoryId,
-          featured: true,
+          featured: isFeatured,
           rep: true,
           isPreOrder: false,
         });
+        importedCount++;
         imported++;
       }
     }

@@ -1,0 +1,4 @@
+- [Pre-order flow](preorder-flow.md) — GTA VI pre-order opens a modal (name+phone+platform), then opens WhatsApp; not a real cart item.
+- [Announcement banner](announcement-banner.md) — uses site_settings keys: announcement_active/text/color/url; editable under Admin → Site Settings → Announcement tab.
+- [Import logic](import-logic.md) — all imported products are rep:true; featured alternates half/half by import index (even=featured).
+- [Splash popup](splash-popup.md) — mini card modal using IMG_0054 (box art) + IMG_0055 (packaging), sessionStorage gate, 6s auto-dismiss with progress bar.

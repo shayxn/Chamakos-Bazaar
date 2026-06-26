@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2 } from "lucide-react";
+import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2, Megaphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SETTING_DEFAULTS } from "@/lib/use-settings";
 
@@ -38,6 +38,7 @@ async function uploadImageFile(file: File): Promise<string> {
 type SettingsMap = Record<string, string>;
 
 const TABS = [
+  { id: "announcement", label: "Announcement", icon: Megaphone },
   { id: "hero", label: "Hero Section", icon: Flame },
   { id: "logo", label: "Logo Blending", icon: Image },
   { id: "trust", label: "Trust Cards", icon: Star },
@@ -309,6 +310,64 @@ export default function AdminSiteSettings() {
 
       <div className="bg-card border border-border/60 rounded-2xl p-6 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-px fire-gradient opacity-60" />
+
+        {activeTab === "announcement" && (
+          <div className="space-y-5">
+            <h2 className="font-black uppercase tracking-wider text-primary mb-6">Announcement Banner</h2>
+            <p className="text-sm text-muted-foreground -mt-4">Show a slim banner across the top of the site. Great for promotions, events, or shipping notices.</p>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => onChange("announcement_active", settings.announcement_active === "true" ? "false" : "true")}
+                className={`relative w-12 h-6 rounded-full transition-colors ${settings.announcement_active === "true" ? "bg-green-500" : "bg-muted"}`}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${settings.announcement_active === "true" ? "left-6" : "left-0.5"}`} />
+              </button>
+              <span className="font-bold text-sm">{settings.announcement_active === "true" ? "Banner Active" : "Banner Hidden"}</span>
+            </div>
+
+            <SettingInput
+              label="Banner Text"
+              settingKey="announcement_text"
+              settings={settings}
+              onChange={onChange}
+              placeholder="e.g. FREE SHIPPING on orders over AED 200 · Use code CHAMAK10 for 10% off"
+            />
+            <SettingInput
+              label="Banner Link (optional)"
+              settingKey="announcement_url"
+              settings={settings}
+              onChange={onChange}
+              placeholder="e.g. /shop or https://wa.me/971521142341"
+            />
+
+            <div>
+              <label className="label-xs mb-1.5 block">Banner Color</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={settings.announcement_color ?? "#ff6600"}
+                  onChange={(e) => onChange("announcement_color", e.target.value)}
+                  className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent"
+                />
+                <span className="text-sm text-muted-foreground font-mono">{settings.announcement_color ?? "#ff6600"}</span>
+              </div>
+            </div>
+
+            {/* Live preview */}
+            {settings.announcement_text && (
+              <div className="rounded-xl overflow-hidden border border-border">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-2 bg-muted border-b border-border">Live Preview</p>
+                <div
+                  className="px-6 py-2.5 text-center text-white text-xs font-black uppercase tracking-widest"
+                  style={{ backgroundColor: settings.announcement_color ?? "#ff6600" }}
+                >
+                  {settings.announcement_text}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {activeTab === "hero" && (
           <div className="space-y-5">
