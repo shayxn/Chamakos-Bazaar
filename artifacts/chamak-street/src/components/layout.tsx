@@ -3,7 +3,7 @@ import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout }
 import { ShoppingCart, User, Menu, X, LogOut, MapPin, MessageCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
 import { useSettings } from "@/lib/use-settings";
 import { ChamakLogo } from "./chamak-logo";
 import { SmartSearchModal } from "./smart-search";
@@ -22,6 +22,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
   const { cartBounceKey } = useCartFly();
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -61,6 +63,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
+      <motion.div
+        style={{ scaleX, transformOrigin: "left" }}
+        className="fixed top-0 left-0 right-0 z-[9999] h-[3px] fire-gradient origin-left pointer-events-none"
+      />
       <AnnouncementBanner />
       <EventBanner />
       <motion.header

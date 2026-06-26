@@ -125,6 +125,26 @@
 .gradient-text {
   @apply bg-clip-text text-transparent bg-gradient-to-r from-[#ff6600] to-[#ffcc00];
 }
+.gradient-text-animate {
+  background: linear-gradient(90deg, #ff6600, #ffcc00, #ff4400, #ffcc00, #ff6600);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease infinite;
+}
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(150%); }
+}
+.group:hover .shimmer-overlay {
+  animation: shimmer-sweep 0.75s ease forwards;
+}
 .fire-gradient {
   @apply bg-gradient-to-r from-[#ff6600] to-[#ffcc00];
 }

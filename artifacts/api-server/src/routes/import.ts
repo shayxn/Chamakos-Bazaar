@@ -171,35 +171,46 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
       .where(eq(productsTable.importSource, supplierName));
     const existingByExternalId = new Map(existingImported.map((p) => [p.externalId, p.id]));
 
-    let imported = 0;
-    let updated = 0;
-    let skipped = 0;
-    let importedCount = 0;
+    const parsedProducts = shopifyProducts.map(parseShopifyProduct);
 
-    for (const sp of shopifyProducts) {
-      const parsed = parseShopifyProduct(sp);
-
-      let categoryId: number | null = null;
+    for (const parsed of parsedProducts) {
       if (parsed.categoryName) {
         const key = parsed.categoryName.toLowerCase();
-        if (categoryMap.has(key)) {
-          categoryId = categoryMap.get(key)!;
-        } else {
+        if (!categoryMap.has(key)) {
           const [cat] = await db
             .insert(categoriesTable)
             .values({ name: parsed.categoryName, slug: slugify(parsed.categoryName) })
             .returning();
           categoryMap.set(key, cat.id);
-          categoryId = cat.id;
         }
       }
+    }
 
+    type InsertRow = {
+      name: string; description: string | null; price: string; supplierPrice: string;
+      importSource: string; externalId: string | null; sizes: string | null; colors: string | null;
+      stock: number; imageUrl: string | null; imageUrls: string | null;
+      categoryId: number | null; featured: boolean; rep: boolean; isPreOrder: boolean;
+    };
+    type UpdateRow = { id: number; data: {
+      name: string; sizes: string | null; colors: string | null; stock: number;
+      imageUrl: string | null; imageUrls: string | null; supplierPrice: string; categoryId: number | null;
+    }};
+
+    const toInsert: InsertRow[] = [];
+    const toUpdate: UpdateRow[] = [];
+    let importedCount = 0;
+
+    for (const parsed of parsedProducts) {
+      const categoryId = parsed.categoryName
+        ? (categoryMap.get(parsed.categoryName.toLowerCase()) ?? null)
+        : null;
       const existingId = existingByExternalId.get(parsed.externalId);
 
       if (existingId) {
-        await db
-          .update(productsTable)
-          .set({
+        toUpdate.push({
+          id: existingId,
+          data: {
             name: parsed.name,
             sizes: parsed.sizes,
             colors: parsed.colors,
@@ -208,12 +219,11 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
             imageUrls: parsed.imageUrls,
             supplierPrice: String(parsed.supplierPrice),
             categoryId,
-          })
-          .where(and(eq(productsTable.id, existingId), eq(productsTable.importSource, supplierName)));
-        updated++;
+          },
+        });
       } else {
         const isFeatured = importedCount % 2 === 0;
-        await db.insert(productsTable).values({
+        toInsert.push({
           name: parsed.name,
           description: parsed.description,
           price: String(parsed.sellingPrice),
@@ -231,9 +241,28 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
           isPreOrder: false,
         });
         importedCount++;
-        imported++;
       }
     }
+
+    if (toInsert.length > 0) {
+      await db.insert(productsTable).values(toInsert);
+    }
+
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
+      const batch = toUpdate.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map((p) =>
+          db.update(productsTable)
+            .set(p.data)
+            .where(and(eq(productsTable.id, p.id), eq(productsTable.importSource, supplierName)))
+        )
+      );
+    }
+
+    const imported = toInsert.length;
+    const updated = toUpdate.length;
+    const skipped = 0;
 
     const now = new Date().toISOString();
     const nextSync = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();

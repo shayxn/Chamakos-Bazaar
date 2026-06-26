@@ -195,6 +195,7 @@ export default function Shop() {
                               <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
+                          <div className="shimmer-overlay absolute inset-0 w-full h-full pointer-events-none" style={{ background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)", transform: "translateX(-150%)" }} />
                             <div className="absolute top-2 left-2 flex flex-col gap-1">
                               <EventProductBadge />
                               {product.featured && (

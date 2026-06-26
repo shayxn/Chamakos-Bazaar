@@ -1,9 +1,9 @@
 import { useListProducts, getListProductsQueryKey, useListCategories } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Flame, Zap, Star } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
@@ -14,6 +14,42 @@ import { EventHomepageBanner } from "@/components/event-homepage-banner";
 import { SpotlightBanner } from "@/components/spotlight-banner";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+function StatItem({ value, suffix, label }: { value: number; suffix: string; label: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.5 });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isInView) return;
+    let frame: number;
+    const start = performance.now();
+    const duration = 1600;
+    function tick(now: number) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setCount(Math.round(eased * value));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [isInView, value]);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.55, ease: EASE }}
+      className="flex flex-col items-center gap-1 px-6 py-4"
+    >
+      <span className="text-4xl md:text-5xl font-black gradient-text-animate tabular-nums">
+        {count}{suffix}
+      </span>
+      <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">{label}</span>
+    </motion.div>
+  );
+}
 
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -258,6 +294,24 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
+        {/* ── STATS COUNTER STRIP ── */}
+        <motion.section
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5 }}
+          className="py-10 border-y border-border/30 bg-card/30 overflow-hidden"
+        >
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border/30">
+              <StatItem value={500} suffix="+" label="Products" />
+              <StatItem value={3} suffix="" label="Brands" />
+              <StatItem value={100} suffix="%" label="Authentic Rep" />
+              <StatItem value={1} suffix=" Day" label="UAE Delivery" />
+            </div>
+          </div>
+        </motion.section>
+
         {/* ── CATEGORIES (from DB) ── */}
         {categories && categories.length > 0 && (
           <section className="py-24 bg-card border-y border-border/50 overflow-hidden">
@@ -325,7 +379,7 @@ export default function Home() {
               <div className="flex justify-between items-end">
                 <div>
                   <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">
-                    Heat <span className="gradient-text">Check</span>
+                    Heat <span className="gradient-text-animate">Check</span>
                   </h2>
                   <p className="text-muted-foreground mt-2">The hottest pieces right now.</p>
                 </div>
@@ -368,7 +422,11 @@ export default function Home() {
                             {product.isPreOrder && (
                               <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Pre-Order</span>
                             )}
-                            <span className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Featured</span>
+                            <motion.span
+                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 10px rgba(255,102,0,0.75)", "0 0 0px rgba(255,102,0,0)"] }}
+                              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                              className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm"
+                            >Featured</motion.span>
                             {(product as any).sellingFast && (
                               <span className="bg-orange-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">🔥 Selling Fast</span>
                             )}
