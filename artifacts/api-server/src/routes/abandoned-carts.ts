@@ -44,8 +44,8 @@ router.post("/abandoned-carts/track", async (req, res) => {
   const sessionId = session?.cartId;
   if (!sessionId) { res.json({ ok: false }); return; }
 
-  const { customerName, customerPhone, customerEmail, cartData, totalValue, itemCount } = req.body as {
-    customerName?: string; customerPhone?: string; customerEmail?: string;
+  const { customerName, customerEmail, cartData, totalValue, itemCount } = req.body as {
+    customerName?: string; customerEmail?: string;
     cartData?: string; totalValue?: number; itemCount?: number;
   };
 
@@ -55,7 +55,6 @@ router.post("/abandoned-carts/track", async (req, res) => {
   if (existing.length > 0) {
     await db.update(abandonedCartsTable).set({
       customerName: customerName ?? undefined,
-      customerPhone: customerPhone ?? undefined,
       customerEmail: customerEmail ?? undefined,
       cartData: cartData ?? undefined,
       totalValue: totalValue != null ? String(totalValue) : undefined,
@@ -66,7 +65,6 @@ router.post("/abandoned-carts/track", async (req, res) => {
     await db.insert(abandonedCartsTable).values({
       sessionId,
       customerName: customerName ?? null,
-      customerPhone: customerPhone ?? null,
       customerEmail: customerEmail ?? null,
       cartData: cartData ?? null,
       totalValue: totalValue != null ? String(totalValue) : null,

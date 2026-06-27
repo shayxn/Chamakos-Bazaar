@@ -170,7 +170,13 @@ export const ListProductsResponseItem = zod.object({
   "preOrderLabel": zod.string().nullish(),
   "preOrderDate": zod.string().nullish(),
   "preOrderNote": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "sellingFast": zod.boolean().optional(),
+  "spotlight": zod.boolean().optional(),
+  "hidden": zod.boolean().optional(),
+  "publishAt": zod.string().nullish(),
+  "unpublishAt": zod.string().nullish(),
+  "importSource": zod.string().nullish()
 })
 export const ListProductsResponse = zod.array(ListProductsResponseItem)
 
@@ -212,7 +218,13 @@ export const CreateProductResponse = zod.object({
   "preOrderLabel": zod.string().nullish(),
   "preOrderDate": zod.string().nullish(),
   "preOrderNote": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "sellingFast": zod.boolean().optional(),
+  "spotlight": zod.boolean().optional(),
+  "hidden": zod.boolean().optional(),
+  "publishAt": zod.string().nullish(),
+  "unpublishAt": zod.string().nullish(),
+  "importSource": zod.string().nullish()
 })
 
 
@@ -240,7 +252,13 @@ export const GetProductResponse = zod.object({
   "preOrderLabel": zod.string().nullish(),
   "preOrderDate": zod.string().nullish(),
   "preOrderNote": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "sellingFast": zod.boolean().optional(),
+  "spotlight": zod.boolean().optional(),
+  "hidden": zod.boolean().optional(),
+  "publishAt": zod.string().nullish(),
+  "unpublishAt": zod.string().nullish(),
+  "importSource": zod.string().nullish()
 })
 
 
@@ -285,7 +303,13 @@ export const UpdateProductResponse = zod.object({
   "preOrderLabel": zod.string().nullish(),
   "preOrderDate": zod.string().nullish(),
   "preOrderNote": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "sellingFast": zod.boolean().optional(),
+  "spotlight": zod.boolean().optional(),
+  "hidden": zod.boolean().optional(),
+  "publishAt": zod.string().nullish(),
+  "unpublishAt": zod.string().nullish(),
+  "importSource": zod.string().nullish()
 })
 
 
@@ -726,7 +750,13 @@ export const GetStoreStatsResponse = zod.object({
   "preOrderLabel": zod.string().nullish(),
   "preOrderDate": zod.string().nullish(),
   "preOrderNote": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "sellingFast": zod.boolean().optional(),
+  "spotlight": zod.boolean().optional(),
+  "hidden": zod.boolean().optional(),
+  "publishAt": zod.string().nullish(),
+  "unpublishAt": zod.string().nullish(),
+  "importSource": zod.string().nullish()
 }))
 })
 

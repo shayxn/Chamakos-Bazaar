@@ -11,18 +11,19 @@ router.get("/sales/reports", requireAdmin, async (req, res) => {
   const weekAgo = new Date(now.getTime() - 7 * 86400000);
   const monthAgo = new Date(now.getTime() - 30 * 86400000);
 
-  const [allRevenue] = await db.execute<{ total: string; count: string }>(
+  type RevenueRow = { total: string; count: string };
+  const allRevenue = ((await db.execute<RevenueRow>(
     sql`SELECT COALESCE(SUM(total),0)::text as total, COUNT(*)::text as count FROM orders WHERE status != 'cancelled'`
-  );
-  const [dayRevenue] = await db.execute<{ total: string; count: string }>(
+  )) as unknown as RevenueRow[])[0];
+  const dayRevenue = ((await db.execute<RevenueRow>(
     sql`SELECT COALESCE(SUM(total),0)::text as total, COUNT(*)::text as count FROM orders WHERE status != 'cancelled' AND created_at >= ${dayAgo.toISOString()}`
-  );
-  const [weekRevenue] = await db.execute<{ total: string; count: string }>(
+  )) as unknown as RevenueRow[])[0];
+  const weekRevenue = ((await db.execute<RevenueRow>(
     sql`SELECT COALESCE(SUM(total),0)::text as total, COUNT(*)::text as count FROM orders WHERE status != 'cancelled' AND created_at >= ${weekAgo.toISOString()}`
-  );
-  const [monthRevenue] = await db.execute<{ total: string; count: string }>(
+  )) as unknown as RevenueRow[])[0];
+  const monthRevenue = ((await db.execute<RevenueRow>(
     sql`SELECT COALESCE(SUM(total),0)::text as total, COUNT(*)::text as count FROM orders WHERE status != 'cancelled' AND created_at >= ${monthAgo.toISOString()}`
-  );
+  )) as unknown as RevenueRow[])[0];
 
   const bestProducts = await db.execute<{ product_name: string; total_qty: string; total_revenue: string }>(
     sql`SELECT oi.product_name, SUM(oi.quantity)::text as total_qty, SUM(oi.quantity * oi.price)::text as total_revenue

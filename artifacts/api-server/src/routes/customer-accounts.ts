@@ -6,9 +6,6 @@ import type { Request } from "express";
 
 const router = Router();
 
-declare module "express-session" {
-  interface SessionData { customerId?: number; }
-}
 
 function getCustomerId(req: Request): number | null {
   const s = (req as any).session;

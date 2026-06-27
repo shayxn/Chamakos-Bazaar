@@ -949,6 +949,18 @@ components:
           type: ["string", "null"]
         createdAt:
           type: string
+        sellingFast:
+          type: boolean
+        spotlight:
+          type: boolean
+        hidden:
+          type: boolean
+        publishAt:
+          type: ["string", "null"]
+        unpublishAt:
+          type: ["string", "null"]
+        importSource:
+          type: ["string", "null"]
 
     ProductInput:
       type: object

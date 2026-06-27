@@ -54,11 +54,11 @@ export function SpotlightBanner() {
   const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
 
   const { data: products } = useListProducts(
-    { featured: true } as any,
+    { featured: true },
     { query: { queryKey: [...getListProductsQueryKey({ featured: true }), "spotlight-check"], staleTime: 60_000 } }
   );
 
-  const spotlight = (products as any[])?.find((p: any) => p.spotlight === true);
+  const spotlight = products?.find((p) => p.spotlight === true);
 
   const countdown = useCountdown(
     spotlight?.isPreOrder && spotlight?.preOrderDate ? spotlight.preOrderDate : null

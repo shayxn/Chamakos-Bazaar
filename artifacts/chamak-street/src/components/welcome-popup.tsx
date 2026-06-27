@@ -9,13 +9,14 @@ export function WelcomePopup() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | undefined;
     try {
       const seen = localStorage.getItem(STORAGE_KEY);
       if (!seen) {
-        const t = setTimeout(() => setShow(true), 1400);
-        return () => clearTimeout(t);
+        t = setTimeout(() => setShow(true), 1400);
       }
     } catch {}
+    return () => { if (t !== undefined) clearTimeout(t); };
   }, []);
 
   const close = () => {

@@ -427,7 +427,7 @@ export default function Home() {
                               transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                               className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm"
                             >Featured</motion.span>
-                            {(product as any).sellingFast && (
+                            {product.sellingFast && (
                               <span className="bg-orange-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">🔥 Selling Fast</span>
                             )}
                           </div>

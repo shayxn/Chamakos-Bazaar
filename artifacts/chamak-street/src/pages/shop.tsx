@@ -229,7 +229,7 @@ export default function Shop() {
                               {product.featured && (
                                 <span className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Featured</span>
                               )}
-                              {(product as any).sellingFast && (
+                              {product.sellingFast && (
                                 <span className="bg-orange-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">🔥 Selling Fast</span>
                               )}
                               {product.rep ? (

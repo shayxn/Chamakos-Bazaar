@@ -33,4 +33,13 @@ export interface Product {
   /** @nullable */
   preOrderNote?: string | null;
   createdAt?: string;
+  sellingFast?: boolean;
+  spotlight?: boolean;
+  hidden?: boolean;
+  /** @nullable */
+  publishAt?: string | null;
+  /** @nullable */
+  unpublishAt?: string | null;
+  /** @nullable */
+  importSource?: string | null;
 }

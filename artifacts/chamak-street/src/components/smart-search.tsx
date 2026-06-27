@@ -115,7 +115,7 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
           {results.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="divide-y divide-white/5">
               {results.map((p, i) => {
-                const media = getPrimaryProductMedia(p.imageUrl, p.imageUrls);
+                const media = getPrimaryProductMedia(p.imageUrl);
                 return (
                   <motion.div
                     key={p.id}
@@ -123,22 +123,24 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.04, ease: EASE }}
                   >
-                    <Link href={`/product/${p.id}`}>
-                      <a onClick={onClose} className="flex items-center gap-4 px-5 py-3 hover:bg-white/5 transition-colors group">
-                        <div className="w-12 h-12 rounded-sm overflow-hidden bg-white/5 shrink-0">
-                          {media && (
-                            <img src={media} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-semibold text-sm truncate">{p.name}</p>
-                          <p className="text-primary text-xs font-bold mt-0.5">
-                            AED {Number(p.price).toFixed(2)}
-                            {p.stock === 0 && <span className="text-white/30 ml-2">Out of stock</span>}
-                          </p>
-                        </div>
-                        <div className="text-white/20 group-hover:text-white/50 transition-colors text-xs">→</div>
-                      </a>
+                    <Link
+                      href={`/product/${p.id}`}
+                      onClick={onClose}
+                      className="flex items-center gap-4 px-5 py-3 hover:bg-white/5 transition-colors group"
+                    >
+                      <div className="w-12 h-12 rounded-sm overflow-hidden bg-white/5 shrink-0">
+                        {media && (
+                          <img src={media.url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-semibold text-sm truncate">{p.name}</p>
+                        <p className="text-primary text-xs font-bold mt-0.5">
+                          AED {Number(p.price).toFixed(2)}
+                          {p.stock === 0 && <span className="text-white/30 ml-2">Out of stock</span>}
+                        </p>
+                      </div>
+                      <div className="text-white/20 group-hover:text-white/50 transition-colors text-xs">→</div>
                     </Link>
                   </motion.div>
                 );
