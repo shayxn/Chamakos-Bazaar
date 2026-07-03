@@ -1,7 +1,40 @@
 import { useRef } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  MotionValue,
+} from "framer-motion";
 
-export function ScrollFloatObject() {
+const SPRING = { stiffness: 55, damping: 20, restDelta: 0.001 };
+
+function useSmooth(mv: MotionValue<number>) {
+  return useSpring(mv, SPRING);
+}
+
+interface FloatItemProps {
+  src: string;
+  alt: string;
+  label: string;
+  sub: string;
+  enterAt: number;
+  peakAt: number;
+  exitAt: number;
+  spinDir?: 1 | -1;
+  xOffset?: string;
+}
+
+function FloatItem({
+  src,
+  label,
+  sub,
+  enterAt,
+  peakAt,
+  exitAt,
+  spinDir = 1,
+  xOffset = "0px",
+}: FloatItemProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -9,84 +42,152 @@ export function ScrollFloatObject() {
     offset: ["start end", "end start"],
   });
 
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 60,
-    damping: 18,
-    restDelta: 0.001,
-  });
+  const raw = scrollYProgress;
 
-  const y = useTransform(smoothProgress, [0, 0.4, 0.7, 1], [120, -40, -80, -160]);
-  const rotate = useTransform(smoothProgress, [0, 0.5, 1], [0, 360, 540]);
-  const scale = useTransform(smoothProgress, [0, 0.25, 0.55, 0.8, 1], [0.6, 1.15, 1, 0.85, 0.7]);
-  const x = useTransform(smoothProgress, [0, 0.3, 0.6, 1], [60, 0, -30, -60]);
-  const opacity = useTransform(smoothProgress, [0, 0.08, 0.85, 1], [0, 1, 1, 0]);
+  const opacity = useTransform(
+    raw,
+    [enterAt, enterAt + 0.08, exitAt - 0.08, exitAt],
+    [0, 1, 1, 0],
+  );
 
-  const glowOpacity = useTransform(smoothProgress, [0.2, 0.5, 0.8], [0, 0.7, 0]);
-  const glowScale = useTransform(smoothProgress, [0.2, 0.5, 0.8], [0.5, 1.4, 0.5]);
+  const y = useTransform(
+    raw,
+    [enterAt, peakAt, exitAt],
+    [120, -20, -160],
+  );
 
-  const labelOpacity = useTransform(smoothProgress, [0.15, 0.45], [0, 1]);
-  const labelY = useTransform(smoothProgress, [0.15, 0.5], [10, 0]);
+  const rotateY = useTransform(
+    raw,
+    [enterAt, peakAt],
+    [0, 360 * spinDir],
+  );
 
-  const shadowOpacity = useTransform(smoothProgress, [0.3, 0.5, 0.7], [0, 0.6, 0]);
-  const shadowScaleX = useTransform(smoothProgress, [0.3, 0.5, 0.7], [0.4, 1, 0.4]);
+  const rotateZ = useTransform(
+    raw,
+    [enterAt, enterAt + 0.1, peakAt - 0.05, peakAt],
+    [spinDir * -18, spinDir * 8, spinDir * -4, 0],
+  );
+
+  const scale = useTransform(
+    raw,
+    [enterAt, enterAt + 0.12, peakAt, exitAt],
+    [0.5, 1.1, 1, 0.75],
+  );
+
+  const shadowScaleX = useTransform(raw, [enterAt, peakAt, exitAt], [0.3, 1, 0.3]);
+  const shadowOpacity = useTransform(raw, [enterAt, peakAt - 0.05, peakAt + 0.05, exitAt], [0, 0.6, 0.6, 0]);
+  const shadowY = useTransform(raw, [enterAt, peakAt, exitAt], [20, 0, -20]);
+
+  const labelOpacity = useTransform(raw, [peakAt - 0.12, peakAt - 0.04, exitAt - 0.08, exitAt], [0, 1, 1, 0]);
+  const labelX = useTransform(raw, [peakAt - 0.12, peakAt - 0.04], [-24, 0]);
+
+  const sY = useSmooth(y);
+  const sRY = useSmooth(rotateY);
+  const sRZ = useSmooth(rotateZ);
+  const sScale = useSmooth(scale);
+  const sShadowSX = useSmooth(shadowScaleX);
+  const sShadowY = useSmooth(shadowY);
 
   return (
     <div
       ref={ref}
-      className="relative w-full overflow-visible pointer-events-none"
-      style={{ height: "420px" }}
-      aria-hidden="true"
+      className="absolute inset-0 flex items-center justify-center pointer-events-none"
+      style={{ perspective: "900px" }}
     >
-      <div className="sticky top-0 h-screen flex items-center justify-center overflow-visible">
-        <div className="relative flex items-center justify-center w-full">
-
-          {/* Glow behind sneaker */}
+      <div className="relative flex items-center" style={{ transform: `translateX(${xOffset})` }}>
+        <motion.div style={{ y: sY, opacity, scale: sScale }} className="relative">
           <motion.div
-            className="absolute w-48 h-48 rounded-full"
             style={{
-              background: "radial-gradient(circle, rgba(255,102,0,0.55) 0%, rgba(255,102,0,0) 70%)",
-              filter: "blur(28px)",
-              y,
-              x,
-              opacity: glowOpacity,
-              scale: glowScale,
+              rotateY: sRY,
+              rotateZ: sRZ,
+              transformStyle: "preserve-3d",
+              filter: "drop-shadow(0 30px 60px rgba(255,102,0,0.55)) drop-shadow(0 8px 16px rgba(0,0,0,0.7))",
+            }}
+          >
+            <img
+              src={src}
+              alt=""
+              className="w-52 h-52 md:w-72 md:h-72 object-contain select-none"
+              draggable={false}
+            />
+          </motion.div>
+
+          <motion.div
+            className="absolute left-1/2 -translate-x-1/2 w-36 h-6 rounded-full"
+            style={{
+              bottom: "-18px",
+              background: "radial-gradient(ellipse, rgba(255,102,0,0.5) 0%, transparent 70%)",
+              filter: "blur(8px)",
+              scaleX: sShadowSX,
+              opacity: shadowOpacity,
+              y: sShadowY,
             }}
           />
+        </motion.div>
 
-          {/* Sneaker */}
-          <motion.div
-            style={{ y, x, scale, opacity }}
-            className="relative"
-          >
-            <motion.img
-              src="/product-sneakers.png"
-              alt=""
-              style={{ rotate }}
-              className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-[0_20px_50px_rgba(255,102,0,0.5)]"
-            />
+        <motion.div
+          className="absolute left-[calc(50%+110px)] md:left-[calc(50%+150px)] top-1/2 -translate-y-1/2 w-40"
+          style={{ opacity: labelOpacity, x: labelX }}
+        >
+          <div className="h-px w-8 bg-primary/60 mb-3" />
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">{sub}</p>
+          <p className="text-xl md:text-2xl font-black uppercase tracking-tight text-white leading-tight">{label}</p>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
-            {/* Ground shadow */}
-            <motion.div
-              className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-5 rounded-full"
-              style={{
-                background: "radial-gradient(ellipse, rgba(255,102,0,0.4) 0%, transparent 70%)",
-                filter: "blur(6px)",
-                opacity: shadowOpacity,
-                scaleX: shadowScaleX,
-              }}
-            />
-          </motion.div>
+export function ScrollFloatObject() {
+  const sectionRef = useRef<HTMLDivElement>(null);
 
-          {/* Side label (desktop only) */}
-          <motion.div
-            style={{ opacity: labelOpacity, y: labelY }}
-            className="absolute right-8 md:right-24 top-1/2 -translate-y-1/2 text-right hidden md:block"
-          >
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">New Drop</p>
-            <p className="text-2xl font-black uppercase tracking-tight text-white">Fresh Kicks</p>
-            <p className="text-sm text-muted-foreground mt-1">Scroll to explore</p>
-          </motion.div>
+  const items: FloatItemProps[] = [
+    {
+      src: "/product-sneakers.png",
+      alt: "Sneakers",
+      label: "Fresh Kicks",
+      sub: "New Drop",
+      enterAt: 0.05,
+      peakAt: 0.38,
+      exitAt: 0.58,
+      spinDir: 1,
+      xOffset: "-30px",
+    },
+    {
+      src: "/product-hoodie.png",
+      alt: "Hoodie",
+      label: "Chamak Hoodie",
+      sub: "Limited Edition",
+      enterAt: 0.5,
+      peakAt: 0.75,
+      exitAt: 0.94,
+      spinDir: -1,
+      xOffset: "30px",
+    },
+  ];
 
+  return (
+    <div
+      ref={sectionRef}
+      className="relative w-full pointer-events-none"
+      style={{ height: "250vh" }}
+      aria-hidden="true"
+    >
+      <div className="sticky top-0 h-screen overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,102,0,0.6) 39px, rgba(255,102,0,0.6) 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,102,0,0.6) 39px, rgba(255,102,0,0.6) 40px)",
+            }}
+          />
+        </div>
+
+        <div className="relative h-full w-full">
+          {items.map((item) => (
+            <FloatItem key={item.alt} {...item} />
+          ))}
         </div>
       </div>
     </div>

@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { Layout } from "@/components/layout";
 import { LoadingScreen } from "@/components/loading-screen";
-import { EventPopup } from "@/components/event-popup";
 import { CartFlyProvider } from "@/components/cart-fly-context";
 import { WelcomePopup } from "@/components/welcome-popup";
 import { AccountProvider } from "@/pages/account/index";
@@ -26,22 +25,13 @@ import AdminSiteSettings from "@/pages/admin/site-settings";
 import AdminReviews from "@/pages/admin/reviews";
 import AdminTiktok from "@/pages/admin/tiktok";
 import AdminImport from "@/pages/admin/import";
-import AdminGames from "@/pages/admin/games";
-import AdminEvents from "@/pages/admin/events";
 import AdminStockAlerts from "@/pages/admin/stock-alerts";
 import AdminSalesReports from "@/pages/admin/sales-reports";
-import AdminProductRequests from "@/pages/admin/product-requests";
-import AdminRefundRequests from "@/pages/admin/refund-requests";
-import AdminAbandonedCarts from "@/pages/admin/abandoned-carts";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
 import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
 import Shipping from "@/pages/shipping";
-import GamesPage from "@/pages/games";
-import GameDetail from "@/pages/game-detail";
-import RequestProduct from "@/pages/request-product";
-import Returns from "@/pages/returns";
 import AccountPage from "@/pages/account/index";
 import AccountLogin from "@/pages/account/login";
 import AccountRegister from "@/pages/account/register";
@@ -70,13 +60,8 @@ function AdminRouter() {
         <Route path="/admin/tiktok" component={AdminTiktok} />
         <Route path="/admin/terms" component={AdminTerms} />
         <Route path="/admin/import" component={AdminImport} />
-        <Route path="/admin/games" component={AdminGames} />
-        <Route path="/admin/events" component={AdminEvents} />
         <Route path="/admin/stock-alerts" component={AdminStockAlerts} />
         <Route path="/admin/sales-reports" component={AdminSalesReports} />
-        <Route path="/admin/product-requests" component={AdminProductRequests} />
-        <Route path="/admin/refund-requests" component={AdminRefundRequests} />
-        <Route path="/admin/abandoned-carts" component={AdminAbandonedCarts} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>
@@ -101,10 +86,6 @@ function MainRouter() {
             <Route path="/terms" component={Terms} />
             <Route path="/privacy" component={Privacy} />
             <Route path="/shipping" component={Shipping} />
-            <Route path="/games" component={GamesPage} />
-            <Route path="/games/:id" component={GameDetail} />
-            <Route path="/request-product" component={RequestProduct} />
-            <Route path="/returns" component={Returns} />
             <Route path="/account" component={AccountPage} />
             <Route path="/account/login" component={AccountLogin} />
             <Route path="/account/register" component={AccountRegister} />
@@ -120,12 +101,7 @@ function CustomerOverlays() {
   const isAdmin = window.location.pathname.startsWith(import.meta.env.BASE_URL + "admin") ||
     window.location.pathname.startsWith("/admin");
   if (isAdmin) return null;
-  return (
-    <>
-      <EventPopup />
-      <WelcomePopup />
-    </>
-  );
+  return <WelcomePopup />;
 }
 
 function App() {

@@ -2,8 +2,8 @@ import { useGetMe, useListProducts, useListCategories } from "@workspace/api-cli
 import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag,
-  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Gamepad2, Zap, Bell,
-  TrendingUp, MessageSquarePlus, RefreshCw, ShoppingCart
+  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Bell,
+  TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -119,8 +119,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: "/admin/categories", label: "Categories", icon: Tag },
         { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
         { href: "/admin/import", label: "Import Products", icon: Download },
-        { href: "/admin/games", label: "Games", icon: Gamepad2 },
-        { href: "/admin/events", label: "Events", icon: Zap },
         { href: "/admin/stock-alerts", label: "Stock Alerts", icon: Bell },
       ],
     },
@@ -128,14 +126,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       label: "Analytics",
       links: [
         { href: "/admin/sales-reports", label: "Sales Reports", icon: TrendingUp },
-      ],
-    },
-    {
-      label: "Customer Requests",
-      links: [
-        { href: "/admin/product-requests", label: "Product Requests", icon: MessageSquarePlus },
-        { href: "/admin/refund-requests", label: "Returns & Refunds", icon: RefreshCw },
-        { href: "/admin/abandoned-carts", label: "Abandoned Carts", icon: ShoppingCart },
       ],
     },
     {

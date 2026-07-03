@@ -7,7 +7,6 @@ import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
 import { useSettings } from "@/lib/use-settings";
 import { ChamakLogo } from "./chamak-logo";
 import { SmartSearchModal } from "./smart-search";
-import { EventBanner } from "./event-banner";
 import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
 
@@ -34,7 +33,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/shop", label: "Shop" },
-    { href: "/games", label: "Games" },
     { href: "/order-tracking", label: "Order Tracking" },
   ];
 
@@ -68,7 +66,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         className="fixed top-0 left-0 right-0 z-[9999] h-[3px] fire-gradient origin-left pointer-events-none"
       />
       <AnnouncementBanner />
-      <EventBanner />
       <motion.header
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${
           scrolled
@@ -296,13 +293,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/shop" className="hover:text-primary transition-colors">All Products</Link></li>
               <li><Link href="/order-tracking" className="hover:text-primary transition-colors">Track Order</Link></li>
-              <li><Link href="/request-product" className="hover:text-primary transition-colors">Request a Product</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold uppercase tracking-wider mb-4">Support</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/returns" className="hover:text-primary transition-colors">Returns & Refunds</Link></li>
               <li><Link href="/account" className="hover:text-primary transition-colors">My Account</Link></li>
               <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
