@@ -3,7 +3,7 @@ import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Bell,
-  TrendingUp, Gamepad2, Zap, ShoppingCart, RotateCcw, MessageSquarePlus
+  TrendingUp, ShoppingCart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -127,15 +127,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       label: "Analytics",
       links: [
         { href: "/admin/sales-reports", label: "Sales Reports", icon: TrendingUp },
-        { href: "/admin/refund-requests", label: "Refund Requests", icon: RotateCcw },
-        { href: "/admin/product-requests", label: "Product Requests", icon: MessageSquarePlus },
       ],
     },
     {
       label: "Content",
       links: [
-        { href: "/admin/events", label: "Events", icon: Zap },
-        { href: "/admin/games", label: "Games", icon: Gamepad2 },
         { href: "/admin/site-settings", label: "Site Settings", icon: Settings },
         { href: "/admin/reviews", label: "Reviews", icon: Star },
         { href: "/admin/tiktok", label: "TikTok Videos", icon: Video },

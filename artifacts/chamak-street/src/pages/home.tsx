@@ -4,8 +4,8 @@ import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence 
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Flame, Zap, Star, ShoppingBag } from "lucide-react";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
-import gta6Card1 from "@assets/IMG_0400_1783100301325.png";
-import gta6Card2 from "@assets/IMG_0384_1783100301325.png";
+const GTA6_IMG_1 = "https://www.rockstargames.com/VI/_next/static/media/Vice_City_04.06evqutgh7624.jpg";
+const GTA6_IMG_2 = "https://www.rockstargames.com/VI/_next/static/media/ULTIMATE_EDITION_01.16qc1xq5nigg1.jpg";
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
@@ -175,7 +175,7 @@ function GTA6ExploreCards() {
                 boxShadow: "0 0 60px rgba(255,45,156,0.15), 0 20px 50px rgba(0,0,0,0.5)",
               }}
             >
-              <img src={gta6Card1} alt="Only in Leonida" className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 group-hover:scale-105" style={{ objectPosition: "center 20%" }} />
+              <img src={GTA6_IMG_1} alt="Only in Leonida" className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 group-hover:scale-105" style={{ objectPosition: "center 20%" }} />
               <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(7,7,28,0.9) 0%, rgba(7,7,28,0.5) 50%, rgba(7,7,28,0.1) 100%)" }} />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,7,28,0.85) 0%, transparent 55%)" }} />
 
@@ -224,7 +224,7 @@ function GTA6ExploreCards() {
                 boxShadow: "0 0 60px rgba(255,208,96,0.12), 0 20px 50px rgba(0,0,0,0.5)",
               }}
             >
-              <img src={gta6Card2} alt="GTA VI Editions" className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 group-hover:scale-105" style={{ objectPosition: "center 30%" }} />
+              <img src={GTA6_IMG_2} alt="GTA VI Editions" className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 group-hover:scale-105" style={{ objectPosition: "center 30%" }} />
               <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(7,7,28,0.1) 0%, rgba(7,7,28,0.5) 50%, rgba(7,7,28,0.93) 100%)" }} />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,7,28,0.88) 0%, transparent 50%)" }} />
 
