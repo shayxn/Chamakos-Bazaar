@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect } from "react";
 import { Link } from "wouter";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { ArrowLeft, ArrowRight, Play, X, ShoppingBag } from "lucide-react";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
+import { ArrowLeft, ArrowRight, Play, X, ShoppingBag, ChevronUp } from "lucide-react";
+import leonidaMapImg from "@assets/904B9A86-2CF9-4B4E-BE6D-949D28E9CB2F_1783104370895.png";
 import { useSettings } from "@/lib/use-settings";
 
 const RS = "https://www.rockstargames.com/VI/_next/static/media/";
@@ -89,22 +90,193 @@ function Divider() {
 }
 
 function GalleryGrid({ items }: { items: { src: string; label: string; accent?: string }[] }) {
+  const [fullscreen, setFullscreen] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (fullscreen === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFullscreen(null);
+      if (e.key === "ArrowRight") setFullscreen(p => p !== null ? (p + 1) % items.length : null);
+      if (e.key === "ArrowLeft") setFullscreen(p => p !== null ? (p - 1 + items.length) % items.length : null);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [fullscreen, items.length]);
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      {items.map((item, i) => (
-        <RevealUp key={i} delay={i * 0.06}>
-          <div className="relative overflow-hidden rounded-xl aspect-square group cursor-pointer">
-            <img src={item.src} alt={item.label} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-              <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: item.accent || PINK }}>{item.label}</p>
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {items.map((item, i) => (
+          <RevealUp key={i} delay={i * 0.06}>
+            <div
+              className="relative overflow-hidden rounded-xl aspect-square group cursor-pointer"
+              onClick={() => setFullscreen(i)}
+            >
+              <img src={item.src} alt={item.label} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: item.accent || PINK }}>{item.label}</p>
+              </div>
+              <div className="absolute inset-0 rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ border: `1px solid ${item.accent || PINK}44` }} />
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="1.5"><path d="M1 4V1h3M6 1h3v3M9 6v3H6M4 9H1V6" /></svg>
+                </div>
+              </div>
             </div>
-            <div className="absolute inset-0 rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-              style={{ border: `1px solid ${item.accent || PINK}44` }} />
-          </div>
+          </RevealUp>
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {fullscreen !== null && (
+          <motion.div
+            className="fixed inset-0 z-[300] bg-black/96 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setFullscreen(null)}
+          >
+            <motion.img
+              key={fullscreen}
+              src={items[fullscreen].src}
+              alt={items[fullscreen].label}
+              initial={{ scale: 0.88, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.88, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 280, damping: 24 }}
+              className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            />
+            <div className="absolute bottom-8 left-0 right-0 text-center pointer-events-none">
+              <span className="text-xs font-black uppercase tracking-widest" style={{ color: items[fullscreen].accent || PINK }}>
+                {items[fullscreen].label}
+              </span>
+              <span className="text-white/30 text-xs ml-3">{fullscreen + 1} / {items.length}</span>
+            </div>
+            <button className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors" onClick={() => setFullscreen(null)}>
+              <X className="h-4 w-4" />
+            </button>
+            <button className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors" onClick={e => { e.stopPropagation(); setFullscreen(p => p !== null ? (p - 1 + items.length) % items.length : null); }}>
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <button className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors" onClick={e => { e.stopPropagation(); setFullscreen(p => p !== null ? (p + 1) % items.length : null); }}>
+              <ArrowRight className="h-5 w-5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+const MAP_REGIONS = [
+  { id: "vice-city",    name: "Vice City",     x: 30, y: 78, desc: "The neon-lit coastal metropolis at the heart of Leonida. Vice City pulses with energy, from Art Deco skyscrapers to sun-soaked beaches.",                               screens: ["hero","vc2","vc3","vc4"] as const,         accent: PINK },
+  { id: "leonida-keys", name: "Leonida Keys",  x: 20, y: 91, desc: "A chain of tropical islands at the southern tip of the state. Crystal-clear waters, mangroves, and a world apart from the city.",                                    screens: ["keys1","keys2","keys3"] as const,          accent: GOLD },
+  { id: "port-gellhorn",name: "Port Gellhorn", x: 72, y: 52, desc: "A working port city on the eastern coast. Industrial docks meet suburban sprawl in this gritty but vibrant community.",                                               screens: ["port1","port2"] as const,                 accent: CYAN },
+  { id: "grassrivers",  name: "Grassrivers",   x: 46, y: 47, desc: "Fertile flatlands cut through by winding rivers. Agricultural heartland of Leonida, dotted with small towns and roadside diners.",                                    screens: ["grass1","vc6"] as const,                  accent: GOLD },
+  { id: "mount-kalaga", name: "Mount Kalaga",  x: 37, y: 18, desc: "The crown of the Leonida wilderness. Soaring peaks, ancient forests, and breathtaking vistas that stretch to the horizon.",                                           screens: ["kalaga1","kalaga2"] as const,              accent: CYAN },
+  { id: "ambrosia",     name: "Ambrosia",      x: 74, y: 73, desc: "A sun-drenched coastal suburb east of Vice City. Gated communities, yacht clubs, and the quieter side of Leonida wealth.",                                            screens: ["ambrosia1","ambrosia2"] as const,          accent: PINK },
+  { id: "north-coast",  name: "North Coast",   x: 60, y:  5, desc: "Wild, rugged shoreline along the northern edge of Leonida. Fishing towns, sea stacks, and hidden coves for the adventurous.",                                        screens: ["vc8","vc9"] as const,                     accent: CYAN },
+  { id: "redlands",     name: "Redlands",      x: 65, y: 63, desc: "Red-clay hills and scrubland east of the city. Where urban sprawl thins out and a rawer, less polished Leonida takes over.",                                         screens: ["vc7","vc5"] as const,                     accent: GOLD },
+  { id: "lake-leonida", name: "Lake Leonida",  x: 57, y: 33, desc: "A vast freshwater lake surrounded by pines and marshland. A summer retreat for city dwellers and home to some of the state's best fishing.",                         screens: ["keys2","kalaga1"] as const,               accent: CYAN },
+];
+
+function LeonidaWorldMap() {
+  const [active, setActive] = useState<string | null>(null);
+  const region = MAP_REGIONS.find(r => r.id === active);
+  const getScreens = (keys: readonly string[]) => keys.map(k => IMG[k as keyof typeof IMG]).filter(Boolean) as string[];
+
+  return (
+    <section className="relative py-16 overflow-hidden">
+      <div className="container mx-auto px-6">
+        <RevealUp className="text-center mb-10">
+          <SectionLabel accent={GOLD}>Explore</SectionLabel>
+          <h2 className="font-black uppercase text-white" style={{ fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: 0.95 }}>
+            State of{" "}
+            <span style={{ background: `linear-gradient(135deg, ${GOLD}, ${PINK})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Leonida</span>
+          </h2>
+          <p className="text-white/40 mt-3 text-sm font-mono tracking-wider">Tap any marker to explore · 9 regions · 12,607 km²</p>
         </RevealUp>
-      ))}
-    </div>
+
+        <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
+          {/* Map image + hotspots */}
+          <RevealUp className="relative w-full lg:w-[460px] flex-shrink-0">
+            <div className="relative rounded-2xl overflow-hidden" style={{ boxShadow: `0 0 100px ${GOLD}22, 0 40px 80px rgba(0,0,0,0.7)` }}>
+              <img src={leonidaMapImg} alt="State of Leonida" className="w-full object-cover select-none" draggable={false} />
+              {MAP_REGIONS.map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => setActive(active === r.id ? null : r.id)}
+                  className="group absolute z-10"
+                  style={{ left: `${r.x}%`, top: `${r.y}%`, transform: "translate(-50%,-50%)" }}
+                >
+                  <motion.div
+                    animate={{
+                      scale: active === r.id ? [1,1.4,1] : [1,1.2,1],
+                      boxShadow: active === r.id
+                        ? [`0 0 0 0 ${r.accent}70`,`0 0 0 10px ${r.accent}30`,`0 0 0 0 ${r.accent}70`]
+                        : [`0 0 0 0 ${r.accent}50`,`0 0 0 6px ${r.accent}20`,`0 0 0 0 ${r.accent}50`],
+                    }}
+                    transition={{ duration: active === r.id ? 1.2 : 2.2, repeat: Infinity }}
+                    style={{ width: active === r.id ? 16 : 11, height: active === r.id ? 16 : 11, borderRadius: "50%", background: r.accent, border: active === r.id ? "2px solid white" : "none" }}
+                  />
+                  <span
+                    className="absolute left-1/2 -translate-x-1/2 -top-6 text-[8px] font-black uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.5 rounded pointer-events-none"
+                    style={{ color: r.accent, background: "rgba(7,7,28,0.9)", backdropFilter: "blur(4px)" }}
+                  >{r.name}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-0.5">
+              {MAP_REGIONS.map(r => (
+                <button key={r.id} onClick={() => setActive(active === r.id ? null : r.id)}
+                  className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-wider px-2 py-1 rounded text-left transition-colors"
+                  style={{ color: active === r.id ? r.accent : "rgba(255,255,255,0.3)" }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: r.accent, display: "inline-block", flexShrink: 0 }} />{r.name}
+                </button>
+              ))}
+            </div>
+          </RevealUp>
+
+          {/* Info panel */}
+          <div className="flex-1 w-full lg:max-w-lg" style={{ minHeight: 340 }}>
+            <AnimatePresence mode="wait">
+              {region ? (
+                <motion.div key={region.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.3 }}
+                  className="rounded-2xl p-6 backdrop-blur-md" style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${region.accent}25` }}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div><SectionLabel accent={region.accent}>{region.name}</SectionLabel><div className="w-8 h-px mb-3" style={{ background: region.accent }} /></div>
+                    <button onClick={() => setActive(null)} className="text-white/25 hover:text-white/60 transition-colors mt-1"><X className="h-4 w-4" /></button>
+                  </div>
+                  <p className="text-white/55 text-sm leading-relaxed mb-5">{region.desc}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {getScreens(region.screens).slice(0, 4).map((src, i) => (
+                      <div key={i} className="aspect-video overflow-hidden rounded-lg border border-white/5">
+                        <img src={src} alt={region.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="rounded-2xl p-10 flex flex-col items-center justify-center text-center"
+                  style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", minHeight: 340 }}>
+                  <motion.div animate={{ scale: [1,1.06,1], opacity: [0.4,0.7,0.4] }} transition={{ duration: 3, repeat: Infinity }} className="text-5xl mb-4">🗺️</motion.div>
+                  <p className="text-white/35 text-sm leading-relaxed">Select a location on the map<br />to explore the State of Leonida</p>
+                  <div className="mt-6 grid grid-cols-3 gap-1.5">
+                    {MAP_REGIONS.map(r => (
+                      <div key={r.id} className="text-[7px] font-black uppercase tracking-wider px-2 py-1 rounded-full text-center" style={{ background: `${r.accent}12`, color: `${r.accent}80` }}>{r.name}</div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -229,13 +401,44 @@ export default function GTA6Page() {
   const settings = useSettings();
   const [showPreOrder, setShowPreOrder] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [showBackTop, setShowBackTop] = useState(false);
+
+  const { scrollYProgress: pageProgress } = useScroll();
+  const progressScaleX = useSpring(pageProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
+    const onScroll = () => setShowBackTop(window.scrollY > 600);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
     <div style={{ background: "#07071c", minHeight: "100vh", color: "#fff" }}>
+
+      {/* ── SCROLL PROGRESS BAR ── */}
+      <motion.div
+        style={{ scaleX: progressScaleX, transformOrigin: "left", background: `linear-gradient(to right, ${PINK}, ${CYAN})` }}
+        className="fixed top-0 left-0 right-0 z-[200] h-[2px] origin-left pointer-events-none"
+      />
+
+      {/* ── BACK TO TOP ── */}
+      <AnimatePresence>
+        {showBackTop && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            whileHover={{ scale: 1.1, boxShadow: `0 8px 30px ${PINK}55` }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed bottom-8 right-6 z-[100] w-11 h-11 rounded-full flex items-center justify-center text-white shadow-2xl"
+            style={{ background: `linear-gradient(135deg, ${PINK}, ${CYAN})` }}
+          >
+            <ChevronUp className="h-5 w-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* ── BACK BUTTON ── */}
       <div className="fixed top-20 left-6 z-50">
@@ -903,6 +1106,12 @@ export default function GTA6Page() {
           </RevealUp>
         </div>
       </section>
+
+      {/* ══════════════════════════════════════
+          SECTION — INTERACTIVE WORLD MAP
+      ══════════════════════════════════════ */}
+      <Divider />
+      <LeonidaWorldMap />
 
       <div className="h-px w-full" style={{ background: `linear-gradient(to right, transparent, ${PINK}, ${CYAN}, transparent)` }} />
     </div>

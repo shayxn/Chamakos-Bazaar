@@ -1,0 +1,49 @@
+Small Premium GTA VI Features
+
+* Cursor changes when hovering over interactive elements.
+* Soft button click animations.
+* Tiny vibration (haptic feedback) on supported mobile devices.
+* Smooth fade between pages.
+* Glass blur navigation bar.
+* Animated page title when entering a section.
+* Image shimmer while loading.
+* Skeleton loading cards before content appears.
+* Floating “Back to Top” button.
+* Smooth scroll instead of instant jumps.
+* Fade-in text as it enters the viewport.
+* Slight zoom on images when hovered.
+* Cards lift up a few pixels on hover.
+* Animated underline on links.
+* Custom GTA-inspired loading spinner.
+* Progress bar at the top while scrolling.
+* Soft glowing borders on important buttons.
+* Premium shadows that move slightly with the cursor.
+* Auto-hide navigation bar when scrolling down, reappear when scrolling up.
+* Small “New” badge animation for newly added content.
+* Copy link button for every section.
+* Share button with a smooth popup.
+* Double-click images to favorite them.
+* Keyboard shortcuts for gallery navigation.
+* Fullscreen mode for videos and images.
+* Elegant tooltip animations.
+* Animated breadcrumbs.
+* “Continue Exploring” button at the bottom of each section.
+* Tiny particle effects behind hero sections.
+* Animated gradient backgrounds.
+* Smooth number counting animations.
+* Page transition sound toggle.
+* Save scroll position when leaving and returning.
+* Recently viewed sections.
+* Smooth fade between gallery images.
+* Mini loading animation before videos play.
+* “Last updated” label in the admin panel.
+* One-click copy for descriptions in the admin dashboard.
+* Auto-save while editing content in the admin panel.
+* Undo/Redo buttons in the admin dashboard.
+* Toast notifications for successful saves.
+* “Scroll for more ↓” animation on the hero section.
+* Easter egg cursor trail (optional toggle).
+* Smooth focus animations for search.
+* Premium empty-state illustrations when there’s no content.
+* Animated section dividers.
+* Sticky section titles while scrolling.
