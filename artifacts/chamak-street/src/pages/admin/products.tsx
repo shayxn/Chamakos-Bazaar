@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Upload, Image, CheckCircle, XCircle, X, Calendar, Package, ChevronDown, EyeOff, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, Image, CheckCircle, XCircle, X, Calendar, Package, ChevronDown, EyeOff, Eye, Star } from "lucide-react";
 import type { Product, ProductInput } from "@workspace/api-client-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -99,6 +99,20 @@ export default function AdminProducts() {
       n.has(id) ? n.delete(id) : n.add(id);
       return n;
     });
+  };
+
+  const handleSetSpotlight = (e: React.MouseEvent, product: ProductFormData & { id: number }) => {
+    e.stopPropagation();
+    if (product.spotlight) return;
+    updateProduct.mutate(
+      { id: product.id, data: { ...product, spotlight: true } as ProductInput },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+          toast({ title: "⭐ Featured Drop updated", description: `${product.name} is now the Featured Drop.` });
+        },
+      }
+    );
   };
 
   const toggleAll = () => {
@@ -534,13 +548,27 @@ export default function AdminProducts() {
                   </div>
                   <p className="font-mono font-bold text-primary shrink-0 ml-2">AED {product.price.toFixed(2)}</p>
                 </div>
-                <div className="mt-auto pt-3 flex justify-end gap-2 border-t border-border/50">
-                  <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(product); }} className="h-8 w-8 hover:text-primary">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }} className="h-8 w-8 hover:text-destructive">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="mt-auto pt-3 flex items-center gap-2 border-t border-border/50">
+                  <button
+                    onClick={(e) => handleSetSpotlight(e, product as ProductFormData & { id: number })}
+                    title={(product as ProductFormData).spotlight ? "Currently the Featured Drop" : "Set as Featured Drop"}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${
+                      (product as ProductFormData).spotlight
+                        ? "bg-yellow-400/20 text-yellow-400 border border-yellow-400/40 cursor-default"
+                        : "bg-muted text-muted-foreground hover:bg-yellow-400/10 hover:text-yellow-400 hover:border-yellow-400/30 border border-transparent"
+                    }`}
+                  >
+                    <Star className={`h-3 w-3 ${(product as ProductFormData).spotlight ? "fill-yellow-400" : ""}`} />
+                    {(product as ProductFormData).spotlight ? "Featured Drop" : "Set Drop"}
+                  </button>
+                  <div className="ml-auto flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(product); }} className="h-8 w-8 hover:text-primary">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }} className="h-8 w-8 hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
