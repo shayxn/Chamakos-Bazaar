@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Flame, Zap, Star, ShoppingBag } from "lucide-react";
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
@@ -137,12 +137,37 @@ export default function Home() {
   );
   const { data: categories } = useListCategories({ query: { staleTime: 5 * 60_000, queryKey: ["categories", "nav"] } });
 
-  const heroImage = settings.hero_image || "/chamako-hero.png";
   const heroTitle = settings.hero_title || "Ignite the";
   const heroSubtitle = settings.hero_subtitle || "Streets.";
   const heroDescription = settings.hero_description || "Bold aesthetic. Unmatched drip. Dress like you own the block.";
   const heroCtaText = settings.hero_cta_text || "Shop Now";
   const HD = (typeof sessionStorage !== "undefined" && !sessionStorage.getItem("chamak_loaded")) ? 5.1 : 0.1;
+
+  /* ── Hero images carousel ── */
+  const heroImages = useMemo<string[]>(() => {
+    try {
+      const parsed = JSON.parse(settings.hero_images || "[]");
+      if (Array.isArray(parsed) && parsed.filter(Boolean).length > 0) return parsed.filter(Boolean);
+    } catch {}
+    return [settings.hero_image || "/chamako-hero.png"];
+  }, [settings.hero_images, settings.hero_image]);
+
+  const slideInterval = Math.max(2000, Number(settings.hero_slide_interval || 5000));
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const slideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const goToSlide = useCallback((idx: number) => {
+    setSlideIdx(((idx % heroImages.length) + heroImages.length) % heroImages.length);
+  }, [heroImages.length]);
+
+  useEffect(() => {
+    if (heroImages.length <= 1 || paused) return;
+    slideTimerRef.current = setTimeout(() => {
+      setSlideIdx((prev) => (prev + 1) % heroImages.length);
+    }, slideInterval);
+    return () => { if (slideTimerRef.current) clearTimeout(slideTimerRef.current); };
+  }, [slideIdx, heroImages.length, slideInterval, paused]);
 
   const heroProduct = featuredProducts?.[0];
   const heroProductMedia = heroProduct ? getPrimaryProductMedia(heroProduct.imageUrl) : null;
@@ -162,17 +187,28 @@ export default function Home() {
       <div className="w-full">
 
         {/* ══════════════ HERO ══════════════ */}
-        <section ref={heroRef} className="relative min-h-screen w-full flex items-center overflow-hidden">
+        <section
+          ref={heroRef}
+          className="relative min-h-screen w-full flex items-center overflow-hidden"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
 
-          {/* Parallax background image */}
+          {/* ── Carousel background images (crossfade) ── */}
           <motion.div className="absolute inset-0 z-0" style={{ y: heroY, scale: heroScale }}>
-            <img
-              src={heroImage}
-              alt="Chamak Street Hero"
-              className="w-full h-full object-cover object-center"
-              style={{ opacity: 0.38 }}
-              loading="eager"
-            />
+            <AnimatePresence mode="sync">
+              <motion.img
+                key={slideIdx}
+                src={heroImages[slideIdx]}
+                alt="Chamak Street Hero"
+                className="absolute inset-0 w-full h-full object-cover object-center"
+                initial={{ opacity: 0, scale: 1.04 }}
+                animate={{ opacity: 0.38, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                loading="eager"
+              />
+            </AnimatePresence>
             <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background)/0.75) 30%, transparent 65%)" }} />
             <div className="absolute inset-0" style={{ background: "linear-gradient(to right, hsl(var(--background)/0.99) 0%, hsl(var(--background)/0.7) 40%, transparent 70%)" }} />
           </motion.div>
@@ -435,6 +471,64 @@ export default function Home() {
               )}
             </div>
           </motion.div>
+
+          {/* ── Slide dots + arrows ── */}
+          {heroImages.length > 1 && (
+            <motion.div
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: HD + 1.0 }}
+            >
+              {/* Arrows + dots row */}
+              <div className="flex items-center gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.15, backgroundColor: "rgba(255,102,0,0.2)" }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => goToSlide(slideIdx - 1)}
+                  className="w-7 h-7 rounded-full border border-white/20 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </motion.button>
+
+                <div className="flex items-center gap-2">
+                  {heroImages.map((_, i) => (
+                    <motion.button
+                      key={i}
+                      onClick={() => goToSlide(i)}
+                      animate={{
+                        width: i === slideIdx ? 24 : 6,
+                        backgroundColor: i === slideIdx ? "#ff6600" : "rgba(255,255,255,0.3)",
+                        boxShadow: i === slideIdx ? "0 0 10px rgba(255,102,0,0.8)" : "none",
+                      }}
+                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                      className="h-1.5 rounded-full cursor-pointer"
+                    />
+                  ))}
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.15, backgroundColor: "rgba(255,102,0,0.2)" }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => goToSlide(slideIdx + 1)}
+                  className="w-7 h-7 rounded-full border border-white/20 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2L8.5 6L4.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </motion.button>
+              </div>
+
+              {/* Progress bar for current slide */}
+              <div className="w-32 h-px bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-primary rounded-full"
+                  key={slideIdx}
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: slideInterval / 1000, ease: "linear" }}
+                />
+              </div>
+            </motion.div>
+          )}
 
           {/* Scroll indicator */}
           <motion.div

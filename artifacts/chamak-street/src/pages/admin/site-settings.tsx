@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2, Megaphone } from "lucide-react";
+import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2, Megaphone, Plus, Trash2, ChevronUp, ChevronDown, Images } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SETTING_DEFAULTS } from "@/lib/use-settings";
 
@@ -182,6 +182,112 @@ function SliderInput({
       <input type="range" min={min} max={max} step={step ?? 0.1} value={val}
         onChange={(e) => onChange(settingKey, e.target.value)}
         className="w-full accent-primary" />
+    </div>
+  );
+}
+
+function HeroImagesManager({ settings, onChange }: { settings: SettingsMap; onChange: (key: string, val: string) => void }) {
+  const { toast } = useToast();
+  const fileRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const getImages = (): string[] => {
+    try {
+      const parsed = JSON.parse(settings.hero_images || "[]");
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {}
+    const fallback = settings.hero_image || SETTING_DEFAULTS.hero_image;
+    return fallback ? [fallback] : [];
+  };
+
+  const setImages = (imgs: string[]) => {
+    onChange("hero_images", JSON.stringify(imgs));
+    if (imgs.length > 0) onChange("hero_image", imgs[0]);
+  };
+
+  const images = getImages();
+
+  const handleUrlChange = (i: number, val: string) => {
+    const next = [...images]; next[i] = val; setImages(next);
+  };
+  const handleAdd = () => setImages([...images, ""]);
+  const handleRemove = (i: number) => { const next = images.filter((_, idx) => idx !== i); setImages(next.length > 0 ? next : [SETTING_DEFAULTS.hero_image]); };
+  const handleMoveUp = (i: number) => { if (i === 0) return; const next = [...images]; [next[i - 1], next[i]] = [next[i], next[i - 1]]; setImages(next); };
+  const handleMoveDown = (i: number) => { if (i === images.length - 1) return; const next = [...images]; [next[i], next[i + 1]] = [next[i + 1], next[i]]; setImages(next); };
+
+  const handleFile = async (i: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    try {
+      const url = await uploadImageFile(file);
+      handleUrlChange(i, url);
+      toast({ title: "Image uploaded!" });
+    } catch { toast({ title: "Upload failed", variant: "destructive" }); }
+    if (fileRefs.current[i]) fileRefs.current[i]!.value = "";
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="label-xs flex items-center gap-2"><Images className="h-3.5 w-3.5" /> Hero Images (Slideshow)</label>
+        <span className="text-[10px] font-mono text-muted-foreground">{images.length} image{images.length !== 1 ? "s" : ""}</span>
+      </div>
+      <p className="text-xs text-muted-foreground -mt-1">Add multiple images — the hero will automatically cycle through them. Drag order = slide order.</p>
+
+      <div className="space-y-3">
+        {images.map((url, i) => (
+          <div key={i} className="border border-border/60 rounded-xl overflow-hidden bg-muted/20">
+            <div className="flex items-center gap-2 p-3">
+              <div className="flex flex-col gap-0.5 shrink-0">
+                <button onClick={() => handleMoveUp(i)} disabled={i === 0} className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-opacity">
+                  <ChevronUp className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => handleMoveDown(i)} disabled={i === images.length - 1} className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-opacity">
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <span className="text-[10px] font-black font-mono text-muted-foreground/60 shrink-0 w-5">{String(i + 1).padStart(2, "0")}</span>
+              <Input
+                value={url}
+                onChange={(e) => handleUrlChange(i, e.target.value)}
+                placeholder="https://... or upload →"
+                className="flex-1 text-sm"
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => fileRefs.current[i]?.click()}
+                className="shrink-0 gap-1 text-xs font-bold uppercase tracking-wide border-primary/30 hover:border-primary px-2.5">
+                <Upload className="h-3 w-3" /> Upload
+              </Button>
+              <button onClick={() => handleRemove(i)} disabled={images.length === 1}
+                className="shrink-0 p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-20 transition-colors">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+              <input ref={(el) => { fileRefs.current[i] = el; }} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(i, e)} />
+            </div>
+            {url && (
+              <div className="h-20 border-t border-border/30 overflow-hidden">
+                <img src={url} alt={`Slide ${i + 1}`} className="w-full h-full object-cover object-center" />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <Button type="button" variant="outline" onClick={handleAdd}
+        className="w-full gap-2 border-dashed border-primary/30 hover:border-primary font-bold uppercase tracking-wide text-xs">
+        <Plus className="h-3.5 w-3.5" /> Add Another Image
+      </Button>
+
+      <div className="pt-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="label-xs">Slide Interval (seconds)</label>
+          <span className="text-xs font-mono text-primary">{Math.round(Number(settings.hero_slide_interval || 5000) / 1000)}s</span>
+        </div>
+        <input type="range" min={2000} max={12000} step={500}
+          value={Number(settings.hero_slide_interval || 5000)}
+          onChange={(e) => onChange("hero_slide_interval", e.target.value)}
+          className="w-full accent-primary" />
+        <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5">
+          <span>2s</span><span>12s</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -370,10 +476,10 @@ export default function AdminSiteSettings() {
         )}
 
         {activeTab === "hero" && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <h2 className="font-black uppercase tracking-wider text-primary mb-6">Hero Section</h2>
-            <ImageSettingInput label="Hero Image" settingKey="hero_image" settings={settings} onChange={onChange} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <HeroImagesManager settings={settings} onChange={onChange} />
+            <div className="border-t border-border/40 pt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <SettingInput label="Hero Title Line 1" settingKey="hero_title" settings={settings} onChange={onChange} />
               <SettingInput label="Hero Title Line 2 (gradient)" settingKey="hero_subtitle" settings={settings} onChange={onChange} />
               <div className="sm:col-span-2">

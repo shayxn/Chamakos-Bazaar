@@ -2,6 +2,8 @@ import { useGetAllSettings } from "@workspace/api-client-react";
 
 export const SETTING_DEFAULTS: Record<string, string> = {
   hero_image: "/chamako-hero.png",
+  hero_images: "",
+  hero_slide_interval: "5000",
   hero_title: "Ignite the",
   hero_subtitle: "Streets.",
   hero_description: "Bold aesthetic. Unmatched drip. Dress like you own the block with the new Chamako collection.",
