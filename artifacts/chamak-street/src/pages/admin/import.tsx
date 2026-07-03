@@ -48,8 +48,6 @@ type SyncStats = {
 
 type AllStats = {
   fashioncage: SyncStats;
-  stealstreetwear: SyncStats;
-  reesdxb: SyncStats;
 };
 
 const SUPPLIERS = [
@@ -59,20 +57,6 @@ const SUPPLIERS = [
     domain: "fashioncage.me",
     color: "text-orange-400",
     dot: "bg-orange-400",
-  },
-  {
-    id: "stealstreetwear",
-    label: "Steal Streetwear",
-    domain: "stealstreetwear.com",
-    color: "text-blue-400",
-    dot: "bg-blue-400",
-  },
-  {
-    id: "reesdxb",
-    label: "Rees DXB",
-    domain: "reesdxb.store",
-    color: "text-purple-400",
-    dot: "bg-purple-400",
   },
 ] as const;
 
@@ -537,15 +521,13 @@ export default function AdminImport() {
       const res = await fetch(`${BASE}/api/import/sync-all`, { method: "POST", credentials: "include" });
       const data = (await res.json()) as {
         fashioncage: ImportResult & { error?: string };
-        stealstreetwear: ImportResult & { error?: string };
-        reesdxb: ImportResult & { error?: string };
       };
       fetchStats();
-      const totalNew = (data.fashioncage.imported ?? 0) + (data.stealstreetwear.imported ?? 0) + (data.reesdxb?.imported ?? 0);
-      const totalUpdated = (data.fashioncage.updated ?? 0) + (data.stealstreetwear.updated ?? 0) + (data.reesdxb?.updated ?? 0);
+      const totalNew = data.fashioncage.imported ?? 0;
+      const totalUpdated = data.fashioncage.updated ?? 0;
       toast({
         title: "Sync All Complete",
-        description: `${totalNew} new · ${totalUpdated} updated across all 3 suppliers`,
+        description: `${totalNew} new · ${totalUpdated} updated`,
       });
     } catch {
       toast({ title: "Sync failed", variant: "destructive" });
