@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { Layout } from "@/components/layout";
 import { LoadingScreen } from "@/components/loading-screen";
-import { SiteSplash } from "@/components/site-splash";
 import { EventPopup } from "@/components/event-popup";
 import { CartFlyProvider } from "@/components/cart-fly-context";
 import { WelcomePopup } from "@/components/welcome-popup";
@@ -123,7 +122,6 @@ function CustomerOverlays() {
   if (isAdmin) return null;
   return (
     <>
-      <SiteSplash />
       <EventPopup />
       <WelcomePopup />
     </>

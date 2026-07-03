@@ -12,6 +12,7 @@ import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
 import { EventHomepageBanner } from "@/components/event-homepage-banner";
 import { SpotlightBanner } from "@/components/spotlight-banner";
+import { ScrollFloatObject } from "@/components/scroll-float-object";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -229,6 +230,9 @@ export default function Home() {
             </motion.div>
           </motion.div>
         </section>
+
+        {/* ── SCROLL FLOAT OBJECT ── */}
+        <ScrollFloatObject />
 
         {/* ── SPOTLIGHT BANNER ── */}
         <SpotlightBanner />
