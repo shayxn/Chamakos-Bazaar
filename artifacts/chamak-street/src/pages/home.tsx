@@ -719,6 +719,118 @@ export default function Home() {
           </motion.div>
         </section>
 
+        {/* ══════════════ FEATURED PRODUCTS ══════════════ */}
+        <section className="py-20 overflow-hidden">
+          <div className="container mx-auto px-4">
+            <RevealSection className="mb-12">
+              <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.35em] text-primary/70 mb-2">Handpicked For You</p>
+                  <h2 className="text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none">
+                    Heat <span className="gradient-text-animate">Check</span>
+                  </h2>
+                </div>
+                <Link href="/shop" className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary hover:opacity-80 transition-opacity shrink-0">
+                  View All <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </RevealSection>
+
+            <RevealList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8" stagger={0.09}>
+              {featuredProducts?.map((product, idx) => {
+                const primaryMedia = getPrimaryProductMedia(product.imageUrl);
+                return (
+                  <motion.div key={product.id} variants={revealItem} style={{ perspective: 1100 }}>
+                    <Link href={`/product/${product.id}`}>
+                      <TiltCard className="group cursor-pointer">
+                        <motion.div
+                          className="relative aspect-[4/5] mb-4 overflow-hidden rounded-2xl bg-card border border-border/40 group-hover:border-primary/40 transition-colors duration-400"
+                          whileHover={{ boxShadow: "0 36px 90px rgba(255,102,0,0.35), 0 0 0 1px rgba(255,102,0,0.18)" }}
+                          transition={{ duration: 0.35 }}
+                        >
+                          {primaryMedia ? (
+                            primaryMedia.type === "video" ? (
+                              <video src={primaryMedia.url} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-108" muted playsInline preload="metadata" />
+                            ) : (
+                              <motion.img
+                                src={primaryMedia.url}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                                whileHover={{ scale: 1.08 }}
+                                transition={{ duration: 0.6, ease: EASE }}
+                                loading="lazy"
+                              />
+                            )
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
+                          )}
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden rounded-2xl">
+                            <motion.div
+                              className="absolute top-0 bottom-0"
+                              animate={{ x: ["-120%", "220%"] }}
+                              transition={{ duration: 1.1, ease: "easeInOut", repeat: Infinity, repeatDelay: 2 }}
+                              style={{ width: "50%", background: "linear-gradient(105deg, transparent 15%, rgba(255,160,0,0.22) 50%, transparent 85%)" }}
+                            />
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
+                          <div className="absolute top-3 right-3 text-[11px] font-black font-mono text-white/20 tracking-widest">
+                            {String(idx + 1).padStart(2, "0")}
+                          </div>
+                          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                            {product.isPreOrder && (
+                              <span className="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm shadow-lg">Pre-Order</span>
+                            )}
+                            <motion.span
+                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 16px rgba(255,102,0,0.95)", "0 0 0px rgba(255,102,0,0)"] }}
+                              transition={{ duration: 2.8, repeat: Infinity, delay: idx * 0.4 }}
+                              className="bg-primary text-primary-foreground text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
+                            >
+                              ★ Featured
+                            </motion.span>
+                            {product.sellingFast && (
+                              <motion.span
+                                animate={{ scale: [1, 1.07, 1], opacity: [0.85, 1, 0.85] }}
+                                transition={{ duration: 1.0, repeat: Infinity }}
+                                className="bg-orange-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
+                              >
+                                🔥 Hot
+                              </motion.span>
+                            )}
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4 z-10 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-350">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white bg-black/60 backdrop-blur-md px-5 py-1.5 rounded-full border border-white/12">
+                              View Product →
+                            </span>
+                          </div>
+                        </motion.div>
+                        <div className="space-y-1.5 px-0.5">
+                          <p className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.25em]">{product.categoryName}</p>
+                          <h3 className="font-bold text-base leading-snug group-hover:text-primary transition-colors duration-200">{product.name}</h3>
+                          <div className="flex items-center justify-between pt-1">
+                            <p className="font-mono text-primary font-black text-lg">AED {product.price.toFixed(2)}</p>
+                            <motion.div
+                              className="h-7 w-7 rounded-full border border-primary/30 bg-primary/8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-250"
+                              whileHover={{ scale: 1.3, backgroundColor: "rgba(255,102,0,0.25)" }}
+                            >
+                              <ArrowRight className="h-3 w-3 text-primary" />
+                            </motion.div>
+                          </div>
+                        </div>
+                      </TiltCard>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+
+              {(!featuredProducts || featuredProducts.length === 0) && (
+                <div className="col-span-full py-16 text-center text-muted-foreground">
+                  No featured products yet. <Link href="/shop" className="text-primary hover:underline">Check out the full shop.</Link>
+                </div>
+              )}
+            </RevealList>
+          </div>
+        </section>
+
         {/* ── SCROLL FLOAT OBJECT ── */}
         <ScrollFloatObject />
 
@@ -892,131 +1004,6 @@ export default function Home() {
             </div>
           </section>
         )}
-
-        {/* ══════════════ FEATURED PRODUCTS ══════════════ */}
-        <section className="py-32 overflow-hidden">
-          <div className="container mx-auto px-4">
-            <RevealSection className="mb-16">
-              <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.35em] text-primary/70 mb-2">Handpicked For You</p>
-                  <h2 className="text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none">
-                    Heat <span className="gradient-text-animate">Check</span>
-                  </h2>
-                </div>
-                <Link href="/shop" className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary hover:opacity-80 transition-opacity shrink-0">
-                  View All <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </RevealSection>
-
-            <RevealList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8" stagger={0.09}>
-              {featuredProducts?.map((product, idx) => {
-                const primaryMedia = getPrimaryProductMedia(product.imageUrl);
-                return (
-                  <motion.div key={product.id} variants={revealItem} style={{ perspective: 1100 }}>
-                    <Link href={`/product/${product.id}`}>
-                      <TiltCard className="group cursor-pointer">
-                        {/* Card image */}
-                        <motion.div
-                          className="relative aspect-[4/5] mb-4 overflow-hidden rounded-2xl bg-card border border-border/40 group-hover:border-primary/40 transition-colors duration-400"
-                          whileHover={{ boxShadow: "0 36px 90px rgba(255,102,0,0.35), 0 0 0 1px rgba(255,102,0,0.18)" }}
-                          transition={{ duration: 0.35 }}
-                        >
-                          {primaryMedia ? (
-                            primaryMedia.type === "video" ? (
-                              <video src={primaryMedia.url} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-108" muted playsInline preload="metadata" />
-                            ) : (
-                              <motion.img
-                                src={primaryMedia.url}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                                whileHover={{ scale: 1.08 }}
-                                transition={{ duration: 0.6, ease: EASE }}
-                                loading="lazy"
-                              />
-                            )
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
-                          )}
-
-                          {/* Sweep shimmer */}
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden rounded-2xl">
-                            <motion.div
-                              className="absolute top-0 bottom-0"
-                              animate={{ x: ["-120%", "220%"] }}
-                              transition={{ duration: 1.1, ease: "easeInOut", repeat: Infinity, repeatDelay: 2 }}
-                              style={{ width: "50%", background: "linear-gradient(105deg, transparent 15%, rgba(255,160,0,0.22) 50%, transparent 85%)" }}
-                            />
-                          </div>
-
-                          {/* Dark overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
-
-                          {/* Product number */}
-                          <div className="absolute top-3 right-3 text-[11px] font-black font-mono text-white/20 tracking-widest">
-                            {String(idx + 1).padStart(2, "0")}
-                          </div>
-
-                          {/* Badges */}
-                          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-                            {product.isPreOrder && (
-                              <span className="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm shadow-lg">Pre-Order</span>
-                            )}
-                            <motion.span
-                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 16px rgba(255,102,0,0.95)", "0 0 0px rgba(255,102,0,0)"] }}
-                              transition={{ duration: 2.8, repeat: Infinity, delay: idx * 0.4 }}
-                              className="bg-primary text-primary-foreground text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
-                            >
-                              ★ Featured
-                            </motion.span>
-                            {product.sellingFast && (
-                              <motion.span
-                                animate={{ scale: [1, 1.07, 1], opacity: [0.85, 1, 0.85] }}
-                                transition={{ duration: 1.0, repeat: Infinity }}
-                                className="bg-orange-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
-                              >
-                                🔥 Hot
-                              </motion.span>
-                            )}
-                          </div>
-
-                          {/* "View Product" pill */}
-                          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4 z-10 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-350">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white bg-black/60 backdrop-blur-md px-5 py-1.5 rounded-full border border-white/12">
-                              View Product →
-                            </span>
-                          </div>
-                        </motion.div>
-
-                        {/* Card info */}
-                        <div className="space-y-1.5 px-0.5">
-                          <p className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.25em]">{product.categoryName}</p>
-                          <h3 className="font-bold text-base leading-snug group-hover:text-primary transition-colors duration-200">{product.name}</h3>
-                          <div className="flex items-center justify-between pt-1">
-                            <p className="font-mono text-primary font-black text-lg">AED {product.price.toFixed(2)}</p>
-                            <motion.div
-                              className="h-7 w-7 rounded-full border border-primary/30 bg-primary/8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-250"
-                              whileHover={{ scale: 1.3, backgroundColor: "rgba(255,102,0,0.25)" }}
-                            >
-                              <ArrowRight className="h-3 w-3 text-primary" />
-                            </motion.div>
-                          </div>
-                        </div>
-                      </TiltCard>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-
-              {(!featuredProducts || featuredProducts.length === 0) && (
-                <div className="col-span-full py-16 text-center text-muted-foreground">
-                  No featured products yet. <Link href="/shop" className="text-primary hover:underline">Check out the full shop.</Link>
-                </div>
-              )}
-            </RevealList>
-          </div>
-        </section>
 
         {/* ── TRUST ── */}
         <TrustSection />

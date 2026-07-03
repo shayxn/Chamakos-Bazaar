@@ -228,6 +228,7 @@ export default function GTA6Page() {
 
   const settings = useSettings();
   const [showPreOrder, setShowPreOrder] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -430,48 +431,86 @@ export default function GTA6Page() {
       <section className="relative py-8 overflow-hidden">
         <div className="container mx-auto px-6 sm:px-12">
           <RevealUp>
-            <a href="https://www.youtube.com/watch?v=QdBZExpgErs" target="_blank" rel="noopener noreferrer">
-              <div className="relative overflow-hidden rounded-2xl group cursor-pointer"
-                style={{ minHeight: "58vh", boxShadow: `0 0 80px ${CYAN}18, 0 30px 60px rgba(0,0,0,0.5)` }}>
-                <img src={IMG.lucia2} alt="Official Trailer" className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(7,7,28,0.92) 0%, rgba(7,7,28,0.4) 55%, rgba(7,7,28,0.05) 100%)" }} />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,7,28,0.7) 0%, transparent 50%)" }} />
+            <div
+              className="relative overflow-hidden rounded-2xl group cursor-pointer"
+              style={{ minHeight: "58vh", boxShadow: `0 0 80px ${CYAN}18, 0 30px 60px rgba(0,0,0,0.5)` }}
+              onClick={() => setShowTrailer(true)}
+            >
+              <img src={IMG.lucia2} alt="Official Trailer" className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(7,7,28,0.92) 0%, rgba(7,7,28,0.4) 55%, rgba(7,7,28,0.05) 100%)" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,7,28,0.7) 0%, transparent 50%)" }} />
 
-                <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-14">
-                  <SectionLabel accent={CYAN}>Videos</SectionLabel>
-                  <h2 className="font-black uppercase text-white mb-3" style={{ fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: 0.95 }}>
-                    Official Trailer
-                  </h2>
-                  <p className="text-white/60 text-sm sm:text-base mb-6 max-w-sm">
-                    The biggest, most immersive evolution of the Grand Theft Auto series yet.
-                  </p>
-                  <motion.div
-                    whileHover={{ scale: 1.05, boxShadow: `0 8px 40px ${CYAN}55` }}
-                    className="flex items-center gap-3 px-8 py-4 rounded-full font-black uppercase tracking-widest text-sm text-white w-fit transition-all"
-                    style={{ background: `linear-gradient(135deg, ${CYAN}cc, ${PINK}cc)`, backdropFilter: "blur(8px)" }}
-                  >
-                    <Play className="h-4 w-4 fill-white" /> Watch Trailer 2
-                  </motion.div>
-                </div>
-
-                <div className="absolute inset-0 flex items-center justify-end pr-16 pointer-events-none">
-                  <motion.div
-                    animate={{ scale: [1, 1.08, 1], opacity: [0.15, 0.3, 0.15] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="w-28 h-28 rounded-full flex items-center justify-center"
-                    style={{ border: `2px solid ${CYAN}`, backdropFilter: "blur(4px)", background: `${CYAN}18` }}
-                  >
-                    <Play className="h-10 w-10" style={{ color: CYAN }} />
-                  </motion.div>
-                </div>
-
-                <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ border: `1.5px solid ${CYAN}44` }} />
+              <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-14">
+                <SectionLabel accent={CYAN}>Videos</SectionLabel>
+                <h2 className="font-black uppercase text-white mb-3" style={{ fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: 0.95 }}>
+                  Official Trailer
+                </h2>
+                <p className="text-white/60 text-sm sm:text-base mb-6 max-w-sm">
+                  The biggest, most immersive evolution of the Grand Theft Auto series yet.
+                </p>
+                <motion.div
+                  whileHover={{ scale: 1.05, boxShadow: `0 8px 40px ${CYAN}55` }}
+                  className="flex items-center gap-3 px-8 py-4 rounded-full font-black uppercase tracking-widest text-sm text-white w-fit transition-all"
+                  style={{ background: `linear-gradient(135deg, ${CYAN}cc, ${PINK}cc)`, backdropFilter: "blur(8px)" }}
+                >
+                  <Play className="h-4 w-4 fill-white" /> Watch Trailer 2
+                </motion.div>
               </div>
-            </a>
+
+              <div className="absolute inset-0 flex items-center justify-end pr-16 pointer-events-none">
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1], opacity: [0.15, 0.3, 0.15] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="w-28 h-28 rounded-full flex items-center justify-center"
+                  style={{ border: `2px solid ${CYAN}`, backdropFilter: "blur(4px)", background: `${CYAN}18` }}
+                >
+                  <Play className="h-10 w-10" style={{ color: CYAN }} />
+                </motion.div>
+              </div>
+
+              <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ border: `1.5px solid ${CYAN}44` }} />
+            </div>
           </RevealUp>
         </div>
       </section>
+
+      {/* ── TRAILER MODAL ── */}
+      <AnimatePresence>
+        {showTrailer && (
+          <motion.div
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowTrailer(false)}
+          >
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" />
+            <motion.div
+              className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl"
+              initial={{ scale: 0.88, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.88, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 280, damping: 24 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <iframe
+                src="https://www.youtube.com/embed/QdBZExpgErs?autoplay=1&rel=0&modestbranding=1"
+                title="GTA VI Official Trailer 2"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
+              <button
+                onClick={() => setShowTrailer(false)}
+                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/90 transition-colors z-10"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Divider />
 
