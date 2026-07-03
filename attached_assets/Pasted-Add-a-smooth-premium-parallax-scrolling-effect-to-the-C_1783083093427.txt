@@ -1,0 +1,31 @@
+Add a smooth, premium parallax scrolling effect to the ChamakStreet website. Keep it elegant, lightweight, and optimized for performance on both desktop and mobile.
+
+Parallax & Scroll Animations
+
+* Use subtle parallax animations only in key sections, not throughout the entire website.
+* The hero background should move slightly slower than the foreground content to create depth.
+* Product images should gently float upward or downward while scrolling.
+* Headings and text should smoothly fade in and slide up as they enter the viewport.
+* Buttons should have soft hover animations with slight scaling and smooth transitions.
+* Ensure all animations run smoothly and never cause lag.
+* Automatically reduce or disable heavy effects on lower-performance devices.
+* Respect reduced-motion accessibility settings.
+* Keep every animation elegant, smooth, and luxury-inspired.
+
+Signature Scroll Animation
+
+* Create the same style of scroll animation that I previously demonstrated in the reference video I provided.
+* Match the timing, feel, transitions, smoothness, and overall animation style from that reference as closely as possible while adapting it naturally to the ChamakStreet website.
+* Preserve the premium, cinematic feel of the reference without making the animation feel copied or out of place.
+* Optimize the animation for smooth performance across desktop and mobile devices.
+
+3D Sneaker Animation
+
+* When the user scrolls to the featured section, a realistic 3D sneaker should jump into view.
+* As the user continues scrolling, the sneaker should smoothly follow the scroll direction while rotating in 3D.
+* Give the motion realistic weight, subtle bounce, lighting, and shadows.
+* After approximately 5 seconds of spinning, the sneaker should gradually fade out while continuing its rotation.
+* The animation should play once per page visit unless the page is refreshed.
+* Keep the animation lightweight and highly optimized.
+
+The entire website should feel modern, luxury, cinematic, responsive, and exceptionally smooth without sacrificing loading speed or overall performance.

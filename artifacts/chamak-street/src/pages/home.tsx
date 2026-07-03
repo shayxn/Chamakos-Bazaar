@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Flame, Zap, Star } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
@@ -15,6 +15,42 @@ import { SpotlightBanner } from "@/components/spotlight-banner";
 import { ScrollFloatObject } from "@/components/scroll-float-object";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+/* ── 3D Tilt Card wrapper ── */
+function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 14;
+    const y = ((e.clientY - rect.top) / rect.height - 0.5) * -14;
+    setTilt({ x, y });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTilt({ x: 0, y: 0 });
+    setIsHovered(false);
+  }, []);
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      animate={{ rotateY: tilt.x, rotateX: tilt.y }}
+      transition={{ type: "spring", stiffness: 260, damping: 28 }}
+      style={{ transformStyle: "preserve-3d", perspective: 1000 }}
+      className={className}
+      data-hovered={isHovered}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 function StatItem({ value, suffix, label }: { value: number; suffix: string; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -93,99 +129,152 @@ export default function Home() {
       <div className="w-full">
 
         {/* ── HERO ── */}
-        <section ref={heroRef} className="relative min-h-[92vh] w-full flex items-center overflow-hidden">
+        <section ref={heroRef} className="relative min-h-screen w-full flex items-center overflow-hidden">
+
+          {/* Parallax background */}
           <motion.div className="absolute inset-0 z-0" style={{ y: heroY, scale: heroScale }}>
             <img
               src={heroImage}
               alt="Chamak Street Hero"
-              className="w-full h-full object-cover object-center opacity-50"
+              className="w-full h-full object-cover object-center"
+              style={{ opacity: 0.42 }}
               loading="eager"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/55 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent" />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background)/0.7) 35%, transparent 70%)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to right, hsl(var(--background)/0.98) 0%, hsl(var(--background)/0.6) 45%, transparent 75%)" }} />
           </motion.div>
 
+          {/* Animated orange ambient glow */}
           <motion.div
             className="absolute inset-0 z-0 pointer-events-none"
-            animate={{ opacity: [0.3, 0.55, 0.3] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            style={{ background: "radial-gradient(ellipse 60% 50% at 20% 60%, rgba(255,102,0,0.12), transparent)" }}
+            animate={{ opacity: [0.25, 0.5, 0.25], x: ["-2%", "2%", "-2%"] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            style={{ background: "radial-gradient(ellipse 55% 45% at 18% 65%, rgba(255,102,0,0.16), transparent)" }}
           />
 
-          {[...Array(6)].map((_, i) => (
+          {/* Bottom vignette for depth */}
+          <div className="absolute inset-x-0 bottom-0 h-40 z-0 pointer-events-none" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
+
+          {/* Floating embers */}
+          {[...Array(8)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute z-0 rounded-full pointer-events-none"
               style={{
-                width: 3 + (i % 3) * 2,
-                height: 3 + (i % 3) * 2,
-                left: `${10 + i * 15}%`,
-                bottom: `${8 + (i % 4) * 6}%`,
+                width: 2 + (i % 3) * 1.5,
+                height: 2 + (i % 3) * 1.5,
+                left: `${8 + i * 12}%`,
+                bottom: `${6 + (i % 4) * 8}%`,
                 background: i % 2 === 0 ? "#ff6600" : "#ffcc00",
-                boxShadow: `0 0 10px ${i % 2 === 0 ? "#ff6600" : "#ffcc00"}`,
+                boxShadow: `0 0 ${8 + i * 2}px ${i % 2 === 0 ? "#ff6600" : "#ffcc00"}`,
               }}
-              animate={{ y: [0, -(70 + i * 22), 0], opacity: [0, 0.9, 0] }}
-              transition={{ duration: 2.8 + i * 0.35, repeat: Infinity, delay: i * 0.45, ease: "easeOut" }}
+              animate={{ y: [0, -(90 + i * 28), 0], opacity: [0, 0.85, 0], x: [0, (i % 2 === 0 ? 14 : -14), 0] }}
+              transition={{ duration: 3.2 + i * 0.4, repeat: Infinity, delay: i * 0.55, ease: "easeOut" }}
             />
           ))}
 
-          <motion.div className="container relative z-10 px-4" style={{ opacity: heroOpacity }}>
-            <div className="max-w-2xl">
+          {/* Decorative horizontal line */}
+          <motion.div
+            className="absolute left-0 z-0 pointer-events-none"
+            style={{ top: "50%", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.4), transparent)" }}
+            initial={{ width: 0 }}
+            animate={{ width: "35%" }}
+            transition={{ duration: 1.2, delay: 0.8, ease: EASE }}
+          />
+
+          {/* ── Hero content ── */}
+          <motion.div className="container relative z-10 px-4 pt-24 pb-32" style={{ opacity: heroOpacity }}>
+            <div className="max-w-3xl">
+
+              {/* Badge */}
               <motion.div
-                initial={{ opacity: 0, x: -24, filter: "blur(4px)" }}
+                initial={{ opacity: 0, x: -30, filter: "blur(6px)" }}
                 animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.65, delay: 0.1, ease: EASE }}
-                className="inline-flex items-center gap-2 border border-primary/30 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-sm mb-7"
+                transition={{ duration: 0.7, delay: 5.1, ease: EASE }}
+                className="inline-flex items-center gap-2 mb-8"
               >
-                <Flame className="h-3 w-3" /> New Drop — Chamak Collection
+                <span className="inline-flex items-center gap-2 border border-primary/35 bg-primary/10 text-primary text-[11px] font-black uppercase tracking-[0.22em] px-3.5 py-1.5 rounded-sm">
+                  <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }}>
+                    <Flame className="h-3 w-3" />
+                  </motion.span>
+                  New Drop — Chamak Collection
+                </span>
+                {/* Decorative line extending right */}
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: 48 }}
+                  transition={{ duration: 0.6, delay: 5.5, ease: EASE }}
+                  className="h-px bg-primary/30"
+                />
               </motion.div>
 
-              <div className="overflow-hidden mb-2">
-                <motion.div
-                  className="text-[2.4rem] leading-tight sm:text-5xl md:text-8xl font-black uppercase tracking-tight md:tracking-tighter"
-                  initial={{ y: 80, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.7, delay: 0.25, ease: EASE }}
-                >
-                  {heroTitle}
-                </motion.div>
-              </div>
-              <div className="overflow-hidden mb-7">
-                <motion.div
-                  className="gradient-text text-[2.4rem] leading-tight sm:text-5xl md:text-8xl font-black uppercase tracking-tight md:tracking-tighter"
-                  initial={{ y: 80, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.7, delay: 0.38, ease: EASE }}
-                >
-                  {heroSubtitle}
-                </motion.div>
+              {/* Title — per-word clip-path reveal */}
+              <div className="mb-3">
+                <div className="overflow-hidden">
+                  <div className="flex flex-wrap gap-x-4 text-[2.6rem] leading-none sm:text-6xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tight md:tracking-[-0.03em]">
+                    {heroTitle.split(" ").map((word, wi) => (
+                      <div key={wi} className="overflow-hidden">
+                        <motion.span
+                          className="inline-block"
+                          initial={{ y: "100%", opacity: 0 }}
+                          animate={{ y: "0%", opacity: 1 }}
+                          transition={{ duration: 0.75, delay: 5.2 + wi * 0.12, ease: EASE }}
+                        >
+                          {word}
+                        </motion.span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
+              {/* Subtitle — gradient, per-word */}
+              <div className="mb-8">
+                <div className="overflow-hidden">
+                  <div className="flex flex-wrap gap-x-4">
+                    {heroSubtitle.split(" ").map((word, wi) => (
+                      <div key={wi} className="overflow-hidden">
+                        <motion.span
+                          className="inline-block gradient-text text-[2.6rem] leading-none sm:text-6xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tight md:tracking-[-0.03em]"
+                          initial={{ y: "100%", opacity: 0 }}
+                          animate={{ y: "0%", opacity: 1 }}
+                          transition={{ duration: 0.75, delay: 5.35 + wi * 0.12, ease: EASE }}
+                        >
+                          {word}
+                        </motion.span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
               <motion.p
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: 0.55, ease: EASE }}
-                className="text-base md:text-xl text-muted-foreground mb-9 max-w-lg leading-relaxed"
+                transition={{ duration: 0.7, delay: 5.55, ease: EASE }}
+                className="text-base md:text-xl text-muted-foreground mb-10 max-w-lg leading-relaxed"
               >
                 {heroDescription}
               </motion.p>
 
+              {/* CTAs */}
               <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.68, ease: EASE }}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.65, delay: 5.68, ease: EASE }}
                 className="flex gap-4 flex-wrap"
               >
                 <Link href="/shop">
                   <motion.div
-                    whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
+                    whileHover={{ scale: 1.05, filter: "brightness(1.12)" }}
                     whileTap={{ scale: 0.96 }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
                     className="inline-block"
                   >
                     <Button
                       size="lg"
-                      className="text-base md:text-lg h-12 md:h-14 px-7 md:px-10 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_30px_rgba(255,102,0,0.45)] hover:shadow-[0_0_55px_rgba(255,102,0,0.7)] transition-shadow duration-300"
+                      className="text-base md:text-lg h-13 md:h-14 px-8 md:px-11 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_32px_rgba(255,102,0,0.5)] hover:shadow-[0_0_60px_rgba(255,102,0,0.75)] transition-shadow duration-300"
                     >
                       {heroCtaText} <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
@@ -193,7 +282,7 @@ export default function Home() {
                 </Link>
                 <Link href="/order-tracking">
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
                     className="inline-block"
@@ -201,7 +290,7 @@ export default function Home() {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="text-base md:text-lg h-12 md:h-14 px-7 md:px-10 font-black uppercase tracking-widest border-border/60 hover:border-primary/50 transition-colors duration-300"
+                      className="text-base md:text-lg h-13 md:h-14 px-8 md:px-11 font-black uppercase tracking-widest border-border/50 hover:border-primary/55 transition-colors duration-300"
                     >
                       Track Order
                     </Button>
@@ -211,21 +300,27 @@ export default function Home() {
             </div>
           </motion.div>
 
+          {/* Scroll indicator */}
           <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground"
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.4 }}
+            transition={{ delay: 6.2 }}
           >
+            <motion.p
+              animate={{ opacity: [0.4, 0.8, 0.4] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-[9px] font-black uppercase tracking-[0.35em] text-muted-foreground/50"
+            >Scroll</motion.p>
             <motion.div
-              animate={{ y: [0, 7, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-              className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex justify-center pt-2"
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.7, repeat: Infinity, ease: "easeInOut" }}
+              className="w-5 h-9 border border-muted-foreground/20 rounded-full flex justify-center pt-1.5"
             >
               <motion.div
-                animate={{ opacity: [1, 0, 1], y: [0, 9, 0] }}
-                transition={{ duration: 1.6, repeat: Infinity }}
-                className="w-1 h-1.5 rounded-full bg-primary"
+                animate={{ opacity: [1, 0, 1], y: [0, 10, 0] }}
+                transition={{ duration: 1.7, repeat: Infinity }}
+                className="w-1 h-2 rounded-full bg-primary"
               />
             </motion.div>
           </motion.div>
@@ -397,24 +492,26 @@ export default function Home() {
               {featuredProducts?.map((product, idx) => {
                 const primaryMedia = getPrimaryProductMedia(product.imageUrl);
                 return (
-                  <motion.div key={product.id} variants={revealItem}>
+                  <motion.div key={product.id} variants={revealItem} style={{ perspective: 1000 }}>
                     <Link href={`/product/${product.id}`}>
-                      <motion.div
-                        className="group"
-                        whileHover={{ y: -12, scale: 1.02 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                      >
-                        <div className="relative aspect-square mb-4 overflow-hidden rounded-2xl bg-card border border-border/60 group-hover:border-primary/60 transition-all duration-300 shadow-lg group-hover:shadow-[0_24px_60px_rgba(255,102,0,0.28)]">
+                      <TiltCard className="group cursor-pointer">
+                        {/* Card image area */}
+                        <motion.div
+                          className="relative aspect-square mb-4 overflow-hidden rounded-2xl bg-card border border-border/50 group-hover:border-primary/50 transition-colors duration-400"
+                          whileHover={{ boxShadow: "0 32px 80px rgba(255,102,0,0.32), 0 0 0 1px rgba(255,102,0,0.15)" }}
+                          transition={{ duration: 0.35 }}
+                          style={{ translateZ: 0 }}
+                        >
                           {primaryMedia ? (
                             primaryMedia.type === "video" ? (
-                              <video src={primaryMedia.url} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110" muted playsInline preload="metadata" />
+                              <video src={primaryMedia.url} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" muted playsInline preload="metadata" />
                             ) : (
                               <motion.img
                                 src={primaryMedia.url}
                                 alt={product.name}
                                 className="w-full h-full object-cover"
-                                whileHover={{ scale: 1.12 }}
-                                transition={{ duration: 0.5, ease: EASE }}
+                                whileHover={{ scale: 1.1 }}
+                                transition={{ duration: 0.55, ease: EASE }}
                                 loading="lazy"
                               />
                             )
@@ -422,65 +519,65 @@ export default function Home() {
                             <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
                           )}
 
-                          {/* Orange sweep shimmer on hover */}
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden">
+                          {/* Sweep shimmer */}
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none overflow-hidden rounded-2xl">
                             <motion.div
-                              className="absolute inset-0"
-                              initial={false}
-                              animate={{ x: ["-110%", "110%"] }}
-                              transition={{ duration: 0.9, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.5 }}
-                              style={{
-                                background: "linear-gradient(105deg, transparent 20%, rgba(255,140,0,0.22) 50%, transparent 80%)",
-                                width: "60%",
-                              }}
+                              className="absolute top-0 bottom-0"
+                              animate={{ x: ["-110%", "200%"] }}
+                              transition={{ duration: 1.0, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.8 }}
+                              style={{ width: "45%", background: "linear-gradient(105deg, transparent 15%, rgba(255,160,0,0.18) 50%, transparent 85%)" }}
                             />
                           </div>
 
-                          {/* Bottom gradient on hover */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          {/* Hover dark overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                           {/* Badges */}
-                          <div className="absolute top-2 left-2 flex flex-col gap-1">
+                          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
                             {product.isPreOrder && (
-                              <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm shadow-lg">Pre-Order</span>
+                              <span className="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm shadow-lg">Pre-Order</span>
                             )}
                             <motion.span
-                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 12px rgba(255,102,0,0.9)", "0 0 0px rgba(255,102,0,0)"] }}
-                              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: idx * 0.3 }}
-                              className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm"
-                            >Featured</motion.span>
+                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 14px rgba(255,102,0,0.95)", "0 0 0px rgba(255,102,0,0)"] }}
+                              transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", delay: idx * 0.35 }}
+                              className="bg-primary text-primary-foreground text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
+                            >
+                              ★ Featured
+                            </motion.span>
                             {product.sellingFast && (
                               <motion.span
-                                animate={{ scale: [1, 1.05, 1] }}
-                                transition={{ duration: 1.2, repeat: Infinity }}
-                                className="bg-orange-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm"
-                              >🔥 Selling Fast</motion.span>
+                                animate={{ scale: [1, 1.06, 1], opacity: [0.85, 1, 0.85] }}
+                                transition={{ duration: 1.1, repeat: Infinity }}
+                                className="bg-orange-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
+                              >
+                                🔥 Selling Fast
+                              </motion.span>
                             )}
                           </div>
 
-                          {/* Quick-view label that slides up from bottom */}
-                          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-white/90 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full">View Product</span>
+                          {/* "View Product" pill — slides up from bottom */}
+                          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4 z-10 opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 transition-all duration-300">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white bg-black/55 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
+                              View Product
+                            </span>
                           </div>
-                        </div>
+                        </motion.div>
 
-                        <div className="space-y-1 px-0.5">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{product.categoryName}</p>
-                          <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors duration-200">{product.name}</h3>
-                          <div className="flex items-center justify-between">
-                            <motion.p
-                              className="font-mono text-primary font-bold text-lg"
-                              whileHover={{ scale: 1.05 }}
-                            >AED {product.price.toFixed(2)}</motion.p>
+                        {/* Card info */}
+                        <div className="space-y-1.5 px-0.5">
+                          <p className="text-[9px] text-muted-foreground/70 uppercase tracking-[0.22em]">{product.categoryName}</p>
+                          <h3 className="font-bold text-base leading-snug group-hover:text-primary transition-colors duration-200">{product.name}</h3>
+                          <div className="flex items-center justify-between pt-0.5">
+                            <p className="font-mono text-primary font-black text-lg">AED {product.price.toFixed(2)}</p>
                             <motion.div
-                              className="h-8 w-8 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                              whileHover={{ scale: 1.2, backgroundColor: "rgba(255,102,0,0.25)" }}
+                              className="h-7 w-7 rounded-full border border-primary/25 bg-primary/6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                              whileHover={{ scale: 1.25, backgroundColor: "rgba(255,102,0,0.22)" }}
                             >
-                              <ArrowRight className="h-3.5 w-3.5 text-primary" />
+                              <ArrowRight className="h-3 w-3 text-primary" />
                             </motion.div>
                           </div>
                         </div>
-                      </motion.div>
+                      </TiltCard>
                     </Link>
                   </motion.div>
                 );
