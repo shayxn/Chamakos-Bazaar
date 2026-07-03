@@ -718,34 +718,40 @@ export default function GTA6Page() {
       <AnimatePresence>
         {showTrailer && (
           <motion.div
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowTrailer(false)}
           >
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" />
+            <div className="absolute inset-0 bg-black/92 backdrop-blur-lg" />
             <motion.div
-              className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl"
-              initial={{ scale: 0.88, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.88, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 280, damping: 24 }}
+              className="relative w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl"
+              style={{ aspectRatio: "16/9", boxShadow: `0 0 80px ${CYAN}22, 0 40px 80px rgba(0,0,0,0.8)` }}
+              initial={{ scale: 0.88, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.88, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 26 }}
               onClick={(e) => e.stopPropagation()}
             >
               <iframe
-                src="https://www.youtube.com/embed/QdBZExpgErs?autoplay=1&rel=0&modestbranding=1"
-                title="GTA VI Official Trailer 2"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                src="https://www.youtube-nocookie.com/embed/VQRLujxTm3c?autoplay=1&rel=0&modestbranding=1&color=white&iv_load_policy=3&fs=1&enablejsapi=1"
+                title="Grand Theft Auto VI — Official Trailer 2"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                 allowFullScreen
-                className="w-full h-full border-0"
+                loading="eager"
+                className="absolute inset-0 w-full h-full border-0 bg-black"
               />
               <button
                 onClick={() => setShowTrailer(false)}
-                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/90 transition-colors z-10"
+                className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+                aria-label="Close trailer"
               >
                 <X className="h-4 w-4" />
               </button>
+              <div className="absolute bottom-3 left-4 pointer-events-none z-10">
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Grand Theft Auto VI · Official Trailer 2 · Rockstar Games</p>
+              </div>
             </motion.div>
           </motion.div>
         )}
