@@ -9,6 +9,8 @@ import { ChamakLogo } from "./chamak-logo";
 import { SmartSearchModal } from "./smart-search";
 import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
+import { FloatingParticles } from "./floating-particles";
+import { CursorGlow } from "./cursor-glow";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -61,6 +63,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
+      <FloatingParticles />
+      <CursorGlow />
       <motion.div
         style={{ scaleX, transformOrigin: "left" }}
         className="fixed top-0 left-0 right-0 z-[9999] h-[3px] fire-gradient origin-left pointer-events-none"

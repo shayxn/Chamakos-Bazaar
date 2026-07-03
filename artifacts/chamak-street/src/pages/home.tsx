@@ -394,52 +394,91 @@ export default function Home() {
             </RevealSection>
 
             <RevealList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" stagger={0.09}>
-              {featuredProducts?.map((product) => {
+              {featuredProducts?.map((product, idx) => {
                 const primaryMedia = getPrimaryProductMedia(product.imageUrl);
                 return (
                   <motion.div key={product.id} variants={revealItem}>
                     <Link href={`/product/${product.id}`}>
                       <motion.div
                         className="group"
-                        whileHover={{ y: -8 }}
-                        transition={{ type: "spring", stiffness: 280, damping: 20 }}
+                        whileHover={{ y: -12, scale: 1.02 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
                       >
-                        <div className="relative aspect-square mb-4 overflow-hidden rounded-xl bg-card border border-border group-hover:border-primary/40 transition-colors duration-300 shadow-md group-hover:shadow-[0_16px_40px_rgba(255,102,0,0.18)]">
+                        <div className="relative aspect-square mb-4 overflow-hidden rounded-2xl bg-card border border-border/60 group-hover:border-primary/60 transition-all duration-300 shadow-lg group-hover:shadow-[0_24px_60px_rgba(255,102,0,0.28)]">
                           {primaryMedia ? (
                             primaryMedia.type === "video" ? (
-                              <video src={primaryMedia.url} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" muted playsInline preload="metadata" />
+                              <video src={primaryMedia.url} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110" muted playsInline preload="metadata" />
                             ) : (
                               <motion.img
                                 src={primaryMedia.url}
                                 alt={product.name}
                                 className="w-full h-full object-cover"
-                                whileHover={{ scale: 1.1 }}
-                                transition={{ duration: 0.55, ease: EASE }}
+                                whileHover={{ scale: 1.12 }}
+                                transition={{ duration: 0.5, ease: EASE }}
                                 loading="lazy"
                               />
                             )
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
                           )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+
+                          {/* Orange sweep shimmer on hover */}
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden">
+                            <motion.div
+                              className="absolute inset-0"
+                              initial={false}
+                              animate={{ x: ["-110%", "110%"] }}
+                              transition={{ duration: 0.9, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.5 }}
+                              style={{
+                                background: "linear-gradient(105deg, transparent 20%, rgba(255,140,0,0.22) 50%, transparent 80%)",
+                                width: "60%",
+                              }}
+                            />
+                          </div>
+
+                          {/* Bottom gradient on hover */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                          {/* Badges */}
                           <div className="absolute top-2 left-2 flex flex-col gap-1">
                             {product.isPreOrder && (
-                              <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Pre-Order</span>
+                              <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm shadow-lg">Pre-Order</span>
                             )}
                             <motion.span
-                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 10px rgba(255,102,0,0.75)", "0 0 0px rgba(255,102,0,0)"] }}
-                              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 12px rgba(255,102,0,0.9)", "0 0 0px rgba(255,102,0,0)"] }}
+                              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: idx * 0.3 }}
                               className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm"
                             >Featured</motion.span>
                             {product.sellingFast && (
-                              <span className="bg-orange-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">🔥 Selling Fast</span>
+                              <motion.span
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ duration: 1.2, repeat: Infinity }}
+                                className="bg-orange-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm"
+                              >🔥 Selling Fast</motion.span>
                             )}
                           </div>
+
+                          {/* Quick-view label that slides up from bottom */}
+                          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/90 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full">View Product</span>
+                          </div>
                         </div>
+
                         <div className="space-y-1 px-0.5">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{product.categoryName}</p>
                           <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors duration-200">{product.name}</h3>
-                          <p className="font-mono text-primary font-bold text-lg">AED {product.price.toFixed(2)}</p>
+                          <div className="flex items-center justify-between">
+                            <motion.p
+                              className="font-mono text-primary font-bold text-lg"
+                              whileHover={{ scale: 1.05 }}
+                            >AED {product.price.toFixed(2)}</motion.p>
+                            <motion.div
+                              className="h-8 w-8 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                              whileHover={{ scale: 1.2, backgroundColor: "rgba(255,102,0,0.25)" }}
+                            >
+                              <ArrowRight className="h-3.5 w-3.5 text-primary" />
+                            </motion.div>
+                          </div>
                         </div>
                       </motion.div>
                     </Link>
