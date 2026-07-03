@@ -1,0 +1,87 @@
+Final Polish & Bug Fixing
+
+Excellent. Now stop adding new features and focus entirely on polishing the website.
+
+Perform a complete quality assurance review of the entire ChamakStreet website and fix every bug, issue, inconsistency, and performance problem before considering the website finished.
+
+Functionality
+
+* Fix every broken button.
+* Fix every broken link.
+* Fix every navigation issue.
+* Ensure every page opens correctly.
+* Verify every popup works perfectly.
+* Ensure all forms submit successfully.
+* Fix every search issue.
+* Fix every filter and sorting issue.
+* Ensure every product page functions correctly.
+* Verify the cart, checkout, and payment flow work without errors.
+* Ensure every admin feature works exactly as intended.
+
+Animations
+
+* Fix every animation bug.
+* Remove animation stuttering.
+* Ensure animations never overlap incorrectly.
+* Make every transition buttery smooth.
+* Eliminate lag during scrolling.
+* Optimize all parallax effects.
+* Ensure videos play smoothly.
+* Verify every hover animation works perfectly.
+
+Layout
+
+* Fix overlapping text.
+* Fix incorrect spacing.
+* Fix alignment issues.
+* Fix image sizing.
+* Fix video sizing.
+* Ensure every card is perfectly aligned.
+* Ensure consistent padding throughout the website.
+* Verify every section scales correctly on all screen sizes.
+
+Mobile & Tablet
+
+* Test every page on phones, tablets, and desktops.
+* Ensure no content overflows.
+* Fix touch interactions.
+* Verify responsive layouts.
+* Ensure scrolling feels smooth on mobile.
+* Optimize animations for smaller devices.
+
+Performance
+
+* Optimize images.
+* Optimize videos.
+* Lazy-load media.
+* Remove unnecessary JavaScript.
+* Eliminate memory leaks.
+* Reduce unnecessary network requests.
+* Ensure fast loading times.
+* Maintain smooth 60 FPS animations wherever possible.
+* Prevent any feature from slowing down the website.
+
+Admin Dashboard
+
+* Test every upload feature.
+* Test editing titles.
+* Test editing descriptions.
+* Test replacing images.
+* Test replacing videos.
+* Test drag-and-drop functionality.
+* Verify live previews.
+* Verify publishing works correctly.
+* Ensure all changes save successfully.
+
+Final Quality Check
+
+* Search the website for every possible bug.
+* Fix visual inconsistencies.
+* Fix console errors.
+* Fix responsiveness issues.
+* Remove duplicate code.
+* Clean and optimize the codebase.
+* Improve accessibility where possible.
+* Ensure the website is stable, polished, professional, and production-ready.
+
+Do not add any new features. Focus only on making every existing feature work flawlessly and ensuring the website feels premium, smooth, responsive, and completely bug-free.

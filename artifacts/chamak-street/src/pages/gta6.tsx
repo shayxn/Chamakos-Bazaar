@@ -4,6 +4,10 @@ import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "fra
 import { ArrowLeft, ArrowRight, Play, X, ShoppingBag, ChevronUp } from "lucide-react";
 import leonidaMapImg from "@assets/904B9A86-2CF9-4B4E-BE6D-949D28E9CB2F_1783104370895.png";
 import { useSettings } from "@/lib/use-settings";
+import {
+  AMBIENT_CSS, AmbientBirds, SwayingPalms, OceanWaves,
+  FloatingParticles, NeonReflections, CharacterConnectionOverlay, CharacterFloatWrapper,
+} from "@/components/ambient-effects";
 
 const RS = "https://www.rockstargames.com/VI/_next/static/media/";
 
@@ -402,6 +406,7 @@ export default function GTA6Page() {
   const [showPreOrder, setShowPreOrder] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
   const [showBackTop, setShowBackTop] = useState(false);
+  const [charHover, setCharHover] = useState<"jason" | "lucia" | null>(null);
 
   const { scrollYProgress: pageProgress } = useScroll();
   const progressScaleX = useSpring(pageProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
@@ -415,6 +420,8 @@ export default function GTA6Page() {
 
   return (
     <div style={{ background: "#07071c", minHeight: "100vh", color: "#fff" }}>
+      <style>{AMBIENT_CSS}</style>
+      <AmbientBirds />
 
       {/* ── SCROLL PROGRESS BAR ── */}
       <motion.div
@@ -553,6 +560,10 @@ export default function GTA6Page() {
             <span className="text-xs font-black uppercase tracking-[0.4em] text-white/40">Scroll to Explore</span>
           </motion.div>
         </motion.div>
+        <SwayingPalms />
+        <OceanWaves accent={CYAN} opacity={0.07} />
+        <FloatingParticles count={6} />
+        <NeonReflections />
       </section>
 
       {/* ══════════════════════════════════════
@@ -570,34 +581,59 @@ export default function GTA6Page() {
             </p>
           </RevealUp>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-            <RevealUp delay={0.1}>
-              <div className="relative overflow-hidden rounded-2xl group" style={{ minHeight: "60vh" }}>
-                <img src={IMG.jason1} alt="Jason Duval" className="w-full h-full object-cover object-top absolute inset-0 transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0" style={{ background: `linear-gradient(to top, rgba(7,7,28,0.95) 0%, rgba(7,7,28,0.15) 60%)` }} />
-                <div className="absolute bottom-0 left-0 p-8">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: CYAN }}>Protagonist</span>
-                  <h3 className="text-3xl sm:text-4xl font-black uppercase text-white">Jason Duval</h3>
-                  <p className="text-white/55 text-sm mt-2 max-w-xs">The grifter. A man who thought he'd escaped his past — until the past caught up with him.</p>
-                </div>
-                <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ border: `1.5px solid ${CYAN}55` }} />
-              </div>
-            </RevealUp>
+          <div className="relative">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+              <RevealUp delay={0.1}>
+                <CharacterFloatWrapper char="jason">
+                  <div
+                    className="relative overflow-hidden rounded-2xl group"
+                    style={{ minHeight: "60vh" }}
+                    onMouseEnter={() => setCharHover("jason")}
+                    onMouseLeave={() => setCharHover(null)}
+                  >
+                    <img src={IMG.jason1} alt="Jason Duval" className="w-full h-full object-cover object-top absolute inset-0 transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(to top, rgba(7,7,28,0.95) 0%, rgba(7,7,28,0.15) 60%)` }} />
+                    <div className="absolute bottom-0 left-0 p-8">
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: CYAN }}>Protagonist</span>
+                      <h3 className="text-3xl sm:text-4xl font-black uppercase text-white">Jason Duval</h3>
+                      <p className="text-white/55 text-sm mt-2 max-w-xs">The grifter. A man who thought he'd escaped his past — until the past caught up with him.</p>
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                      style={{ border: `1.5px solid ${CYAN}55` }} />
+                    {charHover === "lucia" && (
+                      <div className="absolute inset-0 rounded-2xl pointer-events-none transition-all duration-500"
+                        style={{ border: `1.5px solid ${CYAN}88`, boxShadow: `inset 0 0 40px ${CYAN}18` }} />
+                    )}
+                  </div>
+                </CharacterFloatWrapper>
+              </RevealUp>
 
-            <RevealUp delay={0.15}>
-              <div className="relative overflow-hidden rounded-2xl group" style={{ minHeight: "60vh" }}>
-                <img src={IMG.lucia1} alt="Lucia Caminos" className="w-full h-full object-cover object-top absolute inset-0 transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0" style={{ background: `linear-gradient(to top, rgba(7,7,28,0.95) 0%, rgba(7,7,28,0.15) 60%)` }} />
-                <div className="absolute bottom-0 left-0 p-8">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: PINK }}>Protagonist</span>
-                  <h3 className="text-3xl sm:text-4xl font-black uppercase text-white">Lucia Caminos</h3>
-                  <p className="text-white/55 text-sm mt-2 max-w-xs">The strategist. The one with the plan — until the plan fell apart.</p>
-                </div>
-                <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ border: `1.5px solid ${PINK}55` }} />
-              </div>
-            </RevealUp>
+              <RevealUp delay={0.15}>
+                <CharacterFloatWrapper char="lucia">
+                  <div
+                    className="relative overflow-hidden rounded-2xl group"
+                    style={{ minHeight: "60vh" }}
+                    onMouseEnter={() => setCharHover("lucia")}
+                    onMouseLeave={() => setCharHover(null)}
+                  >
+                    <img src={IMG.lucia1} alt="Lucia Caminos" className="w-full h-full object-cover object-top absolute inset-0 transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(to top, rgba(7,7,28,0.95) 0%, rgba(7,7,28,0.15) 60%)` }} />
+                    <div className="absolute bottom-0 left-0 p-8">
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 block" style={{ color: PINK }}>Protagonist</span>
+                      <h3 className="text-3xl sm:text-4xl font-black uppercase text-white">Lucia Caminos</h3>
+                      <p className="text-white/55 text-sm mt-2 max-w-xs">The strategist. The one with the plan — until the plan fell apart.</p>
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                      style={{ border: `1.5px solid ${PINK}55` }} />
+                    {charHover === "jason" && (
+                      <div className="absolute inset-0 rounded-2xl pointer-events-none transition-all duration-500"
+                        style={{ border: `1.5px solid ${PINK}88`, boxShadow: `inset 0 0 40px ${PINK}18` }} />
+                    )}
+                  </div>
+                </CharacterFloatWrapper>
+              </RevealUp>
+            </div>
+            <CharacterConnectionOverlay hovered={charHover} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
