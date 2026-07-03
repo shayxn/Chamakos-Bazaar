@@ -1,0 +1,223 @@
+Add a Premium “Explore Grand Theft Auto VI” Experience
+
+Create a brand-new section at the bottom of the ChamakStreet homepage called Explore Grand Theft Auto VI.
+
+Use the screenshots I provided only as visual inspiration for the layout, spacing, color palette, animations, and overall premium feel. Do not directly copy Rockstar’s copyrighted assets, text, videos, or page structure.
+
+⸻
+
+Homepage Card
+
+Near the bottom of the homepage, create two premium feature cards.
+
+Card 1
+
+Explore Grand Theft Auto VI
+
+* Large cinematic thumbnail
+* Rounded corners
+* Glass effects
+* Premium hover animation
+* Soft shadow
+* Smooth scaling
+* Animated gradient border
+* “Explore” button
+* Mouse tilt effect
+* Mobile friendly
+
+Card 2
+
+Create another customizable feature card below it that can be completely managed from the Admin Dashboard.
+
+⸻
+
+Opening Animation
+
+When “Explore Grand Theft Auto VI” is pressed:
+
+Create an incredibly smooth cinematic transition.
+
+Examples:
+
+* Background fades into a Vice City inspired neon color palette.
+* Cards smoothly transform into a full-page experience.
+* Camera-like zoom.
+* Motion blur.
+* Fade transition.
+* Smooth scaling.
+* Premium easing.
+* Glass overlays.
+* Ambient particles.
+* Soft lighting.
+
+Everything should feel cinematic.
+
+⸻
+
+Theme
+
+Use a luxury neon style inspired by an 80s coastal city.
+
+Colors:
+
+* Pink
+* Cyan
+* Purple
+* Blue
+* White
+
+Background:
+
+* Animated gradients
+* Palm silhouettes
+* Glass panels
+* Floating lights
+* Soft glow
+* Blur effects
+
+⸻
+
+Scroll Experience
+
+The entire page should feel alive.
+
+Every section should have animations.
+
+Examples:
+
+* Fade in
+* Fade out
+* Scale
+* Slide
+* Rotate
+* Blur transitions
+* Floating elements
+* Smooth parallax
+* Image reveals
+* Sticky sections
+* Cinematic transitions
+* Mouse movement reactions
+* Hover effects
+
+Everything must remain smooth and lightweight.
+
+⸻
+
+Character Sections
+
+Create unlimited character sections.
+
+Each section contains:
+
+* Character name
+* Description
+* Portrait
+* Background artwork
+* Animated entrance
+* Stats
+* Story section
+
+All editable from the Admin Dashboard.
+
+⸻
+
+Sticky Story Experience
+
+While scrolling:
+
+The character information panel should stay pinned (sticky).
+
+Next to it:
+
+A large media player.
+
+Initially:
+
+Display the thumbnail (the first frame/poster image).
+
+As the user scrolls further:
+
+The video begins playing automatically based on scroll progress.
+
+The video pauses when scrolling stops.
+
+Scrolling backward rewinds naturally.
+
+The experience should feel cinematic.
+
+⸻
+
+Admin Dashboard
+
+Create a complete content management system.
+
+Allow administrators to:
+
+* Upload videos
+* Replace thumbnails
+* Change character names
+* Edit descriptions
+* Change ordering
+* Delete sections
+* Add unlimited new characters
+* Hide sections
+* Schedule publishing
+* Save drafts
+* Enable or disable autoplay
+* Replace backgrounds
+* Upload images
+* Edit buttons
+* Preview changes before publishing
+
+No coding required.
+
+⸻
+
+Additional Content Sections
+
+After the character showcase, continue with multiple premium sections such as:
+
+* World locations
+* Vehicles
+* Weapons
+* Story overview
+* Screenshots
+* Wallpapers
+* Videos
+* Features
+* Timeline
+* Gallery
+
+Every section should use premium animations.
+
+⸻
+
+Gallery
+
+Create a responsive gallery with:
+
+* Masonry layout
+* Lightbox viewer
+* Smooth zoom animation
+* Keyboard navigation
+* Mobile swipe support
+* Lazy loading
+
+Every image should smoothly animate into view.
+
+⸻
+
+Performance
+
+Even with many animations:
+
+* Maintain excellent performance.
+* Lazy-load media.
+* Optimize videos.
+* Only animate visible elements.
+* Maintain smooth scrolling.
+* Ensure responsive design across desktop, tablet, and mobile.
+
+The experience should feel polished, immersive, cinematic, and high-end while remaining fast and responsive.
+
+Important: Use the provided screenshots only as design inspiration. Do not reproduce copyrighted layouts, text, images, or videos from Rockstar Games. Create an original experience with a similar premium level of polish and motion.

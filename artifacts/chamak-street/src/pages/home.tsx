@@ -4,6 +4,8 @@ import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence 
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Flame, Zap, Star, ShoppingBag } from "lucide-react";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
+import gta6Card1 from "@assets/IMG_0400_1783100301325.png";
+import gta6Card2 from "@assets/IMG_0384_1783100301325.png";
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
@@ -117,6 +119,152 @@ function GlitchWord({ text, delay = 0 }: { text: string; delay?: number }) {
         </motion.span>
       ))}
     </span>
+  );
+}
+
+function GTA6ExploreCards() {
+  const tilt1 = useRef<HTMLDivElement>(null);
+  const tilt2 = useRef<HTMLDivElement>(null);
+
+  const makeTiltHandlers = (ref: React.RefObject<HTMLDivElement>) => ({
+    onMouseMove: (e: React.MouseEvent<HTMLDivElement>) => {
+      const el = ref.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      el.style.transform = `perspective(1000px) rotateY(${x * 7}deg) rotateX(${-y * 5}deg) scale(1.02)`;
+    },
+    onMouseLeave: () => { if (ref.current) ref.current.style.transform = ""; },
+  });
+
+  return (
+    <section className="px-4 sm:px-6 mb-16">
+      <motion.div
+        initial={{ opacity: 0, y: 32 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-8 text-center"
+      >
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-2">✦ Explore ✦</p>
+        <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight" style={{
+          background: "linear-gradient(135deg, #ff2d9c, #00d4ff)",
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+        }}>
+          Grand Theft Auto VI
+        </h2>
+      </motion.div>
+
+      <div className="flex flex-col gap-4 max-w-5xl mx-auto">
+        {/* Card 1 — Only in Leonida */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <Link href="/gta6">
+            <div
+              ref={tilt1}
+              {...makeTiltHandlers(tilt1)}
+              className="relative overflow-hidden rounded-2xl cursor-pointer group"
+              style={{
+                minHeight: "280px",
+                transition: "transform 0.15s ease",
+                boxShadow: "0 0 60px rgba(255,45,156,0.15), 0 20px 50px rgba(0,0,0,0.5)",
+              }}
+            >
+              <img src={gta6Card1} alt="Only in Leonida" className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 group-hover:scale-105" style={{ objectPosition: "center 20%" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(7,7,28,0.9) 0%, rgba(7,7,28,0.5) 50%, rgba(7,7,28,0.1) 100%)" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,7,28,0.85) 0%, transparent 55%)" }} />
+
+              <div className="absolute inset-0 flex flex-col justify-end p-7 sm:p-10">
+                <motion.span
+                  className="text-[10px] font-black uppercase tracking-[0.35em] block mb-2"
+                  style={{ color: "#00d4ff" }}
+                >
+                  People & Places
+                </motion.span>
+                <h3 className="font-black uppercase text-white leading-none mb-2" style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}>
+                  Only in Leonida
+                </h3>
+                <p className="text-white/60 text-sm mb-5 max-w-xs">Vice City, USA. The darkest side of the sunniest place in America.</p>
+                <motion.span
+                  whileHover={{ x: 6 }}
+                  className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/60 hover:text-white transition-colors w-fit px-5 py-2.5 rounded-full"
+                  style={{ border: "1px solid rgba(0,212,255,0.4)", background: "rgba(0,212,255,0.1)", backdropFilter: "blur(8px)" }}
+                >
+                  Explore More <ArrowRight className="h-3.5 w-3.5" />
+                </motion.span>
+              </div>
+
+              {/* Hover border glow */}
+              <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ border: "1.5px solid rgba(0,212,255,0.45)", boxShadow: "inset 0 0 40px rgba(0,212,255,0.08)" }} />
+            </div>
+          </Link>
+        </motion.div>
+
+        {/* Card 2 — Ultimate Edition / Vice City Pack */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.85, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <Link href="/gta6">
+            <div
+              ref={tilt2}
+              {...makeTiltHandlers(tilt2)}
+              className="relative overflow-hidden rounded-2xl cursor-pointer group"
+              style={{
+                minHeight: "280px",
+                transition: "transform 0.15s ease",
+                boxShadow: "0 0 60px rgba(255,208,96,0.12), 0 20px 50px rgba(0,0,0,0.5)",
+              }}
+            >
+              <img src={gta6Card2} alt="GTA VI Editions" className="w-full h-full object-cover absolute inset-0 transition-transform duration-700 group-hover:scale-105" style={{ objectPosition: "center 30%" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(7,7,28,0.1) 0%, rgba(7,7,28,0.5) 50%, rgba(7,7,28,0.93) 100%)" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,7,28,0.88) 0%, transparent 50%)" }} />
+
+              <div className="absolute inset-0 flex flex-col justify-end items-end p-7 sm:p-10 text-right">
+                <motion.span
+                  className="text-[10px] font-black uppercase tracking-[0.35em] block mb-2"
+                  style={{ color: "#ffd060" }}
+                >
+                  Pre-Order Bonuses
+                </motion.span>
+                <h3 className="font-black uppercase text-white leading-none mb-1" style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.5rem)" }}>
+                  Vintage
+                </h3>
+                <div className="font-black italic text-transparent leading-none mb-2" style={{
+                  fontSize: "clamp(1.8rem, 4vw, 3rem)",
+                  WebkitTextStroke: "1.5px #ff2d9c",
+                }}>
+                  Vice City
+                </div>
+                <h3 className="font-black uppercase text-white leading-none mb-4" style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.5rem)" }}>
+                  Pack
+                </h3>
+                <p className="text-white/55 text-sm mb-5 max-w-[260px]">Pre-order to get unique benefits that flash back to when the neon burned brightest.</p>
+                <motion.span
+                  whileHover={{ x: -6 }}
+                  className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/60 hover:text-white transition-colors w-fit px-5 py-2.5 rounded-full"
+                  style={{ border: "1px solid rgba(255,208,96,0.4)", background: "rgba(255,208,96,0.1)", backdropFilter: "blur(8px)" }}
+                >
+                  Learn More <ArrowRight className="h-3.5 w-3.5" />
+                </motion.span>
+              </div>
+
+              {/* Hover border glow */}
+              <div className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ border: "1.5px solid rgba(255,208,96,0.4)", boxShadow: "inset 0 0 40px rgba(255,208,96,0.08)" }} />
+            </div>
+          </Link>
+        </motion.div>
+      </div>
+    </section>
   );
 }
 
@@ -878,6 +1026,9 @@ export default function Home() {
 
         {/* ── REVIEWS ── */}
         <ReviewsSection />
+
+        {/* ══════════════ GTA VI EXPLORE CARDS ══════════════ */}
+        <GTA6ExploreCards />
 
         {/* ══════════════ QUOTE BANNER ══════════════ */}
         <RevealSection amount={0.15} className="mx-4 mb-12">
