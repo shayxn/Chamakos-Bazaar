@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { Star, ShoppingBag, Clock, ChevronRight } from "lucide-react";
 import { useListProducts, getListProductsQueryKey } from "@workspace/api-client-react";
 import { getPrimaryProductMedia } from "@/lib/product-media";
@@ -50,8 +50,18 @@ type Product = {
 
 export function SpotlightBanner() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+
+  // Parallax for bg image
   const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
+
+  // Scroll-driven product animation
+  const rawY    = useTransform(scrollYProgress, [0, 0.25, 0.65, 1], [80, 0, -20, -60]);
+  const rawScale = useTransform(scrollYProgress, [0, 0.25, 0.65, 1], [0.82, 1, 1, 0.9]);
+  const rawOp   = useTransform(scrollYProgress, [0, 0.15, 0.7, 1], [0, 1, 1, 0]);
+  const prodY    = useSpring(rawY,    { stiffness: 100, damping: 22 });
+  const prodScale = useSpring(rawScale, { stiffness: 100, damping: 22 });
+  const prodOp   = rawOp;
 
   const { data: products } = useListProducts(
     { featured: true },
@@ -256,29 +266,56 @@ export function SpotlightBanner() {
           </motion.div>
         </div>
 
-        {/* Right: large floating product image */}
-        <motion.div
-          initial={{ opacity: 0, x: 40, scale: 0.92 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.15, ease: EASE }}
-          className="absolute right-0 top-0 bottom-0 w-[48%] hidden md:flex items-center justify-center"
+        {/* Right: scroll-driven 3D spinning product */}
+        <div
+          className="absolute right-0 top-0 bottom-0 w-[48%] hidden md:flex items-center justify-center pointer-events-none"
+          style={{ perspective: "900px" }}
         >
           {imageUrl && (
-            <div className="relative w-full h-full">
-              <img
-                src={imageUrl}
-                alt={spotlight.name}
-                className="absolute right-0 top-1/2 -translate-y-1/2 h-[90%] w-auto object-contain"
-                style={{ filter: "drop-shadow(0 20px 60px rgba(255,102,0,0.3))" }}
+            <motion.div
+              style={{ y: prodY, scale: prodScale, opacity: prodOp }}
+              className="relative flex flex-col items-center"
+            >
+              {/* 3D spinning product image */}
+              <motion.div
+                animate={{ rotateY: 360 }}
+                transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+                style={{ transformStyle: "preserve-3d" }}
+                className="relative"
+              >
+                <img
+                  src={imageUrl}
+                  alt={spotlight.name}
+                  className="h-[62vh] w-auto object-contain relative z-10"
+                  style={{
+                    filter: "drop-shadow(0 0 48px rgba(255,102,0,0.55)) drop-shadow(0 32px 48px rgba(0,0,0,0.7))",
+                  }}
+                />
+              </motion.div>
+
+              {/* Ground shadow ellipse */}
+              <motion.div
+                animate={{ scaleX: [1, 1.12, 1], opacity: [0.45, 0.65, 0.45] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute bottom-[-18px] left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
+                style={{
+                  width: "55%",
+                  height: 20,
+                  background: "radial-gradient(ellipse, rgba(255,102,0,0.5) 0%, transparent 80%)",
+                  filter: "blur(10px)",
+                }}
               />
-              {/* Edge glow */}
+
+              {/* Ambient glow orb behind product */}
               <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: "radial-gradient(ellipse 50% 70% at 70% 50%, rgba(255,102,0,0.08), transparent)" }}
+                className="absolute inset-0 pointer-events-none -z-10"
+                style={{
+                  background: "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(255,102,0,0.13) 0%, transparent 70%)",
+                }}
               />
-            </div>
+            </motion.div>
           )}
-        </motion.div>
+        </div>
       </div>
 
       {/* Bottom fade */}
