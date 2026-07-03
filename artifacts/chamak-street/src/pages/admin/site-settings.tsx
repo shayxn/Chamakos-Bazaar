@@ -259,11 +259,18 @@ function HeroImagesManager({ settings, onChange }: { settings: SettingsMap; onCh
                 className="shrink-0 p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-20 transition-colors">
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
-              <input ref={(el) => { fileRefs.current[i] = el; }} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(i, e)} />
+              <input ref={(el) => { fileRefs.current[i] = el; }} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => handleFile(i, e)} />
             </div>
             {url && (
-              <div className="h-20 border-t border-border/30 overflow-hidden">
-                <img src={url} alt={`Slide ${i + 1}`} className="w-full h-full object-cover object-center" />
+              <div className="h-20 border-t border-border/30 overflow-hidden relative">
+                {/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(url) ? (
+                  <>
+                    <video src={url} className="w-full h-full object-cover object-center" muted playsInline preload="metadata" />
+                    <span className="absolute top-1.5 right-2 text-[9px] font-black uppercase tracking-wider bg-black/60 text-white px-1.5 py-0.5 rounded">VIDEO</span>
+                  </>
+                ) : (
+                  <img src={url} alt={`Slide ${i + 1}`} className="w-full h-full object-cover object-center" />
+                )}
               </div>
             )}
           </div>

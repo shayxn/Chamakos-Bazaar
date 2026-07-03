@@ -197,17 +197,32 @@ export default function Home() {
           {/* ── Carousel background images (crossfade) ── */}
           <motion.div className="absolute inset-0 z-0" style={{ y: heroY, scale: heroScale }}>
             <AnimatePresence mode="sync">
-              <motion.img
-                key={slideIdx}
-                src={heroImages[slideIdx]}
-                alt="Chamak Street Hero"
-                className="absolute inset-0 w-full h-full object-cover object-center"
-                initial={{ opacity: 0, scale: 1.04 }}
-                animate={{ opacity: 0.38, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.97 }}
-                transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                loading="eager"
-              />
+              {/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(heroImages[slideIdx]) ? (
+                <motion.video
+                  key={slideIdx}
+                  src={heroImages[slideIdx]}
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                  initial={{ opacity: 0, scale: 1.04 }}
+                  animate={{ opacity: 0.45, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                  autoPlay
+                  loop
+                  playsInline
+                />
+              ) : (
+                <motion.img
+                  key={slideIdx}
+                  src={heroImages[slideIdx]}
+                  alt="Chamak Street Hero"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                  initial={{ opacity: 0, scale: 1.04 }}
+                  animate={{ opacity: 0.38, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                  loading="eager"
+                />
+              )}
             </AnimatePresence>
             <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background)/0.75) 30%, transparent 65%)" }} />
             <div className="absolute inset-0" style={{ background: "linear-gradient(to right, hsl(var(--background)/0.99) 0%, hsl(var(--background)/0.7) 40%, transparent 70%)" }} />
