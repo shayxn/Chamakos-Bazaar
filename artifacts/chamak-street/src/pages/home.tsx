@@ -1,8 +1,8 @@
 import { useListProducts, getListProductsQueryKey, useListCategories } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Flame, Zap, Star } from "lucide-react";
+import { ArrowRight, Flame, Zap, Star, ShoppingBag } from "lucide-react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
@@ -16,7 +16,7 @@ import { ScrollFloatObject } from "@/components/scroll-float-object";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-/* ── 3D Tilt Card wrapper ── */
+/* ── 3D Tilt Card ── */
 function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -25,15 +25,12 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 14;
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * -14;
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 16;
+    const y = ((e.clientY - rect.top) / rect.height - 0.5) * -16;
     setTilt({ x, y });
   }, []);
 
-  const handleMouseLeave = useCallback(() => {
-    setTilt({ x: 0, y: 0 });
-    setIsHovered(false);
-  }, []);
+  const handleMouseLeave = useCallback(() => { setTilt({ x: 0, y: 0 }); setIsHovered(false); }, []);
 
   return (
     <motion.div
@@ -42,8 +39,8 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
       animate={{ rotateY: tilt.x, rotateX: tilt.y }}
-      transition={{ type: "spring", stiffness: 260, damping: 28 }}
-      style={{ transformStyle: "preserve-3d", perspective: 1000 }}
+      transition={{ type: "spring", stiffness: 280, damping: 26 }}
+      style={{ transformStyle: "preserve-3d", perspective: 1100 }}
       className={className}
       data-hovered={isHovered}
     >
@@ -52,7 +49,8 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
   );
 }
 
-function StatItem({ value, suffix, label }: { value: number; suffix: string; label: string }) {
+/* ── Animated stat counter ── */
+function StatItem({ value, suffix, label, color = "#ff6600" }: { value: number; suffix: string; label: string; color?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.5 });
   const [count, setCount] = useState(0);
@@ -61,7 +59,7 @@ function StatItem({ value, suffix, label }: { value: number; suffix: string; lab
     if (!isInView) return;
     let frame: number;
     const start = performance.now();
-    const duration = 1600;
+    const duration = 1800;
     function tick(now: number) {
       const t = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
@@ -75,36 +73,68 @@ function StatItem({ value, suffix, label }: { value: number; suffix: string; lab
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 28 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.55, ease: EASE }}
-      className="flex flex-col items-center gap-1 px-6 py-4"
+      transition={{ duration: 0.65, ease: EASE }}
+      className="flex flex-col items-center gap-2 px-6 py-6 relative group"
     >
-      <span className="text-4xl md:text-5xl font-black gradient-text-animate tabular-nums">
+      <motion.div
+        className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{ background: `radial-gradient(ellipse at 50% 80%, ${color}12, transparent)` }}
+      />
+      <motion.span
+        className="text-5xl md:text-6xl font-black tabular-nums leading-none"
+        style={{ color, textShadow: `0 0 40px ${color}55` }}
+        animate={isInView ? { textShadow: [`0 0 20px ${color}33`, `0 0 60px ${color}88`, `0 0 20px ${color}33`] } : {}}
+        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+      >
         {count}{suffix}
-      </span>
-      <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">{label}</span>
+      </motion.span>
+      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">{label}</span>
     </motion.div>
+  );
+}
+
+/* ── Letter-by-letter reveal for quote ── */
+function GlitchWord({ text, delay = 0 }: { text: string; delay?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.5 });
+  const [chars, setChars] = useState<string[]>([]);
+  const chars_arr = text.split("");
+
+  return (
+    <span ref={ref} className="inline-block">
+      {chars_arr.map((char, i) => (
+        <motion.span
+          key={i}
+          className="inline-block"
+          initial={{ opacity: 0, y: "60%", rotateX: 50 }}
+          animate={isInView ? { opacity: 1, y: "0%", rotateX: 0 } : {}}
+          transition={{ duration: 0.55, delay: delay + i * 0.03, ease: EASE }}
+          style={{ transformOrigin: "bottom center" }}
+        >
+          {char === " " ? "\u00a0" : char}
+        </motion.span>
+      ))}
+    </span>
   );
 }
 
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const rawY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const rawY = useTransform(scrollYProgress, [0, 1], ["0%", "35%"]);
   const rawOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
-  const rawScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
+  const rawScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
   const heroY = useSpring(rawY, { stiffness: 80, damping: 20 });
   const heroOpacity = useSpring(rawOpacity, { stiffness: 80, damping: 20 });
   const heroScale = useSpring(rawScale, { stiffness: 80, damping: 20 });
 
   const settings = useSettings();
-
   const { data: featuredProducts } = useListProducts(
     { featured: true },
     { query: { queryKey: getListProductsQueryKey({ featured: true }), staleTime: 2 * 60_000 } }
   );
-
   const { data: categories } = useListCategories({ query: { staleTime: 5 * 60_000, queryKey: ["categories", "nav"] } });
 
   const heroImage = settings.hero_image || "/chamako-hero.png";
@@ -112,116 +142,154 @@ export default function Home() {
   const heroSubtitle = settings.hero_subtitle || "Streets.";
   const heroDescription = settings.hero_description || "Bold aesthetic. Unmatched drip. Dress like you own the block.";
   const heroCtaText = settings.hero_cta_text || "Shop Now";
-
-  /* Hero animation delay base — synced to loading screen on first visit, instant on revisit */
   const HD = (typeof sessionStorage !== "undefined" && !sessionStorage.getItem("chamak_loaded")) ? 5.1 : 0.1;
 
-  const categoryColors = [
-    "from-orange-950/80 to-red-950/60",
-    "from-yellow-950/80 to-orange-950/60",
-    "from-red-950/80 to-orange-950/60",
-    "from-purple-950/80 to-red-950/60",
-    "from-blue-950/80 to-purple-950/60",
-    "from-green-950/80 to-teal-950/60",
-  ];
+  const heroProduct = featuredProducts?.[0];
+  const heroProductMedia = heroProduct ? getPrimaryProductMedia(heroProduct.imageUrl) : null;
 
+  const categoryColors = [
+    "from-orange-950/90 to-red-900/70",
+    "from-yellow-950/90 to-orange-950/70",
+    "from-red-950/90 to-orange-900/70",
+    "from-purple-950/90 to-red-950/70",
+    "from-blue-950/90 to-purple-950/70",
+    "from-green-950/90 to-teal-950/70",
+  ];
   const categoryIcons = [<Flame className="h-5 w-5" />, <Zap className="h-5 w-5" />, <Star className="h-5 w-5" />];
 
   return (
     <PageTransition>
       <div className="w-full">
 
-        {/* ── HERO ── */}
+        {/* ══════════════ HERO ══════════════ */}
         <section ref={heroRef} className="relative min-h-screen w-full flex items-center overflow-hidden">
 
-          {/* Parallax background */}
+          {/* Parallax background image */}
           <motion.div className="absolute inset-0 z-0" style={{ y: heroY, scale: heroScale }}>
             <img
               src={heroImage}
               alt="Chamak Street Hero"
               className="w-full h-full object-cover object-center"
-              style={{ opacity: 0.42 }}
+              style={{ opacity: 0.38 }}
               loading="eager"
             />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background)/0.7) 35%, transparent 70%)" }} />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to right, hsl(var(--background)/0.98) 0%, hsl(var(--background)/0.6) 45%, transparent 75%)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background)/0.75) 30%, transparent 65%)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to right, hsl(var(--background)/0.99) 0%, hsl(var(--background)/0.7) 40%, transparent 70%)" }} />
           </motion.div>
 
-          {/* Animated orange ambient glow */}
-          <motion.div
-            className="absolute inset-0 z-0 pointer-events-none"
-            animate={{ opacity: [0.25, 0.5, 0.25], x: ["-2%", "2%", "-2%"] }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-            style={{ background: "radial-gradient(ellipse 55% 45% at 18% 65%, rgba(255,102,0,0.16), transparent)" }}
+          {/* Noise grain texture */}
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.028]"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")", backgroundRepeat: "repeat", backgroundSize: "180px 180px" }}
           />
 
-          {/* Bottom vignette for depth */}
-          <div className="absolute inset-x-0 bottom-0 h-40 z-0 pointer-events-none" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
+          {/* Giant background "CS" text for depth */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none flex items-center">
+            <motion.span
+              className="absolute right-[-5%] font-black uppercase leading-none text-white/[0.025]"
+              style={{ fontSize: "clamp(15rem, 40vw, 55rem)", letterSpacing: "-0.06em", lineHeight: 0.85 }}
+              animate={{ opacity: [0.025, 0.04, 0.025], x: ["0%", "1%", "0%"] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            >
+              CS
+            </motion.span>
+          </div>
 
-          {/* Floating embers */}
-          {[...Array(8)].map((_, i) => (
+          {/* Dual orange ambient glows */}
+          <motion.div
+            className="absolute inset-0 z-0 pointer-events-none"
+            animate={{ opacity: [0.3, 0.55, 0.3], x: ["-3%", "3%", "-3%"] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            style={{ background: "radial-gradient(ellipse 50% 60% at 14% 60%, rgba(255,102,0,0.2), transparent)" }}
+          />
+          <motion.div
+            className="absolute inset-0 z-0 pointer-events-none"
+            animate={{ opacity: [0.1, 0.28, 0.1] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            style={{ background: "radial-gradient(ellipse 35% 50% at 85% 30%, rgba(255,80,0,0.14), transparent)" }}
+          />
+
+          {/* Bottom vignette */}
+          <div className="absolute inset-x-0 bottom-0 h-48 z-0 pointer-events-none" style={{ background: "linear-gradient(to top, hsl(var(--background)) 30%, transparent)" }} />
+
+          {/* 18 floating embers */}
+          {[...Array(18)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute z-0 rounded-full pointer-events-none"
+              className="absolute z-0 pointer-events-none"
               style={{
-                width: 2 + (i % 3) * 1.5,
-                height: 2 + (i % 3) * 1.5,
-                left: `${8 + i * 12}%`,
-                bottom: `${6 + (i % 4) * 8}%`,
-                background: i % 2 === 0 ? "#ff6600" : "#ffcc00",
-                boxShadow: `0 0 ${8 + i * 2}px ${i % 2 === 0 ? "#ff6600" : "#ffcc00"}`,
+                width: 1.5 + (i % 4) * 1.2,
+                height: 1.5 + (i % 4) * 1.2,
+                borderRadius: "50%",
+                left: `${4 + i * 5.2}%`,
+                bottom: `${4 + (i % 6) * 6}%`,
+                background: i % 3 === 0 ? "#ff6600" : i % 3 === 1 ? "#ffcc00" : "#ff4400",
+                boxShadow: `0 0 ${6 + i * 2}px ${i % 2 === 0 ? "#ff6600" : "#ffcc00"}`,
               }}
-              animate={{ y: [0, -(90 + i * 28), 0], opacity: [0, 0.85, 0], x: [0, (i % 2 === 0 ? 14 : -14), 0] }}
-              transition={{ duration: 3.2 + i * 0.4, repeat: Infinity, delay: i * 0.55, ease: "easeOut" }}
+              animate={{ y: [0, -(80 + i * 22), 0], opacity: [0, 0.9, 0], x: [0, (i % 2 === 0 ? 12 : -12), 0] }}
+              transition={{ duration: 2.8 + i * 0.35, repeat: Infinity, delay: i * 0.38, ease: "easeOut" }}
             />
           ))}
 
-          {/* Decorative horizontal line */}
+          {/* Decorative horizontal lines */}
           <motion.div
             className="absolute left-0 z-0 pointer-events-none"
-            style={{ top: "50%", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.4), transparent)" }}
+            style={{ top: "42%", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.5), transparent)" }}
             initial={{ width: 0 }}
-            animate={{ width: "35%" }}
-            transition={{ duration: 1.2, delay: 0.8, ease: EASE }}
+            animate={{ width: "42%" }}
+            transition={{ duration: 1.4, delay: 0.6, ease: EASE }}
+          />
+          <motion.div
+            className="absolute left-0 z-0 pointer-events-none"
+            style={{ top: "calc(42% + 6px)", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.18), transparent)" }}
+            initial={{ width: 0 }}
+            animate={{ width: "28%" }}
+            transition={{ duration: 1.4, delay: 0.8, ease: EASE }}
           />
 
           {/* ── Hero content ── */}
           <motion.div className="container relative z-10 px-4 pt-24 pb-32" style={{ opacity: heroOpacity }}>
-            <div className="max-w-3xl">
+            <div className="flex items-center justify-between gap-12">
+              <div className="max-w-2xl">
 
-              {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0, x: -30, filter: "blur(6px)" }}
-                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.7, delay: HD, ease: EASE }}
-                className="inline-flex items-center gap-2 mb-8"
-              >
-                <span className="inline-flex items-center gap-2 border border-primary/35 bg-primary/10 text-primary text-[11px] font-black uppercase tracking-[0.22em] px-3.5 py-1.5 rounded-sm">
-                  <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }}>
-                    <Flame className="h-3 w-3" />
-                  </motion.span>
-                  New Drop — Chamak Collection
-                </span>
-                {/* Decorative line extending right */}
+                {/* Badge with orbit */}
                 <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: 48 }}
-                  transition={{ duration: 0.6, delay: HD + 0.4, ease: EASE }}
-                  className="h-px bg-primary/30"
-                />
-              </motion.div>
+                  initial={{ opacity: 0, x: -40, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.75, delay: HD, ease: EASE }}
+                  className="inline-flex items-center gap-3 mb-10"
+                >
+                  <div className="relative">
+                    <motion.div
+                      className="absolute inset-0 rounded-sm border border-primary/50"
+                      animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
+                      transition={{ duration: 2.2, repeat: Infinity }}
+                    />
+                    <span className="relative inline-flex items-center gap-2 border border-primary/40 bg-primary/10 text-primary text-[11px] font-black uppercase tracking-[0.25em] px-4 py-2 rounded-sm">
+                      <motion.span animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 1.2, repeat: Infinity }}>
+                        <Flame className="h-3 w-3" />
+                      </motion.span>
+                      New Drop — Chamak Collection
+                    </span>
+                  </div>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: 64 }}
+                    transition={{ duration: 0.7, delay: HD + 0.5, ease: EASE }}
+                    className="h-px"
+                    style={{ background: "linear-gradient(to right, rgba(255,102,0,0.6), transparent)" }}
+                  />
+                </motion.div>
 
-              {/* Title — per-word clip-path reveal */}
-              <div className="mb-3">
-                <div className="overflow-hidden">
-                  <div className="flex flex-wrap gap-x-4 text-[2.6rem] leading-none sm:text-6xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tight md:tracking-[-0.03em]">
+                {/* Title */}
+                <div className="mb-2">
+                  <div className="flex flex-wrap gap-x-5 text-[2.8rem] leading-none sm:text-6xl md:text-[6rem] lg:text-[7.5rem] font-black uppercase tracking-tight md:tracking-[-0.04em]">
                     {heroTitle.split(" ").map((word, wi) => (
                       <div key={wi} className="overflow-hidden">
                         <motion.span
                           className="inline-block"
-                          initial={{ y: "100%", opacity: 0 }}
+                          initial={{ y: "110%", opacity: 0 }}
                           animate={{ y: "0%", opacity: 1 }}
-                          transition={{ duration: 0.75, delay: HD + 0.1 + wi * 0.12, ease: EASE }}
+                          transition={{ duration: 0.8, delay: HD + 0.1 + wi * 0.12, ease: EASE }}
                         >
                           {word}
                         </motion.span>
@@ -229,19 +297,17 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-              </div>
 
-              {/* Subtitle — gradient, per-word */}
-              <div className="mb-8">
-                <div className="overflow-hidden">
-                  <div className="flex flex-wrap gap-x-4">
+                {/* Subtitle — gradient */}
+                <div className="mb-10">
+                  <div className="flex flex-wrap gap-x-5">
                     {heroSubtitle.split(" ").map((word, wi) => (
                       <div key={wi} className="overflow-hidden">
                         <motion.span
-                          className="inline-block gradient-text text-[2.6rem] leading-none sm:text-6xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tight md:tracking-[-0.03em]"
-                          initial={{ y: "100%", opacity: 0 }}
+                          className="inline-block gradient-text text-[2.8rem] leading-none sm:text-6xl md:text-[6rem] lg:text-[7.5rem] font-black uppercase tracking-tight md:tracking-[-0.04em]"
+                          initial={{ y: "110%", opacity: 0 }}
                           animate={{ y: "0%", opacity: 1 }}
-                          transition={{ duration: 0.75, delay: HD + 0.25 + wi * 0.12, ease: EASE }}
+                          transition={{ duration: 0.8, delay: HD + 0.25 + wi * 0.12, ease: EASE }}
                         >
                           {word}
                         </motion.span>
@@ -249,80 +315,147 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+
+                {/* Description */}
+                <motion.p
+                  initial={{ opacity: 0, y: 28 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: HD + 0.45, ease: EASE }}
+                  className="text-base md:text-xl text-muted-foreground mb-12 max-w-md leading-relaxed"
+                >
+                  {heroDescription}
+                </motion.p>
+
+                {/* CTAs */}
+                <motion.div
+                  initial={{ opacity: 0, y: 28 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.65, delay: HD + 0.58, ease: EASE }}
+                  className="flex gap-4 flex-wrap items-center"
+                >
+                  <Link href="/shop">
+                    <motion.div
+                      whileHover={{ scale: 1.06, filter: "brightness(1.15)" }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                      className="inline-block"
+                    >
+                      <Button
+                        size="lg"
+                        className="text-base md:text-lg h-14 px-10 md:px-14 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_40px_rgba(255,102,0,0.6),0_0_0_1px_rgba(255,102,0,0.2)] hover:shadow-[0_0_70px_rgba(255,102,0,0.85)] transition-all duration-300"
+                      >
+                        {heroCtaText} <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </motion.div>
+                  </Link>
+                  <Link href="/shop">
+                    <motion.div
+                      whileHover={{ scale: 1.04, x: 4 }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                      className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      Browse All
+                      <motion.span animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}>
+                        →
+                      </motion.span>
+                    </motion.div>
+                  </Link>
+                </motion.div>
+
+                {/* Social proof strip */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: HD + 0.85, duration: 0.6 }}
+                  className="flex items-center gap-4 mt-10"
+                >
+                  <div className="flex -space-x-2">
+                    {["🧑🏾", "👩🏻", "🧑🏽", "👨🏿"].map((emoji, i) => (
+                      <div key={i} className="w-7 h-7 rounded-full border-2 border-background bg-muted flex items-center justify-center text-sm">
+                        {emoji}
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <motion.span key={i} className="text-primary text-xs" animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.15 }}>★</motion.span>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-bold mt-0.5">Trusted by <span className="text-foreground">2,000+</span> customers in UAE</p>
+                  </div>
+                </motion.div>
               </div>
 
-              {/* Description */}
-              <motion.p
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: HD + 0.45, ease: EASE }}
-                className="text-base md:text-xl text-muted-foreground mb-10 max-w-lg leading-relaxed"
-              >
-                {heroDescription}
-              </motion.p>
+              {/* ── Floating hero product (xl screens) ── */}
+              {heroProductMedia && (
+                <motion.div
+                  className="hidden xl:block shrink-0 relative"
+                  initial={{ opacity: 0, x: 60, filter: "blur(12px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 1.0, delay: HD + 0.6, ease: EASE }}
+                >
+                  <motion.div
+                    animate={{ y: [0, -18, 0], rotateY: [0, 4, 0] }}
+                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                    style={{ perspective: 1200 }}
+                    className="relative"
+                  >
+                    {/* Glow under product */}
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-8 rounded-full blur-2xl opacity-50" style={{ background: "rgba(255,102,0,0.4)" }} />
 
-              {/* CTAs */}
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: HD + 0.58, ease: EASE }}
-                className="flex gap-4 flex-wrap"
-              >
-                <Link href="/shop">
-                  <motion.div
-                    whileHover={{ scale: 1.05, filter: "brightness(1.12)" }}
-                    whileTap={{ scale: 0.96 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                    className="inline-block"
-                  >
-                    <Button
-                      size="lg"
-                      className="text-base md:text-lg h-13 md:h-14 px-8 md:px-11 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_32px_rgba(255,102,0,0.5)] hover:shadow-[0_0_60px_rgba(255,102,0,0.75)] transition-shadow duration-300"
+                    <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-3xl overflow-hidden border border-primary/20 shadow-[0_40px_100px_rgba(255,102,0,0.25),0_0_0_1px_rgba(255,102,0,0.1)]">
+                      {heroProductMedia.type === "video" ? (
+                        <video src={heroProductMedia.url} className="w-full h-full object-cover" muted playsInline loop autoPlay />
+                      ) : (
+                        <img src={heroProductMedia.url} alt={heroProduct?.name} className="w-full h-full object-cover" />
+                      )}
+                      {/* Shine overlay */}
+                      <motion.div
+                        className="absolute inset-0 pointer-events-none"
+                        animate={{ x: ["-120%", "220%"] }}
+                        transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
+                        style={{ background: "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.12) 50%, transparent 80%)", width: "60%" }}
+                      />
+                    </div>
+
+                    {/* Product tag */}
+                    <motion.div
+                      className="absolute -bottom-4 -right-6 bg-card border border-border/80 rounded-xl px-4 py-2.5 shadow-2xl backdrop-blur-sm"
+                      whileHover={{ scale: 1.05 }}
                     >
-                      {heroCtaText} <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
+                      <p className="text-[9px] text-muted-foreground font-black uppercase tracking-wider">Featured Drop</p>
+                      <p className="font-black text-sm mt-0.5">{heroProduct?.name?.slice(0, 20)}{(heroProduct?.name?.length ?? 0) > 20 ? "…" : ""}</p>
+                      <p className="font-mono text-primary font-black text-base">AED {heroProduct?.price?.toFixed(2)}</p>
+                    </motion.div>
                   </motion.div>
-                </Link>
-                <Link href="/order-tracking">
-                  <motion.div
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.96 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                    className="inline-block"
-                  >
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="text-base md:text-lg h-13 md:h-14 px-8 md:px-11 font-black uppercase tracking-widest border-border/50 hover:border-primary/55 transition-colors duration-300"
-                    >
-                      Track Order
-                    </Button>
-                  </motion.div>
-                </Link>
-              </motion.div>
+                </motion.div>
+              )}
             </div>
           </motion.div>
 
           {/* Scroll indicator */}
           <motion.div
-            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: HD + 1.1 }}
           >
             <motion.p
-              animate={{ opacity: [0.4, 0.8, 0.4] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-[9px] font-black uppercase tracking-[0.35em] text-muted-foreground/50"
+              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              transition={{ duration: 2.2, repeat: Infinity }}
+              className="text-[9px] font-black uppercase tracking-[0.45em] text-muted-foreground/40"
             >Scroll</motion.p>
             <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.7, repeat: Infinity, ease: "easeInOut" }}
+              animate={{ y: [0, 9, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
               className="w-5 h-9 border border-muted-foreground/20 rounded-full flex justify-center pt-1.5"
             >
               <motion.div
-                animate={{ opacity: [1, 0, 1], y: [0, 10, 0] }}
-                transition={{ duration: 1.7, repeat: Infinity }}
+                animate={{ opacity: [1, 0, 1], y: [0, 12, 0] }}
+                transition={{ duration: 1.6, repeat: Infinity }}
                 className="w-1 h-2 rounded-full bg-primary"
               />
             </motion.div>
@@ -340,21 +473,21 @@ export default function Home() {
           <EventHomepageBanner />
         </RevealSection>
 
-        {/* ── MARQUEE ── */}
+        {/* ══════════════ MARQUEE ══════════════ */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.55, ease: EASE }}
-          className="fire-gradient py-3 overflow-hidden"
+          transition={{ duration: 0.55 }}
+          className="fire-gradient py-4 overflow-hidden relative"
         >
           <motion.div
-            animate={{ x: [0, -1400] }}
-            transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-            className="flex items-center gap-12 whitespace-nowrap text-black font-black uppercase text-sm tracking-[0.3em]"
+            animate={{ x: [0, -1600] }}
+            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+            className="flex items-center gap-10 whitespace-nowrap font-black uppercase tracking-[0.3em] text-black text-sm"
             style={{ width: "max-content" }}
           >
-            {[...Array(10)].map((_, i) => (
+            {[...Array(12)].map((_, i) => (
               <span key={i} className="flex items-center gap-10">
                 <span>Chamak Street</span>
                 <Flame className="h-4 w-4 inline-block" />
@@ -362,6 +495,8 @@ export default function Home() {
                 <span>★</span>
                 <span>Stay Dripped</span>
                 <Zap className="h-4 w-4 inline-block" />
+                <span>Dubai Exclusive</span>
+                <span>✦</span>
               </span>
             ))}
           </motion.div>
@@ -369,20 +504,20 @@ export default function Home() {
 
         {/* ── REVERSE MARQUEE ── */}
         <motion.div
-          initial={{ opacity: 0, y: -16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.55, ease: EASE }}
-          className="bg-background border-y border-primary/20 py-3 overflow-hidden"
+          transition={{ duration: 0.55 }}
+          className="bg-background border-y border-primary/15 py-3.5 overflow-hidden"
         >
           <motion.div
-            animate={{ x: [-1400, 0] }}
-            transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
-            className="flex items-center gap-12 whitespace-nowrap font-black uppercase text-sm tracking-[0.3em]"
+            animate={{ x: [-1600, 0] }}
+            transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+            className="flex items-center gap-10 whitespace-nowrap font-black uppercase tracking-[0.28em] text-sm"
             style={{ width: "max-content" }}
           >
-            {[...Array(10)].map((_, i) => (
-              <span key={i} className="flex items-center gap-10 text-muted-foreground">
+            {[...Array(12)].map((_, i) => (
+              <span key={i} className="flex items-center gap-10 text-muted-foreground/50">
                 <span className="gradient-text">Dubai Drip</span>
                 <span>✦</span>
                 <span>Limited Edition</span>
@@ -391,79 +526,106 @@ export default function Home() {
                 <span>✦</span>
                 <span className="gradient-text">Street Culture</span>
                 <span>✦</span>
+                <span>Rep Nation</span>
+                <span>✦</span>
               </span>
             ))}
           </motion.div>
         </motion.div>
 
-        {/* ── STATS COUNTER STRIP ── */}
+        {/* ══════════════ STATS STRIP ══════════════ */}
         <motion.section
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.5 }}
-          className="py-10 border-y border-border/30 bg-card/30 overflow-hidden"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="py-12 relative overflow-hidden border-y border-border/30"
         >
+          {/* Animated background glow */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            animate={{ opacity: [0.15, 0.35, 0.15] }}
+            transition={{ duration: 5, repeat: Infinity }}
+            style={{ background: "radial-gradient(ellipse at 50% 100%, rgba(255,102,0,0.12), transparent 60%)" }}
+          />
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border/30">
-              <StatItem value={500} suffix="+" label="Products" />
-              <StatItem value={3} suffix="" label="Brands" />
-              <StatItem value={100} suffix="%" label="Authentic Rep" />
-              <StatItem value={1} suffix=" Day" label="UAE Delivery" />
+            <div className="grid grid-cols-2 md:grid-cols-4">
+              {[
+                { value: 500, suffix: "+", label: "Products", color: "#ff6600" },
+                { value: 3, suffix: "", label: "Top Brands", color: "#ffcc00" },
+                { value: 100, suffix: "%", label: "Authentic Rep", color: "#ff9933" },
+                { value: 1, suffix: " Day", label: "UAE Delivery", color: "#ff6600" },
+              ].map((stat, i) => (
+                <div key={i} className="relative">
+                  {i > 0 && <div className="absolute left-0 top-4 bottom-4 w-px" style={{ background: "linear-gradient(to bottom, transparent, rgba(255,102,0,0.2), transparent)" }} />}
+                  <StatItem {...stat} />
+                </div>
+              ))}
             </div>
           </div>
         </motion.section>
 
-        {/* ── CATEGORIES (from DB) ── */}
+        {/* ══════════════ CATEGORIES ══════════════ */}
         {categories && categories.length > 0 && (
-          <section className="py-24 bg-card border-y border-border/50 overflow-hidden">
+          <section className="py-28 bg-card/50 border-y border-border/40 overflow-hidden">
             <div className="container px-4 mx-auto">
-              <RevealSection className="mb-14">
-                <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">The Essentials</h2>
-                <p className="text-muted-foreground mt-2 text-lg">Build your uniform.</p>
+              <RevealSection className="mb-16">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.35em] text-primary/70 mb-2">Browse by Style</p>
+                    <h2 className="text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none">The Essentials</h2>
+                  </div>
+                  <p className="text-muted-foreground text-lg max-w-xs">Build your uniform. Every piece, every fit.</p>
+                </div>
               </RevealSection>
 
-              <RevealList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <RevealList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {categories.slice(0, 6).map((cat, i) => (
                   <motion.div key={cat.id} variants={revealItem}>
                     <Link href={`/shop?categoryId=${cat.id}`}>
                       <motion.div
-                        whileHover={{ y: -10, scale: 1.025 }}
-                        whileTap={{ scale: 0.97 }}
-                        transition={{ type: "spring", stiffness: 320, damping: 22 }}
-                        className={`group relative h-72 overflow-hidden rounded-xl cursor-pointer border border-border/30 shadow-lg hover:shadow-[0_24px_48px_rgba(255,102,0,0.18)] transition-shadow duration-500`}
-                        style={{
-                          background: cat.bannerImageUrl
-                            ? `linear-gradient(to bottom right, rgba(0,0,0,0.7), rgba(0,0,0,0.4))`
-                            : `linear-gradient(to bottom right, var(--card), rgba(0,0,0,0.2))`,
-                        }}
+                        whileHover={{ y: -8, scale: 1.018 }}
+                        whileTap={{ scale: 0.975 }}
+                        transition={{ type: "spring", stiffness: 340, damping: 24 }}
+                        className="group relative h-80 overflow-hidden rounded-2xl cursor-pointer border border-white/5 shadow-xl hover:shadow-[0_28px_60px_rgba(255,102,0,0.2)] transition-shadow duration-500"
                       >
                         {cat.bannerImageUrl && (
                           <img
                             src={cat.bannerImageUrl}
                             alt={cat.name}
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
                             loading="lazy"
                           />
                         )}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${categoryColors[i % categoryColors.length]} ${cat.bannerImageUrl ? "opacity-70" : "opacity-100"}`} />
-                        <div className="absolute inset-0 flex flex-col justify-end p-8">
-                          <div className="h-12 w-12 rounded-full bg-primary/20 backdrop-blur-sm flex items-center justify-center text-primary mb-4 text-2xl">
-                            {cat.iconEmoji || categoryIcons[i % categoryIcons.length]}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${categoryColors[i % categoryColors.length]} ${cat.bannerImageUrl ? "opacity-75" : "opacity-100"} group-hover:opacity-85 transition-opacity duration-400`} />
+
+                        {/* Category number */}
+                        <div className="absolute top-5 right-5 text-[11px] font-black font-mono text-white/25 tracking-widest">
+                          {String(i + 1).padStart(2, "0")}
+                        </div>
+
+                        <div className="absolute inset-0 flex flex-col justify-end p-7">
+                          <div className="w-11 h-11 rounded-full bg-primary/25 backdrop-blur-sm flex items-center justify-center text-primary mb-4 ring-1 ring-primary/20">
+                            {cat.iconEmoji ? <span className="text-xl">{cat.iconEmoji}</span> : categoryIcons[i % categoryIcons.length]}
                           </div>
-                          <div className="flex justify-between items-center">
-                            <h3 className="text-2xl font-black uppercase tracking-wide text-white drop-shadow">{cat.name}</h3>
-                            <motion.div
-                              className="h-10 w-10 rounded-full border border-primary/40 flex items-center justify-center text-primary shrink-0"
-                              whileHover={{ scale: 1.2, x: 4 }}
-                              transition={{ type: "spring", stiffness: 400 }}
-                            >
-                              <ArrowRight className="h-4 w-4" />
-                            </motion.div>
-                          </div>
+                          <h3 className="text-2xl font-black uppercase tracking-wide text-white drop-shadow-lg mb-1">{cat.name}</h3>
                           {cat.description && (
-                            <p className="text-white/70 text-sm mt-1">{cat.description}</p>
+                            <p className="text-white/60 text-sm leading-snug mb-4">{cat.description}</p>
                           )}
+                          <motion.div
+                            className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-white/0 group-hover:text-white/80 transition-all duration-300"
+                            initial={false}
+                          >
+                            <span>Shop Now</span>
+                            <ArrowRight className="h-3.5 w-3.5 translate-x-0 group-hover:translate-x-1 transition-transform duration-300" />
+                          </motion.div>
+                        </div>
+
+                        {/* Corner accent */}
+                        <div className="absolute top-0 left-0 w-12 h-12 opacity-40">
+                          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                            <path d="M0 48 L0 0 L48 0" stroke="rgba(255,255,255,0.3)" strokeWidth="1" fill="none" />
+                          </svg>
                         </div>
                       </motion.div>
                     </Link>
@@ -474,47 +636,46 @@ export default function Home() {
           </section>
         )}
 
-        {/* ── FEATURED PRODUCTS ── */}
-        <section className="py-28 overflow-hidden">
+        {/* ══════════════ FEATURED PRODUCTS ══════════════ */}
+        <section className="py-32 overflow-hidden">
           <div className="container mx-auto px-4">
-            <RevealSection className="mb-14">
-              <div className="flex justify-between items-end">
+            <RevealSection className="mb-16">
+              <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
                 <div>
-                  <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">
+                  <p className="text-[10px] font-black uppercase tracking-[0.35em] text-primary/70 mb-2">Handpicked For You</p>
+                  <h2 className="text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none">
                     Heat <span className="gradient-text-animate">Check</span>
                   </h2>
-                  <p className="text-muted-foreground mt-2">The hottest pieces right now.</p>
                 </div>
-                <Link href="/shop" className="text-primary font-bold hover:underline flex items-center gap-2 uppercase text-sm tracking-widest">
+                <Link href="/shop" className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary hover:opacity-80 transition-opacity shrink-0">
                   View All <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </RevealSection>
 
-            <RevealList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" stagger={0.09}>
+            <RevealList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8" stagger={0.09}>
               {featuredProducts?.map((product, idx) => {
                 const primaryMedia = getPrimaryProductMedia(product.imageUrl);
                 return (
-                  <motion.div key={product.id} variants={revealItem} style={{ perspective: 1000 }}>
+                  <motion.div key={product.id} variants={revealItem} style={{ perspective: 1100 }}>
                     <Link href={`/product/${product.id}`}>
                       <TiltCard className="group cursor-pointer">
-                        {/* Card image area */}
+                        {/* Card image */}
                         <motion.div
-                          className="relative aspect-square mb-4 overflow-hidden rounded-2xl bg-card border border-border/50 group-hover:border-primary/50 transition-colors duration-400"
-                          whileHover={{ boxShadow: "0 32px 80px rgba(255,102,0,0.32), 0 0 0 1px rgba(255,102,0,0.15)" }}
+                          className="relative aspect-[4/5] mb-4 overflow-hidden rounded-2xl bg-card border border-border/40 group-hover:border-primary/40 transition-colors duration-400"
+                          whileHover={{ boxShadow: "0 36px 90px rgba(255,102,0,0.35), 0 0 0 1px rgba(255,102,0,0.18)" }}
                           transition={{ duration: 0.35 }}
-                          style={{ translateZ: 0 }}
                         >
                           {primaryMedia ? (
                             primaryMedia.type === "video" ? (
-                              <video src={primaryMedia.url} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" muted playsInline preload="metadata" />
+                              <video src={primaryMedia.url} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-108" muted playsInline preload="metadata" />
                             ) : (
                               <motion.img
                                 src={primaryMedia.url}
                                 alt={product.name}
                                 className="w-full h-full object-cover"
-                                whileHover={{ scale: 1.1 }}
-                                transition={{ duration: 0.55, ease: EASE }}
+                                whileHover={{ scale: 1.08 }}
+                                transition={{ duration: 0.6, ease: EASE }}
                                 loading="lazy"
                               />
                             )
@@ -523,58 +684,63 @@ export default function Home() {
                           )}
 
                           {/* Sweep shimmer */}
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none overflow-hidden rounded-2xl">
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden rounded-2xl">
                             <motion.div
                               className="absolute top-0 bottom-0"
-                              animate={{ x: ["-110%", "200%"] }}
-                              transition={{ duration: 1.0, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.8 }}
-                              style={{ width: "45%", background: "linear-gradient(105deg, transparent 15%, rgba(255,160,0,0.18) 50%, transparent 85%)" }}
+                              animate={{ x: ["-120%", "220%"] }}
+                              transition={{ duration: 1.1, ease: "easeInOut", repeat: Infinity, repeatDelay: 2 }}
+                              style={{ width: "50%", background: "linear-gradient(105deg, transparent 15%, rgba(255,160,0,0.22) 50%, transparent 85%)" }}
                             />
                           </div>
 
-                          {/* Hover dark overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          {/* Dark overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
+
+                          {/* Product number */}
+                          <div className="absolute top-3 right-3 text-[11px] font-black font-mono text-white/20 tracking-widest">
+                            {String(idx + 1).padStart(2, "0")}
+                          </div>
 
                           {/* Badges */}
-                          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+                          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
                             {product.isPreOrder && (
                               <span className="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm shadow-lg">Pre-Order</span>
                             )}
                             <motion.span
-                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 14px rgba(255,102,0,0.95)", "0 0 0px rgba(255,102,0,0)"] }}
-                              transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", delay: idx * 0.35 }}
+                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 16px rgba(255,102,0,0.95)", "0 0 0px rgba(255,102,0,0)"] }}
+                              transition={{ duration: 2.8, repeat: Infinity, delay: idx * 0.4 }}
                               className="bg-primary text-primary-foreground text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
                             >
                               ★ Featured
                             </motion.span>
                             {product.sellingFast && (
                               <motion.span
-                                animate={{ scale: [1, 1.06, 1], opacity: [0.85, 1, 0.85] }}
-                                transition={{ duration: 1.1, repeat: Infinity }}
+                                animate={{ scale: [1, 1.07, 1], opacity: [0.85, 1, 0.85] }}
+                                transition={{ duration: 1.0, repeat: Infinity }}
                                 className="bg-orange-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
                               >
-                                🔥 Selling Fast
+                                🔥 Hot
                               </motion.span>
                             )}
                           </div>
 
-                          {/* "View Product" pill — slides up from bottom */}
-                          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4 z-10 opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 transition-all duration-300">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-white bg-black/55 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
-                              View Product
+                          {/* "View Product" pill */}
+                          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4 z-10 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-350">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white bg-black/60 backdrop-blur-md px-5 py-1.5 rounded-full border border-white/12">
+                              View Product →
                             </span>
                           </div>
                         </motion.div>
 
                         {/* Card info */}
                         <div className="space-y-1.5 px-0.5">
-                          <p className="text-[9px] text-muted-foreground/70 uppercase tracking-[0.22em]">{product.categoryName}</p>
+                          <p className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.25em]">{product.categoryName}</p>
                           <h3 className="font-bold text-base leading-snug group-hover:text-primary transition-colors duration-200">{product.name}</h3>
-                          <div className="flex items-center justify-between pt-0.5">
+                          <div className="flex items-center justify-between pt-1">
                             <p className="font-mono text-primary font-black text-lg">AED {product.price.toFixed(2)}</p>
                             <motion.div
-                              className="h-7 w-7 rounded-full border border-primary/25 bg-primary/6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                              whileHover={{ scale: 1.25, backgroundColor: "rgba(255,102,0,0.22)" }}
+                              className="h-7 w-7 rounded-full border border-primary/30 bg-primary/8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-250"
+                              whileHover={{ scale: 1.3, backgroundColor: "rgba(255,102,0,0.25)" }}
                             >
                               <ArrowRight className="h-3 w-3 text-primary" />
                             </motion.div>
@@ -587,7 +753,7 @@ export default function Home() {
               })}
 
               {(!featuredProducts || featuredProducts.length === 0) && (
-                <div className="col-span-full py-12 text-center text-muted-foreground">
+                <div className="col-span-full py-16 text-center text-muted-foreground">
                   No featured products yet. <Link href="/shop" className="text-primary hover:underline">Check out the full shop.</Link>
                 </div>
               )}
@@ -595,7 +761,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── TRUST SECTION ── */}
+        {/* ── TRUST ── */}
         <TrustSection />
 
         {/* ── TIKTOK ── */}
@@ -604,39 +770,75 @@ export default function Home() {
         {/* ── REVIEWS ── */}
         <ReviewsSection />
 
-        {/* ── QUOTE BANNER ── */}
-        <RevealSection amount={0.2} className="mx-4 mb-10">
-          <section
-            className="py-24 rounded-2xl border border-primary/20 overflow-hidden relative"
-            style={{ background: "linear-gradient(135deg, rgba(255,102,0,0.08) 0%, rgba(0,0,0,0) 60%)" }}
-          >
+        {/* ══════════════ QUOTE BANNER ══════════════ */}
+        <RevealSection amount={0.15} className="mx-4 mb-12">
+          <section className="py-28 md:py-36 rounded-3xl overflow-hidden relative">
+            {/* Multi-layer background */}
+            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(255,102,0,0.12) 0%, rgba(0,0,0,0) 50%, rgba(255,80,0,0.08) 100%)" }} />
+            <div className="absolute inset-0 rounded-3xl border border-primary/20" />
+
+            {/* Animated radial glow */}
             <motion.div
               className="absolute inset-0 pointer-events-none"
-              animate={{ opacity: [0.25, 0.6, 0.25], scale: [1, 1.05, 1] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(255,102,0,0.12), transparent 70%)" }}
+              animate={{ opacity: [0.3, 0.7, 0.3], scale: [1, 1.06, 1] }}
+              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+              style={{ background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255,102,0,0.15), transparent 65%)" }}
             />
+
+            {/* Decorative top line */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,102,0,0.5), transparent)" }} />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,102,0,0.5), transparent)" }} />
+
             <div className="container mx-auto px-4 text-center relative z-10">
-              <RevealSection delay={0.1}>
-                <p className="text-3xl sm:text-4xl md:text-7xl font-black uppercase tracking-tight md:tracking-tighter gradient-text leading-tight">
-                  "Stay Dripped.<br />Stay Dangerous."
-                </p>
-                <p className="text-muted-foreground mt-6 text-lg">— Chamak Street</p>
-              </RevealSection>
-              <RevealSection delay={0.22}>
+              <motion.p
+                className="text-[10px] font-black uppercase tracking-[0.5em] text-primary/60 mb-8"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                ✦ The Chamak Mantra ✦
+              </motion.p>
+
+              <div className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight md:tracking-tighter leading-[0.92] mb-6 overflow-hidden">
+                <div className="mb-2">
+                  <GlitchWord text='"Stay Dripped.' delay={0.05} />
+                </div>
+                <div>
+                  <GlitchWord text='Stay Dangerous."' delay={0.3} />
+                </div>
+              </div>
+
+              <motion.p
+                className="gradient-text text-lg md:text-2xl font-black uppercase tracking-[0.2em] mb-12"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.6, duration: 0.6 }}
+              >
+                — Chamak Street, Dubai
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 24, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.7, duration: 0.6, ease: EASE }}
+                className="inline-block"
+              >
                 <Link href="/shop">
                   <motion.div
-                    whileHover={{ scale: 1.06, filter: "brightness(1.1)" }}
+                    whileHover={{ scale: 1.07, filter: "brightness(1.12)" }}
                     whileTap={{ scale: 0.96 }}
-                    transition={{ type: "spring", stiffness: 380, damping: 22 }}
-                    className="inline-block mt-10"
+                    transition={{ type: "spring", stiffness: 380, damping: 20 }}
+                    className="inline-block"
                   >
-                    <Button size="lg" className="font-black uppercase tracking-widest fire-gradient border-none h-14 px-10 shadow-[0_0_30px_rgba(255,102,0,0.4)] hover:shadow-[0_0_55px_rgba(255,102,0,0.65)] transition-shadow duration-300">
+                    <Button size="lg" className="font-black uppercase tracking-widest fire-gradient border-none h-14 px-12 shadow-[0_0_40px_rgba(255,102,0,0.5)] hover:shadow-[0_0_70px_rgba(255,102,0,0.75)] transition-shadow duration-300 text-base md:text-lg">
                       Shop The Collection <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </motion.div>
                 </Link>
-              </RevealSection>
+              </motion.div>
             </div>
           </section>
         </RevealSection>

@@ -2,5 +2,6 @@
 - [Announcement banner](announcement-banner.md) — uses site_settings keys: announcement_active/text/color/url; editable under Admin → Site Settings → Announcement tab.
 - [Import logic](import-logic.md) — all imported products are rep:true; featured alternates half/half by import index (even=featured).
 - [Splash popup](splash-popup.md) — mini card modal using IMG_0054 (box art) + IMG_0055 (packaging), sessionStorage gate, 6s auto-dismiss with progress bar.
-- [Loading screen gate](loading-screen-gate.md) — sessionStorage key "chamak_loaded" gates the 5s cinematic intro; hero HD delay = 5.1 on first visit, 0.1 on revisit.
+- [Loading screen gate](loading-screen-gate.md) — sessionStorage key "chamak_loaded" gates the 5s cinematic intro; hero HD delay = 5.1 on first visit, 0.1 on revisit. Boot sequence phases: boot → scan → reveal → loading → ready.
 - [Missing routes pattern](missing-routes.md) — several API routers (events, games, abandoned-carts, refund-requests, product-requests) and frontend pages (returns, request-product, games, game-detail) existed but were never registered; always check routes/index.ts and App.tsx when adding new pages.
+- [Hero floating product](hero-floating-product.md) — xl-screen only; uses featuredProducts[0] from the DB query already in home.tsx. Shows levitating product image with shine, shadow glow, and a product tag chip.
