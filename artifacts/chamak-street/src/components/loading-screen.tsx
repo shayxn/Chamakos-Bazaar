@@ -6,9 +6,15 @@ type Phase = typeof PHASES[number];
 
 const TAGLINES = ["Dubai's Finest Drip", "Stay Chamak", "New Collection Loading", "Premium Streetwear"];
 
+const SESSION_KEY = "chamak_loaded";
+
 export function LoadingScreen() {
+  const [skip] = useState(() => {
+    try { return !!sessionStorage.getItem(SESSION_KEY); } catch { return false; }
+  });
+
   const [phase, setPhase] = useState<Phase>("scan");
-  const [exiting, setExiting] = useState(false);
+  const [exiting, setExiting] = useState(skip);
   const [progress, setProgress] = useState(0);
   const [tagline] = useState(() => TAGLINES[Math.floor(Math.random() * TAGLINES.length)]);
   const [charIdx, setCharIdx] = useState(0);
@@ -18,34 +24,34 @@ export function LoadingScreen() {
   const TOTAL_MS = 5000;
 
   useEffect(() => {
-    /* Phase timeline */
+    if (skip) return;
     const t1 = setTimeout(() => setPhase("reveal"), 700);
     const t2 = setTimeout(() => setPhase("loading"), 1600);
     const t3 = setTimeout(() => setPhase("ready"), TOTAL_MS - 550);
     const t4 = setTimeout(() => setExiting(true), TOTAL_MS - 80);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-  }, []);
+    const t5 = setTimeout(() => {
+      try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
+    }, TOTAL_MS);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
+  }, [skip]);
 
-  /* Smooth RAF-driven progress 0→100 over TOTAL_MS */
   useEffect(() => {
-    if (phase !== "loading") return;
+    if (skip || phase !== "loading") return;
     startRef.current = performance.now();
     function tick(now: number) {
       const elapsed = now - startRef.current;
-      const FILL_MS = TOTAL_MS - 1600 - 550; /* time between loading phase start and ready */
+      const FILL_MS = TOTAL_MS - 1600 - 550;
       const t = Math.min(elapsed / FILL_MS, 1);
-      /* Ease out cubic - fast start, slow finish for drama */
       const eased = 1 - Math.pow(1 - t, 3);
       setProgress(Math.round(eased * 100));
       if (t < 1) rafRef.current = requestAnimationFrame(tick);
     }
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [phase]);
+  }, [phase, skip]);
 
-  /* Typewriter for tagline */
   useEffect(() => {
-    if (phase !== "loading") return;
+    if (skip || phase !== "loading") return;
     const interval = setInterval(() => {
       setCharIdx((c) => {
         if (c >= tagline.length) { clearInterval(interval); return c; }
@@ -53,7 +59,9 @@ export function LoadingScreen() {
       });
     }, 55);
     return () => clearInterval(interval);
-  }, [phase, tagline]);
+  }, [phase, tagline, skip]);
+
+  if (skip) return null;
 
   return (
     <AnimatePresence>
@@ -134,7 +142,6 @@ export function LoadingScreen() {
               : {}}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Orange burst ring on reveal */}
             <AnimatePresence>
               {phase === "reveal" && (
                 <motion.div
@@ -197,7 +204,6 @@ export function LoadingScreen() {
                   boxShadow: "0 0 16px rgba(255,102,0,0.8)",
                 }}
               >
-                {/* Shimmer on progress bar */}
                 <motion.div
                   className="absolute inset-0"
                   animate={{ x: ["-100%", "200%"] }}

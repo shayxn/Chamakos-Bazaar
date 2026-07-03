@@ -16,6 +16,11 @@ import importRouter from "./import";
 import stockAlertsRouter from "./stock-alerts";
 import customerAccountsRouter from "./customer-accounts";
 import salesReportsRouter from "./sales-reports";
+import eventsRouter from "./events";
+import gamesRouter from "./games";
+import abandonedCartsRouter from "./abandoned-carts";
+import refundRequestsRouter from "./refund-requests";
+import productRequestsRouter from "./product-requests";
 
 const router: IRouter = Router();
 
@@ -36,5 +41,10 @@ router.use(tiktokRouter);
 router.use(importRouter);
 router.use(stockAlertsRouter);
 router.use(salesReportsRouter);
+router.use(eventsRouter);
+router.use(gamesRouter);
+router.use(abandonedCartsRouter);
+router.use(refundRequestsRouter);
+router.use(productRequestsRouter);
 
 export default router;

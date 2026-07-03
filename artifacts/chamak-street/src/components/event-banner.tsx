@@ -30,6 +30,7 @@ function notifyListeners() { _listeners.forEach((fn) => fn()); }
 export async function refreshActiveEvents() {
   try {
     const r = await fetch(`${BASE}/api/events/active`);
+    if (!r.ok) return;
     _events = await r.json() as ActiveEvent[];
     notifyListeners();
   } catch {}

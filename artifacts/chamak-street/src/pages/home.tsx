@@ -113,6 +113,9 @@ export default function Home() {
   const heroDescription = settings.hero_description || "Bold aesthetic. Unmatched drip. Dress like you own the block.";
   const heroCtaText = settings.hero_cta_text || "Shop Now";
 
+  /* Hero animation delay base — synced to loading screen on first visit, instant on revisit */
+  const HD = (typeof sessionStorage !== "undefined" && !sessionStorage.getItem("chamak_loaded")) ? 5.1 : 0.1;
+
   const categoryColors = [
     "from-orange-950/80 to-red-950/60",
     "from-yellow-950/80 to-orange-950/60",
@@ -190,7 +193,7 @@ export default function Home() {
               <motion.div
                 initial={{ opacity: 0, x: -30, filter: "blur(6px)" }}
                 animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.7, delay: 5.1, ease: EASE }}
+                transition={{ duration: 0.7, delay: HD, ease: EASE }}
                 className="inline-flex items-center gap-2 mb-8"
               >
                 <span className="inline-flex items-center gap-2 border border-primary/35 bg-primary/10 text-primary text-[11px] font-black uppercase tracking-[0.22em] px-3.5 py-1.5 rounded-sm">
@@ -203,7 +206,7 @@ export default function Home() {
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: 48 }}
-                  transition={{ duration: 0.6, delay: 5.5, ease: EASE }}
+                  transition={{ duration: 0.6, delay: HD + 0.4, ease: EASE }}
                   className="h-px bg-primary/30"
                 />
               </motion.div>
@@ -218,7 +221,7 @@ export default function Home() {
                           className="inline-block"
                           initial={{ y: "100%", opacity: 0 }}
                           animate={{ y: "0%", opacity: 1 }}
-                          transition={{ duration: 0.75, delay: 5.2 + wi * 0.12, ease: EASE }}
+                          transition={{ duration: 0.75, delay: HD + 0.1 + wi * 0.12, ease: EASE }}
                         >
                           {word}
                         </motion.span>
@@ -238,7 +241,7 @@ export default function Home() {
                           className="inline-block gradient-text text-[2.6rem] leading-none sm:text-6xl md:text-[5.5rem] lg:text-[7rem] font-black uppercase tracking-tight md:tracking-[-0.03em]"
                           initial={{ y: "100%", opacity: 0 }}
                           animate={{ y: "0%", opacity: 1 }}
-                          transition={{ duration: 0.75, delay: 5.35 + wi * 0.12, ease: EASE }}
+                          transition={{ duration: 0.75, delay: HD + 0.25 + wi * 0.12, ease: EASE }}
                         >
                           {word}
                         </motion.span>
@@ -252,7 +255,7 @@ export default function Home() {
               <motion.p
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 5.55, ease: EASE }}
+                transition={{ duration: 0.7, delay: HD + 0.45, ease: EASE }}
                 className="text-base md:text-xl text-muted-foreground mb-10 max-w-lg leading-relaxed"
               >
                 {heroDescription}
@@ -262,7 +265,7 @@ export default function Home() {
               <motion.div
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: 5.68, ease: EASE }}
+                transition={{ duration: 0.65, delay: HD + 0.58, ease: EASE }}
                 className="flex gap-4 flex-wrap"
               >
                 <Link href="/shop">
@@ -305,7 +308,7 @@ export default function Home() {
             className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 6.2 }}
+            transition={{ delay: HD + 1.1 }}
           >
             <motion.p
               animate={{ opacity: [0.4, 0.8, 0.4] }}
