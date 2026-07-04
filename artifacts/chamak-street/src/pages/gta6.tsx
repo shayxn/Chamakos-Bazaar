@@ -8,7 +8,6 @@ import {
   AMBIENT_CSS, AmbientBirds, SwayingPalms, OceanWaves,
   FloatingParticles, NeonReflections, CharacterConnectionOverlay, CharacterFloatWrapper,
 } from "@/components/ambient-effects";
-import { GTA6WorldBackground } from "@/components/gta6-world-bg";
 import { GTA6Radio } from "@/components/gta6-radio";
 import { GTA6Phone, GTA6PhoneButton } from "@/components/gta6-phone";
 
@@ -453,8 +452,29 @@ export default function GTA6Page() {
     <div style={{ background: "#07071c", minHeight: "100vh", color: "#fff" }}>
       <style>{AMBIENT_CSS}</style>
 
-      {/* ── LIVING WORLD BACKGROUND (GTA6 page only) ── */}
-      <GTA6WorldBackground cinematic={cinematicMode} />
+      {/* ── YOUTUBE VIDEO BACKGROUND ── */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" style={{ background: "#000" }}>
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/TtAETMghnMc?autoplay=1&mute=1&loop=1&playlist=TtAETMghnMc&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&enablejsapi=0"
+          allow="autoplay; encrypted-media"
+          allowFullScreen={false}
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            width: "100vw",
+            height: "56.25vw",
+            minHeight: "100vh",
+            minWidth: "177.78vh",
+            transform: "translate(-50%, -50%)",
+            border: "none",
+            pointerEvents: "none",
+          }}
+          title="GTA VI Background"
+        />
+        {/* dark overlay so page content remains readable */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+      </div>
 
       {/* ── CINEMATIC MODE OVERLAY ── */}
       <AnimatePresence>
