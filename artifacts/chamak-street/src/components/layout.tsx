@@ -46,7 +46,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/shop", label: "Shop" },
-    { href: "/order-tracking", label: "Order Tracking" },
+    { href: "/gta6", label: "GTA VI" },
+    { href: "/order-tracking", label: "Track" },
   ];
 
   if (user?.isAdmin) {
@@ -118,23 +119,39 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </motion.div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`relative text-sm font-bold uppercase tracking-widest transition-colors hover:text-primary ${location === link.href ? "text-primary" : "text-muted-foreground"}`}
-              >
-                {link.label}
-                {location === link.href && (
-                  <motion.span
-                    layoutId="nav-underline"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#ff6600] to-[#ffcc00] rounded-full"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-5">
+            {navLinks.map((link) => {
+              const isGta = link.href === "/gta6";
+              const isActive = location === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`relative text-[11px] font-black uppercase tracking-[0.18em] transition-all duration-200 ${
+                    isGta
+                      ? "px-3 py-1.5 rounded-full"
+                      : `hover:text-primary ${isActive ? "text-primary" : "text-muted-foreground"}`
+                  }`}
+                  style={isGta ? {
+                    background: isActive
+                      ? "linear-gradient(135deg, #ff2d9c, #00d4ff)"
+                      : "linear-gradient(135deg, rgba(255,45,156,0.15), rgba(0,212,255,0.15))",
+                    color: isActive ? "white" : "#00d4ff",
+                    border: "1px solid rgba(0,212,255,0.35)",
+                    boxShadow: isActive ? "0 0 18px rgba(0,212,255,0.4)" : "none",
+                  } : undefined}
+                >
+                  {link.label}
+                  {!isGta && isActive && (
+                    <motion.span
+                      layoutId="nav-underline"
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#ff6600] to-[#ffcc00] rounded-full"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-4 z-50">
@@ -204,24 +221,38 @@ export function Layout({ children }: { children: React.ReactNode }) {
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
               className="md:hidden border-b border-border bg-background/95 backdrop-blur-xl overflow-hidden"
             >
-              <nav className="flex flex-col p-6 gap-5">
-                {navLinks.map((link, i) => (
-                  <motion.div
-                    key={link.href}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.08 }}
-                  >
-                    <Link
-                      href={link.href}
-                      onClick={() => setIsMenuOpen(false)}
-                      className={`text-2xl font-black uppercase tracking-wider flex items-center gap-3 ${location === link.href ? "text-primary" : "text-foreground"}`}
+              <nav className="flex flex-col p-6 gap-4">
+                {navLinks.map((link, i) => {
+                  const isGta = link.href === "/gta6";
+                  const isActive = location === link.href;
+                  return (
+                    <motion.div
+                      key={link.href}
+                      initial={{ opacity: 0, x: -24 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      {link.href === "/order-tracking" && <MapPin className="h-5 w-5" />}
-                      {link.label}
-                    </Link>
-                  </motion.div>
-                ))}
+                      <Link
+                        href={link.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex items-center gap-3 font-black uppercase tracking-wider transition-all duration-200 ${
+                          isGta
+                            ? "text-xl px-4 py-2 rounded-xl w-fit"
+                            : `text-2xl ${isActive ? "text-primary" : "text-foreground"}`
+                        }`}
+                        style={isGta ? {
+                          background: "linear-gradient(135deg, rgba(255,45,156,0.15), rgba(0,212,255,0.15))",
+                          color: "#00d4ff",
+                          border: "1px solid rgba(0,212,255,0.35)",
+                        } : undefined}
+                      >
+                        {link.href === "/order-tracking" && <MapPin className="h-5 w-5" />}
+                        {isGta && <span>🎮</span>}
+                        {link.label}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
                 <div className="h-px bg-border w-full my-2" />
                 {user ? (
                   <>

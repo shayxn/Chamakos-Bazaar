@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
 import { ArrowLeft, ArrowRight, Play, X, ShoppingBag, ChevronUp } from "lucide-react";
@@ -8,6 +8,9 @@ import {
   AMBIENT_CSS, AmbientBirds, SwayingPalms, OceanWaves,
   FloatingParticles, NeonReflections, CharacterConnectionOverlay, CharacterFloatWrapper,
 } from "@/components/ambient-effects";
+import { GTA6WorldBackground } from "@/components/gta6-world-bg";
+import { GTA6Radio } from "@/components/gta6-radio";
+import { GTA6Phone, GTA6PhoneButton } from "@/components/gta6-phone";
 
 const RS = "https://www.rockstargames.com/VI/_next/static/media/";
 
@@ -407,20 +410,116 @@ export default function GTA6Page() {
   const [showTrailer, setShowTrailer] = useState(false);
   const [showBackTop, setShowBackTop] = useState(false);
   const [charHover, setCharHover] = useState<"jason" | "lucia" | null>(null);
+  const [cinematicMode, setCinematicMode] = useState(false);
+  const [showPhone, setShowPhone] = useState(false);
+  const [phoneCallTriggered, setPhoneCallTriggered] = useState(false);
+  const cinematicTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { scrollYProgress: pageProgress } = useScroll();
   const progressScaleX = useSpring(pageProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
+  const resetCinematic = useCallback(() => {
+    setCinematicMode(false);
+    if (cinematicTimerRef.current) clearTimeout(cinematicTimerRef.current);
+    cinematicTimerRef.current = setTimeout(() => setCinematicMode(true), 4000);
+  }, []);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-    const onScroll = () => setShowBackTop(window.scrollY > 600);
+    const onScroll = () => {
+      setShowBackTop(window.scrollY > 600);
+      resetCinematic();
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    window.addEventListener("mousemove", resetCinematic, { passive: true });
+    resetCinematic();
+    // Trigger incoming call after 3s (once per session)
+    const callTimer = setTimeout(() => {
+      if (!sessionStorage.getItem("gta6_call_seen")) {
+        sessionStorage.setItem("gta6_call_seen", "1");
+        setPhoneCallTriggered(true);
+        setShowPhone(true);
+      }
+    }, 3000);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("mousemove", resetCinematic);
+      if (cinematicTimerRef.current) clearTimeout(cinematicTimerRef.current);
+      clearTimeout(callTimer);
+    };
+  }, [resetCinematic]);
 
   return (
     <div style={{ background: "#07071c", minHeight: "100vh", color: "#fff" }}>
       <style>{AMBIENT_CSS}</style>
+
+      {/* ── LIVING WORLD BACKGROUND (GTA6 page only) ── */}
+      <GTA6WorldBackground cinematic={cinematicMode} />
+
+      {/* ── CINEMATIC MODE OVERLAY ── */}
+      <AnimatePresence>
+        {cinematicMode && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5 }}
+            className="fixed inset-0 pointer-events-none z-[1]"
+            style={{
+              boxShadow: "inset 0 0 120px rgba(0,0,0,0.55)",
+              background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.35) 100%)",
+            }}
+          >
+            <div className="absolute top-6 left-1/2 -translate-x-1/2">
+              <motion.p
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-[8px] font-black uppercase tracking-[0.45em] text-white/25"
+              >
+                Cinematic Mode
+              </motion.p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── RADIO STATION ── */}
+      <GTA6Radio />
+
+      {/* ── PHONE FLOATING BUTTON ── */}
+      <div className="fixed bottom-8 left-[90px] z-[90]" style={{ pointerEvents: "auto" }}>
+        <GTA6PhoneButton onOpen={() => { setShowPhone(true); setPhoneCallTriggered(false); }} />
+      </div>
+
+      {/* ── PHONE UI OVERLAY ── */}
+      <AnimatePresence>
+        {showPhone && (
+          <motion.div
+            className="fixed inset-0 z-[150] flex items-end justify-center pb-6 sm:items-center sm:pb-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowPhone(false)}
+          >
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <div onClick={e => e.stopPropagation()} className="relative">
+              <button
+                onClick={() => setShowPhone(false)}
+                className="absolute -top-3 -right-3 z-10 w-7 h-7 rounded-full bg-black/80 border border-white/20 flex items-center justify-center text-white/70 hover:text-white text-xs"
+              >
+                <X className="h-3 w-3" />
+              </button>
+              <GTA6Phone
+                onClose={() => setShowPhone(false)}
+                triggerCall={phoneCallTriggered}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AmbientBirds />
 
       {/* ── SCROLL PROGRESS BAR ── */}

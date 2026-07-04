@@ -200,7 +200,7 @@ export default function Shop() {
                           transition={{ type: "spring", stiffness: 300, damping: 22 }}
                           data-testid={`card-product-${product.id}`}
                         >
-                          <div className="relative aspect-square mb-4 overflow-hidden rounded-lg bg-card border border-border group-hover:border-primary/40 transition-colors duration-300 group-hover:shadow-[0_16px_40px_rgba(255,102,0,0.18)]" style={{ transition: "box-shadow 0.4s ease, border-color 0.25s" }}>
+                          <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-card border border-border group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(255,102,0,0.2)]" style={{ transition: "box-shadow 0.45s ease, border-color 0.25s" }}>
                             {primaryMedia ? (
                               primaryMedia.type === "video" ? (
                                 <video
@@ -249,18 +249,21 @@ export default function Shop() {
                               </div>
                             )}
                           </div>
-                          <div className="space-y-1 px-0.5">
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{product.categoryName}</p>
-                            <h3 className="font-bold text-base leading-tight group-hover:text-primary transition-colors duration-200">{product.name}</h3>
-                            <div className="flex items-center justify-between">
-                              <p className="font-mono text-primary font-bold text-lg">AED {product.price.toFixed(2)}</p>
+                          <div className="space-y-1.5 px-0.5 pt-1">
+                            <p className="text-[9px] text-muted-foreground uppercase tracking-[0.25em] font-bold">{product.categoryName || "Streetwear"}</p>
+                            <h3 className="font-black text-sm leading-tight group-hover:text-primary transition-colors duration-200 line-clamp-2">{product.name}</h3>
+                            <div className="flex items-center justify-between gap-2 pt-0.5">
+                              <div className="flex items-baseline gap-1.5">
+                                <p className="font-black text-primary text-base tabular-nums">AED {product.price.toFixed(2)}</p>
+                              </div>
                               <motion.button
-                                whileHover={{ scale: 1.08 }}
+                                whileHover={{ scale: 1.06, backgroundColor: "rgba(255,102,0,0.15)" }}
                                 whileTap={{ scale: 0.93 }}
                                 onClick={(e) => { e.preventDefault(); setQuickViewId(product.id); }}
-                                className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded border border-border hover:border-primary/40 bg-background/80"
+                                className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all px-2.5 py-1.5 rounded-full border border-border hover:border-primary/40 shrink-0"
+                                style={{ backdropFilter: "blur(8px)" }}
                               >
-                                <Eye className="h-3 w-3" /> Quick View
+                                <Eye className="h-3 w-3" /> Quick
                               </motion.button>
                             </div>
                           </div>
