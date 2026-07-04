@@ -27,8 +27,8 @@ export const AMBIENT_CSS = `
   100% { transform: translateX(-50%); }
 }
 @keyframes neonPulse {
-  0%,100% { opacity: 0.55; filter: blur(10px); }
-  50%     { opacity: 0.25; filter: blur(14px); }
+  0%,100% { opacity: 0.55; }
+  50%     { opacity: 0.25; }
 }
 @keyframes neonFlick {
   0%,89%,91%,93%,100% { opacity: 1; }
@@ -223,7 +223,7 @@ export function NeonReflections() {
           bottom: 0, left: "12%", width: 220, height: 3,
           background: CYAN,
           animation: "neonPulse 7s 0s ease-in-out infinite",
-          willChange: "opacity, filter",
+          willChange: "opacity",
         }}
       />
       <div
@@ -232,7 +232,7 @@ export function NeonReflections() {
           bottom: 0, right: "18%", width: 160, height: 3,
           background: PINK,
           animation: "neonPulse 5s 2.5s ease-in-out infinite",
-          willChange: "opacity, filter",
+          willChange: "opacity",
         }}
       />
       <div
@@ -241,7 +241,7 @@ export function NeonReflections() {
           bottom: 0, left: "45%", width: 100, height: 2,
           background: "#9b30ff",
           animation: "neonPulse 9s 1s ease-in-out infinite",
-          willChange: "opacity, filter",
+          willChange: "opacity",
         }}
       />
       <div
@@ -287,31 +287,36 @@ export function CharacterFloatWrapper({ children, char }: { children: React.Reac
 
 function AnimatedConnectionPath({ active }: { active: boolean }) {
   const pathRef = useRef<SVGPathElement>(null);
-  const [dashLen, setDashLen] = useState(200);
-  const [offset, setOffset] = useState(200);
+  const dashLenRef = useRef(200);
 
   useEffect(() => {
     if (pathRef.current) {
       const len = pathRef.current.getTotalLength();
-      setDashLen(len);
-      setOffset(len);
+      dashLenRef.current = len;
+      pathRef.current.setAttribute("stroke-dasharray", String(len));
+      pathRef.current.setAttribute("stroke-dashoffset", String(len));
     }
   }, []);
 
   useEffect(() => {
-    if (!active) { setOffset(dashLen); return; }
+    const el = pathRef.current;
+    if (!el) return;
+    if (!active) {
+      el.setAttribute("stroke-dashoffset", String(dashLenRef.current));
+      return;
+    }
     let frame: number;
-    let pos = dashLen;
+    let pos = dashLenRef.current;
     const speed = 2.2;
-    const animate = () => {
+    const tick = () => {
       pos -= speed;
-      if (pos < -dashLen) pos = dashLen;
-      setOffset(pos);
-      frame = requestAnimationFrame(animate);
+      if (pos < -dashLenRef.current) pos = dashLenRef.current;
+      el.setAttribute("stroke-dashoffset", String(pos));
+      frame = requestAnimationFrame(tick);
     };
-    frame = requestAnimationFrame(animate);
+    frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [active, dashLen]);
+  }, [active]);
 
   return (
     <path
@@ -320,8 +325,6 @@ function AnimatedConnectionPath({ active }: { active: boolean }) {
       fill="none"
       stroke="url(#jl-grad)"
       strokeWidth={active ? 0.9 : 0.4}
-      strokeDasharray={dashLen}
-      strokeDashoffset={offset}
       strokeLinecap="round"
       style={{ transition: "stroke-width 0.4s, opacity 0.4s", opacity: active ? 1 : 0.4 }}
     />

@@ -6,7 +6,7 @@ import leonidaMapImg from "@assets/904B9A86-2CF9-4B4E-BE6D-949D28E9CB2F_17831043
 import gta6BgImg from "@assets/9EFF3459-F0D5-4AC8-B59A-1BBBE911B19F_1783160642586.png";
 import { useSettings } from "@/lib/use-settings";
 import {
-  AMBIENT_CSS, AmbientBirds, SwayingPalms, OceanWaves,
+  AMBIENT_CSS, SwayingPalms, OceanWaves,
   FloatingParticles, NeonReflections, CharacterConnectionOverlay, CharacterFloatWrapper,
 } from "@/components/ambient-effects";
 import { GTA6Radio } from "@/components/gta6-radio";
@@ -540,7 +540,6 @@ export default function GTA6Page() {
         )}
       </AnimatePresence>
 
-      <AmbientBirds />
 
       {/* ── SCROLL PROGRESS BAR ── */}
       <motion.div
@@ -624,19 +623,21 @@ export default function GTA6Page() {
         </motion.div>
 
         {[
-          { top: "18%", left: "8%", color: PINK, size: 320, delay: 0 },
-          { top: "60%", right: "6%", color: CYAN, size: 260, delay: 1.2 },
-          { top: "35%", left: "58%", color: "#9b30ff", size: 220, delay: 0.6 },
+          { top: "18%", left: "8%",  color: PINK,     size: 320, delay: 0,   dur: 5 },
+          { top: "60%", right: "6%", color: CYAN,     size: 260, delay: 1.2, dur: 6 },
+          { top: "35%", left: "58%", color: "#9b30ff", size: 220, delay: 0.6, dur: 7 },
         ].map((orb, i) => (
-          <motion.div
+          <div
             key={i}
             className="absolute rounded-full pointer-events-none"
-            animate={{ scale: [1, 1.15, 1], opacity: [0.06, 0.18, 0.06] }}
-            transition={{ duration: 5 + i, repeat: Infinity, ease: "easeInOut", delay: orb.delay }}
             style={{
               width: orb.size, height: orb.size,
-              top: orb.top, left: (orb as { left?: string }).left, right: (orb as { right?: string }).right,
+              top: orb.top,
+              left: (orb as { left?: string }).left,
+              right: (orb as { right?: string }).right,
               background: orb.color, filter: "blur(80px)",
+              animation: `orbPulse ${orb.dur}s ${orb.delay}s ease-in-out infinite`,
+              willChange: "transform, opacity",
             }}
           />
         ))}

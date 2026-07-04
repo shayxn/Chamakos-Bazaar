@@ -24,12 +24,18 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
+  const rafRef = useRef<number | null>(null);
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 16;
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * -16;
-    setTilt({ x, y });
+    const { clientX, clientY } = e;
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const x = ((clientX - rect.left) / rect.width - 0.5) * 16;
+      const y = ((clientY - rect.top) / rect.height - 0.5) * -16;
+      setTilt({ x, y });
+    });
   }, []);
 
   const handleMouseLeave = useCallback(() => { setTilt({ x: 0, y: 0 }); setIsHovered(false); }, []);
@@ -381,51 +387,43 @@ export default function Home() {
             style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")", backgroundRepeat: "repeat", backgroundSize: "180px 180px" }}
           />
 
-          {/* Giant background "CS" text for depth */}
+          {/* Giant background "CS" text for depth — CSS animated (no RAF) */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none flex items-center">
-            <motion.span
-              className="absolute right-[-5%] font-black uppercase leading-none text-white/[0.025]"
-              style={{ fontSize: "clamp(15rem, 40vw, 55rem)", letterSpacing: "-0.06em", lineHeight: 0.85 }}
-              animate={{ opacity: [0.025, 0.04, 0.025], x: ["0%", "1%", "0%"] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            <span
+              className="absolute right-[-5%] font-black uppercase leading-none"
+              style={{ fontSize: "clamp(15rem, 40vw, 55rem)", letterSpacing: "-0.06em", lineHeight: 0.85, animation: "csDrift 10s ease-in-out infinite" }}
             >
               CS
-            </motion.span>
+            </span>
           </div>
 
-          {/* Dual orange ambient glows */}
-          <motion.div
+          {/* Dual orange ambient glows — CSS animated */}
+          <div
             className="absolute inset-0 z-0 pointer-events-none"
-            animate={{ opacity: [0.3, 0.55, 0.3], x: ["-3%", "3%", "-3%"] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            style={{ background: "radial-gradient(ellipse 50% 60% at 14% 60%, rgba(255,102,0,0.2), transparent)" }}
+            style={{ background: "radial-gradient(ellipse 50% 60% at 14% 60%, rgba(255,102,0,0.2), transparent)", animation: "glowDriftX 8s ease-in-out infinite" }}
           />
-          <motion.div
+          <div
             className="absolute inset-0 z-0 pointer-events-none"
-            animate={{ opacity: [0.1, 0.28, 0.1] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            style={{ background: "radial-gradient(ellipse 35% 50% at 85% 30%, rgba(255,80,0,0.14), transparent)" }}
+            style={{ background: "radial-gradient(ellipse 35% 50% at 85% 30%, rgba(255,80,0,0.14), transparent)", animation: "glowPulse 6s ease-in-out 2s infinite" }}
           />
 
           {/* Bottom vignette */}
           <div className="absolute inset-x-0 bottom-0 h-48 z-0 pointer-events-none" style={{ background: "linear-gradient(to top, hsl(var(--background)) 30%, transparent)" }} />
 
-          {/* 18 floating embers */}
+          {/* 18 floating embers — CSS animated (compositor thread, no RAF) */}
           {[...Array(18)].map((_, i) => (
-            <motion.div
+            <div
               key={i}
-              className="absolute z-0 pointer-events-none"
+              className="absolute z-0 pointer-events-none rounded-full"
               style={{
                 width: 1.5 + (i % 4) * 1.2,
                 height: 1.5 + (i % 4) * 1.2,
-                borderRadius: "50%",
                 left: `${4 + i * 5.2}%`,
                 bottom: `${4 + (i % 6) * 6}%`,
                 background: i % 3 === 0 ? "#ff6600" : i % 3 === 1 ? "#ffcc00" : "#ff4400",
-                boxShadow: `0 0 ${6 + i * 2}px ${i % 2 === 0 ? "#ff6600" : "#ffcc00"}`,
+                animation: `${i % 2 === 0 ? "emberRiseR" : "emberRiseL"} ${2.8 + i * 0.35}s ${i * 0.38}s ease-out infinite`,
+                willChange: "transform, opacity",
               }}
-              animate={{ y: [0, -(80 + i * 22), 0], opacity: [0, 0.9, 0], x: [0, (i % 2 === 0 ? 12 : -12), 0] }}
-              transition={{ duration: 2.8 + i * 0.35, repeat: Infinity, delay: i * 0.38, ease: "easeOut" }}
             />
           ))}
 

@@ -166,6 +166,34 @@
   0% { transform: translateX(-150%); }
   100% { transform: translateX(150%); }
 }
+
+/* ── Performance-safe CSS replacements for framer-motion infinite loops ── */
+@keyframes emberRiseR {
+  0%   { transform: translateY(0)     translateX(0);   opacity: 0; }
+  15%  { opacity: 0.85; }
+  100% { transform: translateY(-480px) translateX(12px); opacity: 0; }
+}
+@keyframes emberRiseL {
+  0%   { transform: translateY(0)     translateX(0);   opacity: 0; }
+  15%  { opacity: 0.85; }
+  100% { transform: translateY(-480px) translateX(-12px); opacity: 0; }
+}
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1);    opacity: 0.06; }
+  50%       { transform: scale(1.15); opacity: 0.18; }
+}
+@keyframes csDrift {
+  0%, 100% { opacity: 0.025; transform: translateX(0); }
+  50%       { opacity: 0.04;  transform: translateX(1%); }
+}
+@keyframes glowDriftX {
+  0%, 100% { opacity: 0.3;  transform: translateX(-3%); }
+  50%       { opacity: 0.55; transform: translateX(3%); }
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.1; }
+  50%       { opacity: 0.28; }
+}
 .group:hover .shimmer-overlay {
   animation: shimmer-sweep 0.75s ease forwards;
 }
