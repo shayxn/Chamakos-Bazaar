@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
 import { ArrowLeft, ArrowRight, Play, X, ShoppingBag, ChevronUp } from "lucide-react";
 import leonidaMapImg from "@assets/904B9A86-2CF9-4B4E-BE6D-949D28E9CB2F_1783104370895.png";
+import gta6BgImg from "@assets/9EFF3459-F0D5-4AC8-B59A-1BBBE911B19F_1783160642586.png";
 import { useSettings } from "@/lib/use-settings";
 import {
   AMBIENT_CSS, AmbientBirds, SwayingPalms, OceanWaves,
@@ -399,44 +400,19 @@ function PreOrderModal({ onClose, whatsappNumber }: PreOrderModalProps) {
 }
 
 function YoutubeBg() {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    const play = () => {
-      try {
-        iframeRef.current?.contentWindow?.postMessage(
-          JSON.stringify({ event: "command", func: "playVideo", args: [] }),
-          "*"
-        );
-      } catch {}
-    };
-    // Fire immediately, then retry every 500ms for 10s to handle slow player init
-    play();
-    const interval = setInterval(play, 500);
-    const stop = setTimeout(() => clearInterval(interval), 10000);
-    return () => { clearInterval(interval); clearTimeout(stop); };
-  }, []);
-
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" style={{ background: "#000" }}>
-      <iframe
-        ref={iframeRef}
-        src="https://www.youtube.com/embed/TtAETMghnMc?autoplay=1&mute=1&loop=1&playlist=TtAETMghnMc&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&enablejsapi=1&origin=https://www.youtube.com"
-        allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
-        allowFullScreen
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+      <img
+        src={gta6BgImg}
+        alt=""
         style={{
           position: "absolute",
-          top: "50%",
-          left: "50%",
-          width: "100vw",
-          height: "56.25vw",
-          minHeight: "100vh",
-          minWidth: "177.78vh",
-          transform: "translate(-50%, -50%)",
-          border: "none",
-          pointerEvents: "none",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
         }}
-        title="GTA VI Background"
       />
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
     </div>
