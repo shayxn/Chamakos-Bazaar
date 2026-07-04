@@ -26,6 +26,39 @@ router.get("/reviews/all", requireAdmin, async (_req, res) => {
   res.json(reviews.map(serializeReview));
 });
 
+// Public submission — creates review as invisible (pending admin approval)
+router.post("/reviews/submit", async (req, res) => {
+  const body = req.body as {
+    customerName?: string;
+    rating?: number;
+    body?: string;
+    imageUrls?: string;
+    productName?: string;
+  };
+  if (!body.customerName?.trim() || !body.body?.trim()) {
+    res.status(400).json({ error: "Name and review text are required" });
+    return;
+  }
+  const reviewBody = body.productName?.trim()
+    ? `[${body.productName.trim()}] ${body.body.trim()}`
+    : body.body.trim();
+  const [review] = await db
+    .insert(reviewsTable)
+    .values({
+      customerName: body.customerName.trim(),
+      customerAvatar: null,
+      rating: Math.min(5, Math.max(1, Number(body.rating ?? 5))),
+      body: reviewBody,
+      imageUrls: body.imageUrls ?? null,
+      isVerified: false,
+      isPinned: false,
+      isVisible: false,
+      displayOrder: 0,
+    })
+    .returning();
+  res.status(201).json({ message: "Review submitted for approval", id: review.id });
+});
+
 router.post("/reviews", requireAdmin, async (req, res) => {
   const body = req.body as {
     customerName: string;
