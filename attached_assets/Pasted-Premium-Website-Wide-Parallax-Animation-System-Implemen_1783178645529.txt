@@ -1,0 +1,90 @@
+Premium Website-Wide Parallax Animation System
+
+Implement a premium, cinematic parallax animation system across the entire ChamakStreet website, not just the Explore Grand Theft Auto VI section.
+
+The goal is to make every page feel immersive, luxurious, and alive while maintaining exceptional performance.
+
+Website-Wide Parallax
+
+* Add smooth parallax animations to every major section.
+* Create multiple depth layers (foreground, midground, background, and sky).
+* Each layer should move at a slightly different speed while scrolling to create realistic depth.
+* Every page should feel dynamic and immersive.
+
+Hero Sections
+
+* Every hero banner should have subtle parallax movement.
+* Backgrounds should move slower than foreground content.
+* Headlines should gently fade and slide into view.
+* Buttons should smoothly animate into place.
+* Hero images should slowly zoom while visible.
+
+Images
+
+* Product images should gently float while scrolling.
+* Large promotional images should slowly zoom in.
+* Images should subtly shift horizontally or vertically based on scroll.
+* Hovering images should create a slight 3D tilt effect.
+
+Text
+
+* Titles should reveal with smooth fade-up animations.
+* Paragraphs should slide into view naturally.
+* Featured text should have subtle parallax depth.
+
+Cards
+
+* Cards should lift slightly when hovered.
+* Soft shadow movement.
+* Smooth scaling.
+* Tiny 3D tilt effect.
+* Luxury hover animations.
+
+Background Elements
+
+* Floating particles.
+* Light rays.
+* Moving clouds where appropriate.
+* Soft animated gradients.
+* Gentle lighting changes.
+* Decorative background elements that move independently.
+
+Camera Feel
+
+* Add subtle cinematic camera movement while scrolling.
+* Tiny zoom effects during important sections.
+* Smooth transitions between sections.
+* Never make the movement feel excessive.
+
+Mouse Interaction (Desktop)
+
+* Sections react slightly to cursor movement.
+* Images subtly follow the mouse.
+* Dynamic lighting reflections.
+* Premium glass reflections.
+
+Navigation
+
+* Navigation bar gently changes while scrolling.
+* Smooth hide/show animations.
+* Active section indicator.
+* Smooth scrolling between sections.
+
+Footer
+
+* Add subtle parallax to the footer.
+* Animated gradients.
+* Floating decorative elements.
+* Smooth reveal animation.
+
+Performance
+
+* Keep every animation lightweight.
+* Only animate elements currently visible.
+* Automatically reduce effects on lower-powered devices.
+* Maintain smooth scrolling and responsiveness.
+* Optimize for desktop, tablet, and mobile.
+
+Final Goal
+
+Every page should feel alive and luxurious. Scrolling should feel cinematic, smooth, and immersive, with elegant depth and motion throughout the entire ChamakStreet website while maintaining excellent performance and a premium user experience.

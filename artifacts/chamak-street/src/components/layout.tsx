@@ -278,8 +278,43 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="border-t border-border mt-20 py-12 bg-card">
-        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <motion.footer
+        className="relative mt-20 overflow-hidden bg-card"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.05 }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {/* Animated top accent line */}
+        <motion.div
+          className="h-px w-full"
+          style={{ background: "linear-gradient(to right, transparent 5%, rgba(255,102,0,0.55) 35%, rgba(255,204,0,0.35) 65%, transparent 95%)", transformOrigin: "left" }}
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+        />
+
+        {/* Background depth glow */}
+        <div className="absolute -top-16 left-1/2 w-[700px] h-[260px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, rgba(255,102,0,0.04), transparent 70%)", transform: "translateX(-50%)" }}
+        />
+        {/* Floating left orb */}
+        <motion.div
+          className="absolute top-8 left-[8%] w-36 h-36 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, rgba(255,102,0,0.06), transparent 75%)" }}
+          animate={{ y: [0, -16, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Floating right orb */}
+        <motion.div
+          className="absolute bottom-8 right-[10%] w-28 h-28 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, rgba(255,204,0,0.05), transparent 75%)" }}
+          animate={{ y: [0, -12, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+
+        <div className="container mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-4 gap-8 relative">
           <div className="col-span-1 md:col-span-2">
             {useCustomLogo ? (
               <img
@@ -351,10 +386,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </ul>
           </div>
         </div>
-        <div className="container mx-auto px-4 mt-12 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Chamak Street. All rights reserved.
-        </div>
-      </footer>
+        <motion.div
+          className="container mx-auto px-4 mt-8 pb-8 pt-8 border-t border-border/30 text-center text-sm text-muted-foreground relative"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <span className="gradient-text font-black tracking-widest text-xs uppercase">Chamak Street</span>
+          <span className="text-muted-foreground/40 mx-2">·</span>
+          <span>&copy; {new Date().getFullYear()} All rights reserved.</span>
+          <span className="text-muted-foreground/40 mx-2">·</span>
+          <span>Premium Streetwear — Dubai</span>
+        </motion.div>
+      </motion.footer>
 
       {settings.whatsapp_visible !== "false" && settings.whatsapp_number && (
         <motion.a

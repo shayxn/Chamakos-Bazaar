@@ -24,16 +24,25 @@ export type ActiveEvent = {
 // Shared hook — other components import this
 let _events: ActiveEvent[] = [];
 let _listeners: Array<() => void> = [];
+let _fetching = false;
+let _lastFetch = 0;
+const CACHE_MS = 30_000;
 
 function notifyListeners() { _listeners.forEach((fn) => fn()); }
 
-export async function refreshActiveEvents() {
+export async function refreshActiveEvents(force = false) {
+  if (_fetching) return;
+  if (!force && Date.now() - _lastFetch < CACHE_MS) return;
+  _fetching = true;
   try {
     const r = await fetch(`${BASE}/api/events/active`);
     if (!r.ok) return;
     _events = await r.json() as ActiveEvent[];
+    _lastFetch = Date.now();
     notifyListeners();
-  } catch {}
+  } catch {} finally {
+    _fetching = false;
+  }
 }
 
 export function useActiveEvents(): ActiveEvent[] {

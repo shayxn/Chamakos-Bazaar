@@ -1,6 +1,6 @@
 import { useListProducts, getListProductsQueryKey, useListCategories } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence, useMotionValue } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Flame, Zap, Star, ShoppingBag } from "lucide-react";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
@@ -381,6 +381,39 @@ function LeonidaScrollReveal() {
   );
 }
 
+function SectionDivider({ accent = true }: { accent?: boolean }) {
+  return (
+    <div className="relative flex items-center justify-center py-3 overflow-hidden">
+      <motion.div
+        className="absolute left-0 right-0 h-px"
+        style={{
+          background: accent
+            ? "linear-gradient(to right, transparent 5%, rgba(255,102,0,0.45) 35%, rgba(255,204,0,0.28) 65%, transparent 95%)"
+            : "linear-gradient(to right, transparent 10%, rgba(255,255,255,0.05) 50%, transparent 90%)",
+          transformOrigin: "center",
+        }}
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+      />
+      {accent && (
+        <motion.div
+          className="relative z-10 flex items-center gap-2"
+          initial={{ opacity: 0, scale: 0 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.55, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className="w-1 h-1 rotate-45 bg-primary/50" />
+          <div className="w-1.5 h-1.5 rotate-45 bg-primary/70" />
+          <div className="w-1 h-1 rotate-45 bg-primary/50" />
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
 function GTA6ExploreCards() {
   const tilt1 = useRef<HTMLDivElement>(null);
   const tilt2 = useRef<HTMLDivElement>(null);
@@ -537,6 +570,11 @@ export default function Home() {
   const heroOpacity = useSpring(rawOpacity, { stiffness: 80, damping: 20 });
   const heroScale = useSpring(rawScale, { stiffness: 80, damping: 20 });
 
+  const heroMouseX = useMotionValue(0);
+  const heroMouseY = useMotionValue(0);
+  const heroParallaxX = useSpring(useTransform(heroMouseX, [-1, 1], [-18, 18]), { stiffness: 60, damping: 18 });
+  const heroParallaxY = useSpring(useTransform(heroMouseY, [-1, 1], [-8, 8]), { stiffness: 60, damping: 18 });
+
   const settings = useSettings();
   const { data: featuredProducts } = useListProducts(
     { featured: true },
@@ -598,11 +636,17 @@ export default function Home() {
           ref={heroRef}
           className="relative min-h-screen w-full flex items-center overflow-hidden"
           onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
+          onMouseLeave={() => { setPaused(false); heroMouseX.set(0); heroMouseY.set(0); }}
+          onMouseMove={(e) => {
+            const rect = heroRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            heroMouseX.set((e.clientX - rect.left) / rect.width * 2 - 1);
+            heroMouseY.set((e.clientY - rect.top) / rect.height * 2 - 1);
+          }}
         >
 
           {/* ── Carousel background images (crossfade) ── */}
-          <motion.div className="absolute inset-0 z-0" style={{ y: heroY, scale: heroScale }}>
+          <motion.div className="absolute inset-0 z-0" style={{ y: heroY, scale: heroScale, x: heroParallaxX, rotateX: heroParallaxY }}>
             <AnimatePresence mode="sync">
               {/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(heroImages[slideIdx]) ? (
                 <motion.video
@@ -1259,17 +1303,27 @@ export default function Home() {
         {/* ── TRUST ── */}
         <TrustSection />
 
+        <SectionDivider />
+
         {/* ── TIKTOK ── */}
         <TiktokSection />
+
+        <SectionDivider />
 
         {/* ── REVIEWS ── */}
         <ReviewsSection />
 
+        <SectionDivider accent={false} />
+
         {/* ══════════════ ONLY IN LEONIDA — PARALLAX SCROLL ══════════════ */}
         <LeonidaScrollReveal />
 
+        <SectionDivider />
+
         {/* ══════════════ GTA VI EXPLORE CARDS ══════════════ */}
         <GTA6ExploreCards />
+
+        <SectionDivider />
 
         {/* ══════════════ QUOTE BANNER ══════════════ */}
         <RevealSection amount={0.15} className="mx-4 mb-12">
