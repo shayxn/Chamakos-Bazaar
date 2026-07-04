@@ -453,10 +453,10 @@ export default function GTA6Page() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("mousemove", resetCinematic, { passive: true });
     resetCinematic();
-    // Trigger incoming call after 3s (once per session)
+    // Trigger incoming call after 3s (once per browser — localStorage gate)
     const callTimer = setTimeout(() => {
-      if (!sessionStorage.getItem("gta6_call_seen")) {
-        sessionStorage.setItem("gta6_call_seen", "1");
+      if (!localStorage.getItem("chamak_call_received")) {
+        localStorage.setItem("chamak_call_received", "1");
         setPhoneCallTriggered(true);
         setShowPhone(true);
       }

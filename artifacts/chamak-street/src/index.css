@@ -275,6 +275,46 @@
   animation: revenueGlow 3s ease-in-out infinite;
 }
 
+/* ── Vice City Pink/Cyan animated keyframes ── */
+@keyframes vcGradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes vcNeonPulsePink {
+  0%, 100% { box-shadow: 0 0 0px rgba(255,45,156,0), 0 0 0px rgba(255,45,156,0); }
+  50%       { box-shadow: 0 0 20px rgba(255,45,156,0.6), 0 0 50px rgba(255,45,156,0.25); }
+}
+@keyframes vcNeonPulseCyan {
+  0%, 100% { box-shadow: 0 0 0px rgba(0,212,255,0), 0 0 0px rgba(0,212,255,0); }
+  50%       { box-shadow: 0 0 20px rgba(0,212,255,0.6), 0 0 50px rgba(0,212,255,0.25); }
+}
+@keyframes vcTextShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes vcBorderGlow {
+  0%, 100% { border-color: rgba(255,45,156,0.3); }
+  50%       { border-color: rgba(0,212,255,0.6); }
+}
+
+.vc-gradient-text {
+  background: linear-gradient(135deg, #ff2d9c, #00d4ff, #ff2d9c);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: vcGradientShift 4s ease infinite;
+}
+.vc-neon-pink {
+  animation: vcNeonPulsePink 2.5s ease-in-out infinite;
+}
+.vc-neon-cyan {
+  animation: vcNeonPulseCyan 2.5s ease-in-out infinite;
+}
+.vc-border-glow {
+  animation: vcBorderGlow 3s ease-in-out infinite;
+}
+
 /* ── Shared utilities ── */
 .group:hover .shimmer-overlay {
   animation: shimmer-sweep 0.75s ease forwards;

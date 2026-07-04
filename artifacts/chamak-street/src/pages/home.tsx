@@ -219,7 +219,7 @@ function GTA6ExploreCards() {
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.85, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
         >
-          <Link href="/gta6">
+          <Link href="/gta6/vintage-vice-city">
             <div
               ref={tilt2}
               {...makeTiltHandlers(tilt2)}
@@ -717,6 +717,9 @@ export default function Home() {
           </motion.div>
         </section>
 
+        {/* ── SPOTLIGHT BANNER ── */}
+        <SpotlightBanner />
+
         {/* ══════════════ FEATURED PRODUCTS ══════════════ */}
         <section className="py-20 overflow-hidden">
           <div className="container mx-auto px-4">
@@ -831,9 +834,6 @@ export default function Home() {
 
         {/* ── SCROLL FLOAT OBJECT ── */}
         <ScrollFloatObject />
-
-        {/* ── SPOTLIGHT BANNER ── */}
-        <SpotlightBanner />
 
         {/* ── EVENT HOMEPAGE BANNER ── */}
         <RevealSection amount={0.1} className="container mx-auto px-4 mt-6">

@@ -45,6 +45,7 @@ import RequestProduct from "@/pages/request-product";
 import Games from "@/pages/games";
 import GameDetail from "@/pages/game-detail";
 import GTA6Page from "@/pages/gta6";
+import VintageViceCityPage from "@/pages/gta6-vintage-vice-city";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -109,6 +110,7 @@ function MainRouter() {
             <Route path="/games" component={Games} />
             <Route path="/games/:id" component={GameDetail} />
             <Route path="/gta6" component={GTA6Page} />
+            <Route path="/gta6/vintage-vice-city" component={VintageViceCityPage} />
             <Route component={NotFound} />
           </Switch>
         </Layout>
