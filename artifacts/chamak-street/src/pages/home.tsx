@@ -450,8 +450,8 @@ export default function Home() {
 
                 {/* Badge with orbit */}
                 <motion.div
-                  initial={{ opacity: 0, x: -40, filter: "blur(8px)" }}
-                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  initial={{ opacity: 0, x: -40 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.75, delay: HD, ease: EASE }}
                   className="inline-flex items-center gap-3 mb-10"
                 >
@@ -590,8 +590,8 @@ export default function Home() {
               {heroProductMedia && (
                 <motion.div
                   className="hidden xl:block shrink-0 relative"
-                  initial={{ opacity: 0, x: 60, filter: "blur(12px)" }}
-                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  initial={{ opacity: 0, x: 60 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 1.0, delay: HD + 0.6, ease: EASE }}
                 >
                   <motion.div

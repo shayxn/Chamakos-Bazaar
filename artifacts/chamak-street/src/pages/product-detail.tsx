@@ -126,8 +126,8 @@ function BackInStockAlert({ productId, productName }: { productId: number; produ
 function MotionItem({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 28, filter: "blur(4px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay, ease: EASE }}
       className={className}
     >
@@ -469,8 +469,8 @@ export default function ProductDetail() {
           <div className="space-y-3">
             <motion.div
               ref={imgContainerRef}
-              initial={{ opacity: 0, scale: 1.04, filter: "blur(8px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              initial={{ opacity: 0, scale: 1.04 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.75, ease: EASE }}
               className="relative aspect-square md:aspect-[4/5] bg-card rounded-lg overflow-hidden border border-border group"
             >

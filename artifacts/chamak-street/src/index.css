@@ -146,6 +146,7 @@
   }
 }
 
+/* ── Gradient text utilities ── */
 .gradient-text {
   @apply bg-clip-text text-transparent bg-gradient-to-r from-[#ff6600] to-[#ffcc00];
 }
@@ -157,24 +158,26 @@
   background-clip: text;
   animation: gradient-shift 4s ease infinite;
 }
+
+/* ── Keyframes: shared ── */
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 @keyframes shimmer-sweep {
-  0% { transform: translateX(-150%); }
+  0%   { transform: translateX(-150%); }
   100% { transform: translateX(150%); }
 }
 
-/* ── Performance-safe CSS replacements for framer-motion infinite loops ── */
+/* ── Keyframes: ember / orb / ambient ── */
 @keyframes emberRiseR {
-  0%   { transform: translateY(0)     translateX(0);   opacity: 0; }
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
   15%  { opacity: 0.85; }
   100% { transform: translateY(-480px) translateX(12px); opacity: 0; }
 }
 @keyframes emberRiseL {
-  0%   { transform: translateY(0)     translateX(0);   opacity: 0; }
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
   15%  { opacity: 0.85; }
   100% { transform: translateY(-480px) translateX(-12px); opacity: 0; }
 }
@@ -194,6 +197,85 @@
   0%, 100% { opacity: 0.1; }
   50%       { opacity: 0.28; }
 }
+
+/* ── Keyframes: admin animated colors ── */
+
+/* Active nav pill: gradient shifts position continuously */
+@keyframes adminPillShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Glow pulse for active admin items */
+@keyframes adminGlow {
+  0%, 100% { box-shadow: 0 0 12px rgba(255,102,0,0.25), 0 0 24px rgba(255,204,0,0.08); }
+  50%       { box-shadow: 0 0 22px rgba(255,102,0,0.45), 0 0 44px rgba(255,204,0,0.18); }
+}
+
+/* Subtle shimmer sweep for stat card highlight line */
+@keyframes adminShimmer {
+  0%   { transform: translateX(-200%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Border glow rotation for stat cards */
+@keyframes adminCardGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,102,0,0.15), 0 4px 24px rgba(255,102,0,0.06); }
+  50%       { box-shadow: 0 0 0 1px rgba(255,204,0,0.35), 0 8px 32px rgba(255,102,0,0.14); }
+}
+
+/* Status dot: color-shifting pulse */
+@keyframes statusDotPulse {
+  0%, 100% { opacity: 1;    box-shadow: 0 0 0 0 rgba(255,102,0,0.6); }
+  50%       { opacity: 0.7; box-shadow: 0 0 0 5px rgba(255,102,0,0); }
+}
+
+/* Sidebar accent bar: hue shift */
+@keyframes adminAccentBar {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 0% 200%; }
+}
+
+/* Smooth text color cycle for section group labels */
+@keyframes adminLabelColor {
+  0%,100% { color: rgba(255,102,0,0.75); }
+  50%      { color: rgba(255,204,0,0.85); }
+}
+
+/* Revenue value glow */
+@keyframes revenueGlow {
+  0%, 100% { text-shadow: 0 0 0px rgba(255,102,0,0); }
+  50%       { text-shadow: 0 0 20px rgba(255,102,0,0.45), 0 0 40px rgba(255,204,0,0.2); }
+}
+
+/* ── Admin utility classes ── */
+
+.admin-active-pill {
+  background: linear-gradient(135deg, #ff6600, #ffcc00, #ff4400, #ff8c00, #ff6600);
+  background-size: 400% 400%;
+  animation: adminPillShift 3.5s ease infinite, adminGlow 2.5s ease-in-out infinite;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+.admin-stat-card {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+.admin-stat-card:hover {
+  animation: adminCardGlow 2s ease-in-out infinite;
+  transform: translateY(-2px);
+}
+
+.admin-status-dot {
+  animation: statusDotPulse 2s ease-in-out infinite;
+}
+
+.admin-revenue-value {
+  animation: revenueGlow 3s ease-in-out infinite;
+}
+
+/* ── Shared utilities ── */
 .group:hover .shimmer-overlay {
   animation: shimmer-sweep 0.75s ease forwards;
 }

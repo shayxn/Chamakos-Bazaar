@@ -13,9 +13,9 @@ import { EventProductBadge } from "@/components/event-product-badge";
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 36, scale: 0.95, filter: "blur(4px)" },
-  show: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", transition: { duration: 0.55, ease: EASE } },
-  exit: { opacity: 0, scale: 0.93, filter: "blur(3px)", transition: { duration: 0.22 } },
+  hidden: { opacity: 0, y: 36, scale: 0.95 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: EASE } },
+  exit: { opacity: 0, scale: 0.93, transition: { duration: 0.22 } },
 };
 
 const gridVariants = {
@@ -91,8 +91,8 @@ export default function Shop() {
 
           <motion.div
             className="w-full md:w-auto"
-            initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease: EASE }}
           >
             <div className="relative w-full md:w-72">
@@ -112,8 +112,8 @@ export default function Shop() {
           {/* Sidebar */}
           <motion.aside
             className="w-full md:w-56 shrink-0"
-            initial={{ opacity: 0, x: -24, filter: "blur(4px)" }}
-            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.18, ease: EASE }}
           >
             <div className="flex items-center gap-2 font-black uppercase tracking-wider mb-5 border-b border-border pb-3">
