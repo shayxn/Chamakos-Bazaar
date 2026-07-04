@@ -6,6 +6,8 @@ import { ArrowRight, Flame, Zap, Star, ShoppingBag } from "lucide-react";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 const GTA6_IMG_1 = "https://www.rockstargames.com/VI/_next/static/media/Vice_City_04.06evqutgh7624.jpg";
 const GTA6_IMG_2 = "https://www.rockstargames.com/VI/_next/static/media/ULTIMATE_EDITION_01.16qc1xq5nigg1.jpg";
+const RS_JASON   = "https://www.rockstargames.com/VI/_next/static/media/Jason_Duval_01.07m377xeb6jhq.jpg";
+const RS_LUCIA   = "https://www.rockstargames.com/VI/_next/static/media/Lucia_Caminos_04.04kb_~4ubn3wn.jpg";
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
@@ -125,6 +127,257 @@ function GlitchWord({ text, delay = 0 }: { text: string; delay?: number }) {
         </motion.span>
       ))}
     </span>
+  );
+}
+
+/* ── Scroll-jacked "Only in Leonida" parallax reveal ── */
+function LeonidaScrollReveal() {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: wrapperRef,
+    offset: ["start start", "end end"],
+  });
+
+  const bgScale    = useTransform(scrollYProgress, [0, 1], [1.0, 1.12]);
+  const lineWidth  = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
+  // Title (0 → 15%, hold, fade at 90%)
+  const titleOpacity  = useTransform(scrollYProgress, [0, 0.12, 0.85, 0.94], [0, 1, 1, 0]);
+  const titleY        = useTransform(scrollYProgress, [0, 0.14], [64, 0]);
+  const subtitleOp    = useTransform(scrollYProgress, [0.08, 0.22, 0.82, 0.92], [0, 1, 1, 0]);
+
+  // Jason slides from RIGHT (18 → 44%)
+  const jasonX        = useTransform(scrollYProgress, [0.18, 0.44], ["110%", "0%"]);
+  const jasonOpacity  = useTransform(scrollYProgress, [0.18, 0.38, 0.75, 0.88], [0, 1, 1, 0]);
+
+  // Jason bio text (36 → 52%)
+  const jasonBioOp    = useTransform(scrollYProgress, [0.36, 0.52, 0.72, 0.86], [0, 1, 1, 0]);
+  const jasonBioY     = useTransform(scrollYProgress, [0.36, 0.52], [36, 0]);
+
+  // Lucia slides from LEFT (50 → 74%)
+  const luciaX        = useTransform(scrollYProgress, [0.50, 0.74], ["-110%", "0%"]);
+  const luciaOpacity  = useTransform(scrollYProgress, [0.50, 0.70, 0.93, 1], [0, 1, 1, 0]);
+
+  // Lucia bio text (66 → 82%)
+  const luciaBioOp    = useTransform(scrollYProgress, [0.66, 0.82], [0, 1]);
+  const luciaBioY     = useTransform(scrollYProgress, [0.66, 0.82], [36, 0]);
+
+  // CTA (82 → 95%)
+  const ctaOpacity    = useTransform(scrollYProgress, [0.82, 0.95], [0, 1]);
+  const ctaY          = useTransform(scrollYProgress, [0.82, 0.95], [28, 0]);
+
+  // Scroll hint (only at the very start)
+  const hintOpacity   = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
+
+  return (
+    <div ref={wrapperRef} className="relative" style={{ height: "400vh" }}>
+      <div className="sticky top-0 h-screen overflow-hidden">
+
+        {/* ── Background parallax ── */}
+        <motion.div className="absolute inset-0" style={{ scale: bgScale }}>
+          <img
+            src={GTA6_IMG_1}
+            alt=""
+            className="w-full h-full object-cover"
+            style={{ objectPosition: "center 30%" }}
+          />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(7,7,28,0.8) 0%, rgba(7,7,28,0.2) 40%, rgba(7,7,28,0.7) 75%, rgba(7,7,28,0.98) 100%)" }} />
+          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(255,45,156,0.07) 0%, transparent 65%)" }} />
+        </motion.div>
+
+        {/* ── Progress bar at top ── */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] z-30" style={{ background: "rgba(255,255,255,0.08)" }}>
+          <motion.div className="h-full" style={{ width: lineWidth, background: "linear-gradient(90deg, #ff2d9c, #00d4ff)" }} />
+        </div>
+
+        {/* ── Centered title ── */}
+        <motion.div
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none"
+          style={{ opacity: titleOpacity, y: titleY }}
+        >
+          <p className="text-[9px] font-black uppercase tracking-[0.55em] mb-5" style={{ color: "#00d4ff" }}>
+            Grand Theft Auto VI · Leonida, USA
+          </p>
+          <h2
+            className="font-black uppercase"
+            style={{
+              fontSize: "clamp(3.2rem, 11vw, 8.5rem)",
+              letterSpacing: "-0.03em",
+              lineHeight: 0.92,
+              marginBottom: "1rem",
+            }}
+          >
+            <span style={{ color: "white" }}>Only in</span>
+            <br />
+            <span style={{ background: "linear-gradient(135deg, #ff2d9c 30%, #00d4ff 70%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Leonida
+            </span>
+          </h2>
+          <motion.p className="text-white/45 text-base md:text-lg max-w-sm" style={{ opacity: subtitleOp }}>
+            Vice City, USA — the darkest side of the sunniest place in America.
+          </motion.p>
+        </motion.div>
+
+        {/* ── Jason Duval — slides from right ── */}
+        <motion.div
+          className="absolute bottom-0 right-0 z-[15] pointer-events-none"
+          style={{
+            x: jasonX,
+            opacity: jasonOpacity,
+            width: "clamp(200px, 40vw, 560px)",
+            height: "88%",
+          }}
+        >
+          <img
+            src={RS_JASON}
+            alt="Jason Duval"
+            className="absolute bottom-0 right-0 h-full w-full object-cover object-top"
+            loading="lazy"
+          />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(7,7,28,0.8) 0%, transparent 40%)" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,7,28,0.65) 0%, transparent 28%)" }} />
+        </motion.div>
+
+        {/* ── Jason bio — appears on left ── */}
+        <motion.div
+          className="absolute left-6 sm:left-10 md:left-16 z-20"
+          style={{
+            opacity: jasonBioOp,
+            y: jasonBioY,
+            top: "50%",
+            translateY: "-50%",
+            maxWidth: "clamp(150px, 24vw, 270px)",
+          }}
+        >
+          <p className="text-[8px] font-black uppercase tracking-[0.45em] mb-2" style={{ color: "#00d4ff" }}>Jason Duval</p>
+          <h3
+            className="font-black uppercase leading-none mb-3"
+            style={{ fontSize: "clamp(1.6rem, 4.5vw, 3rem)", letterSpacing: "-0.02em", color: "white" }}
+          >
+            The Street<br />Legend
+          </h3>
+          <div className="h-px w-10 mb-3" style={{ background: "linear-gradient(to right, #00d4ff80, transparent)" }} />
+          <p className="text-white/55 text-[13px] leading-relaxed">
+            Loyal to those who matter. Lethal to those who don't. Built by Leonida, defined by its code.
+          </p>
+          <div className="mt-4 flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#00d4ff", boxShadow: "0 0 6px #00d4ff" }} />
+            <span className="text-[8px] font-black uppercase tracking-wider" style={{ color: "rgba(0,212,255,0.55)" }}>
+              Criminal · Loyal · Fearless
+            </span>
+          </div>
+        </motion.div>
+
+        {/* ── Lucia Caminos — slides from left ── */}
+        <motion.div
+          className="absolute bottom-0 left-0 z-[15] pointer-events-none"
+          style={{
+            x: luciaX,
+            opacity: luciaOpacity,
+            width: "clamp(200px, 40vw, 560px)",
+            height: "88%",
+          }}
+        >
+          <img
+            src={RS_LUCIA}
+            alt="Lucia Caminos"
+            className="absolute bottom-0 left-0 h-full w-full object-cover object-top"
+            loading="lazy"
+          />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to left, rgba(7,7,28,0.8) 0%, transparent 40%)" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,7,28,0.65) 0%, transparent 28%)" }} />
+        </motion.div>
+
+        {/* ── Lucia bio — appears on right ── */}
+        <motion.div
+          className="absolute right-6 sm:right-10 md:right-16 z-20 text-right"
+          style={{
+            opacity: luciaBioOp,
+            y: luciaBioY,
+            top: "50%",
+            translateY: "-50%",
+            maxWidth: "clamp(150px, 24vw, 270px)",
+          }}
+        >
+          <p className="text-[8px] font-black uppercase tracking-[0.45em] mb-2" style={{ color: "#ff2d9c" }}>Lucia Caminos</p>
+          <h3
+            className="font-black uppercase leading-none mb-3"
+            style={{ fontSize: "clamp(1.6rem, 4.5vw, 3rem)", letterSpacing: "-0.02em", color: "white" }}
+          >
+            Born to<br />Run
+          </h3>
+          <div className="h-px w-10 mb-3 ml-auto" style={{ background: "linear-gradient(to left, #ff2d9c80, transparent)" }} />
+          <p className="text-white/55 text-[13px] leading-relaxed">
+            Every scar tells a story. Every move is a message. Leonida made her — and she's making it pay.
+          </p>
+          <div className="mt-4 flex items-center gap-2 justify-end">
+            <span className="text-[8px] font-black uppercase tracking-wider" style={{ color: "rgba(255,45,156,0.55)" }}>
+              Survivor · Driven · Unstoppable
+            </span>
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#ff2d9c", boxShadow: "0 0 6px #ff2d9c" }} />
+          </div>
+        </motion.div>
+
+        {/* ── CTA ── */}
+        <motion.div
+          className="absolute bottom-10 left-1/2 z-30 text-center"
+          style={{ opacity: ctaOpacity, y: ctaY, translateX: "-50%" }}
+        >
+          <Link href="/gta6">
+            <motion.button
+              whileHover={{ scale: 1.07 }}
+              whileTap={{ scale: 0.97 }}
+              className="px-9 py-3.5 rounded-full font-black text-sm uppercase tracking-widest text-white"
+              style={{
+                background: "linear-gradient(135deg, #ff2d9c, #00d4ff)",
+                boxShadow: "0 0 30px rgba(255,45,156,0.35)",
+              }}
+            >
+              Explore Leonida ↗
+            </motion.button>
+          </Link>
+        </motion.div>
+
+        {/* ── Scroll hint (visible only at top) ── */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 z-20 flex flex-col items-center gap-1.5"
+          style={{ opacity: hintOpacity, translateX: "-50%" }}
+        >
+          <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/30">Scroll to explore</p>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="w-4 h-7 border border-white/15 rounded-full flex justify-center pt-1"
+          >
+            <motion.div
+              animate={{ opacity: [1, 0], y: [0, 10] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="w-0.5 h-1.5 rounded-full"
+              style={{ background: "#00d4ff" }}
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* ── Floating neon particles ── */}
+        {Array.from({ length: 7 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute pointer-events-none rounded-full z-10"
+            style={{
+              width: 2,
+              height: 2,
+              background: i % 2 === 0 ? "#ff2d9c" : "#00d4ff",
+              boxShadow: `0 0 ${6 + i * 2}px ${i % 2 === 0 ? "#ff2d9c" : "#00d4ff"}`,
+              left: `${10 + i * 12}%`,
+              bottom: `${18 + (i % 4) * 9}%`,
+            }}
+            animate={{ y: [0, -(80 + i * 22), 0], opacity: [0, 0.85, 0] }}
+            transition={{ duration: 3 + i * 0.5, repeat: Infinity, delay: i * 0.4, ease: "easeOut" }}
+          />
+        ))}
+
+      </div>
+    </div>
   );
 }
 
@@ -1011,6 +1264,9 @@ export default function Home() {
 
         {/* ── REVIEWS ── */}
         <ReviewsSection />
+
+        {/* ══════════════ ONLY IN LEONIDA — PARALLAX SCROLL ══════════════ */}
+        <LeonidaScrollReveal />
 
         {/* ══════════════ GTA VI EXPLORE CARDS ══════════════ */}
         <GTA6ExploreCards />
