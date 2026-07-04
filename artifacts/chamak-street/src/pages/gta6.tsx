@@ -455,9 +455,9 @@ export default function GTA6Page() {
       {/* ── YOUTUBE VIDEO BACKGROUND ── */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" style={{ background: "#000" }}>
         <iframe
-          src="https://www.youtube-nocookie.com/embed/TtAETMghnMc?autoplay=1&mute=1&loop=1&playlist=TtAETMghnMc&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&enablejsapi=0"
-          allow="autoplay; encrypted-media"
-          allowFullScreen={false}
+          src="https://www.youtube.com/embed/TtAETMghnMc?autoplay=1&mute=1&loop=1&playlist=TtAETMghnMc&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&iv_load_policy=3"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
+          allowFullScreen
           style={{
             position: "absolute",
             top: "50%",
