@@ -381,6 +381,17 @@ function LeonidaScrollReveal() {
   );
 }
 
+// ─── Reusable scroll-linked parallax hook ───────────────────────────────────
+function useParallax(factor = 0.14) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const rawY = useTransform(scrollYProgress, [0, 1], [`${factor * -100}%`, `${factor * 100}%`]);
+  const rawYInv = useTransform(scrollYProgress, [0, 1], [`${factor * 100}%`, `${factor * -100}%`]);
+  const y    = useSpring(rawY,    { stiffness: 48, damping: 22, restDelta: 0.001 });
+  const yInv = useSpring(rawYInv, { stiffness: 48, damping: 22, restDelta: 0.001 });
+  return { ref, y, yInv };
+}
+
 function SectionDivider({ accent = true }: { accent?: boolean }) {
   return (
     <div className="relative flex items-center justify-center py-3 overflow-hidden">
@@ -574,6 +585,12 @@ export default function Home() {
   const heroMouseY = useMotionValue(0);
   const heroParallaxX = useSpring(useTransform(heroMouseX, [-1, 1], [-18, 18]), { stiffness: 60, damping: 18 });
   const heroParallaxY = useSpring(useTransform(heroMouseY, [-1, 1], [-8, 8]), { stiffness: 60, damping: 18 });
+
+  // Section-level scroll parallax
+  const { ref: featuredRef, y: featuredBgY, yInv: featuredBgYInv } = useParallax(0.16);
+  const { ref: statsRef,    y: statsBgY                           } = useParallax(0.22);
+  const { ref: categoriesRef, y: categoriesBgY, yInv: categoriesImgY } = useParallax(0.10);
+  const { ref: quoteRef,    y: quoteBgY,  yInv: quoteBgYInv      } = useParallax(0.18);
 
   const settings = useSettings();
   const { data: featuredProducts } = useListProducts(
@@ -1018,8 +1035,12 @@ export default function Home() {
         <SpotlightBanner />
 
         {/* ══════════════ FEATURED PRODUCTS ══════════════ */}
-        <section className="py-20 overflow-hidden">
-          <div className="container mx-auto px-4">
+        <div ref={featuredRef}>
+        <section className="py-20 overflow-hidden relative">
+          {/* Parallax depth orbs — move at 0.84x scroll speed */}
+          <motion.div className="absolute -top-40 -left-40 w-[700px] h-[700px] rounded-full pointer-events-none" style={{ y: featuredBgY, background: "radial-gradient(ellipse, rgba(255,102,0,0.055), transparent 68%)" }} />
+          <motion.div className="absolute -bottom-40 -right-20 w-[550px] h-[550px] rounded-full pointer-events-none" style={{ y: featuredBgYInv, background: "radial-gradient(ellipse, rgba(255,80,0,0.04), transparent 68%)" }} />
+          <div className="container mx-auto px-4 relative z-10">
             <RevealSection className="mb-12">
               <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
                 <div>
@@ -1128,6 +1149,7 @@ export default function Home() {
             </RevealList>
           </div>
         </section>
+        </div>{/* /featuredRef */}
 
         {/* ── SCROLL FLOAT OBJECT ── */}
         <ScrollFloatObject />
@@ -1198,6 +1220,7 @@ export default function Home() {
         </motion.div>
 
         {/* ══════════════ STATS STRIP ══════════════ */}
+        <div ref={statsRef}>
         <motion.section
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -1212,6 +1235,8 @@ export default function Home() {
             transition={{ duration: 5, repeat: Infinity }}
             style={{ background: "radial-gradient(ellipse at 50% 100%, rgba(255,102,0,0.12), transparent 60%)" }}
           />
+          {/* Parallax background depth layer */}
+          <motion.div className="absolute -inset-20 pointer-events-none" style={{ y: statsBgY, background: "radial-gradient(ellipse at 30% 50%, rgba(255,102,0,0.06), transparent 55%)" }} />
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4">
               {[
@@ -1228,11 +1253,15 @@ export default function Home() {
             </div>
           </div>
         </motion.section>
+        </div>{/* /statsRef */}
 
         {/* ══════════════ CATEGORIES ══════════════ */}
         {categories && categories.length > 0 && (
-          <section className="py-28 bg-card/50 border-y border-border/40 overflow-hidden">
-            <div className="container px-4 mx-auto">
+          <div ref={categoriesRef}>
+          <section className="py-28 bg-card/50 border-y border-border/40 overflow-hidden relative">
+            {/* Parallax depth layer behind the whole grid */}
+            <motion.div className="absolute -inset-20 pointer-events-none" style={{ y: categoriesBgY, background: "radial-gradient(ellipse at 70% 40%, rgba(255,102,0,0.055), transparent 58%)" }} />
+            <div className="container px-4 mx-auto relative z-10">
               <RevealSection className="mb-16">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                   <div>
@@ -1254,10 +1283,11 @@ export default function Home() {
                         className="group relative h-80 overflow-hidden rounded-2xl cursor-pointer border border-white/5 shadow-xl hover:shadow-[0_28px_60px_rgba(255,102,0,0.2)] transition-shadow duration-500"
                       >
                         {cat.bannerImageUrl && (
-                          <img
+                          <motion.img
                             src={cat.bannerImageUrl}
                             alt={cat.name}
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
+                            className="absolute -inset-[10%] w-[120%] h-[120%] object-cover transition-transform duration-700 group-hover:scale-105"
+                            style={{ y: categoriesImgY }}
                             loading="lazy"
                           />
                         )}
@@ -1298,6 +1328,7 @@ export default function Home() {
               </RevealList>
             </div>
           </section>
+          </div>
         )}
 
         {/* ── TRUST ── */}
@@ -1326,11 +1357,16 @@ export default function Home() {
         <SectionDivider />
 
         {/* ══════════════ QUOTE BANNER ══════════════ */}
+        <div ref={quoteRef}>
         <RevealSection amount={0.15} className="mx-4 mb-12">
           <section className="py-28 md:py-36 rounded-3xl overflow-hidden relative">
             {/* Multi-layer background */}
             <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(255,102,0,0.12) 0%, rgba(0,0,0,0) 50%, rgba(255,80,0,0.08) 100%)" }} />
             <div className="absolute inset-0 rounded-3xl border border-primary/20" />
+
+            {/* Parallax depth layers */}
+            <motion.div className="absolute -inset-16 pointer-events-none" style={{ y: quoteBgY,    background: "radial-gradient(ellipse at 25% 35%, rgba(255,102,0,0.09), transparent 55%)" }} />
+            <motion.div className="absolute -inset-16 pointer-events-none" style={{ y: quoteBgYInv, background: "radial-gradient(ellipse at 75% 65%, rgba(255,80,0,0.07), transparent 50%)" }} />
 
             {/* Animated radial glow */}
             <motion.div
@@ -1397,6 +1433,7 @@ export default function Home() {
             </div>
           </section>
         </RevealSection>
+        </div>{/* /quoteRef */}
 
       </div>
     </PageTransition>
