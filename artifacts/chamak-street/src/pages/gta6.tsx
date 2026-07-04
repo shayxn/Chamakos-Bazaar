@@ -398,6 +398,51 @@ function PreOrderModal({ onClose, whatsappNumber }: PreOrderModalProps) {
   );
 }
 
+function YoutubeBg() {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    const play = () => {
+      try {
+        iframeRef.current?.contentWindow?.postMessage(
+          JSON.stringify({ event: "command", func: "playVideo", args: [] }),
+          "*"
+        );
+      } catch {}
+    };
+    // Fire immediately, then retry every 500ms for 10s to handle slow player init
+    play();
+    const interval = setInterval(play, 500);
+    const stop = setTimeout(() => clearInterval(interval), 10000);
+    return () => { clearInterval(interval); clearTimeout(stop); };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" style={{ background: "#000" }}>
+      <iframe
+        ref={iframeRef}
+        src="https://www.youtube.com/embed/TtAETMghnMc?autoplay=1&mute=1&loop=1&playlist=TtAETMghnMc&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&enablejsapi=1&origin=https://www.youtube.com"
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
+        allowFullScreen
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          width: "100vw",
+          height: "56.25vw",
+          minHeight: "100vh",
+          minWidth: "177.78vh",
+          transform: "translate(-50%, -50%)",
+          border: "none",
+          pointerEvents: "none",
+        }}
+        title="GTA VI Background"
+      />
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+    </div>
+  );
+}
+
 export default function GTA6Page() {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
@@ -453,28 +498,7 @@ export default function GTA6Page() {
       <style>{AMBIENT_CSS}</style>
 
       {/* ── YOUTUBE VIDEO BACKGROUND ── */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" style={{ background: "#000" }}>
-        <iframe
-          src="https://www.youtube.com/embed/TtAETMghnMc?autoplay=1&mute=1&loop=1&playlist=TtAETMghnMc&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&iv_load_policy=3"
-          allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
-          allowFullScreen
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            width: "100vw",
-            height: "56.25vw",
-            minHeight: "100vh",
-            minWidth: "177.78vh",
-            transform: "translate(-50%, -50%)",
-            border: "none",
-            pointerEvents: "none",
-          }}
-          title="GTA VI Background"
-        />
-        {/* dark overlay so page content remains readable */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
-      </div>
+      <YoutubeBg />
 
       {/* ── CINEMATIC MODE OVERLAY ── */}
       <AnimatePresence>
