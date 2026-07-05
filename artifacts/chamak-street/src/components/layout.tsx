@@ -1,16 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout } from "@workspace/api-client-react";
-import { ShoppingCart, User, Menu, X, LogOut, MapPin, MessageCircle } from "lucide-react";
+import { ShoppingCart, User, Menu, X, LogOut, MapPin, MessageCircle, Settings } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
-import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
+import { motion, AnimatePresence } from "@/lib/motion-noop";
 import { useSettings } from "@/lib/use-settings";
 import { ChamakLogo } from "./chamak-logo";
 import { SmartSearchModal } from "./smart-search";
 import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
-import { FloatingParticles } from "./floating-particles";
-import { CursorGlow } from "./cursor-glow";
 import { BackToTop } from "./back-to-top";
 
 
@@ -27,8 +25,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
   const { cartBounceKey } = useCartFly();
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
   useEffect(() => {
     const onScroll = () => {
@@ -76,21 +72,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
-      <FloatingParticles />
-      <CursorGlow />
-      <motion.div
-        style={{ scaleX, transformOrigin: "left" }}
-        className="fixed top-0 left-0 right-0 z-[9999] h-[3px] fire-gradient origin-left pointer-events-none"
-      />
-      <motion.header
+      <header
         className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
           scrolled
             ? "bg-background/95 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.4)]"
             : "bg-background"
         }`}
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: navVisible ? 0 : "-100%", opacity: 1 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       >
         {/* Row 1: Search | Logo (center) | User + Cart */}
         <div className="container mx-auto px-6 h-[70px] flex items-center">
@@ -139,8 +126,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </motion.div>
           </Link>
 
-          {/* Right: User + Cart */}
+          {/* Right: Admin + User + Cart */}
           <div className="flex-1 flex items-center justify-end gap-2 z-50">
+            {user?.isAdmin && (
+              <Link href="/admin" className="hidden md:block">
+                <Button variant="ghost" size="sm" className="text-[11px] font-black uppercase tracking-widest hover:text-primary transition-colors px-3 border border-primary/30 hover:border-primary/60">
+                  <Settings className="h-3.5 w-3.5 mr-1.5" />
+                  Admin
+                </Button>
+              </Link>
+            )}
             {user ? (
               <div className="hidden md:flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">@{user.username}</span>
@@ -257,7 +252,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.header>
+      </header>
 
       <main className="flex-1">
         {children}

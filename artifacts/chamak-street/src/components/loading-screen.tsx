@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "@/lib/motion-noop";
 import { useState, useEffect } from "react";
 
 const SESSION_KEY = "chamak_loaded";

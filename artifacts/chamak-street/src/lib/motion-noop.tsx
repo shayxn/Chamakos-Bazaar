@@ -59,7 +59,7 @@ const motionHandler: ProxyHandler<object> = {
 
 export const motion = new Proxy({} as Record<string, unknown>, motionHandler) as typeof import("framer-motion").motion;
 
-export function AnimatePresence({ children }: { children?: React.ReactNode }) {
+export function AnimatePresence({ children }: { children?: React.ReactNode; mode?: string; initial?: boolean; custom?: unknown; onExitComplete?: () => void; }) {
   return React.createElement(React.Fragment, null, children);
 }
 

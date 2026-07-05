@@ -1,6 +1,6 @@
 import { useListProducts, getListProductsQueryKey, useListCategories } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { motion, useInView, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "@/lib/motion-noop";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Flame, Zap, Star, ShoppingBag } from "lucide-react";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
@@ -13,7 +13,6 @@ import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
 import { EventHomepageBanner } from "@/components/event-homepage-banner";
 import { SpotlightBanner } from "@/components/spotlight-banner";
-import { ScrollFloatObject } from "@/components/scroll-float-object";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -419,9 +418,6 @@ export default function Home() {
             </RevealList>
           </div>
         </section>
-
-        {/* ── SCROLL FLOAT OBJECT ── */}
-        <ScrollFloatObject />
 
         {/* ── EVENT HOMEPAGE BANNER ── */}
         <RevealSection amount={0.1} className="container mx-auto px-4 mt-6">

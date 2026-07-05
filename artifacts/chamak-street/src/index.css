@@ -151,8 +151,7 @@
   @apply bg-clip-text text-transparent bg-gradient-to-r from-[#ff6600] to-[#ffcc00];
 }
 .gradient-text-animate {
-  background: linear-gradient(90deg, #ff6600, #ffcc00, #ff4400, #ffcc00, #ff6600);
-  background-size: 400% 100%;
+  background: linear-gradient(90deg, #ff6600, #ffcc00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -247,15 +246,8 @@ a[role="button"]:active {
   transform: scale(1.03);
 }
 
-/* Image loading skeleton shimmer */
-@keyframes skeleton-shimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
-}
 .img-skeleton {
-  background: linear-gradient(90deg, #111 25%, #1a1a1a 50%, #111 75%);
-  background-size: 800px 100%;
-  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  background: #111;
 }
 
 /* Smooth input/search transitions */
