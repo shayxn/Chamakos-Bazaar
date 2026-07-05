@@ -2,8 +2,6 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/lib/theme-context";
-
 import { Layout } from "@/components/layout";
 import { LoadingScreen } from "@/components/loading-screen";
 import { CartFlyProvider } from "@/components/cart-fly-context";
@@ -126,7 +124,6 @@ function CustomerOverlays() {
 
 function App() {
   return (
-    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AccountProvider>
@@ -141,7 +138,6 @@ function App() {
         </AccountProvider>
       </TooltipProvider>
     </QueryClientProvider>
-    </ThemeProvider>
   );
 }
 
