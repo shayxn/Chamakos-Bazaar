@@ -44,7 +44,6 @@ export default defineConfig({
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
-      "framer-motion": path.resolve(import.meta.dirname, "src/lib/motion-noop.tsx"),
     },
     dedupe: ["react", "react-dom"],
   },

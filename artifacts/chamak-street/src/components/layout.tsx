@@ -11,6 +11,7 @@ import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
 import { FloatingParticles } from "./floating-particles";
 import { CursorGlow } from "./cursor-glow";
+import { BackToTop } from "./back-to-top";
 
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -376,6 +377,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <span>Premium Streetwear — Dubai</span>
         </motion.div>
       </motion.footer>
+
+      <BackToTop />
 
       {settings.whatsapp_visible !== "false" && settings.whatsapp_number && (
         <motion.a

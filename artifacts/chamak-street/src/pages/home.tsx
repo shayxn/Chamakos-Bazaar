@@ -1,6 +1,6 @@
 import { useListProducts, getListProductsQueryKey, useListCategories } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, useInView, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Flame, Zap, Star, ShoppingBag } from "lucide-react";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
@@ -203,6 +203,10 @@ export default function Home() {
     return () => { if (slideTimerRef.current) clearTimeout(slideTimerRef.current); };
   }, [slideIdx, heroImages.length, slideInterval, paused]);
 
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroParallaxY = useTransform(heroScroll, [0, 1], ["0%", "22%"]);
+
   const heroProduct = featuredProducts?.[0];
   const heroProductMedia = heroProduct ? getPrimaryProductMedia(heroProduct.imageUrl) : null;
 
@@ -222,13 +226,14 @@ export default function Home() {
 
         {/* ══════════════ HERO ══════════════ */}
         <section
+          ref={heroRef}
           className="relative min-h-screen w-full flex items-center overflow-hidden"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
 
           {/* ── Carousel background images (crossfade) ── */}
-          <div className="absolute inset-0 z-0">
+          <motion.div style={{ y: heroParallaxY }} className="absolute inset-0 z-0 will-change-transform">
             <AnimatePresence mode="sync">
               {/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(heroImages[slideIdx]) ? (
                 <motion.video
@@ -259,7 +264,7 @@ export default function Home() {
             </AnimatePresence>
             <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background)/0.75) 30%, transparent 65%)" }} />
             <div className="absolute inset-0" style={{ background: "linear-gradient(to right, hsl(var(--background)/0.99) 0%, hsl(var(--background)/0.7) 40%, transparent 70%)" }} />
-          </div>
+          </motion.div>
 
           {/* Noise grain texture */}
           <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.028]"
