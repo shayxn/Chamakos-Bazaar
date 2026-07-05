@@ -11,7 +11,7 @@ import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
 import { FloatingParticles } from "./floating-particles";
 import { CursorGlow } from "./cursor-glow";
-import { ThemeToggle } from "./theme-toggle";
+
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -77,7 +77,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
       <FloatingParticles />
       <CursorGlow />
-      <ThemeToggle />
       <motion.div
         style={{ scaleX, transformOrigin: "left" }}
         className="fixed top-0 left-0 right-0 z-[9999] h-[3px] fire-gradient origin-left pointer-events-none"
