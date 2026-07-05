@@ -167,13 +167,6 @@ export default function Home() {
     return () => { if (slideTimerRef.current) clearTimeout(slideTimerRef.current); };
   }, [slideIdx, heroImages.length, slideInterval, paused]);
 
-  const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroParallaxY = useTransform(heroScroll, [0, 1], ["0%", "22%"]);
-
-  const heroProduct = featuredProducts?.[0];
-  const heroProductMedia = heroProduct ? getPrimaryProductMedia(heroProduct.imageUrl) : null;
-
   const categoryColors = [
     "from-orange-950/90 to-red-900/70",
     "from-yellow-950/90 to-orange-950/70",
@@ -190,254 +183,43 @@ export default function Home() {
 
         {/* ══════════════ HERO ══════════════ */}
         <section
-          ref={heroRef}
           className="relative min-h-screen w-full flex items-center overflow-hidden"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
 
-          {/* ── Carousel background images (crossfade) ── */}
-          <motion.div style={{ y: heroParallaxY }} className="absolute inset-0 z-0 will-change-transform">
-            <AnimatePresence mode="sync">
-              {/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(heroImages[slideIdx]) ? (
-                <motion.video
-                  key={slideIdx}
-                  src={heroImages[slideIdx]}
-                  className="absolute inset-0 w-full h-full object-cover object-center"
-                  initial={{ opacity: 0, scale: 1.04 }}
-                  animate={{ opacity: 0.45, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.97 }}
-                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                  autoPlay
-                  loop
-                  playsInline
-                />
-              ) : (
-                <motion.img
-                  key={slideIdx}
-                  src={heroImages[slideIdx]}
-                  alt="Chamak Street Hero"
-                  className="absolute inset-0 w-full h-full object-cover object-center"
-                  initial={{ opacity: 0, scale: 1.04 }}
-                  animate={{ opacity: 0.38, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.97 }}
-                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                  loading="eager"
-                />
-              )}
-            </AnimatePresence>
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background)/0.75) 30%, transparent 65%)" }} />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to right, hsl(var(--background)/0.99) 0%, hsl(var(--background)/0.7) 40%, transparent 70%)" }} />
-          </motion.div>
+          {/* ── Full-bleed carousel images ── */}
+          <AnimatePresence mode="sync">
+            {/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(heroImages[slideIdx]) ? (
+              <motion.video
+                key={slideIdx}
+                src={heroImages[slideIdx]}
+                className="absolute inset-0 w-full h-full object-cover object-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+                autoPlay
+                loop
+                playsInline
+              />
+            ) : (
+              <motion.img
+                key={slideIdx}
+                src={heroImages[slideIdx]}
+                alt="Chamak Street"
+                className="absolute inset-0 w-full h-full object-cover object-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+                loading="eager"
+              />
+            )}
+          </AnimatePresence>
 
-          {/* Noise grain texture */}
-          <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.028]"
-            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")", backgroundRepeat: "repeat", backgroundSize: "180px 180px" }}
-          />
-
-          {/* Giant background "CS" text for depth — CSS animated (no RAF) */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none flex items-center">
-            <span
-              className="absolute right-[-5%] font-black uppercase leading-none"
-              style={{ fontSize: "clamp(15rem, 40vw, 55rem)", letterSpacing: "-0.06em", lineHeight: 0.85, opacity: 0.03 }}
-            >
-              CS
-            </span>
-          </div>
-
-          {/* Dual orange ambient glows */}
-          <div
-            className="absolute inset-0 z-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse 50% 60% at 14% 60%, rgba(255,102,0,0.2), transparent)" }}
-          />
-          <div
-            className="absolute inset-0 z-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse 35% 50% at 85% 30%, rgba(255,80,0,0.14), transparent)" }}
-          />
-
-          {/* Bottom vignette */}
-          <div className="absolute inset-x-0 bottom-0 h-48 z-0 pointer-events-none" style={{ background: "linear-gradient(to top, hsl(var(--background)) 30%, transparent)" }} />
-
-
-          {/* Decorative horizontal lines */}
-          <div className="absolute left-0 z-0 pointer-events-none" style={{ top: "42%", width: "42%", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.5), transparent)" }} />
-          <div className="absolute left-0 z-0 pointer-events-none" style={{ top: "calc(42% + 6px)", width: "28%", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.18), transparent)" }} />
-
-          {/* ── Hero content ── */}
-          <div className="container relative z-10 px-4 pt-24 pb-32">
-            <div className="flex items-center justify-between gap-12">
-              <div className="max-w-2xl">
-
-                {/* Badge with orbit */}
-                <motion.div
-                  initial={{ opacity: 0, x: -40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.75, delay: HD, ease: EASE }}
-                  className="inline-flex items-center gap-3 mb-10"
-                >
-                  <div className="relative">
-                    <span className="inline-flex items-center gap-2 border border-primary/40 bg-primary/10 text-primary text-[11px] font-black uppercase tracking-[0.25em] px-4 py-2 rounded-sm">
-                      <Flame className="h-3 w-3" />
-                      New Drop — Chamak Collection
-                    </span>
-                  </div>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: 64 }}
-                    transition={{ duration: 0.7, delay: HD + 0.5, ease: EASE }}
-                    className="h-px"
-                    style={{ background: "linear-gradient(to right, rgba(255,102,0,0.6), transparent)" }}
-                  />
-                </motion.div>
-
-                {/* Title */}
-                <div className="mb-2">
-                  <div className="flex flex-wrap gap-x-5 text-[2.8rem] leading-none sm:text-6xl md:text-[6rem] lg:text-[7.5rem] font-black uppercase tracking-tight md:tracking-[-0.04em]">
-                    {heroTitle.split(" ").map((word, wi) => (
-                      <div key={wi} className="overflow-hidden">
-                        <motion.span
-                          className="inline-block"
-                          initial={{ y: "110%", opacity: 0 }}
-                          animate={{ y: "0%", opacity: 1 }}
-                          transition={{ duration: 0.8, delay: HD + 0.1 + wi * 0.12, ease: EASE }}
-                        >
-                          {word}
-                        </motion.span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Subtitle — gradient */}
-                <div className="mb-10">
-                  <div className="flex flex-wrap gap-x-5">
-                    {heroSubtitle.split(" ").map((word, wi) => (
-                      <div key={wi} className="overflow-hidden">
-                        <motion.span
-                          className="inline-block gradient-text text-[2.8rem] leading-none sm:text-6xl md:text-[6rem] lg:text-[7.5rem] font-black uppercase tracking-tight md:tracking-[-0.04em]"
-                          initial={{ y: "110%", opacity: 0 }}
-                          animate={{ y: "0%", opacity: 1 }}
-                          transition={{ duration: 0.8, delay: HD + 0.25 + wi * 0.12, ease: EASE }}
-                        >
-                          {word}
-                        </motion.span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Description */}
-                <motion.p
-                  initial={{ opacity: 0, y: 28 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.7, delay: HD + 0.45, ease: EASE }}
-                  className="text-base md:text-xl text-muted-foreground mb-12 max-w-md leading-relaxed"
-                >
-                  {heroDescription}
-                </motion.p>
-
-                {/* CTAs */}
-                <motion.div
-                  initial={{ opacity: 0, y: 28 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.65, delay: HD + 0.58, ease: EASE }}
-                  className="flex gap-4 flex-wrap items-center"
-                >
-                  <Link href="/shop">
-                    <motion.div
-                      whileHover={{ scale: 1.06, filter: "brightness(1.15)" }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                      className="inline-block"
-                    >
-                      <Button
-                        size="lg"
-                        className="text-base md:text-lg h-14 px-10 md:px-14 font-black uppercase tracking-widest btn-cta shadow-[0_0_40px_rgba(255,102,0,0.55)] transition-all duration-300"
-                      >
-                        {heroCtaText} <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </motion.div>
-                  </Link>
-                  <Link href="/shop">
-                    <motion.div
-                      whileHover={{ scale: 1.04, x: 4 }}
-                      whileTap={{ scale: 0.97 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                      className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                    >
-                      <ShoppingBag className="h-4 w-4" />
-                      Browse All
-                      <span>→</span>
-                    </motion.div>
-                  </Link>
-                </motion.div>
-
-                {/* Social proof strip */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: HD + 0.85, duration: 0.6 }}
-                  className="flex items-center gap-4 mt-10"
-                >
-                  <div className="flex -space-x-2">
-                    {["🧑🏾", "👩🏻", "🧑🏽", "👨🏿"].map((emoji, i) => (
-                      <div key={i} className="w-7 h-7 rounded-full border-2 border-background bg-muted flex items-center justify-center text-sm">
-                        {emoji}
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-primary text-xs">★</span>
-                      ))}
-                    </div>
-                    <p className="text-[10px] text-muted-foreground font-bold mt-0.5">Trusted by <span className="text-foreground">2,000+</span> customers in UAE</p>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* ── Floating hero product (xl screens) ── */}
-              {heroProductMedia && (
-                <motion.div
-                  className="hidden xl:block shrink-0 relative"
-                  initial={{ opacity: 0, x: 60 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 1.0, delay: HD + 0.6, ease: EASE }}
-                >
-                  <div className="relative">
-                    {/* Glow under product */}
-                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-8 rounded-full blur-2xl opacity-50" style={{ background: "rgba(255,102,0,0.4)" }} />
-
-                    <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-3xl overflow-hidden border border-primary/20 shadow-[0_40px_100px_rgba(255,102,0,0.25),0_0_0_1px_rgba(255,102,0,0.1)]">
-                      {heroProductMedia.type === "video" ? (
-                        <video src={heroProductMedia.url} className="w-full h-full object-cover" muted playsInline loop autoPlay />
-                      ) : (
-                        <img src={heroProductMedia.url} alt={heroProduct?.name} className="w-full h-full object-cover" />
-                      )}
-                      {/* Shine overlay */}
-                      <motion.div
-                        className="absolute inset-0 pointer-events-none"
-                        animate={{ x: ["-120%", "220%"] }}
-                        transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3, ease: "easeInOut" }}
-                        style={{ background: "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.12) 50%, transparent 80%)", width: "60%" }}
-                      />
-                    </div>
-
-                    {/* Product tag */}
-                    <motion.div
-                      className="absolute -bottom-4 -right-6 bg-card border border-border/80 rounded-xl px-4 py-2.5 shadow-2xl backdrop-blur-sm"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <p className="text-[9px] text-muted-foreground font-black uppercase tracking-wider">Featured Drop</p>
-                      <p className="font-black text-sm mt-0.5">{heroProduct?.name?.slice(0, 20)}{(heroProduct?.name?.length ?? 0) > 20 ? "…" : ""}</p>
-                      <p className="font-mono text-primary font-black text-base">AED {heroProduct?.price?.toFixed(2)}</p>
-                    </motion.div>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          </div>
+          {/* Subtle bottom fade into page */}
+          <div className="absolute inset-x-0 bottom-0 h-40 z-10 pointer-events-none" style={{ background: "linear-gradient(to top, hsl(var(--background)) 5%, transparent)" }} />
 
           {/* ── Slide dots + arrows ── */}
           {heroImages.length > 1 && (

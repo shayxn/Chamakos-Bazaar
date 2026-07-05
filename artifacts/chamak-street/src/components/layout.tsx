@@ -82,19 +82,38 @@ export function Layout({ children }: { children: React.ReactNode }) {
         style={{ scaleX, transformOrigin: "left" }}
         className="fixed top-0 left-0 right-0 z-[9999] h-[3px] fire-gradient origin-left pointer-events-none"
       />
-      <AnnouncementBanner />
       <motion.header
         className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
           scrolled
-            ? "border-b border-border/40 bg-background/90 backdrop-blur-xl shadow-[0_4px_30px_rgba(255,102,0,0.08)]"
-            : "bg-transparent"
+            ? "bg-background/95 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.4)]"
+            : "bg-background"
         }`}
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: navVisible ? 0 : "-100%", opacity: 1 }}
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 z-50">
+        {/* Row 1: Search | Logo (center) | User + Cart */}
+        <div className="container mx-auto px-6 h-[70px] flex items-center">
+          {/* Left: Search + mobile hamburger */}
+          <div className="flex-1 flex items-center gap-1">
+            <SmartSearchModal />
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <AnimatePresence mode="wait" initial={false}>
+                {isMenuOpen ? (
+                  <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <X className="h-6 w-6" />
+                  </motion.span>
+                ) : (
+                  <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Menu className="h-6 w-6" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Button>
+          </div>
+
+          {/* Center: Logo */}
+          <Link href="/" className="flex items-center justify-center z-50">
             <motion.div whileHover={{ scale: 1.03 }} transition={{ type: "spring", stiffness: 300 }}>
               {useCustomLogo ? (
                 <img
@@ -120,32 +139,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </motion.div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-5">
-            {navLinks.map((link) => {
-              const isActive = location === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`relative text-[11px] font-black uppercase tracking-[0.18em] transition-all duration-200 hover:text-primary ${isActive ? "text-primary" : "text-muted-foreground"}`}
-                >
-                  {link.label}
-                  {isActive && (
-                    <motion.span
-                      layoutId="nav-underline"
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#ff6600] to-[#ffcc00] rounded-full"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="flex items-center gap-4 z-50">
-            <SmartSearchModal />
+          {/* Right: User + Cart */}
+          <div className="flex-1 flex items-center justify-end gap-2 z-50">
             {user ? (
-              <div className="hidden md:flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">@{user.username}</span>
                 <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout" className="hover:text-primary transition-colors">
                   <LogOut className="h-4 w-4" />
@@ -158,7 +155,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               </Link>
             )}
-
             <Link href="/cart" id="nav-cart-btn" className="relative group">
               <motion.div
                 key={`cart-bounce-${cartBounceKey}`}
@@ -183,22 +179,34 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               </motion.div>
             </Link>
-
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              <AnimatePresence mode="wait" initial={false}>
-                {isMenuOpen ? (
-                  <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <X className="h-6 w-6" />
-                  </motion.span>
-                ) : (
-                  <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <Menu className="h-6 w-6" />
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </Button>
           </div>
         </div>
+
+        {/* Row 2: Nav links (desktop) */}
+        <div className="hidden md:flex items-center justify-center border-t border-border/20 h-10 gap-10">
+          {navLinks.map((link) => {
+            const isActive = location === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`relative text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-200 hover:text-primary ${isActive ? "text-primary" : "text-muted-foreground"}`}
+              >
+                {link.label}
+                {isActive && (
+                  <motion.span
+                    layoutId="nav-underline"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#ff6600] to-[#ffcc00] rounded-full"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Row 3: Announcement banner */}
+        <AnnouncementBanner />
 
         <AnimatePresence>
           {isMenuOpen && (
