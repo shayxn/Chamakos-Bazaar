@@ -56,26 +56,10 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
   );
 }
 
-/* ── Animated stat counter ── */
+/* ── Stat item ── */
 function StatItem({ value, suffix, label, color = "#ff6600" }: { value: number; suffix: string; label: string; color?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.5 });
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!isInView) return;
-    let frame: number;
-    const start = performance.now();
-    const duration = 1800;
-    function tick(now: number) {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setCount(Math.round(eased * value));
-      if (t < 1) frame = requestAnimationFrame(tick);
-    }
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [isInView, value]);
 
   return (
     <motion.div
@@ -83,47 +67,33 @@ function StatItem({ value, suffix, label, color = "#ff6600" }: { value: number; 
       initial={{ opacity: 0, y: 28 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.65, ease: EASE }}
-      className="flex flex-col items-center gap-2 px-6 py-6 relative group"
+      className="flex flex-col items-center gap-2 px-6 py-6 relative"
     >
-      <motion.div
-        className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{ background: `radial-gradient(ellipse at 50% 80%, ${color}12, transparent)` }}
-      />
-      <motion.span
+      <span
         className="text-5xl md:text-6xl font-black tabular-nums leading-none"
-        style={{ color, textShadow: `0 0 40px ${color}55` }}
-        animate={isInView ? { textShadow: [`0 0 20px ${color}33`, `0 0 60px ${color}88`, `0 0 20px ${color}33`] } : {}}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        style={{ color, textShadow: `0 0 40px ${color}44` }}
       >
-        {count}{suffix}
-      </motion.span>
+        {value}{suffix}
+      </span>
       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">{label}</span>
     </motion.div>
   );
 }
 
-/* ── Letter-by-letter reveal for quote ── */
+/* ── Quote word reveal ── */
 function GlitchWord({ text, delay = 0 }: { text: string; delay?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.5 });
-  const [chars, setChars] = useState<string[]>([]);
-  const chars_arr = text.split("");
-
   return (
-    <span ref={ref} className="inline-block">
-      {chars_arr.map((char, i) => (
-        <motion.span
-          key={i}
-          className="inline-block"
-          initial={{ opacity: 0, y: "60%", rotateX: 50 }}
-          animate={isInView ? { opacity: 1, y: "0%", rotateX: 0 } : {}}
-          transition={{ duration: 0.55, delay: delay + i * 0.03, ease: EASE }}
-          style={{ transformOrigin: "bottom center" }}
-        >
-          {char === " " ? "\u00a0" : char}
-        </motion.span>
-      ))}
-    </span>
+    <motion.span
+      ref={ref}
+      className="inline-block"
+      initial={{ opacity: 0, y: 12 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.55, delay, ease: EASE }}
+    >
+      {text}
+    </motion.span>
   );
 }
 
@@ -146,17 +116,11 @@ function SectionDivider({ accent = true }: { accent?: boolean }) {
         transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
       />
       {accent && (
-        <motion.div
-          className="relative z-10 flex items-center gap-2"
-          initial={{ opacity: 0, scale: 0 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.55, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <div className="relative z-10 flex items-center gap-2">
           <div className="w-1 h-1 rotate-45 bg-primary/50" />
           <div className="w-1.5 h-1.5 rotate-45 bg-primary/70" />
           <div className="w-1 h-1 rotate-45 bg-primary/50" />
-        </motion.div>
+        </div>
       )}
     </div>
   );
@@ -296,20 +260,8 @@ export default function Home() {
 
 
           {/* Decorative horizontal lines */}
-          <motion.div
-            className="absolute left-0 z-0 pointer-events-none"
-            style={{ top: "42%", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.5), transparent)" }}
-            initial={{ width: 0 }}
-            animate={{ width: "42%" }}
-            transition={{ duration: 1.4, delay: 0.6, ease: EASE }}
-          />
-          <motion.div
-            className="absolute left-0 z-0 pointer-events-none"
-            style={{ top: "calc(42% + 6px)", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.18), transparent)" }}
-            initial={{ width: 0 }}
-            animate={{ width: "28%" }}
-            transition={{ duration: 1.4, delay: 0.8, ease: EASE }}
-          />
+          <div className="absolute left-0 z-0 pointer-events-none" style={{ top: "42%", width: "42%", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.5), transparent)" }} />
+          <div className="absolute left-0 z-0 pointer-events-none" style={{ top: "calc(42% + 6px)", width: "28%", height: "1px", background: "linear-gradient(to right, rgba(255,102,0,0.18), transparent)" }} />
 
           {/* ── Hero content ── */}
           <div className="container relative z-10 px-4 pt-24 pb-32">
@@ -324,15 +276,8 @@ export default function Home() {
                   className="inline-flex items-center gap-3 mb-10"
                 >
                   <div className="relative">
-                    <motion.div
-                      className="absolute inset-0 rounded-sm border border-primary/50"
-                      animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
-                      transition={{ duration: 2.2, repeat: Infinity }}
-                    />
-                    <span className="relative inline-flex items-center gap-2 border border-primary/40 bg-primary/10 text-primary text-[11px] font-black uppercase tracking-[0.25em] px-4 py-2 rounded-sm">
-                      <motion.span animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 1.2, repeat: Infinity }}>
-                        <Flame className="h-3 w-3" />
-                      </motion.span>
+                    <span className="inline-flex items-center gap-2 border border-primary/40 bg-primary/10 text-primary text-[11px] font-black uppercase tracking-[0.25em] px-4 py-2 rounded-sm">
+                      <Flame className="h-3 w-3" />
                       New Drop — Chamak Collection
                     </span>
                   </div>
@@ -422,9 +367,7 @@ export default function Home() {
                     >
                       <ShoppingBag className="h-4 w-4" />
                       Browse All
-                      <motion.span animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}>
-                        →
-                      </motion.span>
+                      <span>→</span>
                     </motion.div>
                   </Link>
                 </motion.div>
@@ -446,7 +389,7 @@ export default function Home() {
                   <div>
                     <div className="flex gap-0.5">
                       {[...Array(5)].map((_, i) => (
-                        <motion.span key={i} className="text-primary text-xs" animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.15 }}>★</motion.span>
+                        <span key={i} className="text-primary text-xs">★</span>
                       ))}
                     </div>
                     <p className="text-[10px] text-muted-foreground font-bold mt-0.5">Trusted by <span className="text-foreground">2,000+</span> customers in UAE</p>
@@ -462,12 +405,7 @@ export default function Home() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 1.0, delay: HD + 0.6, ease: EASE }}
                 >
-                  <motion.div
-                    animate={{ y: [0, -18, 0], rotateY: [0, 4, 0] }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                    style={{ perspective: 1200 }}
-                    className="relative"
-                  >
+                  <div className="relative">
                     {/* Glow under product */}
                     <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-8 rounded-full blur-2xl opacity-50" style={{ background: "rgba(255,102,0,0.4)" }} />
 
@@ -495,7 +433,7 @@ export default function Home() {
                       <p className="font-black text-sm mt-0.5">{heroProduct?.name?.slice(0, 20)}{(heroProduct?.name?.length ?? 0) > 20 ? "…" : ""}</p>
                       <p className="font-mono text-primary font-black text-base">AED {heroProduct?.price?.toFixed(2)}</p>
                     </motion.div>
-                  </motion.div>
+                  </div>
                 </motion.div>
               )}
             </div>

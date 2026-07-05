@@ -276,20 +276,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="absolute -top-16 left-1/2 w-[700px] h-[260px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(ellipse, rgba(255,102,0,0.04), transparent 70%)", transform: "translateX(-50%)" }}
         />
-        {/* Floating left orb */}
-        <motion.div
-          className="absolute top-8 left-[8%] w-36 h-36 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, rgba(255,102,0,0.06), transparent 75%)" }}
-          animate={{ y: [0, -16, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Floating right orb */}
-        <motion.div
-          className="absolute bottom-8 right-[10%] w-28 h-28 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, rgba(255,204,0,0.05), transparent 75%)" }}
-          animate={{ y: [0, -12, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
+        <div className="absolute top-8 left-[8%] w-36 h-36 rounded-full pointer-events-none" style={{ background: "radial-gradient(ellipse, rgba(255,102,0,0.06), transparent 75%)" }} />
+        <div className="absolute bottom-8 right-[10%] w-28 h-28 rounded-full pointer-events-none" style={{ background: "radial-gradient(ellipse, rgba(255,204,0,0.05), transparent 75%)" }} />
 
         <div className="container mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-4 gap-8 relative">
           <div className="col-span-1 md:col-span-2">

@@ -31,21 +31,7 @@ export function LoadingScreen() {
           className="fixed inset-0 z-[9999] flex flex-col items-center justify-center select-none"
           style={{ background: "#000" }}
         >
-          {/* Soft ambient glow */}
-          <motion.div
-            className="absolute pointer-events-none"
-            style={{
-              width: 700,
-              height: 700,
-              borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(255,102,0,0.09) 0%, transparent 65%)",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%,-50%)",
-            }}
-            animate={{ scale: [0.9, 1.06, 0.9], opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <div className="absolute pointer-events-none" style={{ width: 700, height: 700, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,102,0,0.08) 0%, transparent 65%)", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
 
           {/* Big logo */}
           <motion.img
