@@ -13,9 +13,9 @@ import { EventProductBadge } from "@/components/event-product-badge";
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const cardVariants = {
-  hidden: (col: number) => ({ opacity: 0, y: 36 + col * 30, scale: 0.95 }),
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.58, ease: EASE } },
-  exit: { opacity: 0, scale: 0.93, transition: { duration: 0.22 } },
+  hidden: { opacity: 0, y: 20, scale: 0.97 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.52, ease: EASE } },
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
 };
 
 const gridVariants = {
@@ -191,9 +191,8 @@ export default function Shop() {
                 >
                   {products?.map((product, idx) => {
                     const primaryMedia = getPrimaryProductMedia(product.imageUrl);
-                    const col = idx % 3;
                     return (
-                    <motion.div key={product.id} variants={cardVariants} custom={col} layout>
+                    <motion.div key={product.id} variants={cardVariants} layout>
                       <Link href={`/product/${product.id}`}>
                         <motion.div
                           className="group cursor-pointer"
