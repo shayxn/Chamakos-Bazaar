@@ -46,7 +46,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/shop", label: "Shop" },
-    { href: "/gta6", label: "GTA VI" },
     { href: "/order-tracking", label: "Track" },
   ];
 
@@ -121,28 +120,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           <nav className="hidden md:flex items-center gap-5">
             {navLinks.map((link) => {
-              const isGta = link.href === "/gta6";
               const isActive = location === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`relative text-[11px] font-black uppercase tracking-[0.18em] transition-all duration-200 ${
-                    isGta
-                      ? "px-3 py-1.5 rounded-full"
-                      : `hover:text-primary ${isActive ? "text-primary" : "text-muted-foreground"}`
-                  }`}
-                  style={isGta ? {
-                    background: isActive
-                      ? "linear-gradient(135deg, #ff2d9c, #00d4ff)"
-                      : "linear-gradient(135deg, rgba(255,45,156,0.15), rgba(0,212,255,0.15))",
-                    color: isActive ? "white" : "#00d4ff",
-                    border: "1px solid rgba(0,212,255,0.35)",
-                    boxShadow: isActive ? "0 0 18px rgba(0,212,255,0.4)" : "none",
-                  } : undefined}
+                  className={`relative text-[11px] font-black uppercase tracking-[0.18em] transition-all duration-200 hover:text-primary ${isActive ? "text-primary" : "text-muted-foreground"}`}
                 >
                   {link.label}
-                  {!isGta && isActive && (
+                  {isActive && (
                     <motion.span
                       layoutId="nav-underline"
                       className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#ff6600] to-[#ffcc00] rounded-full"
@@ -223,7 +209,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               <nav className="flex flex-col p-6 gap-4">
                 {navLinks.map((link, i) => {
-                  const isGta = link.href === "/gta6";
                   const isActive = location === link.href;
                   return (
                     <motion.div
@@ -235,19 +220,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       <Link
                         href={link.href}
                         onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center gap-3 font-black uppercase tracking-wider transition-all duration-200 ${
-                          isGta
-                            ? "text-xl px-4 py-2 rounded-xl w-fit"
-                            : `text-2xl ${isActive ? "text-primary" : "text-foreground"}`
-                        }`}
-                        style={isGta ? {
-                          background: "linear-gradient(135deg, rgba(255,45,156,0.15), rgba(0,212,255,0.15))",
-                          color: "#00d4ff",
-                          border: "1px solid rgba(0,212,255,0.35)",
-                        } : undefined}
+                        className={`flex items-center gap-3 font-black uppercase tracking-wider transition-all duration-200 text-2xl ${isActive ? "text-primary" : "text-foreground"}`}
                       >
                         {link.href === "/order-tracking" && <MapPin className="h-5 w-5" />}
-                        {isGta && <span>🎮</span>}
                         {link.label}
                       </Link>
                     </motion.div>

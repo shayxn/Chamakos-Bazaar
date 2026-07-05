@@ -331,14 +331,14 @@ export default function AdminGames() {
                 <label className="label-xs flex items-center gap-2">
                   <Video className="h-3.5 w-3.5 text-primary" /> Video URL (for animation page)
                 </label>
-                <Input value={form.videoUrl ?? ""} onChange={e => setF("videoUrl", e.target.value)} placeholder="Leave blank for built-in GTA VI video" className="bg-background font-mono text-xs" />
+                <Input value={form.videoUrl ?? ""} onChange={e => setF("videoUrl", e.target.value)} placeholder="Custom video URL (optional)" className="bg-background font-mono text-xs" />
               </div>
 
               <div className="col-span-2 space-y-2">
                 <label className="label-xs flex items-center gap-2">
                   <Music className="h-3.5 w-3.5 text-purple-400" /> Music URL (background music)
                 </label>
-                <Input value={form.musicUrl ?? ""} onChange={e => setF("musicUrl", e.target.value)} placeholder="Leave blank for built-in GTA VI music" className="bg-background font-mono text-xs" />
+                <Input value={form.musicUrl ?? ""} onChange={e => setF("musicUrl", e.target.value)} placeholder="Custom music URL (optional)" className="bg-background font-mono text-xs" />
               </div>
 
               {/* Toggles */}

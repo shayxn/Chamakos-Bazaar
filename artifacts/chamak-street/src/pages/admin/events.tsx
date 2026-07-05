@@ -29,7 +29,7 @@ type Event = {
 
 const PRESETS = [
   { type: "flash_sale", label: "⚡ Flash Sale", color: "#cc2200", badge: "FLASH SALE", banner: "FLASH SALE — Limited Time!", subtext: "Ends soon" },
-  { type: "gta_launch", label: "🎮 GTA VI Launch", color: "#7700cc", badge: "GTA VI", banner: "GTA VI IS LIVE — Pre-Order Now", subtext: "November 19, 2026" },
+
   { type: "ramadan", label: "🌙 Ramadan", color: "#8B6914", badge: "Ramadan Special", banner: "Ramadan Kareem — Special Offers", subtext: "Blessed discounts all month" },
   { type: "eid", label: "🌟 Eid", color: "#B8860B", badge: "Eid Sale", banner: "EID MUBARAK — Eid Sale is Live!", subtext: "Celebrate with style" },
   { type: "black_friday", label: "🛍️ Black Friday", color: "#111111", badge: "BLACK FRIDAY", banner: "BLACK FRIDAY — Biggest Sale of the Year", subtext: "Today only" },
