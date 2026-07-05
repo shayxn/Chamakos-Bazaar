@@ -264,3 +264,117 @@ input[type="text"] {
   transition: width 0.3s cubic-bezier(0.16,1,0.3,1), border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* ── Premium accent keyframes ── */
+
+@keyframes cta-gradient-flow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes border-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(255,102,0,0.35), 0 0 12px rgba(255,102,0,0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(255,204,0,0.55), 0 0 28px rgba(255,102,0,0.5);
+  }
+}
+
+@keyframes accent-line-grow {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
+/* ── Animated CTA button ── */
+.btn-cta {
+  background: linear-gradient(-45deg, #cc4400, #ff6600, #ffcc00, #ff8800, #ff4400) !important;
+  background-size: 300% 300% !important;
+  animation: cta-gradient-flow 3.5s ease infinite;
+  border: none !important;
+  transition: box-shadow 0.3s ease, filter 0.25s ease, transform 0.2s ease !important;
+}
+.btn-cta:hover {
+  box-shadow: 0 0 50px rgba(255,102,0,0.75), 0 0 80px rgba(255,102,0,0.35), 0 8px 24px rgba(0,0,0,0.4) !important;
+  filter: brightness(1.12);
+}
+
+/* ── Product card premium hover ── */
+.card-premium-hover {
+  border: 1px solid rgba(255,255,255,0.07);
+  transition:
+    border-color 0.35s cubic-bezier(0.16,1,0.3,1),
+    box-shadow   0.4s  cubic-bezier(0.16,1,0.3,1);
+}
+.card-premium-hover:hover {
+  border-color: rgba(255,102,0,0.7);
+  box-shadow:
+    0 0 0 1px rgba(255,102,0,0.2),
+    0 0 22px rgba(255,102,0,0.35),
+    0 24px 60px rgba(0,0,0,0.55);
+}
+
+/* ── Selected gallery thumbnail animated glow ── */
+.thumb-selected {
+  border-color: rgba(255,102,0,0.9) !important;
+  animation: border-glow-pulse 2.2s ease-in-out infinite;
+}
+
+/* ── Featured/highlighted section top accent line ── */
+.section-accent-top {
+  position: relative;
+}
+.section-accent-top::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  width: 55%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255,102,0,0.6) 35%, rgba(255,204,0,0.45) 65%, transparent);
+  animation: accent-line-grow 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+/* ── Subtle icon hover glow ── */
+.icon-accent {
+  transition: filter 0.25s ease, color 0.25s ease;
+}
+.icon-accent:hover {
+  filter: drop-shadow(0 0 6px rgba(255,102,0,0.65));
+  color: #ff6600;
+}
+
+/* ── Animated gradient text for section titles ── */
+@keyframes gradient-text-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+.gradient-text-animated {
+  background: linear-gradient(-45deg, #ff6600, #ffcc00, #ff4400, #ffaa00);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-text-shift 4s ease infinite;
+}
+
+/* ── Nav link hover accent ── */
+.nav-link-hover {
+  position: relative;
+}
+.nav-link-hover::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0; right: 0;
+  height: 1.5px;
+  background: linear-gradient(to right, #ff6600, #ffcc00);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.nav-link-hover:hover::after {
+  transform: scaleX(1);
+}
+

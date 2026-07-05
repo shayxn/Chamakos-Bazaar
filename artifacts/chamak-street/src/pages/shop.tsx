@@ -200,7 +200,7 @@ export default function Shop() {
                           transition={{ type: "spring", stiffness: 300, damping: 22 }}
                           data-testid={`card-product-${product.id}`}
                         >
-                          <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-card border border-border group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(255,102,0,0.2)]" style={{ transition: "box-shadow 0.45s ease, border-color 0.25s" }}>
+                          <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-card card-premium-hover">
                             {primaryMedia ? (
                               primaryMedia.type === "video" ? (
                                 <video

@@ -474,27 +474,38 @@ export default function ProductDetail() {
               transition={{ duration: 0.75, ease: EASE }}
               className="relative aspect-square md:aspect-[4/5] bg-card rounded-lg overflow-hidden border border-border group"
             >
-              {selectedMedia ? (
-                selectedMedia.type === "video" ? (
-                  <video
-                    src={selectedMedia.url}
-                    className="w-full h-full object-cover object-center"
-                    controls
-                    playsInline
-                    preload="metadata"
-                  />
+              <AnimatePresence mode="wait">
+                {selectedMedia ? (
+                  selectedMedia.type === "video" ? (
+                    <motion.video
+                      key={`video-${selectedMediaIndex}`}
+                      src={selectedMedia.url}
+                      className="w-full h-full object-cover object-center"
+                      controls
+                      playsInline
+                      preload="metadata"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.28 }}
+                    />
+                  ) : (
+                    <motion.img
+                      key={`img-${selectedMediaIndex}`}
+                      src={selectedMedia.url}
+                      alt={product.name}
+                      className="w-full h-full object-cover object-center"
+                      initial={{ opacity: 0, scale: 1.03 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.35, ease: EASE }}
+                      whileHover={{ scale: 1.06 }}
+                    />
+                  )
                 ) : (
-                  <motion.img
-                    src={selectedMedia.url}
-                    alt={product.name}
-                    className="w-full h-full object-cover object-center"
-                    whileHover={{ scale: 1.06 }}
-                    transition={{ duration: 0.65, ease: EASE }}
-                  />
-                )
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono">No Image</div>
-              )}
+                  <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono">No Image</div>
+                )}
+              </AnimatePresence>
               {/* Glow */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
@@ -511,7 +522,7 @@ export default function ProductDetail() {
                     key={`${item.url}-${index}`}
                     type="button"
                     onClick={() => setSelectedMediaIndex(index)}
-                    className={`relative aspect-square overflow-hidden rounded-md border bg-card ${selectedMediaIndex === index ? "border-primary" : "border-border"}`}
+                    className={`relative aspect-square overflow-hidden rounded-md border bg-card transition-colors duration-300 ${selectedMediaIndex === index ? "thumb-selected" : "border-border hover:border-primary/40"}`}
                   >
                     {item.type === "video" ? (
                       <>

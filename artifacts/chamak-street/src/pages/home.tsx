@@ -407,7 +407,7 @@ export default function Home() {
                     >
                       <Button
                         size="lg"
-                        className="text-base md:text-lg h-14 px-10 md:px-14 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_40px_rgba(255,102,0,0.6),0_0_0_1px_rgba(255,102,0,0.2)] hover:shadow-[0_0_70px_rgba(255,102,0,0.85)] transition-all duration-300"
+                        className="text-base md:text-lg h-14 px-10 md:px-14 font-black uppercase tracking-widest btn-cta shadow-[0_0_40px_rgba(255,102,0,0.55)] transition-all duration-300"
                       >
                         {heroCtaText} <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
@@ -949,7 +949,7 @@ export default function Home() {
                     transition={{ type: "spring", stiffness: 380, damping: 20 }}
                     className="inline-block"
                   >
-                    <Button size="lg" className="font-black uppercase tracking-widest fire-gradient border-none h-14 px-12 shadow-[0_0_40px_rgba(255,102,0,0.5)] hover:shadow-[0_0_70px_rgba(255,102,0,0.75)] transition-shadow duration-300 text-base md:text-lg">
+                    <Button size="lg" className="font-black uppercase tracking-widest btn-cta h-14 px-12 shadow-[0_0_40px_rgba(255,102,0,0.45)] text-base md:text-lg">
                       Shop The Collection <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </motion.div>
