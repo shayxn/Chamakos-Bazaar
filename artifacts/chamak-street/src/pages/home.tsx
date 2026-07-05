@@ -270,41 +270,25 @@ export default function Home() {
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none flex items-center">
             <span
               className="absolute right-[-5%] font-black uppercase leading-none"
-              style={{ fontSize: "clamp(15rem, 40vw, 55rem)", letterSpacing: "-0.06em", lineHeight: 0.85, animation: "csDrift 10s ease-in-out infinite" }}
+              style={{ fontSize: "clamp(15rem, 40vw, 55rem)", letterSpacing: "-0.06em", lineHeight: 0.85, opacity: 0.03 }}
             >
               CS
             </span>
           </div>
 
-          {/* Dual orange ambient glows — CSS animated */}
+          {/* Dual orange ambient glows */}
           <div
             className="absolute inset-0 z-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse 50% 60% at 14% 60%, rgba(255,102,0,0.2), transparent)", animation: "glowDriftX 8s ease-in-out infinite" }}
+            style={{ background: "radial-gradient(ellipse 50% 60% at 14% 60%, rgba(255,102,0,0.2), transparent)" }}
           />
           <div
             className="absolute inset-0 z-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse 35% 50% at 85% 30%, rgba(255,80,0,0.14), transparent)", animation: "glowPulse 6s ease-in-out 2s infinite" }}
+            style={{ background: "radial-gradient(ellipse 35% 50% at 85% 30%, rgba(255,80,0,0.14), transparent)" }}
           />
 
           {/* Bottom vignette */}
           <div className="absolute inset-x-0 bottom-0 h-48 z-0 pointer-events-none" style={{ background: "linear-gradient(to top, hsl(var(--background)) 30%, transparent)" }} />
 
-          {/* 18 floating embers — CSS animated (compositor thread, no RAF) */}
-          {[...Array(18)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute z-0 pointer-events-none rounded-full"
-              style={{
-                width: 1.5 + (i % 4) * 1.2,
-                height: 1.5 + (i % 4) * 1.2,
-                left: `${4 + i * 5.2}%`,
-                bottom: `${4 + (i % 6) * 6}%`,
-                background: i % 3 === 0 ? "#ff6600" : i % 3 === 1 ? "#ffcc00" : "#ff4400",
-                animation: `${i % 2 === 0 ? "emberRiseR" : "emberRiseL"} ${2.8 + i * 0.35}s ${i * 0.38}s ease-out infinite`,
-                willChange: "transform, opacity",
-              }}
-            />
-          ))}
 
           {/* Decorative horizontal lines */}
           <motion.div
