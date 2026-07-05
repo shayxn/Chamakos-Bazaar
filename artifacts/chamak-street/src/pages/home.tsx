@@ -1,4 +1,4 @@
-import { useListProducts, getListProductsQueryKey, useListCategories } from "@workspace/api-client-react";
+import { useListProducts, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { motion, useInView, AnimatePresence } from "@/lib/motion-noop";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { PageTransition, RevealSection, RevealList, revealItem } from "@/compone
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
 import { TrustSection } from "@/components/trust-section";
+import { BrandsSection } from "@/components/brands-section";
 import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
 import { EventHomepageBanner } from "@/components/event-homepage-banner";
@@ -132,8 +133,6 @@ export default function Home() {
     { featured: true },
     { query: { queryKey: getListProductsQueryKey({ featured: true }), staleTime: 2 * 60_000 } }
   );
-  const { data: categories } = useListCategories({ query: { staleTime: 5 * 60_000, queryKey: ["categories", "nav"] } });
-
   const heroTitle = settings.hero_title || "Ignite the";
   const heroSubtitle = settings.hero_subtitle || "Streets.";
   const heroDescription = settings.hero_description || "Bold aesthetic. Unmatched drip. Dress like you own the block.";
@@ -165,16 +164,6 @@ export default function Home() {
     }, slideInterval);
     return () => { if (slideTimerRef.current) clearTimeout(slideTimerRef.current); };
   }, [slideIdx, heroImages.length, slideInterval, paused]);
-
-  const categoryColors = [
-    "from-orange-950/90 to-red-900/70",
-    "from-yellow-950/90 to-orange-950/70",
-    "from-red-950/90 to-orange-900/70",
-    "from-purple-950/90 to-red-950/70",
-    "from-blue-950/90 to-purple-950/70",
-    "from-green-950/90 to-teal-950/70",
-  ];
-  const categoryIcons = [<Flame className="h-5 w-5" />, <Zap className="h-5 w-5" />, <Star className="h-5 w-5" />];
 
   return (
     <PageTransition>
@@ -516,77 +505,6 @@ export default function Home() {
           </div>
         </motion.section>
 
-        {/* ══════════════ CATEGORIES ══════════════ */}
-        {categories && categories.length > 0 && (
-          <section className="py-28 bg-card/50 border-y border-border/40 overflow-hidden relative">
-            <div className="container px-4 mx-auto relative z-10">
-              <RevealSection className="mb-16">
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.35em] text-primary/70 mb-2">Browse by Style</p>
-                    <h2 className="text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none">The Essentials</h2>
-                  </div>
-                  <p className="text-muted-foreground text-lg max-w-xs">Build your uniform. Every piece, every fit.</p>
-                </div>
-              </RevealSection>
-
-              <RevealList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {categories.slice(0, 6).map((cat, i) => (
-                  <motion.div key={cat.id} variants={revealItem}>
-                    <Link href={`/shop?categoryId=${cat.id}`}>
-                      <motion.div
-                        whileHover={{ y: -8, scale: 1.018 }}
-                        whileTap={{ scale: 0.975 }}
-                        transition={{ type: "spring", stiffness: 340, damping: 24 }}
-                        className="group relative h-80 overflow-hidden rounded-2xl cursor-pointer border border-white/5 shadow-xl hover:shadow-[0_28px_60px_rgba(255,102,0,0.2)] transition-shadow duration-500"
-                      >
-                        {cat.bannerImageUrl && (
-                          <img
-                            src={cat.bannerImageUrl}
-                            alt={cat.name}
-                            className="absolute -inset-[10%] w-[120%] h-[120%] object-cover transition-transform duration-700 group-hover:scale-105"
-                            loading="lazy"
-                          />
-                        )}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${categoryColors[i % categoryColors.length]} ${cat.bannerImageUrl ? "opacity-75" : "opacity-100"} group-hover:opacity-85 transition-opacity duration-400`} />
-
-                        {/* Category number */}
-                        <div className="absolute top-5 right-5 text-[11px] font-black font-mono text-white/25 tracking-widest">
-                          {String(i + 1).padStart(2, "0")}
-                        </div>
-
-                        <div className="absolute inset-0 flex flex-col justify-end p-7">
-                          <div className="w-11 h-11 rounded-full bg-primary/25 backdrop-blur-sm flex items-center justify-center text-primary mb-4 ring-1 ring-primary/20">
-                            {cat.iconEmoji ? <span className="text-xl">{cat.iconEmoji}</span> : categoryIcons[i % categoryIcons.length]}
-                          </div>
-                          <h3 className="text-2xl font-black uppercase tracking-wide text-white drop-shadow-lg mb-1">{cat.name}</h3>
-                          {cat.description && (
-                            <p className="text-white/60 text-sm leading-snug mb-4">{cat.description}</p>
-                          )}
-                          <motion.div
-                            className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-white/0 group-hover:text-white/80 transition-all duration-300"
-                            initial={false}
-                          >
-                            <span>Shop Now</span>
-                            <ArrowRight className="h-3.5 w-3.5 translate-x-0 group-hover:translate-x-1 transition-transform duration-300" />
-                          </motion.div>
-                        </div>
-
-                        {/* Corner accent */}
-                        <div className="absolute top-0 left-0 w-12 h-12 opacity-40">
-                          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                            <path d="M0 48 L0 0 L48 0" stroke="rgba(255,255,255,0.3)" strokeWidth="1" fill="none" />
-                          </svg>
-                        </div>
-                      </motion.div>
-                    </Link>
-                  </motion.div>
-                ))}
-              </RevealList>
-            </div>
-          </section>
-        )}
-
         {/* ── TRUST ── */}
         <TrustSection />
 
@@ -601,6 +519,9 @@ export default function Home() {
         <ReviewsSection />
 
         <SectionDivider />
+
+        {/* ── BRANDS + CATEGORIES ── */}
+        <BrandsSection />
 
         {/* ══════════════ QUOTE BANNER ══════════════ */}
         <RevealSection amount={0.15} className="mx-4 mb-12">

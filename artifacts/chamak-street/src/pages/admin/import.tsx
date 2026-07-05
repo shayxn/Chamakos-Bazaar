@@ -48,6 +48,7 @@ type SyncStats = {
 
 type AllStats = {
   fashioncage: SyncStats;
+  stylescape: SyncStats;
 };
 
 const SUPPLIERS = [
@@ -57,6 +58,13 @@ const SUPPLIERS = [
     domain: "fashioncage.me",
     color: "text-orange-400",
     dot: "bg-orange-400",
+  },
+  {
+    id: "stylescape",
+    label: "Stylescape",
+    domain: "stylescape.me",
+    color: "text-purple-400",
+    dot: "bg-purple-400",
   },
 ] as const;
 
@@ -521,10 +529,11 @@ export default function AdminImport() {
       const res = await fetch(`${BASE}/api/import/sync-all`, { method: "POST", credentials: "include" });
       const data = (await res.json()) as {
         fashioncage: ImportResult & { error?: string };
+        stylescape: ImportResult & { error?: string };
       };
       fetchStats();
-      const totalNew = data.fashioncage.imported ?? 0;
-      const totalUpdated = data.fashioncage.updated ?? 0;
+      const totalNew = (data.fashioncage.imported ?? 0) + (data.stylescape.imported ?? 0);
+      const totalUpdated = (data.fashioncage.updated ?? 0) + (data.stylescape.updated ?? 0);
       toast({
         title: "Sync All Complete",
         description: `${totalNew} new · ${totalUpdated} updated`,

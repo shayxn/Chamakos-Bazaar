@@ -7,7 +7,15 @@ const router = Router();
 
 const SUPPLIERS: Record<string, string> = {
   fashioncage: "https://fashioncage.me",
+  stylescape: "https://stylescape.me",
 };
+
+const CHAMAK_LOGO_URL = "/chamak-logo-transparent.png";
+
+function sanitizeProductImage(name: string, imageUrl: string | null): string | null {
+  if (/stylescape/i.test(name)) return CHAMAK_LOGO_URL;
+  return imageUrl;
+}
 
 type ShopifyVariant = {
   title: string;
@@ -169,7 +177,13 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
       .where(eq(productsTable.importSource, supplierName));
     const existingByExternalId = new Map(existingImported.map((p) => [p.externalId, p.id]));
 
-    const parsedProducts = shopifyProducts.map(parseShopifyProduct);
+    const parsedProducts = shopifyProducts.map((p) => {
+      const base = parseShopifyProduct(p);
+      return {
+        ...base,
+        imageUrl: sanitizeProductImage(base.name, base.imageUrl),
+      };
+    });
 
     for (const parsed of parsedProducts) {
       if (parsed.categoryName) {
@@ -283,7 +297,10 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
 router.get("/import/fashioncage/preview", requireAdmin, async (_req, res) => {
   try {
     const products = await fetchShopifyProducts(SUPPLIERS.fashioncage);
-    const preview = products.slice(0, 100).map(parseShopifyProduct);
+    const preview = products.slice(0, 100).map((p) => {
+      const base = parseShopifyProduct(p);
+      return { ...base, imageUrl: sanitizeProductImage(base.name, base.imageUrl) };
+    });
     res.json({ count: products.length, products: preview });
   } catch {
     res.status(502).json({ error: "Failed to fetch from fashioncage.me" });
@@ -292,6 +309,26 @@ router.get("/import/fashioncage/preview", requireAdmin, async (_req, res) => {
 
 router.post("/import/fashioncage", requireAdmin, async (_req, res) => {
   const result = await runSupplierImport(SUPPLIERS.fashioncage, "fashioncage");
+  if (result.error) res.status(502).json({ error: result.error });
+  else res.json(result);
+});
+
+/* ─── stylescape ─── */
+router.get("/import/stylescape/preview", requireAdmin, async (_req, res) => {
+  try {
+    const products = await fetchShopifyProducts(SUPPLIERS.stylescape);
+    const preview = products.slice(0, 100).map((p) => {
+      const base = parseShopifyProduct(p);
+      return { ...base, imageUrl: sanitizeProductImage(base.name, base.imageUrl) };
+    });
+    res.json({ count: products.length, products: preview });
+  } catch {
+    res.status(502).json({ error: "Failed to fetch from stylescape.me" });
+  }
+});
+
+router.post("/import/stylescape", requireAdmin, async (_req, res) => {
+  const result = await runSupplierImport(SUPPLIERS.stylescape, "stylescape");
   if (result.error) res.status(502).json({ error: result.error });
   else res.json(result);
 });
@@ -312,18 +349,23 @@ router.delete("/import/delete-by-source/:supplier", requireAdmin, async (req, re
 
 /* ─── sync all ─── */
 router.post("/import/sync-all", requireAdmin, async (_req, res) => {
-  const [fc] = await Promise.allSettled([
+  const [fc, ss] = await Promise.allSettled([
     runSupplierImport(SUPPLIERS.fashioncage, "fashioncage"),
+    runSupplierImport(SUPPLIERS.stylescape, "stylescape"),
   ]);
   res.json({
     fashioncage: fc.status === "fulfilled" ? fc.value : { error: (fc as PromiseRejectedResult).reason?.message },
+    stylescape: ss.status === "fulfilled" ? ss.value : { error: (ss as PromiseRejectedResult).reason?.message },
   });
 });
 
 /* ─── stats ─── */
 router.get("/import/stats", requireAdmin, async (_req, res) => {
-  const fc = await getSyncStats("fashioncage");
-  res.json({ fashioncage: fc });
+  const [fc, ss] = await Promise.all([
+    getSyncStats("fashioncage"),
+    getSyncStats("stylescape"),
+  ]);
+  res.json({ fashioncage: fc, stylescape: ss });
 });
 
 /* ─── toggle autosync ─── */
