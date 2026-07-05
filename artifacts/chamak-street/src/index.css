@@ -333,3 +333,151 @@ video::-webkit-media-controls-enclosure { display: none !important; }
 video::-webkit-media-controls-panel { display: none !important; }
 video::-webkit-media-controls-play-button { display: none !important; }
 video::-webkit-media-controls-start-playback-button { display: none !important; }
+
+/* ── iOS 26 Liquid Glass Theme ── */
+:root[data-theme="liquid-glass"] {
+  --background: 215 30% 97%;
+  --foreground: 222 30% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 30% 10%;
+  --card-border: 220 18% 88%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 30% 10%;
+  --popover-border: 220 18% 85%;
+  --primary: 211 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 93%;
+  --secondary-foreground: 222 30% 10%;
+  --muted: 210 20% 92%;
+  --muted-foreground: 215 18% 46%;
+  --accent: 262 83% 58%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 15% 87%;
+  --input: 220 15% 87%;
+  --ring: 211 100% 50%;
+  --radius: 0.875rem;
+}
+
+/* Body: soft iridescent gradient */
+:root[data-theme="liquid-glass"] body {
+  background: linear-gradient(135deg,
+    #dde9ff 0%,
+    #ede8ff 22%,
+    #e4eeff 44%,
+    #f0e6ff 66%,
+    #ffe8f0 88%,
+    #dde9ff 100%
+  ) fixed !important;
+  background-size: 300% 300% !important;
+  animation: lgBgShift 18s ease infinite !important;
+}
+
+@keyframes lgBgShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Nav header: frosted glass bar */
+:root[data-theme="liquid-glass"] header {
+  background: rgba(255,255,255,0.52) !important;
+  backdrop-filter: blur(48px) saturate(2) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(2) brightness(1.04) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.72) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.9) inset,
+    0 8px 40px rgba(100,140,255,0.07) !important;
+}
+
+/* Nav links in glass mode */
+:root[data-theme="liquid-glass"] header a {
+  color: rgba(30,40,90,0.75);
+}
+:root[data-theme="liquid-glass"] header a:hover {
+  color: #007AFF;
+}
+
+/* Cards: translucent glass panels */
+:root[data-theme="liquid-glass"] .bg-card {
+  background-color: rgba(255,255,255,0.62) !important;
+  backdrop-filter: blur(28px) saturate(1.7);
+  -webkit-backdrop-filter: blur(28px) saturate(1.7);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.85) inset,
+    0 8px 32px rgba(80,100,200,0.07);
+}
+
+/* bg-background panels (footer, modals etc.) */
+:root[data-theme="liquid-glass"] .bg-background {
+  background-color: rgba(240,245,255,0.65) !important;
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+}
+
+/* Footer glass */
+:root[data-theme="liquid-glass"] footer {
+  background: rgba(235,240,255,0.55) !important;
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  border-top: 1px solid rgba(255,255,255,0.65);
+}
+
+/* Mobile menu glass */
+:root[data-theme="liquid-glass"] .md\:hidden.border-b {
+  background: rgba(255,255,255,0.72) !important;
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+}
+
+/* Progress bar: iOS blue */
+:root[data-theme="liquid-glass"] .fire-gradient {
+  background: linear-gradient(to right, #007AFF, #5856D6, #34AADC) !important;
+}
+
+/* Gradient text: iOS spectrum */
+:root[data-theme="liquid-glass"] .gradient-text {
+  background-image: linear-gradient(to right, #007AFF, #5856D6) !important;
+}
+:root[data-theme="liquid-glass"] .gradient-text-animate {
+  background: linear-gradient(90deg, #007AFF, #5856D6, #34AADC, #5856D6, #007AFF);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Scrollbar: iOS blue tint */
+:root[data-theme="liquid-glass"] ::-webkit-scrollbar-thumb {
+  background: rgba(0,122,255,0.25);
+}
+:root[data-theme="liquid-glass"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,122,255,0.45);
+}
+
+/* Selection */
+:root[data-theme="liquid-glass"] ::selection {
+  background: rgba(0,122,255,0.2);
+  color: #003d99;
+}
+
+/* Focus ring: iOS blue */
+:root[data-theme="liquid-glass"] :focus-visible {
+  outline-color: rgba(0,122,255,0.65);
+}
+
+/* Input / form controls */
+:root[data-theme="liquid-glass"] input,
+:root[data-theme="liquid-glass"] textarea,
+:root[data-theme="liquid-glass"] select {
+  background-color: rgba(255,255,255,0.7) !important;
+  border-color: rgba(200,215,255,0.8) !important;
+}
+
+/* Specular highlight on hoverable elements */
+:root[data-theme="liquid-glass"] .group:hover .shimmer-overlay {
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.55) 50%, transparent 60%) !important;
+}
