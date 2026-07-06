@@ -282,6 +282,20 @@ function HeroImagesManager({ settings, onChange }: { settings: SettingsMap; onCh
         <Plus className="h-3.5 w-3.5" /> Add Another Image
       </Button>
 
+      {/* Default image quick-insert */}
+      <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
+        <img src="/chamako-hero.png" alt="Default hero" className="w-16 h-10 object-cover rounded-lg shrink-0 border border-border/40" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-black uppercase tracking-wide">Default Hero Image</p>
+          <p className="text-[10px] text-muted-foreground truncate">/chamako-hero.png</p>
+        </div>
+        <Button type="button" variant="outline" size="sm"
+          onClick={() => { if (!images.includes("/chamako-hero.png")) setImages([...images.filter(Boolean), "/chamako-hero.png"]); }}
+          className="shrink-0 text-xs font-bold uppercase tracking-wide border-primary/30 hover:border-primary px-2.5">
+          + Use
+        </Button>
+      </div>
+
       <div className="pt-2">
         <div className="flex items-center justify-between mb-1.5">
           <label className="label-xs">Slide Interval (seconds)</label>

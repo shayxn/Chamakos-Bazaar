@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { ArrowRight } from "lucide-react";
 
 type Brand = {
   name: string;
@@ -11,13 +12,13 @@ const BRANDS: Brand[] = [
     name: "Chrome Hearts",
     bg: "#0a0a0a",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-12 h-12">
-        <rect x="36" y="8" width="8" height="64" fill="white" />
-        <rect x="8" y="36" width="64" height="8" fill="white" />
-        <rect x="26" y="26" width="6" height="6" fill="#0a0a0a" />
-        <rect x="48" y="26" width="6" height="6" fill="#0a0a0a" />
-        <rect x="26" y="48" width="6" height="6" fill="#0a0a0a" />
-        <rect x="48" y="48" width="6" height="6" fill="#0a0a0a" />
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full p-3">
+        <rect x="44" y="8" width="12" height="84" fill="white" />
+        <rect x="8" y="44" width="84" height="12" fill="white" />
+        <rect x="32" y="32" width="8" height="8" fill="#0a0a0a" />
+        <rect x="60" y="32" width="8" height="8" fill="#0a0a0a" />
+        <rect x="32" y="60" width="8" height="8" fill="#0a0a0a" />
+        <rect x="60" y="60" width="8" height="8" fill="#0a0a0a" />
       </svg>
     ),
   },
@@ -25,9 +26,9 @@ const BRANDS: Brand[] = [
     name: "Corteiz",
     bg: "#111111",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
         <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="17" fontWeight="900" fontFamily="Arial Black, Arial"
+          fill="white" fontSize="24" fontWeight="900" fontFamily="Arial Black, Arial"
           letterSpacing="1">CRTZ</text>
       </svg>
     ),
@@ -36,10 +37,10 @@ const BRANDS: Brand[] = [
     name: "Trapstar",
     bg: "#1a1a1a",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
-        <polygon points="40,8 72,64 8,64" fill="none" stroke="white" strokeWidth="4" />
-        <text x="50%" y="66%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="9" fontWeight="900" fontFamily="Arial Black, Arial"
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full p-2">
+        <polygon points="50,10 90,80 10,80" fill="none" stroke="white" strokeWidth="5" />
+        <text x="50%" y="68%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="12" fontWeight="900" fontFamily="Arial Black, Arial"
           letterSpacing="2">TRAP</text>
       </svg>
     ),
@@ -48,13 +49,13 @@ const BRANDS: Brand[] = [
     name: "Fear of God",
     bg: "#1c1c1c",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
-        <text x="50%" y="44%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="8" fontWeight="700" fontFamily="Georgia, serif"
-          letterSpacing="3">FEAR OF</text>
-        <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="8" fontWeight="700" fontFamily="Georgia, serif"
-          letterSpacing="3">GOD</text>
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+        <text x="50%" y="40%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="10" fontWeight="700" fontFamily="Georgia, serif"
+          letterSpacing="4">FEAR OF</text>
+        <text x="50%" y="60%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="10" fontWeight="700" fontFamily="Georgia, serif"
+          letterSpacing="4">GOD</text>
       </svg>
     ),
   },
@@ -62,11 +63,11 @@ const BRANDS: Brand[] = [
     name: "Off-White",
     bg: "#000000",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
-        <line x1="16" y1="64" x2="64" y2="16" stroke="white" strokeWidth="5" />
-        <text x="50%" y="70%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="7.5" fontWeight="900" fontFamily="Arial, sans-serif"
-          letterSpacing="1.5">OFF-WHITE</text>
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+        <line x1="20" y1="75" x2="80" y2="20" stroke="white" strokeWidth="7" />
+        <text x="50%" y="74%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="10" fontWeight="900" fontFamily="Arial, sans-serif"
+          letterSpacing="1">OFF-WHITE</text>
       </svg>
     ),
   },
@@ -74,10 +75,10 @@ const BRANDS: Brand[] = [
     name: "Supreme",
     bg: "#FF0000",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
-        <rect x="6" y="28" width="68" height="24" rx="2" fill="#FF0000" />
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+        <rect x="8" y="32" width="84" height="36" rx="3" fill="#FF0000" />
         <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="12" fontWeight="900" fontFamily="Futura, Arial Black, Arial"
+          fill="white" fontSize="16" fontWeight="900" fontFamily="Futura, Arial Black, Arial"
           letterSpacing="0.5">Supreme</text>
       </svg>
     ),
@@ -86,14 +87,14 @@ const BRANDS: Brand[] = [
     name: "Balenciaga",
     bg: "#0a0a0a",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
-        <text x="50%" y="44%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="7" fontWeight="300" fontFamily="Georgia, serif"
-          letterSpacing="2">BALENCIAGA</text>
-        <line x1="16" y1="48" x2="64" y2="48" stroke="white" strokeWidth="0.8" opacity="0.5" />
-        <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="6" fontWeight="300" fontFamily="Georgia, serif"
-          letterSpacing="3" opacity="0.6">PARIS</text>
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+        <text x="50%" y="42%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="9.5" fontWeight="300" fontFamily="Georgia, serif"
+          letterSpacing="2.5">BALENCIAGA</text>
+        <line x1="20" y1="54" x2="80" y2="54" stroke="white" strokeWidth="0.8" opacity="0.5" />
+        <text x="50%" y="68%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="7.5" fontWeight="300" fontFamily="Georgia, serif"
+          letterSpacing="4" opacity="0.6">PARIS</text>
       </svg>
     ),
   },
@@ -101,14 +102,14 @@ const BRANDS: Brand[] = [
     name: "Stone Island",
     bg: "#1a1a1a",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-12 h-12">
-        <circle cx="40" cy="40" r="28" stroke="white" strokeWidth="3" fill="none" />
-        <circle cx="40" cy="40" r="18" stroke="white" strokeWidth="1.5" fill="none" />
-        <line x1="40" y1="12" x2="40" y2="22" stroke="white" strokeWidth="3" />
-        <line x1="40" y1="58" x2="40" y2="68" stroke="white" strokeWidth="3" />
-        <line x1="12" y1="40" x2="22" y2="40" stroke="white" strokeWidth="3" />
-        <line x1="58" y1="40" x2="68" y2="40" stroke="white" strokeWidth="3" />
-        <circle cx="40" cy="40" r="4" fill="white" />
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full p-2">
+        <circle cx="50" cy="50" r="36" stroke="white" strokeWidth="4" fill="none" />
+        <circle cx="50" cy="50" r="22" stroke="white" strokeWidth="2" fill="none" />
+        <line x1="50" y1="14" x2="50" y2="28" stroke="white" strokeWidth="4" />
+        <line x1="50" y1="72" x2="50" y2="86" stroke="white" strokeWidth="4" />
+        <line x1="14" y1="50" x2="28" y2="50" stroke="white" strokeWidth="4" />
+        <line x1="72" y1="50" x2="86" y2="50" stroke="white" strokeWidth="4" />
+        <circle cx="50" cy="50" r="5" fill="white" />
       </svg>
     ),
   },
@@ -116,14 +117,14 @@ const BRANDS: Brand[] = [
     name: "Moncler",
     bg: "#1a3a6b",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
-        <text x="50%" y="44%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="7.5" fontWeight="900" fontFamily="Arial Black, Arial"
-          letterSpacing="2">MONCLER</text>
-        <line x1="20" y1="48" x2="60" y2="48" stroke="white" strokeWidth="1" opacity="0.6" />
-        <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="5.5" fontWeight="400" fontFamily="Arial"
-          letterSpacing="3" opacity="0.7">PARIS</text>
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+        <text x="50%" y="42%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="10" fontWeight="900" fontFamily="Arial Black, Arial"
+          letterSpacing="2.5">MONCLER</text>
+        <line x1="22" y1="54" x2="78" y2="54" stroke="white" strokeWidth="1" opacity="0.6" />
+        <text x="50%" y="68%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="7" fontWeight="400" fontFamily="Arial"
+          letterSpacing="4" opacity="0.7">PARIS</text>
       </svg>
     ),
   },
@@ -131,13 +132,13 @@ const BRANDS: Brand[] = [
     name: "Dior",
     bg: "#111111",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
-        <text x="50%" y="44%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="7" fontWeight="300" fontFamily="Georgia, 'Times New Roman', serif"
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+        <text x="50%" y="38%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="8.5" fontWeight="300" fontFamily="Georgia, 'Times New Roman', serif"
           letterSpacing="5">CHRISTIAN</text>
         <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="16" fontWeight="300" fontFamily="Georgia, 'Times New Roman', serif"
-          letterSpacing="4">DIOR</text>
+          fill="white" fontSize="22" fontWeight="300" fontFamily="Georgia, 'Times New Roman', serif"
+          letterSpacing="5">DIOR</text>
       </svg>
     ),
   },
@@ -145,14 +146,14 @@ const BRANDS: Brand[] = [
     name: "Louis Vuitton",
     bg: "#8B6914",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
-        <text x="50%" y="42%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="20" fontWeight="400" fontFamily="Georgia, serif"
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+        <text x="50%" y="40%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="28" fontWeight="400" fontFamily="Georgia, serif"
           letterSpacing="1">LV</text>
-        <line x1="18" y1="50" x2="62" y2="50" stroke="white" strokeWidth="0.8" opacity="0.7" />
-        <text x="50%" y="65%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="5.5" fontWeight="300" fontFamily="Georgia, serif"
-          letterSpacing="2.5" opacity="0.85">LOUIS VUITTON</text>
+        <line x1="22" y1="58" x2="78" y2="58" stroke="white" strokeWidth="0.8" opacity="0.7" />
+        <text x="50%" y="74%" dominantBaseline="middle" textAnchor="middle"
+          fill="white" fontSize="7" fontWeight="300" fontFamily="Georgia, serif"
+          letterSpacing="3" opacity="0.85">LOUIS VUITTON</text>
       </svg>
     ),
   },
@@ -160,26 +161,32 @@ const BRANDS: Brand[] = [
     name: "Gucci",
     bg: "#1a2a14",
     logo: (
-      <svg viewBox="0 0 80 80" fill="none" className="w-14 h-14">
-        <circle cx="32" cy="42" r="14" stroke="white" strokeWidth="3" fill="none" />
-        <circle cx="48" cy="42" r="14" stroke="white" strokeWidth="3" fill="none" />
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full p-2">
+        <circle cx="38" cy="55" r="18" stroke="white" strokeWidth="4" fill="none" />
+        <circle cx="62" cy="55" r="18" stroke="white" strokeWidth="4" fill="none" />
         <text x="50%" y="26%" dominantBaseline="middle" textAnchor="middle"
-          fill="white" fontSize="7" fontWeight="300" fontFamily="Georgia, serif"
-          letterSpacing="3">GUCCI</text>
+          fill="white" fontSize="9" fontWeight="300" fontFamily="Georgia, serif"
+          letterSpacing="4">GUCCI</text>
       </svg>
     ),
   },
 ];
 
-const CATEGORIES = [
-  { name: "Shoes", emoji: "👟" },
-  { name: "Wallets", emoji: "👛" },
-  { name: "Jackets", emoji: "🧥" },
-  { name: "Hoodies", emoji: "🦺" },
-  { name: "T-Shirts", emoji: "👕" },
-  { name: "Caps", emoji: "🧢" },
-  { name: "Accessories", emoji: "⌚" },
-  { name: "Pants", emoji: "👖" },
+type Category = {
+  name: string;
+  icon: string;
+  desc: string;
+};
+
+const CATEGORIES: Category[] = [
+  { name: "Shoes",       icon: "👟", desc: "Sneakers & kicks" },
+  { name: "Wallets",     icon: "👛", desc: "Leather & designer" },
+  { name: "Jackets",     icon: "🧥", desc: "Outerwear & bombers" },
+  { name: "Hoodies",     icon: "🦺", desc: "Fleece & zip-ups" },
+  { name: "T-Shirts",    icon: "👕", desc: "Graphic & oversized" },
+  { name: "Caps",        icon: "🧢", desc: "Snapbacks & fitted" },
+  { name: "Accessories", icon: "⌚", desc: "Belts, bags & more" },
+  { name: "Pants",       icon: "👖", desc: "Cargo & relaxed fits" },
 ];
 
 export function BrandsSection() {
@@ -188,18 +195,18 @@ export function BrandsSection() {
       <div className="container mx-auto px-4">
 
         {/* ── Brands ── */}
-        <div className="mb-16">
-          <div className="text-center mb-10">
+        <div className="mb-20">
+          <div className="text-center mb-12">
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 mb-2">Premium Selection</p>
             <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">Shop by Brand</h2>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-5">
             {BRANDS.map((brand) => (
               <Link href={`/shop?q=${encodeURIComponent(brand.name)}`} key={brand.name}>
-                <div className="group flex flex-col items-center gap-3 p-4 rounded-xl border border-border/30 hover:border-primary/50 transition-all duration-300 cursor-pointer">
+                <div className="group flex flex-col items-center gap-3 cursor-pointer">
                   <div
-                    className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform duration-300"
+                    className="w-full aspect-square rounded-2xl flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-primary/40 group-hover:scale-105 transition-all duration-300 shadow-lg"
                     style={{ backgroundColor: brand.bg }}
                   >
                     {brand.logo}
@@ -215,19 +222,21 @@ export function BrandsSection() {
 
         {/* ── Categories ── */}
         <div>
-          <div className="text-center mb-8">
+          <div className="text-center mb-10">
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 mb-2">Browse by Type</p>
             <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter">Shop by Category</h2>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {CATEGORIES.map((cat) => (
               <Link href={`/shop?q=${encodeURIComponent(cat.name)}`} key={cat.name}>
-                <div className="group flex items-center gap-2 px-5 py-3 rounded-full border border-border/40 bg-card/40 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 cursor-pointer">
-                  <span className="text-base">{cat.emoji}</span>
-                  <span className="text-[12px] font-black uppercase tracking-widest group-hover:text-primary transition-colors">
-                    {cat.name}
-                  </span>
+                <div className="group relative flex flex-col items-start gap-3 p-5 rounded-2xl border border-border/40 bg-card/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 cursor-pointer overflow-hidden">
+                  <div className="text-4xl">{cat.icon}</div>
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-widest group-hover:text-primary transition-colors">{cat.name}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{cat.desc}</p>
+                  </div>
+                  <ArrowRight className="absolute bottom-4 right-4 h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200" />
                 </div>
               </Link>
             ))}
