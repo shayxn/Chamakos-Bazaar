@@ -11,6 +11,85 @@ export function LoadingScreen() {
 
   useEffect(() => {
     if (skip) return;
+
+    // ── Sun glare sound via Web Audio API ──
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+      const play = () => {
+        const now = ctx.currentTime;
+
+        // Noise buffer for the shimmer texture
+        const bufLen = ctx.sampleRate * 1.6;
+        const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buf;
+
+        // Bandpass filter sweeping up (500 Hz → 4 kHz) — the "light sweep"
+        const bp = ctx.createBiquadFilter();
+        bp.type = "bandpass";
+        bp.frequency.setValueAtTime(500, now);
+        bp.frequency.exponentialRampToValueAtTime(4000, now + 1.0);
+        bp.Q.value = 4;
+
+        // High shelf for brightness
+        const shelf = ctx.createBiquadFilter();
+        shelf.type = "highshelf";
+        shelf.frequency.value = 3000;
+        shelf.gain.value = 10;
+
+        // Gain envelope: fast attack, long tail
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.22, now + 0.08);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+
+        // Bright tone at 1.8 kHz for the "ping"
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(1800, now);
+        osc.frequency.exponentialRampToValueAtTime(4200, now + 0.5);
+
+        const oscGain = ctx.createGain();
+        oscGain.gain.setValueAtTime(0, now);
+        oscGain.gain.linearRampToValueAtTime(0.12, now + 0.05);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+        // Second harmonic tone
+        const osc2 = ctx.createOscillator();
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(3600, now);
+        osc2.frequency.exponentialRampToValueAtTime(8000, now + 0.4);
+
+        const osc2Gain = ctx.createGain();
+        osc2Gain.gain.setValueAtTime(0, now);
+        osc2Gain.gain.linearRampToValueAtTime(0.07, now + 0.04);
+        osc2Gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+        // Wire up
+        noise.connect(bp); bp.connect(shelf); shelf.connect(gainNode);
+        osc.connect(oscGain); oscGain.connect(gainNode);
+        osc2.connect(osc2Gain); osc2Gain.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        noise.start(now); noise.stop(now + 1.6);
+        osc.start(now); osc.stop(now + 1.0);
+        osc2.start(now); osc2.stop(now + 0.7);
+
+        setTimeout(() => ctx.close(), 2000);
+      };
+
+      // Play immediately if context already running, else resume first
+      if (ctx.state === "running") {
+        play();
+      } else {
+        ctx.resume().then(play).catch(() => {});
+      }
+    } catch {}
+
     const t1 = setTimeout(() => setExiting(true), 2800);
     const t2 = setTimeout(() => {
       try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}

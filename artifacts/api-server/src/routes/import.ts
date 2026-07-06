@@ -12,9 +12,10 @@ const SUPPLIERS: Record<string, string> = {
 
 const CHAMAK_PLACEHOLDER_URL = "/chamak-placeholder.svg";
 
-function sanitizeProductImage(name: string, imageUrl: string | null): string | null {
+function sanitizeProductImage(name: string, imageUrl: string | null, source?: string): string | null {
+  if (source === "stylescape") return CHAMAK_PLACEHOLDER_URL;
   if (/stylescape/i.test(name)) return CHAMAK_PLACEHOLDER_URL;
-  if (imageUrl && /stylescape\.me/i.test(imageUrl)) return CHAMAK_PLACEHOLDER_URL;
+  if (imageUrl && /stylescape\.me|1\/0721\/5552\/9252/i.test(imageUrl)) return CHAMAK_PLACEHOLDER_URL;
   return imageUrl;
 }
 
@@ -320,7 +321,7 @@ router.get("/import/stylescape/preview", requireAdmin, async (_req, res) => {
     const products = await fetchShopifyProducts(SUPPLIERS.stylescape);
     const preview = products.slice(0, 100).map((p) => {
       const base = parseShopifyProduct(p);
-      return { ...base, imageUrl: sanitizeProductImage(base.name, base.imageUrl) };
+      return { ...base, imageUrl: sanitizeProductImage(base.name, base.imageUrl, "stylescape") };
     });
     res.json({ count: products.length, products: preview });
   } catch {
