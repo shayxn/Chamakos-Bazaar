@@ -181,9 +181,14 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
 
     const parsedProducts = shopifyProducts.map((p) => {
       const base = parseShopifyProduct(p);
+      const sanitized = sanitizeProductImage(base.name, base.imageUrl, supplierName);
+      const isPlaceholder = sanitized === CHAMAK_PLACEHOLDER_URL;
       return {
         ...base,
-        imageUrl: sanitizeProductImage(base.name, base.imageUrl),
+        imageUrl: sanitized,
+        imageUrls: isPlaceholder
+          ? JSON.stringify([{ url: CHAMAK_PLACEHOLDER_URL, type: "image" }])
+          : base.imageUrls,
       };
     });
 
