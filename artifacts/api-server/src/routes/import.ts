@@ -12,10 +12,7 @@ const SUPPLIERS: Record<string, string> = {
 
 const CHAMAK_PLACEHOLDER_URL = "/chamak-placeholder.svg";
 
-function sanitizeProductImage(name: string, imageUrl: string | null, source?: string): string | null {
-  if (source === "stylescape") return CHAMAK_PLACEHOLDER_URL;
-  if (/stylescape/i.test(name)) return CHAMAK_PLACEHOLDER_URL;
-  if (imageUrl && /stylescape\.me|1\/0721\/5552\/9252/i.test(imageUrl)) return CHAMAK_PLACEHOLDER_URL;
+function sanitizeProductImage(name: string, imageUrl: string | null, _source?: string): string | null {
   return imageUrl;
 }
 
@@ -181,14 +178,9 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
 
     const parsedProducts = shopifyProducts.map((p) => {
       const base = parseShopifyProduct(p);
-      const sanitized = sanitizeProductImage(base.name, base.imageUrl, supplierName);
-      const isPlaceholder = sanitized === CHAMAK_PLACEHOLDER_URL;
       return {
         ...base,
-        imageUrl: sanitized,
-        imageUrls: isPlaceholder
-          ? JSON.stringify([{ url: CHAMAK_PLACEHOLDER_URL, type: "image" }])
-          : base.imageUrls,
+        imageUrl: sanitizeProductImage(base.name, base.imageUrl, supplierName),
       };
     });
 
