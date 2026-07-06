@@ -10,10 +10,11 @@ const SUPPLIERS: Record<string, string> = {
   stylescape: "https://stylescape.me",
 };
 
-const CHAMAK_LOGO_URL = "/chamak-logo-transparent.png";
+const CHAMAK_PLACEHOLDER_URL = "/chamak-placeholder.svg";
 
 function sanitizeProductImage(name: string, imageUrl: string | null): string | null {
-  if (/stylescape/i.test(name)) return CHAMAK_LOGO_URL;
+  if (/stylescape/i.test(name)) return CHAMAK_PLACEHOLDER_URL;
+  if (imageUrl && /stylescape\.me/i.test(imageUrl)) return CHAMAK_PLACEHOLDER_URL;
   return imageUrl;
 }
 

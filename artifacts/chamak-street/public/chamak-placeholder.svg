@@ -1,0 +1,97 @@
+<svg viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#ff6600" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#cc3300" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="topGlow" cx="50%" cy="0%" r="60%">
+      <stop offset="0%" stop-color="#ff9900" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="orangeBar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff6600" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#ff6600" stop-opacity="1"/>
+      <stop offset="70%" stop-color="#ffcc00" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#ff6600" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="orangeBarBottom" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff6600" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#cc3300" stop-opacity="1"/>
+      <stop offset="70%" stop-color="#ff6600" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#ff6600" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="logoGlow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Base black background -->
+  <rect width="800" height="800" fill="#080808"/>
+
+  <!-- Subtle grid lines -->
+  <g stroke="#ff6600" stroke-opacity="0.06" stroke-width="1">
+    <line x1="0" y1="100" x2="800" y2="100"/>
+    <line x1="0" y1="200" x2="800" y2="200"/>
+    <line x1="0" y1="300" x2="800" y2="300"/>
+    <line x1="0" y1="400" x2="800" y2="400"/>
+    <line x1="0" y1="500" x2="800" y2="500"/>
+    <line x1="0" y1="600" x2="800" y2="600"/>
+    <line x1="0" y1="700" x2="800" y2="700"/>
+    <line x1="100" y1="0" x2="100" y2="800"/>
+    <line x1="200" y1="0" x2="200" y2="800"/>
+    <line x1="300" y1="0" x2="300" y2="800"/>
+    <line x1="400" y1="0" x2="400" y2="800"/>
+    <line x1="500" y1="0" x2="500" y2="800"/>
+    <line x1="600" y1="0" x2="600" y2="800"/>
+    <line x1="700" y1="0" x2="700" y2="800"/>
+  </g>
+
+  <!-- Orange radial glow from center -->
+  <circle cx="400" cy="400" r="400" fill="url(#bgGlow)"/>
+  <!-- Top glow -->
+  <rect x="0" y="0" width="800" height="400" fill="url(#topGlow)"/>
+
+  <!-- Diagonal orange accent slashes -->
+  <g stroke="#ff6600" stroke-opacity="0.18" stroke-width="2">
+    <line x1="0" y1="700" x2="300" y2="0"/>
+    <line x1="20" y1="800" x2="340" y2="0"/>
+    <line x1="500" y1="800" x2="800" y2="100"/>
+    <line x1="460" y1="800" x2="780" y2="80"/>
+  </g>
+
+  <!-- Top orange stripe bar -->
+  <rect x="0" y="0" width="800" height="5" fill="url(#orangeBar)"/>
+  <!-- Bottom orange stripe bar -->
+  <rect x="0" y="795" width="800" height="5" fill="url(#orangeBarBottom)"/>
+
+  <!-- Corner brackets -->
+  <g stroke="#ff6600" stroke-width="3" stroke-opacity="0.7" fill="none">
+    <polyline points="30,70 30,30 70,30"/>
+    <polyline points="730,30 770,30 770,70"/>
+    <polyline points="30,730 30,770 70,770"/>
+    <polyline points="770,730 770,770 730,770"/>
+  </g>
+
+  <!-- CHAMAK text -->
+  <text x="400" y="355" text-anchor="middle" fill="white"
+    font-size="120" font-weight="900"
+    font-family="Arial Black, Impact, sans-serif"
+    letter-spacing="-4" filter="url(#logoGlow)">CHAMAK</text>
+
+  <!-- STREET text in orange -->
+  <text x="400" y="455" text-anchor="middle" fill="#ff6600"
+    font-size="80" font-weight="900"
+    font-family="Arial Black, Impact, sans-serif"
+    letter-spacing="14">STREET</text>
+
+  <!-- Thin divider line under logo -->
+  <rect x="160" y="472" width="480" height="2" rx="1" fill="url(#orangeBar)" opacity="0.8"/>
+
+  <!-- Tagline -->
+  <text x="400" y="510" text-anchor="middle" fill="white"
+    font-size="18" font-weight="400" font-opacity="0.4"
+    font-family="Arial, sans-serif"
+    letter-spacing="8" opacity="0.35">DUBAI · PREMIUM STREETWEAR</text>
+</svg>
