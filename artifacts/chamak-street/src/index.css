@@ -114,11 +114,19 @@
     overscroll-behavior: none;
   }
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased text-foreground;
+    background: linear-gradient(120deg, #000000, #1a0800, #4d1a00, #1a0800, #000000);
+    background-size: 300% 300%;
+    animation: chamakSiteBg 18s ease-in-out infinite;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
     text-rendering: optimizeLegibility;
+  }
+  @keyframes chamakSiteBg {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
   img, video {
     image-rendering: auto;
