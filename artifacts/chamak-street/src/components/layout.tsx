@@ -71,7 +71,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const logoSize: "sm" | "md" | "lg" = logoHeight <= 40 ? "sm" : logoHeight <= 70 ? "md" : "lg";
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
+    <div className="min-h-screen flex flex-col bg-transparent text-foreground overflow-x-hidden selection:bg-primary selection:text-primary-foreground">
       <header
         className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
           scrolled
