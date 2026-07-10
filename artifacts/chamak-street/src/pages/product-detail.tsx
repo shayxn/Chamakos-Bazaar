@@ -599,7 +599,7 @@ export default function ProductDetail() {
                         whileTap={{ scale: 0.93 }}
                         className={`h-12 min-w-[3rem] px-4 font-bold border rounded-sm transition-all duration-200 ${
                           selectedSize === size
-                            ? "border-primary bg-primary text-primary-foreground shadow-[0_0_18px_rgba(255,102,0,0.45)]"
+                            ? "size-swatch-selected"
                             : "border-border bg-card text-muted-foreground hover:border-primary/60 hover:text-foreground"
                         }`}
                         data-testid={`size-${size}`}

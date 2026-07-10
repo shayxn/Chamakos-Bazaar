@@ -128,6 +128,19 @@
     50%  { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
+  @keyframes chamakSizeSelected {
+    0%   { background-color: #7a2e00; box-shadow: 0 0 18px rgba(122,46,0,0.5); }
+    20%  { background-color: #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.55); }
+    40%  { background-color: #7a2e00; box-shadow: 0 0 18px rgba(122,46,0,0.5); }
+    60%  { background-color: #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.55); }
+    80%  { background-color: #7a2e00; box-shadow: 0 0 18px rgba(122,46,0,0.5); }
+    100% { background-color: #7a2e00; box-shadow: 0 0 18px rgba(122,46,0,0.5); }
+  }
+  .size-swatch-selected {
+    animation: chamakSizeSelected 8s ease-in-out infinite;
+    border-color: transparent !important;
+    color: #fff !important;
+  }
   img, video {
     image-rendering: auto;
     will-change: auto;
