@@ -115,9 +115,9 @@
   }
   body {
     @apply font-sans antialiased text-foreground;
-    background: linear-gradient(120deg, #000000, #1a0800, #4d1a00, #1a0800, #000000);
-    background-size: 300% 300%;
-    animation: chamakSiteBg 18s ease-in-out infinite;
+    background: linear-gradient(120deg, #000000, #2b0f00, #7a2e00, #ff6600, #7a2e00, #2b0f00, #000000);
+    background-size: 400% 400%;
+    animation: chamakSiteBg 8s ease-in-out infinite;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
