@@ -43,6 +43,11 @@ export function LoadingScreen() {
           from { opacity: 0; transform: scale(0.94); }
           to   { opacity: 1; transform: scale(1); }
         }
+        @keyframes chamakBgShift {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
       `}</style>
 
       <div
@@ -50,8 +55,12 @@ export function LoadingScreen() {
           position: "fixed", inset: 0, zIndex: 9999,
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
-          background: "#000", userSelect: "none",
-          animation: exiting ? "chamakFadeOut 0.35s ease forwards" : "none",
+          background: "linear-gradient(120deg, #000000, #1a0800, #4d1a00, #1a0800, #000000)",
+          backgroundSize: "300% 300%",
+          animation: exiting
+            ? "chamakFadeOut 0.35s ease forwards"
+            : "chamakBgShift 6s ease-in-out infinite",
+          userSelect: "none",
         }}
       >
         <img
