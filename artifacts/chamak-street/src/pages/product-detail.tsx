@@ -472,7 +472,7 @@ export default function ProductDetail() {
               initial={{ opacity: 0, scale: 1.04 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.75, ease: EASE }}
-              className="relative aspect-square md:aspect-[4/5] bg-card rounded-lg overflow-hidden border border-border group"
+              className="product-img-frame relative aspect-square md:aspect-[4/5] bg-card rounded-lg overflow-hidden border border-border group"
             >
               <AnimatePresence mode="wait">
                 {selectedMedia ? (
@@ -762,7 +762,7 @@ export default function ProductDetail() {
                   >
                     <Link href={`/product/${p.id}`}>
                       <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}>
-                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-card border border-border group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-[0_8px_28px_rgba(255,102,0,0.2)]">
+                        <div className="product-img-frame relative aspect-square mb-3 overflow-hidden rounded-xl bg-card border border-border group-hover:border-primary/40 transition-all duration-300">
                           {media ? (
                             <img
                               src={media.url}

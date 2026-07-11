@@ -321,7 +321,7 @@ export default function Home() {
                     <Link href={`/product/${product.id}`}>
                       <TiltCard className="group cursor-pointer">
                         <motion.div
-                          className="relative aspect-[4/5] mb-4 overflow-hidden rounded-2xl bg-card border border-border/40 group-hover:border-primary/40 transition-colors duration-400"
+                          className="product-img-frame relative aspect-[4/5] mb-4 overflow-hidden rounded-2xl bg-card border border-border/40 group-hover:border-primary/40 transition-colors duration-400"
                           whileHover={{ boxShadow: "0 36px 90px rgba(255,102,0,0.35), 0 0 0 1px rgba(255,102,0,0.18)" }}
                           transition={{ duration: 0.35 }}
                         >

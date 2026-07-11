@@ -84,7 +84,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
                 </div>
               ) : (
                 <div className="flex flex-col sm:flex-row">
-                  <div ref={imgRef} className="relative w-full sm:w-64 aspect-square sm:aspect-auto sm:h-auto bg-muted shrink-0 overflow-hidden">
+                  <div ref={imgRef} className="product-img-frame relative w-full sm:w-64 aspect-square sm:aspect-auto sm:h-auto bg-muted shrink-0 overflow-hidden">
                     {primaryMedia ? (
                       primaryMedia.type === "video" ? (
                         <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline autoPlay loop />

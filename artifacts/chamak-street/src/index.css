@@ -141,6 +141,15 @@
     border-color: transparent !important;
     color: #fff !important;
   }
+  .product-img-frame {
+    border-radius: 20px !important;
+    border-color: transparent !important;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.55), 0 0 22px 6px rgba(255,255,255,0.12) !important;
+    transition: box-shadow 0.3s ease, border-radius 0.3s ease !important;
+  }
+  .product-img-frame:hover {
+    box-shadow: 0 0 0 2.5px rgba(255,255,255,0.75), 0 0 32px 10px rgba(255,255,255,0.18) !important;
+  }
   img, video {
     image-rendering: auto;
     will-change: auto;
