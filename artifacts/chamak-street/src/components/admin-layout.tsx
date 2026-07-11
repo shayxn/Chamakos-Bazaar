@@ -106,7 +106,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#050505" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "transparent" }}>
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-10 h-10">
             <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-orange-500 animate-spin" />
@@ -153,12 +153,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "#050505" }}>
+    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "transparent" }}>
       {/* ── Sidebar ── */}
       <aside
         className="w-full md:w-64 shrink-0 flex flex-col relative overflow-hidden"
         style={{
-          background: "linear-gradient(180deg, #0a0a0a 0%, #080808 100%)",
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(12px)",
           borderRight: "1px solid rgba(255,255,255,0.07)",
         }}
       >
@@ -295,7 +296,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* ── Main content ── */}
-      <main className="flex-1 overflow-auto" style={{ background: "#050505" }}>
+      <main className="flex-1 overflow-auto" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)" }}>
         <div className="p-6 md:p-8">
           {children}
         </div>
