@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
+import { MobileLayout } from "@/components/mobile-layout";
+import { useMobile } from "@/lib/use-mobile";
 import { LoadingScreen } from "@/components/loading-screen";
 import { CartFlyProvider } from "@/components/cart-fly-context";
 import { WelcomePopup } from "@/components/welcome-popup";
@@ -81,13 +83,18 @@ function AdminRouter() {
   );
 }
 
+function CustomerLayout({ children }: { children: React.ReactNode }) {
+  const isMobile = useMobile();
+  return isMobile ? <MobileLayout>{children}</MobileLayout> : <Layout>{children}</Layout>;
+}
+
 function MainRouter() {
   return (
     <Switch>
       <Route path="/admin/*?" component={AdminRouter} />
       <Route path="/login" component={Login} />
       <Route>
-        <Layout>
+        <CustomerLayout>
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/shop" component={Shop} />
@@ -109,7 +116,7 @@ function MainRouter() {
 
             <Route component={NotFound} />
           </Switch>
-        </Layout>
+        </CustomerLayout>
       </Route>
     </Switch>
   );
