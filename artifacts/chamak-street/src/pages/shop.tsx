@@ -146,7 +146,7 @@ export default function Shop() {
           {/* Grid */}
           <div className="flex-1">
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <motion.div
                     key={n}
@@ -187,7 +187,7 @@ export default function Shop() {
                   initial="hidden"
                   animate="show"
                   exit="exit"
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                  className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6"
                 >
                   {products?.map((product, idx) => {
                     const primaryMedia = getPrimaryProductMedia(product.imageUrl);
