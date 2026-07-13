@@ -49,11 +49,8 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
             />
           </Link>
 
-          {/* Sun toggle */}
-          <SunToggle />
-
-          {/* Cart */}
-          <div className="relative">
+          {/* Cart + Sun toggle */}
+          <div className="flex items-center gap-1">
             <Link href="/cart">
               <motion.div
                 key={`cart-bounce-${cartBounceKey}`}
@@ -77,6 +74,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                 </AnimatePresence>
               </motion.div>
             </Link>
+            <SunToggle />
           </div>
         </div>
 

@@ -151,7 +151,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               </Link>
             )}
-            <SunToggle />
             <Link href="/cart" id="nav-cart-btn" className="relative group">
               <motion.div
                 key={`cart-bounce-${cartBounceKey}`}
@@ -176,6 +175,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               </motion.div>
             </Link>
+            <SunToggle />
           </div>
         </div>
 
