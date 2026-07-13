@@ -102,6 +102,21 @@
   --ring: 24 100% 50%;
 }
 
+/*
+ * When color mode switches, ThemeProvider briefly adds this class to <html>.
+ * It enables background-color / color / border-color transitions on EVERY element
+ * so the page fades smoothly instead of flipping instantly.
+ * CSS custom-property values themselves don't animate, but the computed
+ * background-color / color etc. DO when `transition` is present.
+ */
+.color-mode-transitioning *,
+.color-mode-transitioning *::before,
+.color-mode-transitioning *::after {
+  transition-property: background-color, color, border-color, fill, stroke, opacity !important;
+  transition-duration: 0.5s !important;
+  transition-timing-function: ease !important;
+}
+
 .light-mode {
   --background: 0 0% 97%;
   --foreground: 0 0% 8%;

@@ -48,12 +48,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
+
+    // Enable colour transitions globally for the duration of the switch
+    root.classList.add("color-mode-transitioning");
+
     if (colorMode === "light") {
       root.classList.add("light-mode");
     } else {
       root.classList.remove("light-mode");
     }
+
+    // Remove the transition-enabler after animations finish
+    const t = setTimeout(() => root.classList.remove("color-mode-transitioning"), 650);
     try { localStorage.setItem("chamak_color_mode", colorMode); } catch {}
+    return () => clearTimeout(t);
   }, [colorMode]);
 
   const toggleColorMode = () => setColorMode((m) => (m === "dark" ? "light" : "dark"));

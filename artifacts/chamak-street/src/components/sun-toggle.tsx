@@ -1,20 +1,27 @@
 import { useTheme } from "@/lib/theme-context";
 
-const RAY_COUNT = 8;
-const RAY_INNER = 7.8;   // starts just outside the circle (r=5.5)
-const RAY_OUTER = 11.5;  // tip of the ray
-const RAY_LEN   = RAY_OUTER - RAY_INNER; // ≈ 3.7
+// Geometry
+const SUN_R   = 5.3;    // sun circle radius
+const IN_R    = 7.6;    // ray inner edge (just clears the sun circle)
+const OUT_R   = 11.4;   // ray outer tip
+const RAY_W   = OUT_R - IN_R;   // 3.8 units
+const RAY_H   = 1.9;            // stroke-equivalent thickness
 
 export function SunToggle() {
   const { colorMode, toggleColorMode } = useTheme();
   const isLight = colorMode === "light";
+
+  const circleColor  = isLight ? "#ffcc00"              : "rgba(255,255,255,0.92)";
+  const shadowColor  = isLight ? "rgba(255,138,0,0.5)"  : "rgba(150,150,150,0.42)";
+  const rayColor     = isLight ? "#ffcc00"              : "rgba(255,255,255,0.88)";
 
   return (
     <button
       onClick={toggleColorMode}
       aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
       title={isLight ? "Dark mode" : "Light mode"}
-      className="relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors duration-200 active:scale-90"
+      className="relative flex items-center justify-center w-9 h-9 rounded-full
+                 hover:bg-white/10 active:scale-95 transition-colors duration-200"
       style={{ outline: "none" }}
     >
       <svg
@@ -24,56 +31,56 @@ export function SunToggle() {
         fill="none"
         style={{ overflow: "visible" }}
       >
-        {/* Sun circle */}
+        {/* ── 8 rays using <rect> + CSS scaleX from the inner edge ── */}
+        {Array.from({ length: 8 }).map((_, i) => {
+          const delay = i * 0.045;
+          return (
+            <g key={i} transform={`rotate(${i * 45}, 12, 12)`}>
+              <rect
+                x={IN_R}
+                y={12 - RAY_H / 2}
+                width={RAY_W}
+                height={RAY_H}
+                rx={RAY_H / 2}
+                fill={rayColor}
+                style={{
+                  transformBox: "fill-box",
+                  /*
+                   * transformOrigin "left center" = inner edge of the rect (near sun).
+                   * scaleX(0) collapses the OUTER tip inward  → ray retracts into sun.
+                   * scaleX(1) extends back to full length     → ray shoots out.
+                   */
+                  transformOrigin: "left center",
+                  transform: isLight ? "scaleX(1)" : "scaleX(0)",
+                  transition: [
+                    `transform 0.44s cubic-bezier(0.34,1.56,0.64,1) ${delay}s`,
+                    `fill 0.4s ease`,
+                  ].join(", "),
+                } as React.CSSProperties}
+              />
+            </g>
+          );
+        })}
+
+        {/* ── Sun circle (rendered on top of ray bases) ── */}
         <circle
           cx="12"
           cy="12"
-          r="5.5"
+          r={SUN_R}
           style={{
-            fill: isLight ? "rgba(255,200,50,1)" : "rgba(255,255,255,0.88)",
+            fill: circleColor,
             transition: "fill 0.5s ease",
           }}
         />
 
-        {/* Half-shadow slice (the "pie" wedge from the reference image) */}
+        {/* ── Half-shadow wedge (matches the reference image aesthetic) ── */}
         <path
-          d="M12 6.5 A5.5 5.5 0 0 1 12 17.5 Z"
+          d={`M12 ${12 - SUN_R} A${SUN_R} ${SUN_R} 0 0 1 12 ${12 + SUN_R} Z`}
           style={{
-            fill: isLight ? "rgba(255,140,0,0.55)" : "rgba(180,180,180,0.45)",
+            fill: shadowColor,
             transition: "fill 0.5s ease",
           }}
         />
-
-        {/* 8 rays — drawn outer→inner so dashoffset retracts tips inward */}
-        {Array.from({ length: RAY_COUNT }).map((_, i) => {
-          const angle = (i * (360 / RAY_COUNT) * Math.PI) / 180;
-          const x1 = 12 + RAY_OUTER * Math.cos(angle); // tip (outer)
-          const y1 = 12 + RAY_OUTER * Math.sin(angle);
-          const x2 = 12 + RAY_INNER * Math.cos(angle); // base (inner)
-          const y2 = 12 + RAY_INNER * Math.sin(angle);
-          const delay = i * 0.04;
-          return (
-            <line
-              key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              strokeWidth="1.9"
-              strokeLinecap="round"
-              strokeDasharray={RAY_LEN}
-              style={{
-                stroke: isLight ? "rgba(255,195,40,0.95)" : "rgba(255,255,255,0.9)",
-                /* dashoffset=0 → full ray; dashoffset=RAY_LEN → ray retracted into sun */
-                strokeDashoffset: isLight ? 0 : RAY_LEN,
-                transition: [
-                  `stroke-dashoffset 0.42s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
-                  `stroke 0.4s ease`,
-                ].join(", "),
-              }}
-            />
-          );
-        })}
       </svg>
     </button>
   );
