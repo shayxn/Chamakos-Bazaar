@@ -176,35 +176,24 @@ export default function Home() {
           onMouseLeave={() => setPaused(false)}
         >
 
-          {/* ── Full-bleed carousel images ── */}
-          <AnimatePresence mode="sync">
-            {/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(heroImages[slideIdx]) ? (
-              <motion.video
-                key={slideIdx}
-                src={heroImages[slideIdx]}
-                className="absolute inset-0 w-full h-full object-cover object-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
-                autoPlay
-                loop
-                playsInline
-              />
+          {/* ── Full-bleed carousel images — CSS crossfade ── */}
+          {heroImages.map((src, i) => {
+            const isActive = i === slideIdx;
+            const isVideo = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(src);
+            const style: React.CSSProperties = {
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", objectPosition: "center",
+              opacity: isActive ? 1 : 0,
+              transition: "opacity 1s cubic-bezier(0.22,1,0.36,1)",
+              pointerEvents: isActive ? "auto" : "none",
+              zIndex: isActive ? 1 : 0,
+            };
+            return isVideo ? (
+              <video key={src} src={src} style={style} autoPlay loop playsInline muted />
             ) : (
-              <motion.img
-                key={slideIdx}
-                src={heroImages[slideIdx]}
-                alt="Chamak Street"
-                className="absolute inset-0 w-full h-full object-cover object-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
-                loading="eager"
-              />
-            )}
-          </AnimatePresence>
+              <img key={src} src={src} alt="Chamak Street" style={style} loading={i === 0 ? "eager" : "lazy"} />
+            );
+          })}
 
           {/* Subtle bottom fade into page */}
           <div className="absolute inset-x-0 bottom-0 h-40 z-10 pointer-events-none" style={{ background: "linear-gradient(to top, hsl(var(--background)) 5%, transparent)" }} />

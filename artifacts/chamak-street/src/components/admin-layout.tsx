@@ -3,7 +3,7 @@ import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Bell,
-  TrendingUp, ShoppingCart, Zap
+  TrendingUp, ShoppingCart, Zap, Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -139,6 +139,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       label: "Analytics",
       links: [
         { href: "/admin/sales-reports", label: "Sales Reports", icon: TrendingUp },
+        { href: "/admin/visitors",      label: "Visitors",      icon: Users },
       ],
     },
     {

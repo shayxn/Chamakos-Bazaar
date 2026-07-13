@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
-import { Home, Grid3X3, ShoppingBag, User, MessageCircle, Search } from "lucide-react";
+import { Home, Grid3X3, ShoppingBag, User, MessageCircle } from "lucide-react";
+import { SunToggle } from "./sun-toggle";
 import { useState } from "react";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe } from "@workspace/api-client-react";
 import { useSettings } from "@/lib/use-settings";
@@ -48,8 +49,11 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
             />
           </Link>
 
+          {/* Sun toggle */}
+          <SunToggle />
+
           {/* Cart */}
-          <div className="ml-auto relative">
+          <div className="relative">
             <Link href="/cart">
               <motion.div
                 key={`cart-bounce-${cartBounceKey}`}

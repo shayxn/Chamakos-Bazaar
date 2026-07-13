@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useMobile } from "@/lib/use-mobile";
+import { useVisitorTracking } from "@/lib/use-visitor-tracking";
 import { LoadingScreen } from "@/components/loading-screen";
 import { CartFlyProvider } from "@/components/cart-fly-context";
 import { WelcomePopup } from "@/components/welcome-popup";
@@ -33,6 +34,7 @@ import AdminGames from "@/pages/admin/games";
 import AdminAbandonedCarts from "@/pages/admin/abandoned-carts";
 import AdminRefundRequests from "@/pages/admin/refund-requests";
 import AdminProductRequests from "@/pages/admin/product-requests";
+import AdminVisitors from "@/pages/admin/visitors";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
 import Terms from "@/pages/terms";
@@ -77,6 +79,7 @@ function AdminRouter() {
         <Route path="/admin/abandoned-carts" component={AdminAbandonedCarts} />
         <Route path="/admin/refund-requests" component={AdminRefundRequests} />
         <Route path="/admin/product-requests" component={AdminProductRequests} />
+        <Route path="/admin/visitors" component={AdminVisitors} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>
@@ -85,6 +88,7 @@ function AdminRouter() {
 
 function CustomerLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useMobile();
+  useVisitorTracking();
   return isMobile ? <MobileLayout>{children}</MobileLayout> : <Layout>{children}</Layout>;
 }
 

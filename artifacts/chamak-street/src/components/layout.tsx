@@ -10,6 +10,7 @@ import { SmartSearchModal } from "./smart-search";
 import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
 import { BackToTop } from "./back-to-top";
+import { SunToggle } from "./sun-toggle";
 
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -150,6 +151,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               </Link>
             )}
+            <SunToggle />
             <Link href="/cart" id="nav-cart-btn" className="relative group">
               <motion.div
                 key={`cart-bounce-${cartBounceKey}`}
