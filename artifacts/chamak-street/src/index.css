@@ -112,7 +112,7 @@
 .color-mode-transitioning *,
 .color-mode-transitioning *::before,
 .color-mode-transitioning *::after {
-  transition-property: background-color, color, border-color, fill, stroke, opacity !important;
+  transition-property: background-color, color, border-color, fill, stroke, opacity, transform !important;
   transition-duration: 0.5s !important;
   transition-timing-function: ease !important;
 }
@@ -145,6 +145,78 @@
   background: linear-gradient(120deg, #ffe8d6 0%, #fff3e0 20%, #ffd5aa 40%, #fff8f0 60%, #ffe0c0 80%, #fff3e0 100%);
   background-size: 400% 400%;
   animation: chamakSiteBg 8s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LIGHT MODE — Override hardcoded dark Tailwind utility classes.
+   
+   The site uses text-white / text-white/X / border-white/X / bg-black/X
+   throughout its components. CSS variable–based classes (text-foreground,
+   bg-card, etc.) already respond to the .light-mode variables above.
+   These rules handle the hardcoded ones using CSS attribute selectors.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Text ──────────────────────────────────────────────────────────── */
+.light-mode [class~="text-white"] {
+  color: rgba(18, 12, 6, 0.88) !important;
+}
+/* text-white/10 … text-white/90 variants */
+.light-mode [class*="text-white/"] {
+  color: rgba(18, 12, 6, 0.60) !important;
+}
+/* Icon-only utilities that set fill/stroke to white */
+.light-mode [class~="text-white"] svg,
+.light-mode [class*="text-white/"] svg {
+  color: inherit !important;
+}
+
+/* ── Borders ───────────────────────────────────────────────────────── */
+.light-mode [class~="border-white"] {
+  border-color: rgba(0, 0, 0, 0.18) !important;
+}
+.light-mode [class*="border-white/"] {
+  border-color: rgba(0, 0, 0, 0.10) !important;
+}
+
+/* ── Solid & semi-transparent black backgrounds ─────────────────────── */
+.light-mode [class~="bg-black"] {
+  background-color: rgba(255, 250, 244, 0.97) !important;
+}
+.light-mode [class*="bg-black/"] {
+  background-color: rgba(255, 250, 244, 0.82) !important;
+}
+/* Dark hex classes: bg-[#111], bg-[#111827], bg-[#0f0f0f] etc. */
+.light-mode [class*="bg-[#0"],
+.light-mode [class*="bg-[#1"] {
+  background-color: rgba(255, 250, 244, 0.97) !important;
+}
+
+/* ── Full-screen modal overlays — keep them dark for contrast ────────── */
+/* These have both bg-black/X AND fixed + inset-0 */
+.light-mode .fixed.inset-0[class*="bg-black"],
+.light-mode [class~="fixed"][class~="inset-0"][class*="bg-black"] {
+  background-color: rgba(0, 0, 0, 0.50) !important;
+}
+
+/* ── Badge chips that intentionally stay dark (REP, video labels) ─────── */
+/* Anything combining a dark bg AND text-white stays legible */
+.light-mode [class*="bg-black"][class*="text-white"],
+.light-mode [class*="bg-[#1"][class*="text-white"] {
+  background-color: rgba(25, 15, 5, 0.88) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ── Header & navigation ──────────────────────────────────────────── */
+.light-mode header {
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ── Scrollbar in light mode ─────────────────────────────────────── */
+.light-mode ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.20) !important;
+}
+.light-mode ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05) !important;
 }
 
 @layer base {
