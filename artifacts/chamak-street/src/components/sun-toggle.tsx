@@ -1,56 +1,36 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/lib/theme-context";
 
-const CX = 12, CY = 12;
-const SUN_R = 5.5;
-const IN_R  = 7.9,  OUT_R = 11.5;
-const RAY_W = OUT_R - IN_R;
-const RAY_H = 2.0;
-
-const TX_SUN  = 12;   // mask circle far right  → no crescent → full sun
-const TX_MOON = 3.4;  // mask circle overlaps   → crescent left side visible
-
-const STARS = [
-  { x: 17.8, y:  6.5, r: 0.7 },
-  { x: 19.5, y: 11.2, r: 0.5 },
-  { x: 16.5, y: 17.2, r: 0.6 },
-];
+/* Unique ID that is always a valid CSS identifier (starts with letter, no --) */
+function useSafeId(prefix: string) {
+  const id = useRef("");
+  if (!id.current) {
+    id.current = prefix + Math.random().toString(36).slice(2, 8);
+  }
+  return id.current;
+}
 
 export function SunToggle() {
   const { colorMode, toggleColorMode } = useTheme();
   const isLight = colorMode === "light";
-  const uid = useId().replace(/:/g, "-");
-  const maskId = `sun-moon-mask-${uid}`;
+  const maskId = useSafeId("smask");
 
-  const [moonTX,  setMoonTX]  = useState(() => isLight ? TX_SUN  : TX_MOON);
-  const [raysOut, setRaysOut] = useState(() => isLight);
-  const [tilt,    setTilt]    = useState(() => isLight ? 0 : 20);
-  const [stars,   setStars]   = useState(() => !isLight);
-
-  const tids     = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const skipSync = useRef(false);
+  /* Icon visual state — tracks INTENDED direction so rapid clicks work */
+  const [sun, setSun] = useState(isLight);       // true = show sun, false = moon
+  const tids = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const skipEffect = useRef(false);
   const intended = useRef(colorMode);
 
+  /* Sync icon when colorMode changes from OUTSIDE (e.g. another component) */
   useEffect(() => {
     intended.current = colorMode;
-    if (skipSync.current) {
-      skipSync.current = false;
-      return;
-    }
+    if (skipEffect.current) { skipEffect.current = false; return; }
     tids.current.forEach(clearTimeout);
     tids.current = [];
-    setMoonTX (isLight ? TX_SUN  : TX_MOON);
-    setRaysOut(isLight);
-    setTilt   (isLight ? 0 : 20);
-    setStars  (!isLight);
+    setSun(colorMode === "light");
   }, [colorMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => () => { tids.current.forEach(clearTimeout); }, []);
-
-  const go = (ms: number, fn: () => void) => {
-    const id = setTimeout(fn, ms);
-    tids.current.push(id);
-  };
+  useEffect(() => () => tids.current.forEach(clearTimeout), []);
 
   const handleClick = () => {
     tids.current.forEach(clearTimeout);
@@ -59,27 +39,18 @@ export function SunToggle() {
     const goingLight = intended.current === "dark";
     intended.current = goingLight ? "light" : "dark";
 
-    // ── Toggle the page color IMMEDIATELY so it never feels broken ──
-    skipSync.current = true;
+    /* Change page colour INSTANTLY — no delay, no "feels broken" */
+    skipEffect.current = true;
     toggleColorMode();
 
-    if (goingLight) {
-      // Dark → Light: stars disappear, sun body slides in, rays spring out
-      setStars(false);
-      go( 80, () => { setMoonTX(TX_SUN); setTilt(0); });
-      go(350, () => { setRaysOut(true); });
-    } else {
-      // Light → Dark: rays retract, crescent carves in, stars appear
-      setRaysOut(false);
-      go(180, () => { setMoonTX(TX_MOON); });
-      go(220, () => { setTilt(20); });
-      go(680, () => { setStars(true); });
-    }
+    /* Animate icon with a brief delay so it feels intentional */
+    const tid = setTimeout(() => setSun(goingLight), 60);
+    tids.current.push(tid);
   };
 
-  const bodyCol = isLight ? "#ff8800"              : "rgba(200,220,255,0.97)";
-  const rayCol  = isLight ? "#ff8800"              : "rgba(200,220,255,0.90)";
-  const glowCol = isLight ? "rgba(255,136,0,0.30)" : "transparent";
+  /* Colours */
+  const bodyFill = sun ? "#ff8800" : "rgba(210,225,255,0.95)";
+  const rayFill  = sun ? "#ff9922" : "rgba(210,225,255,0.85)";
 
   return (
     <button
@@ -87,105 +58,91 @@ export function SunToggle() {
       aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
       title={isLight ? "Dark mode" : "Light mode"}
       className="relative flex items-center justify-center w-12 h-12 rounded-full
-                 hover:bg-white/10 active:scale-90 transition-colors duration-200"
-      style={{ outline: "none" }}
+                 hover:bg-white/10 active:scale-90 transition-colors duration-150 cursor-pointer"
+      style={{ outline: "none", WebkitTapHighlightColor: "transparent" }}
     >
-      {/* Glow ring */}
+      {/* Orange glow ring in light mode */}
       <span
         aria-hidden
         style={{
           position: "absolute",
           inset: 0,
           borderRadius: "9999px",
-          background: glowCol,
-          boxShadow: isLight ? "0 0 16px 5px rgba(255,136,0,0.28)" : "none",
-          transition: "background 0.55s ease, box-shadow 0.55s ease",
+          boxShadow: sun ? "0 0 18px 6px rgba(255,136,0,0.30)" : "none",
+          transition: "box-shadow 0.5s ease",
           pointerEvents: "none",
         }}
       />
 
       <svg
-        width="32"
-        height="32"
+        width="30"
+        height="30"
         viewBox="0 0 24 24"
-        fill="none"
         style={{
           overflow: "visible",
-          transform: `rotate(${tilt}deg)`,
-          transition: "transform 0.55s cubic-bezier(0.34,1.2,0.64,1)",
+          transform: sun ? "rotate(0deg)" : "rotate(20deg)",
+          transition: "transform 0.5s cubic-bezier(0.34,1.2,0.64,1)",
         }}
       >
         <defs>
           <mask id={maskId}>
             <rect width="24" height="24" fill="white" />
+            {/* This circle slides right to reveal full sun, or left to carve a crescent */}
             <circle
-              cx={CX}
-              cy={CY}
-              r={SUN_R + 0.2}
+              cx="12" cy="12" r="5.7"
               fill="black"
               style={{
-                transform: `translateX(${moonTX}px)`,
-                transition: "transform 0.52s cubic-bezier(0.4,0,0.2,1)",
+                transform: sun ? "translateX(12px)" : "translateX(3.4px)",
+                transition: "transform 0.5s cubic-bezier(0.4,0,0.2,1)",
               } as React.CSSProperties}
             />
           </mask>
         </defs>
 
-        {/* 8 rays */}
-        {Array.from({ length: 8 }).map((_, i) => {
-          const extDelay = i * 0.045;
-          const retDelay = (7 - i) * 0.030;
-          return (
-            <g key={i} transform={`rotate(${i * 45}, ${CX}, ${CY})`}>
-              <rect
-                x={IN_R}
-                y={CY - RAY_H / 2}
-                width={RAY_W}
-                height={RAY_H}
-                rx={RAY_H / 2}
-                fill={rayCol}
-                style={{
-                  transformBox: "fill-box",
-                  transformOrigin: "left center",
-                  transform: raysOut ? "scaleX(1)" : "scaleX(0)",
-                  opacity: raysOut ? 1 : 0,
-                  transition: [
-                    `transform 0.48s cubic-bezier(0.34,1.7,0.64,1) ${raysOut ? extDelay : retDelay}s`,
-                    `opacity   0.30s ease                           ${raysOut ? extDelay : retDelay}s`,
-                    `fill      0.50s ease`,
-                  ].join(", "),
-                } as React.CSSProperties}
-              />
-            </g>
-          );
-        })}
+        {/* 8 rays — scale in when sun, scale out when moon */}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <g key={i} transform={`rotate(${i * 45}, 12, 12)`}>
+            <rect
+              x={7.9} y={11} width={3.6} height={2}
+              rx={1}
+              fill={rayFill}
+              style={{
+                transformBox: "fill-box",
+                transformOrigin: "left center",
+                transform: sun ? "scaleX(1)" : "scaleX(0)",
+                opacity: sun ? 1 : 0,
+                transition: [
+                  `transform 0.45s cubic-bezier(0.34,1.7,0.64,1) ${sun ? i * 0.04 : (7 - i) * 0.025}s`,
+                  `opacity 0.28s ease ${sun ? i * 0.04 : (7 - i) * 0.025}s`,
+                  `fill 0.45s ease`,
+                ].join(", "),
+              } as React.CSSProperties}
+            />
+          </g>
+        ))}
 
         {/* Sun / Moon body */}
         <circle
-          cx={CX}
-          cy={CY}
-          r={SUN_R}
-          fill={bodyCol}
+          cx="12" cy="12" r="5.5"
+          fill={bodyFill}
           mask={`url(#${maskId})`}
-          style={{ transition: "fill 0.55s ease" }}
+          style={{ transition: "fill 0.5s ease" }}
         />
 
-        {/* Three tiny stars (dark mode) */}
-        {STARS.map((s, i) => (
+        {/* Stars — only visible in moon mode */}
+        {[{ cx: 17.5, cy: 6.5, r: 0.7 }, { cx: 19.2, cy: 11, r: 0.5 }, { cx: 16.5, cy: 17, r: 0.6 }].map((s, i) => (
           <circle
             key={i}
-            cx={s.x}
-            cy={s.y}
-            r={s.r}
-            fill="rgba(200,225,255,0.88)"
+            cx={s.cx} cy={s.cy} r={s.r}
+            fill="rgba(200,225,255,0.9)"
             style={{
-              opacity: stars ? 1 : 0,
-              transform: stars ? "scale(1)" : "scale(0)",
+              opacity: sun ? 0 : 1,
+              transform: sun ? "scale(0)" : "scale(1)",
               transformBox: "fill-box",
               transformOrigin: "center",
               transition: [
-                `opacity   0.35s ease                           ${stars ? 0.06 + i * 0.08 : 0}s`,
-                `transform 0.35s cubic-bezier(0.34,1.6,0.64,1) ${stars ? 0.06 + i * 0.08 : 0}s`,
+                `opacity 0.3s ease ${sun ? 0 : 0.05 + i * 0.07}s`,
+                `transform 0.3s cubic-bezier(0.34,1.6,0.64,1) ${sun ? 0 : 0.05 + i * 0.07}s`,
               ].join(", "),
             } as React.CSSProperties}
           />
