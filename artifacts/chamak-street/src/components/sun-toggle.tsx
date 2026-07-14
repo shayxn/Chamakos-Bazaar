@@ -1,15 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTheme } from "@/lib/theme-context";
-
-/*
- * Fixes vs previous version
- * ─────────────────────────
- * 1. Removed `busy` guard — rapid clicking now works: each click cancels
- *    in-flight timers and immediately reverses the animation direction.
- * 2. `skipSync` ref — when WE call toggleColorMode() the sync useEffect
- *    skips the instant snap so mid-animation state is preserved.
- * 3. Sun body colour changed to orange (#ff8800) in light mode.
- */
 
 const CX = 12, CY = 12;
 const SUN_R = 5.5;
@@ -29,6 +19,8 @@ const STARS = [
 export function SunToggle() {
   const { colorMode, toggleColorMode } = useTheme();
   const isLight = colorMode === "light";
+  const uid = useId().replace(/:/g, "-");
+  const maskId = `sun-moon-mask-${uid}`;
 
   const [moonTX,  setMoonTX]  = useState(() => isLight ? TX_SUN  : TX_MOON);
   const [raysOut, setRaysOut] = useState(() => isLight);
@@ -36,17 +28,15 @@ export function SunToggle() {
   const [stars,   setStars]   = useState(() => !isLight);
 
   const tids     = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const skipSync = useRef(false);      // true while OUR toggle is propagating
-  const intended = useRef(colorMode);  // tracks where we're heading (rapid-click safe)
+  const skipSync = useRef(false);
+  const intended = useRef(colorMode);
 
-  // ── Sync only on EXTERNAL colorMode changes ──────────────────────────────
   useEffect(() => {
     intended.current = colorMode;
     if (skipSync.current) {
-      skipSync.current = false;        // consume the flag, don't snap
+      skipSync.current = false;
       return;
     }
-    // External flip (e.g. another component) → snap immediately
     tids.current.forEach(clearTimeout);
     tids.current = [];
     setMoonTX (isLight ? TX_SUN  : TX_MOON);
@@ -62,54 +52,45 @@ export function SunToggle() {
     tids.current.push(id);
   };
 
-  // ── Click handler ─────────────────────────────────────────────────────────
   const handleClick = () => {
-    // Cancel any in-flight animation instantly
     tids.current.forEach(clearTimeout);
     tids.current = [];
 
-    // Toggle intended direction (rapid clicks just reverse)
     const goingLight = intended.current === "dark";
-    intended.current  = goingLight ? "light" : "dark";
+    intended.current = goingLight ? "light" : "dark";
+
+    // ── Toggle the page color IMMEDIATELY so it never feels broken ──
+    skipSync.current = true;
+    toggleColorMode();
 
     if (goingLight) {
-      // ── Dark → Light ──────────────────────────────────────────
-      setStars(false);                                    // stars out
-      go( 80, () => { setMoonTX(TX_SUN); setTilt(0); }); // crescent dissolves
-      go(380, () => {
-        skipSync.current = true;   // prevent useEffect snap
-        toggleColorMode();         // page fades light
-        setRaysOut(true);          // rays spring out
-      });
+      // Dark → Light: stars disappear, sun body slides in, rays spring out
+      setStars(false);
+      go( 80, () => { setMoonTX(TX_SUN); setTilt(0); });
+      go(350, () => { setRaysOut(true); });
     } else {
-      // ── Light → Dark ──────────────────────────────────────────
-      setRaysOut(false);                                  // rays retract
-      go(180, () => { setMoonTX(TX_MOON); });            // crescent carves in
-      go(220, () => { setTilt(20); });                   // icon tilts
-      go(560, () => {
-        skipSync.current = true;   // prevent useEffect snap
-        toggleColorMode();         // page fades dark
-      });
-      go(700, () => { setStars(true); });                // stars twinkle in
+      // Light → Dark: rays retract, crescent carves in, stars appear
+      setRaysOut(false);
+      go(180, () => { setMoonTX(TX_MOON); });
+      go(220, () => { setTilt(20); });
+      go(680, () => { setStars(true); });
     }
   };
 
-  // ── Colours ────────────────────────────────────────────────────────────────
   const bodyCol = isLight ? "#ff8800"              : "rgba(200,220,255,0.97)";
   const rayCol  = isLight ? "#ff8800"              : "rgba(200,220,255,0.90)";
   const glowCol = isLight ? "rgba(255,136,0,0.30)" : "transparent";
-  const starCol = "rgba(200,225,255,0.88)";
 
   return (
     <button
       onClick={handleClick}
       aria-label={isLight ? "Switch to dark mode" : "Switch to light mode"}
       title={isLight ? "Dark mode" : "Light mode"}
-      className="relative flex items-center justify-center w-10 h-10 rounded-full
+      className="relative flex items-center justify-center w-12 h-12 rounded-full
                  hover:bg-white/10 active:scale-90 transition-colors duration-200"
       style={{ outline: "none" }}
     >
-      {/* Soft orange glow ring in light mode */}
+      {/* Glow ring */}
       <span
         aria-hidden
         style={{
@@ -117,15 +98,15 @@ export function SunToggle() {
           inset: 0,
           borderRadius: "9999px",
           background: glowCol,
-          boxShadow: isLight ? "0 0 14px 4px rgba(255,136,0,0.28)" : "none",
+          boxShadow: isLight ? "0 0 16px 5px rgba(255,136,0,0.28)" : "none",
           transition: "background 0.55s ease, box-shadow 0.55s ease",
           pointerEvents: "none",
         }}
       />
 
       <svg
-        width="28"
-        height="28"
+        width="32"
+        height="32"
         viewBox="0 0 24 24"
         fill="none"
         style={{
@@ -135,7 +116,7 @@ export function SunToggle() {
         }}
       >
         <defs>
-          <mask id="sun-moon-mask">
+          <mask id={maskId}>
             <rect width="24" height="24" fill="white" />
             <circle
               cx={CX}
@@ -150,7 +131,7 @@ export function SunToggle() {
           </mask>
         </defs>
 
-        {/* ── 8 rays ── */}
+        {/* 8 rays */}
         {Array.from({ length: 8 }).map((_, i) => {
           const extDelay = i * 0.045;
           const retDelay = (7 - i) * 0.030;
@@ -179,24 +160,24 @@ export function SunToggle() {
           );
         })}
 
-        {/* ── Sun / Moon body ── */}
+        {/* Sun / Moon body */}
         <circle
           cx={CX}
           cy={CY}
           r={SUN_R}
           fill={bodyCol}
-          mask="url(#sun-moon-mask)"
+          mask={`url(#${maskId})`}
           style={{ transition: "fill 0.55s ease" }}
         />
 
-        {/* ── Three tiny stars (dark / moon mode) ── */}
+        {/* Three tiny stars (dark mode) */}
         {STARS.map((s, i) => (
           <circle
             key={i}
             cx={s.x}
             cy={s.y}
             r={s.r}
-            fill={starCol}
+            fill="rgba(200,225,255,0.88)"
             style={{
               opacity: stars ? 1 : 0,
               transform: stars ? "scale(1)" : "scale(0)",
