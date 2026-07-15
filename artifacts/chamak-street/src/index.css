@@ -102,123 +102,6 @@
   --ring: 24 100% 50%;
 }
 
-/*
- * When color mode switches, ThemeProvider briefly adds this class to <html>.
- * It enables background-color / color / border-color transitions on EVERY element
- * so the page fades smoothly instead of flipping instantly.
- * CSS custom-property values themselves don't animate, but the computed
- * background-color / color etc. DO when `transition` is present.
- */
-.color-mode-transitioning *,
-.color-mode-transitioning *::before,
-.color-mode-transitioning *::after {
-  transition-property: background-color, color, border-color, fill, stroke, opacity, transform !important;
-  transition-duration: 0.5s !important;
-  transition-timing-function: ease !important;
-}
-
-.light-mode {
-  --background: 0 0% 97%;
-  --foreground: 0 0% 8%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 8%;
-  --card-border: 0 0% 88%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 8%;
-  --popover-border: 0 0% 88%;
-  --primary: 24 100% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 92%;
-  --secondary-foreground: 0 0% 8%;
-  --muted: 0 0% 94%;
-  --muted-foreground: 0 0% 40%;
-  --accent: 45 100% 50%;
-  --accent-foreground: 0 0% 4%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 85%;
-  --input: 0 0% 85%;
-  --ring: 24 100% 50%;
-}
-
-.light-mode body {
-  background: linear-gradient(120deg, #ffe8d6 0%, #fff3e0 20%, #ffd5aa 40%, #fff8f0 60%, #ffe0c0 80%, #fff3e0 100%);
-  background-size: 400% 400%;
-  animation: chamakSiteBg 8s ease-in-out infinite;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   LIGHT MODE — Override hardcoded dark Tailwind utility classes.
-   
-   The site uses text-white / text-white/X / border-white/X / bg-black/X
-   throughout its components. CSS variable–based classes (text-foreground,
-   bg-card, etc.) already respond to the .light-mode variables above.
-   These rules handle the hardcoded ones using CSS attribute selectors.
-   ═══════════════════════════════════════════════════════════════════════ */
-
-/* ── Text ──────────────────────────────────────────────────────────── */
-.light-mode [class~="text-white"] {
-  color: rgba(18, 12, 6, 0.88) !important;
-}
-/* text-white/10 … text-white/90 variants */
-.light-mode [class*="text-white/"] {
-  color: rgba(18, 12, 6, 0.60) !important;
-}
-/* Icon-only utilities that set fill/stroke to white */
-.light-mode [class~="text-white"] svg,
-.light-mode [class*="text-white/"] svg {
-  color: inherit !important;
-}
-
-/* ── Borders ───────────────────────────────────────────────────────── */
-.light-mode [class~="border-white"] {
-  border-color: rgba(0, 0, 0, 0.18) !important;
-}
-.light-mode [class*="border-white/"] {
-  border-color: rgba(0, 0, 0, 0.10) !important;
-}
-
-/* ── Solid & semi-transparent black backgrounds ─────────────────────── */
-.light-mode [class~="bg-black"] {
-  background-color: rgba(255, 250, 244, 0.97) !important;
-}
-.light-mode [class*="bg-black/"] {
-  background-color: rgba(255, 250, 244, 0.82) !important;
-}
-/* Dark hex classes: bg-[#111], bg-[#111827], bg-[#0f0f0f] etc. */
-.light-mode [class*="bg-[#0"],
-.light-mode [class*="bg-[#1"] {
-  background-color: rgba(255, 250, 244, 0.97) !important;
-}
-
-/* ── Full-screen modal overlays — keep them dark for contrast ────────── */
-/* These have both bg-black/X AND fixed + inset-0 */
-.light-mode .fixed.inset-0[class*="bg-black"],
-.light-mode [class~="fixed"][class~="inset-0"][class*="bg-black"] {
-  background-color: rgba(0, 0, 0, 0.50) !important;
-}
-
-/* ── Badge chips that intentionally stay dark (REP, video labels) ─────── */
-/* Anything combining a dark bg AND text-white stays legible */
-.light-mode [class*="bg-black"][class*="text-white"],
-.light-mode [class*="bg-[#1"][class*="text-white"] {
-  background-color: rgba(25, 15, 5, 0.88) !important;
-  color: rgba(255, 255, 255, 0.95) !important;
-}
-
-/* ── Header & navigation ──────────────────────────────────────────── */
-.light-mode header {
-  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-/* ── Scrollbar in light mode ─────────────────────────────────────── */
-.light-mode ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.20) !important;
-}
-.light-mode ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05) !important;
-}
-
 @layer base {
   * {
     @apply border-border;
@@ -232,18 +115,11 @@
   }
   body {
     @apply font-sans antialiased text-foreground;
-    background: linear-gradient(120deg, #000000 0%, #7a2e00 20%, #000000 40%, #7a2e00 60%, #000000 80%, #7a2e00 100%);
-    background-size: 400% 400%;
-    animation: chamakSiteBg 8s ease-in-out infinite;
+    background: #000000;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
     text-rendering: optimizeLegibility;
-  }
-  @keyframes chamakSiteBg {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
   }
   @keyframes chamakSizeSelected {
     0%   { background-color: #7a2e00; box-shadow: 0 0 18px rgba(122,46,0,0.5); }

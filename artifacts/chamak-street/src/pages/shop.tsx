@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useListProducts, useListCategories, getListProductsQueryKey, getListCategoriesQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
-import { Input } from "@/components/ui/input";
+import { motion, AnimatePresence } from "@/lib/motion-noop";
 import { Button } from "@/components/ui/button";
-import { Search, SlidersHorizontal, Eye } from "lucide-react";
-import { PageTransition, RevealSection } from "@/components/page-transition";
+import { Eye, ChevronDown } from "lucide-react";
+import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
 import { EventProductBadge } from "@/components/event-product-badge";
@@ -13,46 +12,23 @@ import { EventProductBadge } from "@/components/event-product-badge";
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.97 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.52, ease: EASE } },
-  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
+  hidden: { opacity: 0, y: 16, scale: 0.97 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: EASE } },
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.18 } },
 };
 
 const gridVariants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+  show: { transition: { staggerChildren: 0.05, delayChildren: 0.02 } },
   exit: {},
 };
 
-function SplitText({ text, className }: { text: string; className?: string }) {
-  return (
-    <div className={`overflow-hidden ${className ?? ""}`}>
-      <div className="flex flex-wrap">
-        {text.split("").map((char, i) => (
-          <motion.span
-            key={i}
-            className="inline-block"
-            initial={{ y: "110%", opacity: 0, rotateX: 40 }}
-            animate={{ y: 0, opacity: 1, rotateX: 0 }}
-            transition={{ delay: 0.05 + i * 0.038, duration: 0.55, ease: EASE }}
-            style={{ transformOrigin: "bottom center" }}
-          >
-            {char === " " ? "\u00a0" : char}
-          </motion.span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
-
   useEffect(() => {
     const timeout = window.setTimeout(() => setDebouncedValue(value), delayMs);
     return () => window.clearTimeout(timeout);
   }, [value, delayMs]);
-
   return debouncedValue;
 }
 
@@ -73,134 +49,91 @@ export default function Shop() {
     query: { queryKey: getListProductsQueryKey(queryParams), staleTime: 2 * 60_000 }
   });
 
+  const allCategories = [{ id: undefined as number | undefined, name: "All" }, ...(categories ?? [])];
+
   return (
     <PageTransition>
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-14">
-          <div>
-            <SplitText text="The Shop" className="text-4xl md:text-6xl font-black uppercase tracking-tighter" />
-            <motion.p
-              className="text-muted-foreground mt-2 text-lg"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.42, duration: 0.5, ease: EASE }}
-            >
-              Latest drops and street essentials.
-            </motion.p>
-          </div>
-
-          <motion.div
-            className="w-full md:w-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: EASE }}
-          >
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search products..."
-                className="pl-9 bg-card border-border h-11 focus:border-primary transition-all duration-300"
+      <div className="min-h-screen bg-black">
+        {/* Filter bar */}
+        <div className="border-b border-white/8 bg-black">
+          <div className="max-w-[1440px] mx-auto px-6 py-3 flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              {allCategories.map((cat) => (
+                <button
+                  key={cat.id ?? "all"}
+                  onClick={() => setCategoryId(cat.id)}
+                  data-testid={cat.id ? `filter-category-${cat.id}` : "filter-all"}
+                  className={`text-[11px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded border transition-all duration-200 ${
+                    categoryId === cat.id
+                      ? "bg-primary text-white border-primary"
+                      : "text-white/50 border-white/12 hover:text-white hover:border-white/30"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+            <div className="ml-auto flex items-center gap-3">
+              <input
+                type="text"
+                placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 data-testid="input-search"
+                className="bg-transparent border border-white/15 rounded text-white text-xs placeholder:text-white/30 px-3 py-1.5 outline-none focus:border-white/40 w-36 transition-all"
               />
+              <span className="text-white/30 text-xs font-bold tabular-nums shrink-0">
+                {products?.length ?? 0} products
+              </span>
             </div>
-          </motion.div>
+          </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-10">
-          {/* Sidebar */}
-          <motion.aside
-            className="w-full md:w-56 shrink-0"
-            initial={{ opacity: 0, x: -24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.18, ease: EASE }}
-          >
-            <div className="flex items-center gap-2 font-black uppercase tracking-wider mb-5 border-b border-border pb-3">
-              <SlidersHorizontal className="h-4 w-4 text-primary" /> Filters
-            </div>
-
-            <div className="space-y-1.5">
-              {[{ id: undefined as number | undefined, name: "All Categories" }, ...(categories ?? [])].map((cat, i) => (
-                <motion.button
-                  key={cat.id ?? "all"}
-                  initial={{ opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.25 + i * 0.05, ease: EASE, type: "spring", stiffness: 400, damping: 24 }}
-                  whileHover={{ x: 5 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setCategoryId(cat.id)}
-                  className={`block w-full text-left px-3 py-2.5 text-sm rounded-md font-bold transition-all duration-200 ${
-                    categoryId === cat.id
-                      ? "bg-primary/10 text-primary border-l-2 border-primary pl-2.5"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                  data-testid={cat.id ? `filter-category-${cat.id}` : "filter-all"}
-                >
-                  {cat.name}
-                </motion.button>
+        {/* Product grid */}
+        <div className="max-w-[1440px] mx-auto px-6 py-8">
+          {isLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+                <div key={n} className="animate-pulse">
+                  <div className="aspect-square bg-white/5 rounded-lg mb-3" />
+                  <div className="h-3 bg-white/5 w-1/3 mb-2 rounded" />
+                  <div className="h-4 bg-white/5 w-2/3 mb-1.5 rounded" />
+                  <div className="h-4 bg-white/5 w-1/4 rounded" />
+                </div>
               ))}
             </div>
-          </motion.aside>
-
-          {/* Grid */}
-          <div className="flex-1">
-            {isLoading ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                {[1, 2, 3, 4, 5, 6].map((n) => (
-                  <motion.div
-                    key={n}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: n * 0.07 }}
-                    className="animate-pulse"
-                  >
-                    <div className="aspect-square bg-muted rounded-lg mb-4" />
-                    <div className="h-3 bg-muted w-1/3 mb-3 rounded" />
-                    <div className="h-5 bg-muted w-2/3 mb-2 rounded" />
-                    <div className="h-5 bg-muted w-1/4 rounded" />
-                  </motion.div>
-                ))}
-              </div>
-            ) : products?.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: EASE }}
-                className="text-center py-24 bg-card border border-dashed border-border rounded-lg"
+          ) : products?.length === 0 ? (
+            <div className="text-center py-32">
+              <h3 className="text-2xl font-black uppercase tracking-wider text-white mb-3">No products found</h3>
+              <p className="text-white/40 mb-8">Try adjusting your filters or search term.</p>
+              <button
+                onClick={() => { setSearch(""); setCategoryId(undefined); }}
+                className="text-[11px] font-black uppercase tracking-widest text-white/60 border border-white/20 hover:border-primary hover:text-primary px-6 py-2.5 rounded transition-all"
               >
-                <h3 className="text-2xl font-black uppercase tracking-wider mb-3">No products found</h3>
-                <p className="text-muted-foreground">Try adjusting your filters or search term.</p>
-                <Button
-                  variant="outline"
-                  className="mt-8 uppercase font-bold tracking-wider border-primary/30 hover:border-primary"
-                  onClick={() => { setSearch(""); setCategoryId(undefined); }}
-                >
-                  Clear Filters
-                </Button>
-              </motion.div>
-            ) : (
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`${categoryId}-${search}`}
-                  variants={gridVariants}
-                  initial="hidden"
-                  animate="show"
-                  exit="exit"
-                  className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6"
-                >
-                  {products?.map((product, idx) => {
-                    const primaryMedia = getPrimaryProductMedia(product.imageUrl);
-                    return (
+                Clear Filters
+              </button>
+            </div>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${categoryId}-${debouncedSearch}`}
+                variants={gridVariants}
+                initial="hidden"
+                animate="show"
+                exit="exit"
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"
+              >
+                {products?.map((product) => {
+                  const primaryMedia = getPrimaryProductMedia(product.imageUrl);
+                  return (
                     <motion.div key={product.id} variants={cardVariants} layout>
                       <Link href={`/product/${product.id}`}>
-                        <motion.div
+                        <div
                           className="group cursor-pointer"
-                          whileHover={{ y: -7 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 22 }}
                           data-testid={`card-product-${product.id}`}
                         >
-                          <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-card card-premium-hover">
+                          {/* Image */}
+                          <div className="relative aspect-square mb-3 overflow-hidden rounded-lg bg-white/5 border border-white/8 transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_20px_rgba(255,102,0,0.18)]">
                             {primaryMedia ? (
                               primaryMedia.type === "video" ? (
                                 <video
@@ -211,70 +144,68 @@ export default function Shop() {
                                   preload="metadata"
                                 />
                               ) : (
-                              <motion.img
-                                src={primaryMedia.url}
-                                alt={product.name}
-                                className="w-full h-full object-cover object-center"
-                                whileHover={{ scale: 1.09 }}
-                                transition={{ duration: 0.5, ease: EASE }}
-                              />
+                                <img
+                                  src={primaryMedia.url}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                                />
                               )
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
+                              <div className="w-full h-full flex items-center justify-center text-white/20 text-xs font-mono">No Image</div>
                             )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
+
+                            {/* Badges */}
                             <div className="absolute top-2 left-2 flex flex-col gap-1">
                               <EventProductBadge />
                               {product.featured && (
-                                <span className="bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Featured</span>
+                                <span className="bg-primary text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">Featured</span>
                               )}
                               {product.sellingFast && (
-                                <span className="bg-orange-500 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">🔥 Selling Fast</span>
+                                <span className="bg-orange-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">🔥 Hot</span>
                               )}
                               {product.rep ? (
-                                <span className="bg-black/85 text-white border border-white/20 text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">REP</span>
+                                <span className="bg-black/80 text-white border border-white/20 text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">REP</span>
                               ) : (
-                                <span className="bg-green-500/90 text-black text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Original</span>
+                                <span className="bg-green-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">Original</span>
                               )}
                             </div>
+
                             {product.stock <= 5 && product.stock > 0 && (
                               <div className="absolute bottom-2 left-2">
-                                <span className="bg-destructive text-destructive-foreground text-[10px] font-black px-2 py-1 uppercase tracking-wider rounded-sm">Low Stock</span>
+                                <span className="bg-red-600 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">Low Stock</span>
                               </div>
                             )}
                             {product.stock === 0 && (
-                              <div className="absolute inset-0 bg-background/60 flex items-center justify-center backdrop-blur-[2px]">
-                                <span className="bg-background text-foreground text-sm font-black px-4 py-2 uppercase tracking-widest border border-border shadow-xl">Sold Out</span>
+                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-[2px]">
+                                <span className="bg-black text-white text-xs font-black px-4 py-2 uppercase tracking-widest border border-white/20">Sold Out</span>
                               </div>
                             )}
-                          </div>
-                          <div className="space-y-1.5 px-0.5 pt-1">
-                            <p className="text-[9px] text-muted-foreground uppercase tracking-[0.25em] font-bold">{product.categoryName || "Streetwear"}</p>
-                            <h3 className="font-black text-sm leading-tight group-hover:text-primary transition-colors duration-200 line-clamp-2">{product.name}</h3>
-                            <div className="flex items-center justify-between gap-2 pt-0.5">
-                              <div className="flex items-baseline gap-1.5">
-                                <p className="font-black text-primary text-base tabular-nums">AED {product.price.toFixed(2)}</p>
-                              </div>
-                              <motion.button
-                                whileHover={{ scale: 1.06, backgroundColor: "rgba(255,102,0,0.15)" }}
-                                whileTap={{ scale: 0.93 }}
+
+                            {/* Quick view on hover */}
+                            <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-250 bg-black/90 py-2 flex items-center justify-center">
+                              <button
                                 onClick={(e) => { e.preventDefault(); setQuickViewId(product.id); }}
-                                className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all px-2.5 py-1.5 rounded-full border border-border hover:border-primary/40 shrink-0"
-                                style={{ backdropFilter: "blur(8px)" }}
+                                className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/80 hover:text-primary transition-colors"
                               >
-                                <Eye className="h-3 w-3" /> Quick
-                              </motion.button>
+                                <Eye className="h-3 w-3" /> Quick View
+                              </button>
                             </div>
                           </div>
-                        </motion.div>
+
+                          {/* Info */}
+                          <div className="px-0.5">
+                            <p className="text-[9px] text-white/35 uppercase tracking-[0.22em] font-bold mb-1">{product.categoryName || "Streetwear"}</p>
+                            <h3 className="font-black text-white text-xs leading-tight line-clamp-2 group-hover:text-primary transition-colors duration-200 mb-1.5">{product.name}</h3>
+                            <p className="font-black text-primary text-sm tabular-nums">AED {product.price.toFixed(2)}</p>
+                          </div>
+                        </div>
                       </Link>
                     </motion.div>
-                    );
-                  })}
-                </motion.div>
-              </AnimatePresence>
-            )}
-          </div>
+                  );
+                })}
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
       </div>
       <QuickViewModal productId={quickViewId} onClose={() => setQuickViewId(null)} />
