@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useListProducts, useListCategories, getListProductsQueryKey, getListCategoriesQueryKey } from "@workspace/api-client-react";
-import { Link } from "wouter";
+import { Link, useSearch, useLocation } from "wouter";
 import { motion, AnimatePresence } from "@/lib/motion-noop";
-import { Button } from "@/components/ui/button";
-import { Eye, ChevronDown } from "lucide-react";
+import { Eye } from "lucide-react";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
@@ -33,23 +32,47 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 export default function Shop() {
-  const [search, setSearch] = useState("");
-  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
-  const [quickViewId, setQuickViewId] = useState<number | null>(null);
-  const debouncedSearch = useDebouncedValue(search.trim(), 300);
+  const [, navigate] = useLocation();
+  const search = useSearch();
+  const params = new URLSearchParams(search);
 
-  const { data: categories } = useListCategories({ query: { queryKey: getListCategoriesQueryKey(), staleTime: 5 * 60_000 } });
+  const urlCatId = params.get("cat") ? Number(params.get("cat")) : undefined;
+  const isNewest = params.get("new") === "1";
+
+  const [localSearch, setLocalSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(localSearch.trim(), 300);
+  const [quickViewId, setQuickViewId] = useState<number | null>(null);
+
+  const { data: categories } = useListCategories({
+    query: { queryKey: getListCategoriesQueryKey(), staleTime: 5 * 60_000 }
+  });
 
   const queryParams = {
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
-    ...(categoryId ? { categoryId } : {})
+    ...(urlCatId ? { categoryId: urlCatId } : {}),
   };
 
-  const { data: products, isLoading } = useListProducts(queryParams, {
+  const { data: rawProducts, isLoading } = useListProducts(queryParams, {
     query: { queryKey: getListProductsQueryKey(queryParams), staleTime: 2 * 60_000 }
   });
 
-  const allCategories = [{ id: undefined as number | undefined, name: "All" }, ...(categories ?? [])];
+  const products = useMemo(() => {
+    if (!rawProducts) return rawProducts;
+    if (isNewest) {
+      return [...rawProducts].sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
+    return rawProducts;
+  }, [rawProducts, isNewest]);
+
+  const allCategories = [
+    { id: undefined as number | undefined, name: "All", href: "/shop" },
+    ...(categories ?? []).map((c) => ({ id: c.id, name: c.name, href: `/shop?cat=${c.id}` })),
+    { id: -1, name: "Latest Arrivals", href: "/shop?new=1" },
+  ];
+
+  const activeCatId = isNewest ? -1 : urlCatId;
 
   return (
     <PageTransition>
@@ -58,27 +81,29 @@ export default function Shop() {
         <div className="border-b border-white/8 bg-black">
           <div className="max-w-[1440px] mx-auto px-6 py-3 flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
-              {allCategories.map((cat) => (
-                <button
-                  key={cat.id ?? "all"}
-                  onClick={() => setCategoryId(cat.id)}
-                  data-testid={cat.id ? `filter-category-${cat.id}` : "filter-all"}
-                  className={`text-[11px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded border transition-all duration-200 ${
-                    categoryId === cat.id
-                      ? "bg-primary text-white border-primary"
-                      : "text-white/50 border-white/12 hover:text-white hover:border-white/30"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
+              {allCategories.map((cat) => {
+                const isActive = cat.id === activeCatId || (cat.id === undefined && activeCatId === undefined);
+                return (
+                  <Link
+                    key={cat.href}
+                    href={cat.href}
+                    className={`text-[11px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded border transition-all duration-200 ${
+                      isActive
+                        ? "bg-primary text-white border-primary"
+                        : "text-white/50 border-white/12 hover:text-white hover:border-white/30"
+                    }`}
+                  >
+                    {cat.name}
+                  </Link>
+                );
+              })}
             </div>
             <div className="ml-auto flex items-center gap-3">
               <input
                 type="text"
                 placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 data-testid="input-search"
                 className="bg-transparent border border-white/15 rounded text-white text-xs placeholder:text-white/30 px-3 py-1.5 outline-none focus:border-white/40 w-36 transition-all"
               />
@@ -88,6 +113,17 @@ export default function Shop() {
             </div>
           </div>
         </div>
+
+        {/* Active label */}
+        {(isNewest || urlCatId !== undefined) && (
+          <div className="max-w-[1440px] mx-auto px-6 pt-6 pb-0">
+            <h2 className="text-lg font-black uppercase tracking-widest text-white/80">
+              {isNewest
+                ? "Latest Arrivals"
+                : categories?.find((c) => c.id === urlCatId)?.name ?? ""}
+            </h2>
+          </div>
+        )}
 
         {/* Product grid */}
         <div className="max-w-[1440px] mx-auto px-6 py-8">
@@ -106,17 +142,16 @@ export default function Shop() {
             <div className="text-center py-32">
               <h3 className="text-2xl font-black uppercase tracking-wider text-white mb-3">No products found</h3>
               <p className="text-white/40 mb-8">Try adjusting your filters or search term.</p>
-              <button
-                onClick={() => { setSearch(""); setCategoryId(undefined); }}
-                className="text-[11px] font-black uppercase tracking-widest text-white/60 border border-white/20 hover:border-primary hover:text-primary px-6 py-2.5 rounded transition-all"
-              >
-                Clear Filters
-              </button>
+              <Link href="/shop">
+                <button className="text-[11px] font-black uppercase tracking-widest text-white/60 border border-white/20 hover:border-primary hover:text-primary px-6 py-2.5 rounded transition-all">
+                  Clear Filters
+                </button>
+              </Link>
             </div>
           ) : (
             <AnimatePresence mode="wait">
               <motion.div
-                key={`${categoryId}-${debouncedSearch}`}
+                key={`${urlCatId}-${isNewest}-${debouncedSearch}`}
                 variants={gridVariants}
                 initial="hidden"
                 animate="show"
@@ -182,7 +217,7 @@ export default function Shop() {
                             )}
 
                             {/* Quick view on hover */}
-                            <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-250 bg-black/90 py-2 flex items-center justify-center">
+                            <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-200 bg-black/90 py-2 flex items-center justify-center">
                               <button
                                 onClick={(e) => { e.preventDefault(); setQuickViewId(product.id); }}
                                 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/80 hover:text-primary transition-colors"
