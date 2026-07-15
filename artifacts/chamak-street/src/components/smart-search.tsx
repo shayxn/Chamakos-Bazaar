@@ -1,44 +1,63 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, Loader2, Sparkles } from "lucide-react";
+import { Search, X, Loader2, Sparkles, ArrowRight, Clock, TrendingUp, Tag, Package } from "lucide-react";
 import { Link } from "wouter";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
+const RECENT_KEY = "chamak_recent_searches";
+const MAX_RECENT = 6;
 
 type Product = {
   id: number; name: string; price: string;
   imageUrl: string | null; imageUrls: string | null;
-  categoryId: number | null; stock: number;
+  categoryId: number | null; categoryName: string | null; stock: number;
 };
 
-const AI_SUGGESTIONS: Record<string, string[]> = {
-  hoodie: ["hoodies", "sweatshirts", "streetwear tops"],
-  jacket: ["jackets", "outerwear", "bomber"],
-  sneaker: ["shoes", "kicks", "footwear"],
-  shirt: ["tees", "tops", "graphic tees"],
-  pants: ["trousers", "cargo", "streetwear bottoms"],
-  cap: ["hats", "headwear", "snapback"],
-};
-
-function getAiSuggestion(query: string): string | null {
-  const q = query.toLowerCase();
-  for (const [k, v] of Object.entries(AI_SUGGESTIONS)) {
-    if (q.includes(k)) return `Also try: ${v.join(", ")}`;
-  }
-  return null;
+/* ── Helpers ── */
+function getRecent(): string[] {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; }
 }
+function addRecent(q: string) {
+  if (!q.trim()) return;
+  const list = [q, ...getRecent().filter(r => r !== q)].slice(0, MAX_RECENT);
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch {}
+}
+function clearRecent() {
+  try { localStorage.removeItem(RECENT_KEY); } catch {}
+}
+
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-primary/25 text-primary rounded-sm px-0.5 not-italic">{part}</mark>
+        ) : part
+      )}
+    </>
+  );
+}
+
+const TRENDING = ["Hoodies", "Sneakers", "Caps", "Jackets", "Cargo Pants", "Graphic Tees"];
 
 export function SmartSearch({ onClose }: { onClose?: () => void }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [recent, setRecent] = useState<string[]>([]);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    setRecent(getRecent());
     fetch(`${BASE}/api/products`)
       .then((r) => r.json())
       .then((data: Product[]) => setAllProducts(data))
@@ -46,115 +65,311 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (!query.trim()) { setResults([]); return; }
+    if (!query.trim()) { setResults([]); setSelectedIdx(-1); return; }
     setLoading(true);
+    setSelectedIdx(-1);
     const t = setTimeout(() => {
       const q = query.toLowerCase();
       const filtered = allProducts.filter((p) =>
         p.name.toLowerCase().includes(q) ||
-        (p.imageUrl ?? "").toLowerCase().includes(q)
-      ).slice(0, 8);
+        (p.categoryName ?? "").toLowerCase().includes(q)
+      ).slice(0, 9);
       setResults(filtered);
       setLoading(false);
-    }, 180);
+    }, 150);
     return () => clearTimeout(t);
   }, [query, allProducts]);
 
-  const aiSuggestion = query.length > 2 ? getAiSuggestion(query) : null;
+  const handleSelect = useCallback((productId: number) => {
+    addRecent(query);
+    setRecent(getRecent());
+    onClose?.();
+  }, [query, onClose]);
+
+  const handleTrendingClick = (term: string) => {
+    setQuery(term);
+    inputRef.current?.focus();
+  };
+
+  const handleRecentClick = (term: string) => {
+    setQuery(term);
+    inputRef.current?.focus();
+  };
+
+  const handleClearRecent = () => {
+    clearRecent();
+    setRecent([]);
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIdx(i => Math.min(i + 1, results.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIdx(i => Math.max(i - 1, -1));
+      } else if (e.key === "Enter" && selectedIdx >= 0 && results[selectedIdx]) {
+        handleSelect(results[selectedIdx].id);
+        window.location.href = `/product/${results[selectedIdx].id}`;
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [results, selectedIdx, handleSelect]);
+
+  // Scroll selected into view
+  useEffect(() => {
+    if (selectedIdx < 0 || !listRef.current) return;
+    const el = listRef.current.children[selectedIdx] as HTMLElement;
+    el?.scrollIntoView({ block: "nearest" });
+  }, [selectedIdx]);
+
+  const isEmpty = !query.trim();
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Input */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10">
-        <Search className="h-5 w-5 text-white/40 shrink-0" />
+    <div className="flex flex-col" style={{ maxHeight: "82vh" }}>
+      {/* ── Search input ── */}
+      <div className="flex items-center gap-3 px-5 py-4 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <motion.div
+          animate={loading ? { rotate: 360 } : { rotate: 0 }}
+          transition={loading ? { duration: 1, repeat: Infinity, ease: "linear" } : {}}
+        >
+          {loading
+            ? <Loader2 className="h-5 w-5 text-primary shrink-0" />
+            : <Search className="h-5 w-5 text-white/40 shrink-0" />
+          }
+        </motion.div>
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search products, styles, brands…"
-          className="flex-1 bg-transparent text-white placeholder-white/30 text-base outline-none font-medium"
+          className="flex-1 bg-transparent text-white placeholder-white/25 text-lg outline-none font-semibold"
         />
-        <div className="flex items-center gap-2">
-          {loading && <Loader2 className="h-4 w-4 text-primary animate-spin" />}
-          {query && (
-            <button onClick={() => setQuery("")} className="text-white/30 hover:text-white/60 transition-colors">
-              <X className="h-4 w-4" />
-            </button>
-          )}
+        <div className="flex items-center gap-2 shrink-0">
+          <AnimatePresence>
+            {query && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                onClick={() => { setQuery(""); inputRef.current?.focus(); }}
+                className="text-white/30 hover:text-white/70 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </motion.button>
+            )}
+          </AnimatePresence>
+          <kbd className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-white/20 px-1.5 py-0.5 rounded border border-white/10 font-mono">ESC</kbd>
         </div>
       </div>
 
-      {/* AI suggestion */}
-      <AnimatePresence>
-        {aiSuggestion && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="px-5 py-2 bg-primary/10 border-b border-primary/20"
-          >
-            <div className="flex items-center gap-2 text-xs text-primary/80 font-medium">
-              <Sparkles className="h-3 w-3" />
-              {aiSuggestion}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Body ── */}
+      <div className="flex-1 overflow-y-auto overscroll-contain">
+        <AnimatePresence mode="wait">
+          {isEmpty ? (
+            /* ── Empty state: Recent + Trending ── */
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="px-5 py-5 space-y-6"
+            >
+              {/* Recent searches */}
+              {recent.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/30 flex items-center gap-1.5">
+                      <Clock className="h-3 w-3" /> Recent
+                    </p>
+                    <button onClick={handleClearRecent} className="text-[10px] text-white/25 hover:text-white/50 transition-colors font-bold">
+                      Clear
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {recent.map((r) => (
+                      <motion.button
+                        key={r}
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => handleRecentClick(r)}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-white/50 hover:text-white px-3 py-1.5 rounded-full border border-white/10 hover:border-white/25 transition-all"
+                      >
+                        <Clock className="h-3 w-3 shrink-0" /> {r}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-      {/* Results */}
-      <div className="flex-1 overflow-y-auto">
-        {!query && (
-          <div className="px-5 py-8 text-center text-white/30 text-sm">
-            <Sparkles className="h-6 w-6 mx-auto mb-3 text-primary/40" />
-            <p className="font-semibold">AI Smart Search</p>
-            <p className="mt-1 text-xs">Type to search across all products</p>
-          </div>
-        )}
-
-        <AnimatePresence>
-          {results.length > 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="divide-y divide-white/5">
-              {results.map((p, i) => {
-                const media = getPrimaryProductMedia(p.imageUrl);
-                return (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04, ease: EASE }}
-                  >
-                    <Link
-                      href={`/product/${p.id}`}
-                      onClick={onClose}
-                      className="flex items-center gap-4 px-5 py-3 hover:bg-white/5 transition-colors group"
+              {/* Trending */}
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3 flex items-center gap-1.5">
+                  <TrendingUp className="h-3 w-3" /> Trending Now
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {TRENDING.map((term, i) => (
+                    <motion.button
+                      key={term}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, ease: EASE }}
+                      whileHover={{ scale: 1.05, backgroundColor: "rgba(255,102,0,0.12)" }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => handleTrendingClick(term)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-white/60 hover:text-primary px-3 py-1.5 rounded-full border border-white/10 hover:border-primary/40 transition-all"
                     >
-                      <div className="w-12 h-12 rounded-sm overflow-hidden bg-white/5 shrink-0">
-                        {media && (
-                          <img src={media.url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-semibold text-sm truncate">{p.name}</p>
-                        <p className="text-primary text-xs font-bold mt-0.5">
-                          AED {Number(p.price).toFixed(2)}
-                          {p.stock === 0 && <span className="text-white/30 ml-2">Out of stock</span>}
-                        </p>
-                      </div>
-                      <div className="text-white/20 group-hover:text-white/50 transition-colors text-xs">→</div>
+                      <TrendingUp className="h-3 w-3 shrink-0 text-primary/50" /> {term}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Links */}
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3 flex items-center gap-1.5">
+                  <Tag className="h-3 w-3" /> Quick Links
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "All Products", href: "/shop", icon: Package },
+                    { label: "Latest Arrivals", href: "/shop?new=1", icon: Sparkles },
+                  ].map(({ label, href, icon: Icon }) => (
+                    <Link key={href} href={href} onClick={onClose}>
+                      <motion.div
+                        whileHover={{ scale: 1.02, borderColor: "rgba(255,102,0,0.4)" }}
+                        className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-white/8 text-sm font-semibold text-white/50 hover:text-white cursor-pointer transition-colors"
+                        style={{ background: "rgba(255,255,255,0.03)" }}
+                      >
+                        <Icon className="h-4 w-4 text-primary/60 shrink-0" />
+                        {label}
+                        <ArrowRight className="h-3 w-3 ml-auto opacity-40" />
+                      </motion.div>
                     </Link>
-                  </motion.div>
-                );
-              })}
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          ) : results.length === 0 && !loading ? (
+            /* ── No results ── */
+            <motion.div
+              key="noresults"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="px-5 py-12 text-center"
+            >
+              <div className="w-14 h-14 rounded-full border border-white/8 flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(255,102,0,0.06)" }}>
+                <Search className="h-6 w-6 text-white/20" />
+              </div>
+              <p className="text-white/50 font-semibold">No results for</p>
+              <p className="text-white font-black text-lg mt-1">"{query}"</p>
+              <p className="text-white/30 text-sm mt-2">Try a different keyword or browse all products</p>
+              <Link href="/shop" onClick={onClose}>
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary border border-primary/30 px-5 py-2 rounded-full hover:bg-primary/10 transition-colors"
+                >
+                  Browse All <ArrowRight className="h-3 w-3" />
+                </motion.button>
+              </Link>
+            </motion.div>
+          ) : (
+            /* ── Results ── */
+            <motion.div
+              key="results"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <p className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white/25 border-b border-white/5">
+                {results.length} result{results.length !== 1 ? "s" : ""}
+              </p>
+              <div ref={listRef}>
+                {results.map((p, i) => {
+                  const media = getPrimaryProductMedia(p.imageUrl);
+                  const isSelected = i === selectedIdx;
+                  return (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.035, ease: EASE, duration: 0.28 }}
+                    >
+                      <Link
+                        href={`/product/${p.id}`}
+                        onClick={() => handleSelect(p.id)}
+                        className={`flex items-center gap-4 px-5 py-3.5 transition-all group cursor-pointer ${
+                          isSelected ? "bg-primary/10" : "hover:bg-white/4"
+                        }`}
+                      >
+                        {/* Image */}
+                        <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-white/10"
+                          style={{ background: "rgba(255,255,255,0.04)" }}>
+                          {media ? (
+                            <img src={media.url} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-400" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="h-5 w-5 text-white/20" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-bold text-sm truncate leading-tight">
+                            <HighlightMatch text={p.name} query={query} />
+                          </p>
+                          <p className="text-white/40 text-xs mt-0.5">
+                            {p.categoryName && (
+                              <span className="text-primary/60 font-semibold">
+                                <HighlightMatch text={p.categoryName} query={query} />
+                                {" · "}
+                              </span>
+                            )}
+                            AED {Number(p.price).toFixed(2)}
+                            {p.stock === 0 && <span className="text-red-400/60 ml-2">Out of stock</span>}
+                          </p>
+                        </div>
+
+                        {/* Arrow */}
+                        <motion.div
+                          animate={isSelected ? { x: 0, opacity: 1 } : { x: -4, opacity: 0 }}
+                          className="text-primary shrink-0"
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </motion.div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* View all in shop */}
+              <Link href={`/shop?search=${encodeURIComponent(query)}`} onClick={() => { addRecent(query); onClose?.(); }}>
+                <motion.div
+                  whileHover={{ backgroundColor: "rgba(255,102,0,0.07)" }}
+                  className="flex items-center gap-3 px-5 py-3.5 border-t border-white/6 cursor-pointer transition-colors"
+                >
+                  <div className="w-14 h-14 rounded-lg shrink-0 border border-primary/20 flex items-center justify-center"
+                    style={{ background: "rgba(255,102,0,0.06)" }}>
+                    <ArrowRight className="h-5 w-5 text-primary/60" />
+                  </div>
+                  <div>
+                    <p className="text-primary font-bold text-sm">View all results for "{query}"</p>
+                    <p className="text-white/30 text-xs">Browse the full shop</p>
+                  </div>
+                </motion.div>
+              </Link>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {query && !loading && results.length === 0 && (
-          <div className="px-5 py-8 text-center text-white/30 text-sm">
-            <p>No results for "<span className="text-white/50">{query}</span>"</p>
-            <p className="mt-1 text-xs">Try a different keyword</p>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -174,32 +389,51 @@ export function SmartSearchModal() {
 
   return (
     <>
-      <button
+      <motion.button
         onClick={() => setOpen(true)}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.93 }}
         className="flex items-center gap-2 text-white/50 hover:text-white transition-colors group"
-        aria-label="Search"
+        aria-label="Search (⌘K)"
       >
-        <Search className="h-5 w-5 group-hover:text-primary transition-colors" />
-      </button>
+        <Search className="h-5 w-5 group-hover:text-primary transition-colors duration-200" />
+        <kbd className="hidden md:flex items-center text-[9px] font-bold text-white/20 px-1.5 py-0.5 rounded border border-white/10 font-mono tracking-widest leading-none">
+          ⌘K
+        </kbd>
+      </motion.button>
 
       <AnimatePresence>
         {open && (
           <>
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
               onClick={() => setOpen(false)}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100]"
+              className="fixed inset-0 z-[100]"
+              style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(8px)" }}
             />
+
+            {/* Modal */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: -20 }}
+              initial={{ opacity: 0, scale: 0.95, y: -28 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: -20 }}
-              transition={{ duration: 0.2, ease: EASE }}
-              className="fixed top-20 left-1/2 -translate-x-1/2 z-[101] w-full max-w-lg bg-[#111] border border-white/10 rounded-lg overflow-hidden shadow-2xl"
-              style={{ maxHeight: "70vh" }}
+              exit={{ opacity: 0, scale: 0.94, y: -16 }}
+              transition={{ duration: 0.25, ease: EASE }}
+              className="fixed top-[8vh] left-1/2 -translate-x-1/2 z-[101] w-full overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,102,0,0.12)]"
+              style={{
+                maxWidth: "min(680px, 94vw)",
+                background: "rgba(10,10,10,0.97)",
+                border: "1px solid rgba(255,255,255,0.09)",
+                borderRadius: 16,
+              }}
             >
+              {/* Top accent line */}
+              <div className="absolute top-0 left-0 right-0 h-px"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(255,102,0,0.6), rgba(255,204,0,0.4), transparent)" }} />
+
               <SmartSearch onClose={() => setOpen(false)} />
             </motion.div>
           </>

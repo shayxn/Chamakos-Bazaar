@@ -7,10 +7,29 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-primary/25 text-primary not-italic rounded-sm">{part}</mark>
+        ) : part
+      )}
+    </>
+  );
+}
 
 function GlobalSearch() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
   const ref = useRef<HTMLDivElement>(null);
   const debouncedQuery = query.trim();
 
@@ -24,7 +43,12 @@ function GlobalSearch() {
     ? (categories ?? []).filter((c) => c.name.toLowerCase().includes(debouncedQuery.toLowerCase()))
     : [];
 
-  const hasResults = (products?.length ?? 0) > 0 || filteredCategories.length > 0;
+  const allResults = [
+    ...(products?.slice(0, 5) ?? []).map(p => ({ type: "product" as const, item: p })),
+    ...filteredCategories.slice(0, 3).map(c => ({ type: "category" as const, item: c })),
+  ];
+
+  const hasResults = allResults.length > 0;
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -34,6 +58,17 @@ function GlobalSearch() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") { e.preventDefault(); setSelectedIdx(i => Math.min(i + 1, allResults.length - 1)); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); setSelectedIdx(i => Math.max(i - 1, -1)); }
+      else if (e.key === "Escape") { setOpen(false); setQuery(""); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open, allResults.length]);
+
   return (
     <div ref={ref} className="relative px-3 mb-3">
       <div className="relative">
@@ -41,7 +76,7 @@ function GlobalSearch() {
         <input
           type="text"
           value={query}
-          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); setSelectedIdx(-1); }}
           onFocus={() => setOpen(true)}
           placeholder="Search products, categories…"
           className="w-full pl-8 pr-8 py-2 text-xs rounded-lg focus:outline-none transition-all duration-200 text-foreground placeholder:text-muted-foreground"
@@ -49,56 +84,107 @@ function GlobalSearch() {
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.1)",
           }}
-          onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(255,102,0,0.4)")}
-          onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
           onFocusCapture={e => (e.currentTarget.style.borderColor = "rgba(255,102,0,0.65)")}
           onBlurCapture={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
         />
-        {query && (
-          <button onClick={() => { setQuery(""); setOpen(false); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-            <X className="h-3 w-3" />
-          </button>
-        )}
-      </div>
-      {open && debouncedQuery.length >= 2 && (
-        <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto"
-          style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(255,102,0,0.2)", backdropFilter: "blur(12px)" }}>
-          {!hasResults ? (
-            <p className="text-xs text-muted-foreground px-4 py-3">No results for "{debouncedQuery}"</p>
-          ) : (
-            <>
-              {(products?.slice(0, 5) ?? []).map((p) => (
-                <Link key={p.id} href="/admin/products" onClick={() => { setQuery(""); setOpen(false); }}>
-                  <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors">
-                    {p.imageUrl ? (
-                      <img src={p.imageUrl} alt={p.name} className="w-7 h-7 rounded object-cover border border-white/10 shrink-0" />
-                    ) : (
-                      <div className="w-7 h-7 rounded bg-white/5 border border-white/10 shrink-0 flex items-center justify-center">
-                        <Package className="h-3 w-3 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold truncate">{p.name}</p>
-                      <p className="text-[10px] text-muted-foreground">AED {p.price.toFixed(2)} · {p.categoryName ?? "No category"}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-              {filteredCategories.slice(0, 3).map((c) => (
-                <Link key={c.id} href="/admin/categories" onClick={() => { setQuery(""); setOpen(false); }}>
-                  <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors">
-                    <Tag className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <p className="text-xs font-bold">{c.name}</p>
-                  </div>
-                </Link>
-              ))}
-            </>
+        <AnimatePresence>
+          {query && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              onClick={() => { setQuery(""); setOpen(false); }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-3 w-3" />
+            </motion.button>
           )}
-        </div>
-      )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence>
+        {open && debouncedQuery.length >= 2 && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: EASE }}
+            className="absolute left-3 right-3 top-full mt-1 z-50 rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto"
+            style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(255,102,0,0.2)", backdropFilter: "blur(12px)" }}
+          >
+            {!hasResults ? (
+              <p className="text-xs text-muted-foreground px-4 py-3">No results for "{debouncedQuery}"</p>
+            ) : (
+              <>
+                {allResults.map((r, i) => {
+                  const isSelected = i === selectedIdx;
+                  if (r.type === "product") {
+                    const p = r.item as typeof products extends (infer T)[] | undefined ? T : never;
+                    return (
+                      <Link key={`p-${(p as {id:number}).id}`} href="/admin/products" onClick={() => { setQuery(""); setOpen(false); }}>
+                        <motion.div
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className={`flex items-center gap-2 px-4 py-2.5 cursor-pointer transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-white/5"}`}
+                        >
+                          {(p as {imageUrl: string|null}).imageUrl ? (
+                            <img src={(p as {imageUrl: string}).imageUrl} alt={(p as {name: string}).name} className="w-7 h-7 rounded object-cover border border-white/10 shrink-0" />
+                          ) : (
+                            <div className="w-7 h-7 rounded bg-white/5 border border-white/10 shrink-0 flex items-center justify-center">
+                              <Package className="h-3 w-3 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold truncate">
+                              <HighlightMatch text={(p as {name:string}).name} query={debouncedQuery} />
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">AED {Number((p as {price:string}).price).toFixed(2)}</p>
+                          </div>
+                        </motion.div>
+                      </Link>
+                    );
+                  } else {
+                    const c = r.item as { id: number; name: string };
+                    return (
+                      <Link key={`c-${c.id}`} href="/admin/categories" onClick={() => { setQuery(""); setOpen(false); }}>
+                        <motion.div
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className={`flex items-center gap-2 px-4 py-2.5 cursor-pointer transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-white/5"}`}
+                        >
+                          <Tag className="h-3.5 w-3.5 text-primary shrink-0" />
+                          <p className="text-xs font-bold">
+                            <HighlightMatch text={c.name} query={debouncedQuery} />
+                          </p>
+                        </motion.div>
+                      </Link>
+                    );
+                  }
+                })}
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+const sidebarVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.04, delayChildren: 0.1 } },
+};
+const linkVariants = {
+  hidden: { opacity: 0, x: -14 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.35, ease: EASE } },
+};
+const contentVariants = {
+  initial: { opacity: 0, y: 14 },
+  enter: { opacity: 1, y: 0, transition: { duration: 0.38, ease: EASE } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.18 } },
+};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -107,13 +193,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "transparent" }}>
-        <div className="flex flex-col items-center gap-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
           <div className="relative w-10 h-10">
-            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-orange-500 animate-spin" />
-            <div className="absolute inset-1.5 rounded-full border border-transparent border-t-yellow-400 animate-spin" style={{ animationDirection: "reverse", animationDuration: "0.7s" }} />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 rounded-full border-2 border-transparent border-t-orange-500"
+            />
+            <motion.div
+              animate={{ rotate: -360 }}
+              transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-1.5 rounded-full border border-transparent border-t-yellow-400"
+            />
           </div>
           <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">Loading…</p>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -184,26 +282,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
 
         {/* Header */}
-        <div className="relative p-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: EASE }}
+          className="relative p-5 pb-4"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="relative flex items-center justify-center w-7 h-7 rounded-lg shrink-0"
-              style={{ background: "linear-gradient(135deg, #ff6600, #ffcc00)", boxShadow: "0 2px 12px rgba(255,102,0,0.45)" }}>
+            <motion.div
+              whileHover={{ scale: 1.12, rotate: 10 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              className="relative flex items-center justify-center w-7 h-7 rounded-lg shrink-0"
+              style={{ background: "linear-gradient(135deg, #ff6600, #ffcc00)", boxShadow: "0 2px 12px rgba(255,102,0,0.45)" }}
+            >
               <Zap className="h-3.5 w-3.5 text-white" />
-              {/* Pulsing ring */}
               <div className="absolute inset-0 rounded-lg opacity-50"
                 style={{ border: "1px solid rgba(255,204,0,0.8)", animation: "statusDotPulse 2s ease-in-out infinite" }} />
-            </div>
-            <span
-              className="font-black uppercase tracking-[0.18em] text-sm gradient-text-animate"
-            >
+            </motion.div>
+            <span className="font-black uppercase tracking-[0.18em] text-sm gradient-text-animate">
               Chamak Admin
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground pl-9">@{user.username}</p>
-        </div>
+        </motion.div>
 
         {/* Action buttons */}
-        <div className="px-3 pt-3 pb-2 flex gap-2">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.3 }}
+          className="px-3 pt-3 pb-2 flex gap-2"
+        >
           <Link href="/" className="flex-1">
             <Button
               variant="outline" size="sm"
@@ -222,16 +332,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Globe className="h-3.5 w-3.5" />
             </Button>
           </a>
-        </div>
+        </motion.div>
 
         <div className="pb-1">
           <GlobalSearch />
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 py-2 px-3 overflow-y-auto space-y-5">
-          {linkGroups.map((group) => (
-            <div key={group.label}>
+        {/* Nav — staggered entrance */}
+        <motion.nav
+          variants={sidebarVariants}
+          initial="hidden"
+          animate="show"
+          className="flex-1 py-2 px-3 overflow-y-auto space-y-5"
+        >
+          {linkGroups.map((group, gi) => (
+            <motion.div key={group.label} variants={linkVariants} custom={gi}>
               <p
                 className="text-[9px] uppercase tracking-[0.28em] font-black px-3 mb-2"
                 style={{ animation: "adminLabelColor 5s ease-in-out infinite" }}
@@ -239,68 +354,84 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {group.label}
               </p>
               <div className="space-y-0.5">
-                {group.links.map((link) => {
+                {group.links.map((link, li) => {
                   const Icon = link.icon;
                   const isActive = location === link.href;
                   return (
-                    <Link key={link.href} href={link.href}>
-                      <div
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-[11px] tracking-wide cursor-pointer transition-all duration-200 relative overflow-hidden ${
-                          isActive ? "admin-active-pill text-white" : "text-muted-foreground hover:text-foreground"
-                        }`}
-                        style={!isActive ? {
-                          background: "transparent",
-                        } : undefined}
-                        onMouseEnter={!isActive ? e => {
-                          (e.currentTarget as HTMLElement).style.background = "rgba(255,102,0,0.08)";
-                          (e.currentTarget as HTMLElement).style.color = "rgba(255,200,100,0.9)";
-                        } : undefined}
-                        onMouseLeave={!isActive ? e => {
-                          (e.currentTarget as HTMLElement).style.background = "transparent";
-                          (e.currentTarget as HTMLElement).style.color = "";
-                        } : undefined}
-                      >
-                        {/* Shimmer on active */}
-                        {isActive && (
-                          <div
-                            className="absolute inset-0 pointer-events-none"
-                            style={{
-                              background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
-                              animation: "adminShimmer 2.5s ease-in-out infinite",
-                            }}
-                          />
-                        )}
-                        <Icon className="h-3.5 w-3.5 shrink-0 relative z-10" />
-                        <span className="relative z-10">{link.label}</span>
-                        {isActive && (
-                          <div className="ml-auto w-1 h-1 rounded-full bg-white/80 shrink-0 relative z-10"
-                            style={{ boxShadow: "0 0 6px white" }} />
-                        )}
-                      </div>
-                    </Link>
+                    <motion.div key={link.href} variants={linkVariants} custom={li}>
+                      <Link href={link.href}>
+                        <motion.div
+                          whileHover={!isActive ? { x: 3, backgroundColor: "rgba(255,102,0,0.08)" } : {}}
+                          whileTap={{ scale: 0.97 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-[11px] tracking-wide cursor-pointer relative overflow-hidden ${
+                            isActive ? "admin-active-pill text-white" : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {isActive && (
+                            <div
+                              className="absolute inset-0 pointer-events-none"
+                              style={{
+                                background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
+                                animation: "adminShimmer 2.5s ease-in-out infinite",
+                              }}
+                            />
+                          )}
+                          <Icon className="h-3.5 w-3.5 shrink-0 relative z-10" />
+                          <span className="relative z-10">{link.label}</span>
+                          {isActive && (
+                            <motion.div
+                              layoutId="admin-active-dot"
+                              className="ml-auto w-1.5 h-1.5 rounded-full bg-white/80 shrink-0 relative z-10"
+                              style={{ boxShadow: "0 0 6px white" }}
+                              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                            />
+                          )}
+                        </motion.div>
+                      </Link>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </nav>
+        </motion.nav>
 
         {/* Bottom badge */}
-        <div className="px-4 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="px-4 py-3"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        >
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
             style={{ background: "rgba(255,102,0,0.06)", border: "1px solid rgba(255,102,0,0.15)" }}>
-            <div className="w-1.5 h-1.5 rounded-full shrink-0 admin-status-dot"
-              style={{ background: "#ff6600" }} />
+            <motion.div
+              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="w-1.5 h-1.5 rounded-full shrink-0"
+              style={{ background: "#ff6600" }}
+            />
             <span className="text-[9px] font-black uppercase tracking-widest text-orange-400/70">System Online</span>
           </div>
-        </div>
+        </motion.div>
       </aside>
 
-      {/* ── Main content ── */}
+      {/* ── Main content — animated on route change ── */}
       <main className="flex-1 overflow-auto" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)" }}>
-        <div className="p-6 md:p-8">
-          {children}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location}
+            variants={contentVariants}
+            initial="initial"
+            animate="enter"
+            exit="exit"
+            className="p-6 md:p-8"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );
