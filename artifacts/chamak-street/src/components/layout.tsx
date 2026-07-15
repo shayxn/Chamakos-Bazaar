@@ -3,7 +3,7 @@ import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout, 
 import { ShoppingCart, User, Search, LogOut, Settings, MessageCircle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
-import { motion, AnimatePresence } from "@/lib/motion-noop";
+import { motion, AnimatePresence } from "framer-motion";
 import { useSettings } from "@/lib/use-settings";
 import { SmartSearchModal } from "./smart-search";
 import { AnnouncementBanner } from "./announcement-banner";
@@ -138,10 +138,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="hidden md:block border-t border-white/8">
           <div className="max-w-[1440px] mx-auto px-6">
             <div className="flex items-center justify-center gap-8 h-10">
-              {navCategories.map((link) => {
+              {[...navCategories, { href: "/order-tracking", label: "Track Order" }].map((link) => {
                 const isActive = link.href === "/shop"
-                  ? location === "/shop" && !link.href.includes("?")
-                  : location === link.href;
+                  ? location === "/shop" && !location.includes("?")
+                  : location + (typeof window !== "undefined" ? window.location.search : "") === link.href ||
+                    location === link.href;
                 return (
                   <Link
                     key={link.href}
@@ -152,19 +153,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   >
                     {link.label}
                     {isActive && (
-                      <span className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-primary rounded-full" />
+                      <motion.span
+                        layoutId="nav-active-indicator"
+                        className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-primary rounded-full"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
                     )}
                   </Link>
                 );
               })}
-              <Link
-                href="/order-tracking"
-                className={`text-[11px] font-black uppercase tracking-[0.18em] transition-colors duration-200 ${
-                  location === "/order-tracking" ? "text-primary" : "text-white/55 hover:text-white"
-                }`}
-              >
-                Track Order
-              </Link>
             </div>
           </div>
         </div>
