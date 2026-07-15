@@ -84,22 +84,19 @@ export function LoadingScreen() {
           pointerEvents: "none",
         }} />
 
-        {/* Logo — 4K, fills the screen */}
+        {/* Logo — high-res, mix-blend-mode:screen makes the dark bg invisible */}
         <img
-          src="/chamak-logo-transparent.png"
+          src="/chamak-logo.png"
           alt="Chamak Street"
           onLoad={() => setLogoReady(true)}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = "/chamak-logo.png";
-            setLogoReady(true);
-          }}
+          onError={(e) => { setLogoReady(true); }}
           style={{
-            width: "min(72vw, 640px)",
+            width: "min(52vw, 420px)",
             height: "auto",
-            maxHeight: "55vh",
+            maxHeight: "45vh",
             objectFit: "contain",
             display: "block",
-            imageRendering: "crisp-edges",
+            mixBlendMode: "screen",
             animation: logoReady
               ? "csLogoReveal 0.9s cubic-bezier(0.16,1,0.3,1) both"
               : undefined,
