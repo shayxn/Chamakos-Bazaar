@@ -139,7 +139,7 @@ function GlobalSearch() {
                             <p className="text-xs font-bold truncate">
                               <HighlightMatch text={(p as {name:string}).name} query={debouncedQuery} />
                             </p>
-                            <p className="text-[10px] text-muted-foreground">AED {Number((p as {price:string}).price).toFixed(2)}</p>
+                            <p className="text-[10px] text-muted-foreground">AED {Number((p as {price: number}).price).toFixed(2)}</p>
                           </div>
                         </motion.div>
                       </Link>

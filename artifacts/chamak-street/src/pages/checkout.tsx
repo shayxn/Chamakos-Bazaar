@@ -17,6 +17,7 @@ import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 
 const SHIPPING_FEE = 25;
+const FREE_SHIPPING_THRESHOLD = 300;
 
 const checkoutSchema = z.object({
   customerName: z.string().min(2, "Name is required"),
@@ -28,8 +29,10 @@ type CheckoutValues = z.infer<typeof checkoutSchema>;
 
 type PaymentMethod = "cod" | "ziina";
 
+const _BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
 async function createZiinaCheckout(values: CheckoutValues): Promise<string> {
-  const response = await fetch("/api/payments/ziina-checkout", {
+  const response = await fetch(`${_BASE}/api/payments/ziina-checkout`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -71,7 +74,8 @@ export default function Checkout() {
   if (!cart || cart.items.length === 0) return <Redirect href="/cart" />;
 
   const subtotal = cart.total;
-  const grandTotal = subtotal + SHIPPING_FEE;
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+  const grandTotal = subtotal + shipping;
 
   const trackAbandonedCart = (name: string, phone: string) => {
     if (cartTracked || !cart || cart.items.length === 0) return;
@@ -333,7 +337,10 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-1"><Truck className="h-3 w-3" /> Shipping</span>
-                  <span className="font-mono font-bold text-primary">AED {SHIPPING_FEE.toFixed(2)}</span>
+                  {shipping === 0
+                    ? <span className="font-bold text-green-400">Free 🎉</span>
+                    : <span className="font-mono font-bold text-primary">AED {shipping.toFixed(2)}</span>
+                  }
                 </div>
                 <div className="border-t border-border pt-3 flex justify-between items-end">
                   <span className="font-black uppercase tracking-wider">Total</span>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
 type ContentPage = {
   slug: string;
   title: string;
@@ -38,7 +40,7 @@ export default function Terms() {
   const [page, setPage] = useState<ContentPage | null>(null);
 
   useEffect(() => {
-    fetch("/api/content/terms", { credentials: "include" })
+    fetch(`${BASE}/api/content/terms`, { credentials: "include" })
       .then((response) => response.json())
       .then((data: ContentPage) => setPage(data))
       .catch(() => setPage(null));

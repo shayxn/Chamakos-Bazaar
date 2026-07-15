@@ -65,7 +65,7 @@ export default function Shop() {
     if (!rawProducts) return rawProducts;
     let list = [...rawProducts];
     if (isNewest || sortKey === "newest") {
-      list = list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      list = list.sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
     } else if (sortKey === "price-asc") {
       list = list.sort((a, b) => a.price - b.price);
     } else if (sortKey === "price-desc") {

@@ -2,11 +2,8 @@ import { type ReactNode, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useLocation } from "wouter";
 
-const pageVariants = {
-  initial: { opacity: 0, y: 18 },
-  enter: { opacity: 1, y: 0, transition: { duration: 0.42, ease: [0.16, 1, 0.3, 1] } },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.22, ease: "easeIn" } },
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const EASE_CURVE: any = [0.16, 1, 0.3, 1];
 
 export function PageTransition({ children }: { children: ReactNode }) {
   const [location] = useLocation();
@@ -14,10 +11,9 @@ export function PageTransition({ children }: { children: ReactNode }) {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={location}
-        variants={pageVariants}
-        initial="initial"
-        animate="enter"
-        exit="exit"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.42, ease: EASE_CURVE } }}
+        exit={{ opacity: 0, y: -10, transition: { duration: 0.22, ease: "easeIn" } }}
       >
         {children}
       </motion.div>
@@ -27,10 +23,11 @@ export function PageTransition({ children }: { children: ReactNode }) {
 
 const revealVariants = {
   hidden: { opacity: 0, y: 32 },
-  visible: (delay: number = 0) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  visible: (delay: number = 0): any => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1], delay },
+    transition: { duration: 0.55, ease: EASE_CURVE, delay },
   }),
 };
 
@@ -68,9 +65,10 @@ const listVariants = {
   },
 };
 
-export const revealItem = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const revealItem: any = {
   hidden: { opacity: 0, y: 22 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_CURVE } },
 };
 
 export function RevealList({

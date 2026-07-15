@@ -828,7 +828,7 @@ export default function AdminProducts() {
             {/* Badges & Flags */}
             <Section title="Badges & Flags" icon={Sparkles} accent="rgba(251,191,36,0.18)">
               <div className="grid grid-cols-2 gap-2">
-                <PillToggle checked={formData.featured} onChange={v => set({ featured: v })}
+                <PillToggle checked={formData.featured ?? false} onChange={v => set({ featured: v })}
                   label="Featured" icon={Star} color="#ff6600" />
                 <PillToggle checked={formData.sellingFast ?? false} onChange={v => set({ sellingFast: v })}
                   label="Selling Fast" icon={Flame} color="#f97316" />
