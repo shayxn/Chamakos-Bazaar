@@ -1,166 +1,382 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useListProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useListCategories, getListProductsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Upload, Image, CheckCircle, XCircle, X, Calendar, Package, ChevronDown, EyeOff, Eye, Star } from "lucide-react";
+import {
+  Plus, Edit, Trash2, Upload, Image as ImageIcon, CheckCircle, XCircle,
+  X, Calendar, Package, EyeOff, Star, Flame, Tag, DollarSign, Layers,
+  GripVertical, ChevronDown, ChevronUp, Sparkles, ShieldCheck, AlertTriangle
+} from "lucide-react";
 import type { Product, ProductInput } from "@workspace/api-client-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet, SheetContent, SheetHeader, SheetTitle,
+} from "@/components/ui/sheet";
 import { getPrimaryProductMedia, parseProductMedia, serializeProductMedia, type ProductMedia } from "@/lib/product-media";
 import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+const EASE = [0.16, 1, 0.3, 1] as const;
 
-type CloudinarySignature = {
-  apiKey: string; folder: string; signature: string; timestamp: string; uploadUrl: string;
-};
+/* ── Upload helper ── */
+type CloudinarySignature = { apiKey: string; folder: string; signature: string; timestamp: string; uploadUrl: string; };
 
 async function uploadMedia(file: File): Promise<ProductMedia> {
   const signatureRes = await fetch(`${BASE}/api/uploads/sign`, { method: "POST", credentials: "include" });
   if (signatureRes.ok) {
-    const signature = await signatureRes.json() as CloudinarySignature;
-    const cloudinaryForm = new FormData();
-    cloudinaryForm.append("file", file);
-    cloudinaryForm.append("api_key", signature.apiKey);
-    cloudinaryForm.append("timestamp", signature.timestamp);
-    cloudinaryForm.append("folder", signature.folder);
-    cloudinaryForm.append("signature", signature.signature);
-    const uploadRes = await fetch(signature.uploadUrl, { method: "POST", body: cloudinaryForm });
-    if (!uploadRes.ok) throw new Error("Cloudinary upload failed");
-    const data = await uploadRes.json() as { secure_url?: string; resource_type?: string };
-    if (!data.secure_url) throw new Error("Cloudinary upload response missing URL");
-    return { url: data.secure_url, type: data.resource_type === "video" || file.type.startsWith("video/") ? "video" : "image" };
+    const sig = await signatureRes.json() as CloudinarySignature;
+    const form = new FormData();
+    form.append("file", file); form.append("api_key", sig.apiKey);
+    form.append("timestamp", sig.timestamp); form.append("folder", sig.folder); form.append("signature", sig.signature);
+    const up = await fetch(sig.uploadUrl, { method: "POST", body: form });
+    if (!up.ok) throw new Error("Cloudinary upload failed");
+    const d = await up.json() as { secure_url?: string; resource_type?: string };
+    if (!d.secure_url) throw new Error("Missing URL");
+    return { url: d.secure_url, type: d.resource_type === "video" || file.type.startsWith("video/") ? "video" : "image" };
   }
-  if (signatureRes.status !== 404) throw new Error("Upload signing failed");
-  const formData = new FormData();
-  formData.append("file", file);
-  const res = await fetch(`${BASE}/api/uploads`, { method: "POST", body: formData, credentials: "include" });
+  if (signatureRes.status !== 404) throw new Error("Signing failed");
+  const fd = new FormData(); fd.append("file", file);
+  const res = await fetch(`${BASE}/api/uploads`, { method: "POST", body: fd, credentials: "include" });
   if (!res.ok) throw new Error("Upload failed");
-  const data = await res.json() as { url: string; type?: "image" | "video" };
-  return { url: data.url, type: data.type === "video" ? "video" : "image" };
+  const d = await res.json() as { url: string; type?: "image" | "video" };
+  return { url: d.url, type: d.type === "video" ? "video" : "image" };
 }
 
 type ProductFormData = ProductInput & {
-  isPreOrder?: boolean;
-  preOrderLabel?: string | null;
-  preOrderDate?: string | null;
-  preOrderNote?: string | null;
-  sellingFast?: boolean;
-  spotlight?: boolean;
-  hidden?: boolean;
-  publishAt?: string | null;
-  unpublishAt?: string | null;
+  isPreOrder?: boolean; preOrderLabel?: string | null; preOrderDate?: string | null; preOrderNote?: string | null;
+  sellingFast?: boolean; spotlight?: boolean; hidden?: boolean; publishAt?: string | null; unpublishAt?: string | null;
 };
 
 const BULK_ACTIONS = [
-  { value: "hide", label: "Hide Selected" },
-  { value: "show", label: "Show Selected" },
-  { value: "feature", label: "Mark as Featured" },
-  { value: "unfeature", label: "Remove from Featured" },
-  { value: "preorder", label: "Enable Pre-Order" },
-  { value: "unpreorder", label: "Disable Pre-Order" },
+  { value: "hide", label: "Hide Selected" }, { value: "show", label: "Show Selected" },
+  { value: "feature", label: "Mark as Featured" }, { value: "unfeature", label: "Remove from Featured" },
+  { value: "preorder", label: "Enable Pre-Order" }, { value: "unpreorder", label: "Disable Pre-Order" },
   { value: "delete", label: "Delete Selected" },
 ];
 
+/* ── Animated Toggle ── */
+function Toggle({ checked, onChange, color = "#ff6600" }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
+  return (
+    <motion.button
+      type="button"
+      onClick={() => onChange(!checked)}
+      animate={{ backgroundColor: checked ? color : "rgba(255,255,255,0.1)" }}
+      transition={{ duration: 0.2 }}
+      className="relative inline-flex w-11 h-6 rounded-full shrink-0 focus:outline-none"
+      style={{ boxShadow: checked ? `0 0 10px ${color}55` : undefined }}
+    >
+      <motion.span
+        animate={{ x: checked ? 22 : 2 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md"
+      />
+    </motion.button>
+  );
+}
+
+/* ── Pill Badge Toggle ── */
+function PillToggle({ checked, onChange, label, icon: Icon, color }: {
+  checked: boolean; onChange: (v: boolean) => void; label: string; icon: React.ElementType; color: string;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={() => onChange(!checked)}
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.96 }}
+      animate={{
+        backgroundColor: checked ? `${color}20` : "rgba(255,255,255,0.04)",
+        borderColor: checked ? `${color}60` : "rgba(255,255,255,0.1)",
+        color: checked ? color : "rgba(255,255,255,0.45)",
+      }}
+      transition={{ duration: 0.18 }}
+      className="flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider"
+    >
+      <Icon className="h-3.5 w-3.5 shrink-0" />
+      {label}
+      <motion.div
+        animate={{ scale: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
+        className="ml-auto w-1.5 h-1.5 rounded-full shrink-0"
+        style={{ background: color }}
+      />
+    </motion.button>
+  );
+}
+
+/* ── Section wrapper ── */
+function Section({ title, icon: Icon, children, accent = "rgba(255,255,255,0.08)", collapsible = false }:
+  { title: string; icon: React.ElementType; children: React.ReactNode; accent?: string; collapsible?: boolean }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-xl border overflow-hidden"
+      style={{ borderColor: "rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}
+    >
+      <button
+        type="button"
+        onClick={() => collapsible && setOpen(o => !o)}
+        className={`w-full flex items-center gap-2.5 px-4 py-3 text-left ${collapsible ? "cursor-pointer hover:bg-white/3" : "cursor-default"}`}
+        style={{ borderBottom: open ? "1px solid rgba(255,255,255,0.06)" : undefined }}
+      >
+        <span className="flex items-center justify-center w-6 h-6 rounded-md shrink-0" style={{ background: accent }}>
+          <Icon className="h-3.5 w-3.5 text-white/70" />
+        </span>
+        <span className="text-xs font-black uppercase tracking-widest text-white/60 flex-1">{title}</span>
+        {collapsible && (open ? <ChevronUp className="h-3.5 w-3.5 text-white/30" /> : <ChevronDown className="h-3.5 w-3.5 text-white/30" />)}
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: EASE }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 py-4 space-y-4">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+/* ── Field ── */
+function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-[10px] font-black uppercase tracking-widest text-white/40">{label}</label>
+      {children}
+      {hint && <p className="text-[10px] text-white/25">{hint}</p>}
+    </div>
+  );
+}
+
+/* ── Size chip input ── */
+function SizeChips({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const chips = value.split(",").map(s => s.trim()).filter(Boolean);
+  const [input, setInput] = useState("");
+  const add = () => {
+    const v = input.trim().toUpperCase();
+    if (v && !chips.includes(v)) onChange([...chips, v].join(", "));
+    setInput("");
+  };
+  const remove = (chip: string) => onChange(chips.filter(c => c !== chip).join(", "));
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-1.5 min-h-[32px]">
+        <AnimatePresence>
+          {chips.map(chip => (
+            <motion.span
+              key={chip}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="flex items-center gap-1 bg-white/8 border border-white/15 text-white/70 text-xs font-bold px-2.5 py-1 rounded-md"
+            >
+              {chip}
+              <button type="button" onClick={() => remove(chip)} className="text-white/40 hover:text-white/80 transition-colors ml-0.5">
+                <X className="h-2.5 w-2.5" />
+              </button>
+            </motion.span>
+          ))}
+        </AnimatePresence>
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={input}
+          onChange={e => setInput(e.target.value.toUpperCase())}
+          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); add(); } if (e.key === ",") { e.preventDefault(); add(); } }}
+          placeholder="Add size (e.g. XL) then press Enter"
+          className="h-8 text-xs bg-white/5 border-white/10 font-mono"
+        />
+        <Button type="button" size="sm" variant="outline" onClick={add} className="h-8 text-xs shrink-0 border-white/15">
+          + Add
+        </Button>
+      </div>
+      <p className="text-[10px] text-white/25">Press Enter or comma to add. Leave empty for one-size items.</p>
+    </div>
+  );
+}
+
+/* ── Media Upload Zone ── */
+function MediaZone({ items, onChange, uploading, onUpload }: {
+  items: ProductMedia[]; onChange: (items: ProductMedia[]) => void;
+  uploading: boolean; onUpload: (files: File[]) => Promise<void>;
+}) {
+  const [dragging, setDragging] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault(); setDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/") || f.type.startsWith("video/"));
+    if (files.length) await onUpload(files);
+  }, [onUpload]);
+
+  const remove = (i: number) => onChange(items.filter((_, idx) => idx !== i));
+
+  return (
+    <div className="space-y-3">
+      {/* Drop zone */}
+      <motion.div
+        animate={{ borderColor: dragging ? "rgba(255,102,0,0.7)" : uploading ? "rgba(255,102,0,0.4)" : "rgba(255,255,255,0.12)" }}
+        onDragOver={e => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+        onClick={() => fileRef.current?.click()}
+        className="relative rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2.5 py-8 cursor-pointer transition-colors"
+        style={{ background: dragging ? "rgba(255,102,0,0.06)" : uploading ? "rgba(255,102,0,0.04)" : "rgba(255,255,255,0.02)" }}
+      >
+        <motion.div
+          animate={uploading ? { rotate: 360 } : { rotate: 0 }}
+          transition={uploading ? { duration: 1.2, repeat: Infinity, ease: "linear" } : {}}
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ background: "rgba(255,102,0,0.12)", border: "1px solid rgba(255,102,0,0.25)" }}
+        >
+          {uploading ? <Upload className="h-5 w-5 text-primary" /> : <ImageIcon className="h-5 w-5 text-primary/60" />}
+        </motion.div>
+        <div className="text-center">
+          <p className="text-sm font-bold text-white/60">
+            {uploading ? "Uploading…" : dragging ? "Drop to upload" : "Drag & drop or click to browse"}
+          </p>
+          <p className="text-[10px] text-white/30 mt-0.5">JPG, PNG, WEBP, MP4, MOV — up to 8 files</p>
+        </div>
+        <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
+          onChange={async e => {
+            const files = Array.from(e.target.files ?? []);
+            if (files.length) await onUpload(files);
+            e.target.value = "";
+          }}
+        />
+      </motion.div>
+
+      {/* Preview grid */}
+      {items.length > 0 && (
+        <div className="grid grid-cols-4 gap-2">
+          <AnimatePresence>
+            {items.map((item, i) => (
+              <motion.div
+                key={`${item.url}-${i}`}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.22, ease: EASE }}
+                className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-white/5 group"
+              >
+                {i === 0 && (
+                  <div className="absolute top-1 left-1 z-10 bg-primary text-black text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm">
+                    Main
+                  </div>
+                )}
+                {item.type === "video" ? (
+                  <>
+                    <video src={item.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                    <div className="absolute bottom-0 inset-x-0 bg-black/70 text-center text-[8px] font-black uppercase text-white py-0.5">Video</div>
+                  </>
+                ) : (
+                  <img src={item.url} alt="" className="w-full h-full object-cover" />
+                )}
+                <button
+                  type="button"
+                  onClick={() => remove(i)}
+                  className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </motion.div>
+            ))}
+            {items.length < 8 && (
+              <motion.div
+                onClick={() => fileRef.current?.click()}
+                className="aspect-square rounded-lg border-2 border-dashed border-white/10 flex items-center justify-center cursor-pointer hover:border-primary/40 transition-colors"
+              >
+                <Plus className="h-5 w-5 text-white/20" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   MAIN PAGE
+══════════════════════════════════════ */
 export default function AdminProducts() {
   const { data: products, isLoading } = useListProducts(undefined, { query: { queryKey: getListProductsQueryKey() } });
   const { data: categories } = useListCategories({ query: { queryKey: ["categories"] } });
-
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [inStock, setInStock] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [mediaItems, setMediaItems] = useState<ProductMedia[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkAction, setBulkAction] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [formData, setFormData] = useState<ProductFormData>({
-    name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
+    name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "",
     featured: false, rep: false, categoryId: undefined,
     isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
     sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
   });
 
-  const toggleSelect = (id: number) => {
-    setSelectedIds(s => {
-      const n = new Set(s);
-      n.has(id) ? n.delete(id) : n.add(id);
-      return n;
-    });
-  };
+  const set = (partial: Partial<ProductFormData>) => setFormData(f => ({ ...f, ...partial }));
 
-  const handleSetSpotlight = (e: React.MouseEvent, product: ProductFormData & { id: number }) => {
-    e.stopPropagation();
-    if (product.spotlight) return;
-    updateProduct.mutate(
-      { id: product.id, data: { ...product, spotlight: true } as ProductInput },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
-          toast({ title: "⭐ Featured Drop updated", description: `${product.name} is now the Featured Drop.` });
-        },
-      }
-    );
-  };
-
-  const toggleAll = () => {
-    if (selectedIds.size === products?.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(products?.map(p => p.id) ?? []));
-    }
-  };
-
-  const executeBulkAction = async () => {
-    if (!bulkAction || selectedIds.size === 0) return;
-    if (bulkAction === "delete" && !confirm(`Delete ${selectedIds.size} products? This cannot be undone.`)) return;
-    setBulkLoading(true);
+  const handleUpload = async (files: File[]) => {
+    setUploading(true);
     try {
-      const res = await fetch(`${BASE}/api/products/bulk-action`, {
-        method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selectedIds), action: bulkAction }),
+      const uploaded: ProductMedia[] = [];
+      for (const file of files) uploaded.push(await uploadMedia(file));
+      setMediaItems(prev => {
+        const next = [...prev, ...uploaded];
+        set({ imageUrl: serializeProductMedia(next) });
+        return next;
       });
-      if (res.ok) {
-        const data = await res.json() as { affected: number };
-        toast({ title: `Done — ${data.affected} products updated` });
-        setSelectedIds(new Set());
-        setBulkAction("");
-        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
-      } else {
-        toast({ title: "Bulk action failed", variant: "destructive" });
-      }
+    } catch {
+      toast({ title: "Upload failed", variant: "destructive" });
     } finally {
-      setBulkLoading(false);
+      setUploading(false);
     }
+  };
+
+  const handleMediaChange = (items: ProductMedia[]) => {
+    setMediaItems(items);
+    set({ imageUrl: items.length > 0 ? serializeProductMedia(items) : "" });
+  };
+
+  const openNew = () => {
+    setEditingId(null); setInStock(true); setMediaItems([]);
+    setFormData({
+      name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
+      featured: false, rep: false, categoryId: categories?.[0]?.id,
+      isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
+      sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
+    });
+    setSheetOpen(true);
   };
 
   const openEdit = (product: Product) => {
     setEditingId(product.id);
-    const isInStock = product.stock > 0;
-    setInStock(isInStock);
+    setInStock(product.stock > 0);
     setMediaItems(parseProductMedia(product.imageUrl));
     setFormData({
-      name: product.name,
-      price: product.price,
-      stock: isInStock ? 100 : 0,
-      imageUrl: product.imageUrl || "",
-      description: product.description || "",
-      sizes: product.sizes || "",
-      featured: product.featured,
-      rep: product.rep,
+      name: product.name, price: product.price,
+      stock: product.stock > 0 ? 100 : 0,
+      imageUrl: product.imageUrl || "", description: product.description || "",
+      sizes: product.sizes || "", featured: product.featured, rep: product.rep,
       categoryId: product.categoryId || undefined,
       isPreOrder: (product as ProductFormData).isPreOrder ?? false,
       preOrderLabel: (product as ProductFormData).preOrderLabel ?? "",
@@ -172,409 +388,437 @@ export default function AdminProducts() {
       publishAt: (product as ProductFormData).publishAt ?? null,
       unpublishAt: (product as ProductFormData).unpublishAt ?? null,
     });
-    setIsDialogOpen(true);
-  };
-
-  const openNew = () => {
-    setEditingId(null);
-    setInStock(true);
-    setMediaItems([]);
-    setFormData({
-      name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
-      featured: false, rep: false, categoryId: categories?.[0]?.id,
-      isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
-      sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
-    });
-    setIsDialogOpen(true);
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length === 0) return;
-    setUploading(true);
-    try {
-      const uploaded: ProductMedia[] = [];
-      for (const file of files) { uploaded.push(await uploadMedia(file)); }
-      setMediaItems((prev) => {
-        const next = [...prev, ...uploaded];
-        setFormData((current: ProductFormData) => ({ ...current, imageUrl: serializeProductMedia(next) }));
-        return next;
-      });
-    } catch {
-      alert("Media upload failed. Try again.");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
-  const removeMedia = (index: number) => {
-    setMediaItems((prev) => {
-      const next = prev.filter((_, i) => i !== index);
-      setFormData((current: ProductFormData) => ({ ...current, imageUrl: next.length > 0 ? serializeProductMedia(next) : "" }));
-      return next;
-    });
+    setSheetOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const data = {
-      ...formData,
-      imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "",
-      stock: inStock ? 100 : 0,
+    if (!formData.name.trim()) { toast({ title: "Name is required", variant: "destructive" }); return; }
+    if (!formData.price || formData.price <= 0) { toast({ title: "Enter a valid price", variant: "destructive" }); return; }
+    const data = { ...formData, imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "", stock: inStock ? 100 : 0 };
+    const opts = {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+        setSheetOpen(false);
+        toast({ title: editingId ? "Product updated ✓" : "Product created ✓" });
+      },
     };
-    if (editingId) {
-      updateProduct.mutate({ id: editingId, data: data as ProductInput }, {
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() }); setIsDialogOpen(false); }
-      });
-    } else {
-      createProduct.mutate({ data: data as ProductInput }, {
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() }); setIsDialogOpen(false); }
-      });
-    }
+    if (editingId) updateProduct.mutate({ id: editingId, data: data as ProductInput }, opts);
+    else createProduct.mutate({ data: data as ProductInput }, opts);
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Are you sure you want to drop this item?")) {
-      deleteProduct.mutate({ id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() }) });
+    if (confirm("Delete this product?")) {
+      deleteProduct.mutate({ id }, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+          toast({ title: "Product deleted" });
+        }
+      });
     }
   };
 
-  if (isLoading) return <div className="py-20 text-center text-muted-foreground">Loading inventory...</div>;
+  const handleSetSpotlight = (e: React.MouseEvent, product: Product & ProductFormData) => {
+    e.stopPropagation();
+    if (product.spotlight) return;
+    updateProduct.mutate({ id: product.id, data: { ...product, spotlight: true } as ProductInput }, {
+      onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() }); toast({ title: "⭐ Spotlight updated" }); }
+    });
+  };
+
+  const toggleSelect = (id: number) => setSelectedIds(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleAll = () => setSelectedIds(selectedIds.size === products?.length ? new Set() : new Set(products?.map(p => p.id) ?? []));
+
+  const executeBulkAction = async () => {
+    if (!bulkAction || selectedIds.size === 0) return;
+    if (bulkAction === "delete" && !confirm(`Delete ${selectedIds.size} products?`)) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch(`${BASE}/api/products/bulk-action`, {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action: bulkAction }),
+      });
+      if (res.ok) {
+        const d = await res.json() as { affected: number };
+        toast({ title: `${d.affected} products updated` });
+        setSelectedIds(new Set()); setBulkAction("");
+        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+      }
+    } finally { setBulkLoading(false); }
+  };
+
+  const filteredProducts = (products ?? []).filter(p =>
+    !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const isPending = createProduct.isPending || updateProduct.isPending;
+
+  if (isLoading) return (
+    <div className="flex items-center justify-center py-32 gap-3">
+      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full" />
+      <span className="text-muted-foreground text-sm font-bold">Loading inventory…</span>
+    </div>
+  );
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-end">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-end gap-4">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Inventory</h1>
-          <p className="text-muted-foreground text-sm">Manage products, stock, and pre-order items.</p>
+          <h1 className="text-3xl font-black uppercase tracking-tighter mb-1">Inventory</h1>
+          <p className="text-muted-foreground text-sm">{products?.length ?? 0} products · Manage stock, media, and drops</p>
         </div>
+        <Button onClick={openNew} className="font-bold uppercase tracking-wider fire-gradient border-none shrink-0">
+          <Plus className="mr-2 h-4 w-4" /> Add Product
+        </Button>
+      </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openNew} className="font-bold uppercase tracking-wider fire-gradient border-none">
-              <Plus className="mr-2 h-4 w-4" /> Drop New Item
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl bg-card border border-border max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="font-black uppercase tracking-wider text-xl">
-                {editingId ? "Edit Item" : "New Drop"}
-              </DialogTitle>
-            </DialogHeader>
+      {/* Search + Bulk */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <input
+          value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Filter products…"
+          className="h-9 px-3 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 outline-none focus:border-primary/50 transition-colors"
+        />
+        <label className="flex items-center gap-2 text-sm font-bold cursor-pointer ml-auto">
+          <input type="checkbox" className="h-4 w-4 rounded"
+            checked={selectedIds.size > 0 && selectedIds.size === filteredProducts.length}
+            onChange={toggleAll} />
+          {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
+        </label>
+        <AnimatePresence>
+          {selectedIds.size > 0 && (
+            <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="flex items-center gap-2">
+              <select value={bulkAction} onChange={e => setBulkAction(e.target.value)}
+                className="h-8 px-3 text-xs bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none">
+                <option value="">Bulk action…</option>
+                {BULK_ACTIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+              </select>
+              <Button size="sm" onClick={executeBulkAction} disabled={!bulkAction || bulkLoading}
+                className={`text-xs font-black uppercase tracking-wider h-8 ${bulkAction === "delete" ? "bg-destructive text-white" : "bg-primary text-black"}`}>
+                {bulkLoading ? "…" : "Apply"}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())} className="text-xs h-8 text-muted-foreground">✕</Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Name</label>
-                  <Input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required className="bg-background" />
+      {/* Product grid */}
+      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <AnimatePresence>
+          {filteredProducts.map((product, i) => {
+            const primaryMedia = getPrimaryProductMedia(product.imageUrl);
+            const mediaCount = parseProductMedia(product.imageUrl).length;
+            const isHidden = (product as ProductFormData).hidden;
+            const isSelected = selectedIds.has(product.id);
+            return (
+              <motion.div
+                key={product.id}
+                layout
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: i * 0.03, duration: 0.3, ease: EASE }}
+                onClick={() => toggleSelect(product.id)}
+                className={`bg-card border rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-all duration-200 ${
+                  isSelected ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/30"
+                }`}
+              >
+                {/* Image */}
+                <div className="aspect-[4/3] bg-muted relative border-b border-border overflow-hidden">
+                  {primaryMedia ? (
+                    primaryMedia.type === "video"
+                      ? <video src={primaryMedia.url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" muted playsInline preload="metadata" />
+                      : <img src={primaryMedia.url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center"><Package className="h-10 w-10 text-muted-foreground/20" /></div>
+                  )}
+
+                  {isHidden && (
+                    <div className="absolute inset-0 bg-black/55 flex items-center justify-center backdrop-blur-[2px]">
+                      <div className="flex items-center gap-2 bg-black/70 text-white/80 text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-white/15">
+                        <EyeOff className="h-3.5 w-3.5" /> Hidden
+                      </div>
+                    </div>
+                  )}
+
+                  <AnimatePresence>
+                    {isSelected && (
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                        className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center z-10 shadow-lg">
+                        <CheckCircle className="h-4 w-4 text-black" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Badges */}
+                  <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    {product.featured && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Featured</span>}
+                    {(product as ProductFormData).isPreOrder && <span className="bg-yellow-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
+                    {(product as ProductFormData).sellingFast && <span className="bg-orange-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">🔥 Hot</span>}
+                    {(product as ProductFormData).spotlight && <span className="bg-yellow-400 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">⭐ Spotlight</span>}
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm ${product.rep ? "bg-[#111827] text-white border border-white/20" : "bg-green-500/90 text-black"}`}>
+                      {product.rep ? "REP" : "Original"}
+                    </span>
+                  </div>
+
+                  <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                    {mediaCount > 1 && <span className="bg-black/70 text-white text-[9px] font-black px-2 py-0.5 rounded-sm">{mediaCount} imgs</span>}
+                    {!isSelected && !isHidden && (
+                      <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm ${product.stock > 0 ? "bg-green-500/90 text-black" : "bg-red-500/90 text-white"}`}>
+                        {product.stock > 0 ? "In Stock" : "Sold Out"}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category</label>
+
+                {/* Info */}
+                <div className="p-4 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase text-muted-foreground tracking-widest mb-0.5">{product.categoryName || "—"}</p>
+                      <h3 className="font-bold leading-tight truncate">{product.name}</h3>
+                    </div>
+                    <p className="font-mono font-bold text-primary text-sm shrink-0 ml-2">AED {product.price.toFixed(2)}</p>
+                  </div>
+                  <div className="mt-auto pt-3 flex items-center gap-2 border-t border-border/40">
+                    <button
+                      onClick={e => handleSetSpotlight(e, product as Product & ProductFormData)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all border ${
+                        (product as ProductFormData).spotlight
+                          ? "bg-yellow-400/15 text-yellow-400 border-yellow-400/30 cursor-default"
+                          : "bg-transparent text-muted-foreground border-transparent hover:bg-yellow-400/8 hover:text-yellow-400 hover:border-yellow-400/20"
+                      }`}
+                    >
+                      <Star className={`h-3 w-3 ${(product as ProductFormData).spotlight ? "fill-yellow-400" : ""}`} />
+                      {(product as ProductFormData).spotlight ? "Spotlight" : "Set"}
+                    </button>
+                    <div className="ml-auto flex gap-1">
+                      <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                        onClick={e => { e.stopPropagation(); openEdit(product); }}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                        <Edit className="h-3.5 w-3.5" />
+                      </motion.button>
+                      <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                        onClick={e => { e.stopPropagation(); handleDelete(product.id); }}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-colors">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </motion.div>
+
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-20 text-muted-foreground">
+          <Package className="h-10 w-10 mx-auto mb-3 opacity-20" />
+          <p className="font-bold">{searchQuery ? `No products matching "${searchQuery}"` : "No products yet"}</p>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════
+          PRODUCT FORM SHEET
+      ═══════════════════════════════ */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-2xl flex flex-col p-0 gap-0 border-l border-white/8"
+          style={{ background: "#0a0a0a" }}
+        >
+          {/* Fixed header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/8 shrink-0"
+            style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(12px)" }}>
+            <div>
+              <SheetTitle className="font-black uppercase tracking-wider text-base">
+                {editingId ? "Edit Product" : "New Product"}
+              </SheetTitle>
+              {formData.name && (
+                <p className="text-xs text-white/40 mt-0.5 truncate max-w-[280px]">{formData.name}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setSheetOpen(false)}
+                className="text-xs border-white/15 text-white/60 hover:text-white">
+                Cancel
+              </Button>
+              <motion.button
+                form="product-form"
+                type="submit"
+                disabled={uploading || isPending}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-black transition-all disabled:opacity-50"
+                style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", boxShadow: "0 4px 16px rgba(255,102,0,0.35)" }}
+              >
+                {isPending ? (
+                  <><motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} className="inline-block w-3 h-3 border-2 border-black/30 border-t-black rounded-full" /> Saving…</>
+                ) : (
+                  <><CheckCircle className="h-3.5 w-3.5" /> {editingId ? "Save Changes" : "Create Product"}</>
+                )}
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Scrollable body */}
+          <form id="product-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+
+            {/* Media */}
+            <Section title="Product Media" icon={ImageIcon} accent="rgba(255,102,0,0.18)">
+              <MediaZone items={mediaItems} onChange={handleMediaChange} uploading={uploading} onUpload={handleUpload} />
+            </Section>
+
+            {/* Basic Info */}
+            <Section title="Basic Info" icon={Tag} accent="rgba(99,102,241,0.2)">
+              <Field label="Product Name *">
+                <Input
+                  value={formData.name}
+                  onChange={e => set({ name: e.target.value })}
+                  placeholder="e.g. Chrome Hearts Hoodie"
+                  required
+                  className="bg-white/5 border-white/10 text-white font-bold placeholder-white/25"
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Category">
                   <select
                     value={formData.categoryId || ""}
-                    onChange={e => setFormData({ ...formData, categoryId: parseInt(e.target.value) || undefined })}
-                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                    onChange={e => set({ categoryId: parseInt(e.target.value) || undefined })}
+                    className="w-full h-10 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white focus:outline-none focus:border-primary/50"
                   >
-                    <option value="">Select Category</option>
+                    <option value="">No category</option>
                     {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Price (AED)</label>
-                  <Input type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })} required className="bg-background font-mono" />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Availability</label>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => setInStock(true)}
-                      className={`flex-1 flex items-center justify-center gap-1.5 h-10 rounded-md border-2 text-xs font-black uppercase tracking-wider transition-all ${inStock ? "border-green-500 bg-green-500/10 text-green-400" : "border-border text-muted-foreground"}`}>
-                      <CheckCircle className="h-4 w-4" /> In Stock
-                    </button>
-                    <button type="button" onClick={() => setInStock(false)}
-                      className={`flex-1 flex items-center justify-center gap-1.5 h-10 rounded-md border-2 text-xs font-black uppercase tracking-wider transition-all ${!inStock ? "border-red-500 bg-red-500/10 text-red-400" : "border-border text-muted-foreground"}`}>
-                      <XCircle className="h-4 w-4" /> Sold Out
-                    </button>
-                  </div>
-                </div>
-
-                {/* Media Upload */}
-                <div className="space-y-2 col-span-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Media (up to 8)</label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                    {mediaItems.length > 0 ? (
-                      <div className="grid grid-cols-4 gap-2">
-                        {mediaItems.map((item, index) => (
-                          <div key={`${item.url}-${index}`} className="relative h-16 w-16 overflow-hidden rounded-md border border-border bg-muted">
-                            {item.type === "video" ? (
-                              <>
-                                <video src={item.url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
-                                <span className="absolute bottom-0 left-0 right-0 bg-black/70 py-0.5 text-center text-[9px] font-black uppercase text-white">Video</span>
-                              </>
-                            ) : (
-                              <img src={item.url} alt="Preview" className="h-full w-full object-cover" />
-                            )}
-                            <button type="button" onClick={(e) => { e.stopPropagation(); removeMedia(index); }}
-                              className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/80 text-white hover:bg-destructive">
-                              <X className="h-2.5 w-2.5" />
-                            </button>
-                          </div>
-                        ))}
-                        {mediaItems.length < 8 && (
-                          <div className="h-16 w-16 rounded-md border-2 border-dashed border-border flex items-center justify-center text-muted-foreground">
-                            <Plus className="h-5 w-5" />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 bg-muted rounded-md flex items-center justify-center shrink-0">
-                          <Image className="h-7 w-7 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm flex items-center gap-2">
-                            <Upload className="h-4 w-4 text-primary" />
-                            {uploading ? "Uploading..." : "Choose photos or videos"}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WEBP, MP4, MOV — max 100MB each · up to 8 files</p>
-                        </div>
-                      </div>
-                    )}
-                    <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleFileChange} />
-                  </div>
-                  {uploading && (
-                    <p className="text-xs text-primary font-bold animate-pulse">Uploading media...</p>
-                  )}
-                </div>
-
-                <div className="space-y-2 col-span-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Description</label>
-                  <Textarea value={formData.description || ""} onChange={e => setFormData({ ...formData, description: e.target.value })} className="bg-background min-h-[70px]" placeholder="Product description..." />
-                </div>
-
-                <div className="space-y-2 col-span-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sizes (comma separated)</label>
-                  <Input value={formData.sizes || ""} onChange={e => setFormData({ ...formData, sizes: e.target.value })} className="bg-background font-mono" placeholder="S, M, L, XL" />
-                </div>
-
-                {/* Pre-Order Section */}
-                <div className="col-span-2 border border-border/50 rounded-xl p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-yellow-400" />
-                      Pre-Order Mode
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, isPreOrder: !formData.isPreOrder })}
-                      className={`relative inline-flex w-10 h-5 rounded-full transition-colors ${formData.isPreOrder ? "bg-yellow-500" : "bg-muted"}`}
-                    >
-                      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${formData.isPreOrder ? "translate-x-5" : "translate-x-0.5"}`} />
-                    </button>
-                  </div>
-                  {formData.isPreOrder && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Pre-Order Badge Label</label>
-                        <Input value={formData.preOrderLabel ?? ""} onChange={e => setFormData({ ...formData, preOrderLabel: e.target.value })} placeholder="Pre-Order" className="bg-background h-9" />
-                      </div>
-                      <div>
-                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Expected Ship Date</label>
-                        <Input value={formData.preOrderDate ?? ""} onChange={e => setFormData({ ...formData, preOrderDate: e.target.value })} placeholder="e.g. August 2025" className="bg-background h-9" />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Pre-Order Note</label>
-                        <Input value={formData.preOrderNote ?? ""} onChange={e => setFormData({ ...formData, preOrderNote: e.target.value })} placeholder="Ships when available. No charge until shipped." className="bg-background h-9" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Scheduled Publishing */}
-                <div className="col-span-2 border border-border/50 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      Visibility & Scheduling
-                    </label>
-                  </div>
-                  <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-                    <input type="checkbox" checked={formData.hidden ?? false} onChange={e => setFormData({ ...formData, hidden: e.target.checked })}
-                      className="rounded border-border bg-background h-4 w-4" />
-                    Hidden (not visible to customers)
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">Publish At (optional)</label>
-                      <Input type="datetime-local" value={formData.publishAt ? formData.publishAt.slice(0, 16) : ""}
-                        onChange={e => setFormData({ ...formData, publishAt: e.target.value || null })}
-                        className="bg-background h-9 text-xs" />
-                      <p className="text-[10px] text-muted-foreground mt-1">Auto-publish at this date/time</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">Unpublish At (optional)</label>
-                      <Input type="datetime-local" value={formData.unpublishAt ? formData.unpublishAt.slice(0, 16) : ""}
-                        onChange={e => setFormData({ ...formData, unpublishAt: e.target.value || null })}
-                        className="bg-background h-9 text-xs" />
-                      <p className="text-[10px] text-muted-foreground mt-1">Auto-hide at this date/time</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-2">
-                  <label htmlFor="featured" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider cursor-pointer">
-                    <input type="checkbox" id="featured" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" />
-                    Featured Product
-                  </label>
-                  <label htmlFor="sellingFast" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider cursor-pointer">
-                    <input type="checkbox" id="sellingFast" checked={formData.sellingFast ?? false} onChange={e => setFormData({ ...formData, sellingFast: e.target.checked })} className="rounded border-border bg-background text-orange-500 focus:ring-orange-500 h-4 w-4" />
-                    🔥 Selling Fast
-                  </label>
-                  <label htmlFor="spotlight" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider cursor-pointer col-span-1 sm:col-span-2">
-                    <input type="checkbox" id="spotlight" checked={formData.spotlight ?? false} onChange={e => setFormData({ ...formData, spotlight: e.target.checked })} className="rounded border-border bg-background text-yellow-500 focus:ring-yellow-500 h-4 w-4" />
-                    ⭐ Homepage Spotlight (only 1 product at a time)
-                  </label>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Type</label>
-                    <div className="grid grid-cols-2 border border-border rounded-sm overflow-hidden">
-                      <button type="button" onClick={() => setFormData({ ...formData, rep: false })}
-                        className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors ${!formData.rep ? "bg-green-500 text-black" : "bg-background text-muted-foreground"}`}>
-                        Original
+                </Field>
+                <Field label="Product Type">
+                  <div className="grid grid-cols-2 h-10 border border-white/10 rounded-md overflow-hidden">
+                    {[{ val: false, label: "Original", color: "#22c55e" }, { val: true, label: "REP", color: "#94a3b8" }].map(opt => (
+                      <button key={String(opt.val)} type="button" onClick={() => set({ rep: opt.val })}
+                        className={`text-xs font-black uppercase tracking-widest transition-colors ${formData.rep === opt.val ? "text-black" : "text-white/30"}`}
+                        style={{ background: formData.rep === opt.val ? opt.color : "transparent" }}>
+                        {opt.label}
                       </button>
-                      <button type="button" onClick={() => setFormData({ ...formData, rep: true })}
-                        className={`px-3 py-2 text-xs font-black uppercase tracking-widest transition-colors ${formData.rep ? "bg-[#111827] text-white" : "bg-background text-muted-foreground"}`}>
-                        REP
-                      </button>
-                    </div>
+                    ))}
                   </div>
-                </div>
+                </Field>
               </div>
+              <Field label="Description" hint={`${(formData.description || "").length}/500 characters`}>
+                <Textarea
+                  value={formData.description || ""}
+                  onChange={e => set({ description: e.target.value })}
+                  maxLength={500}
+                  placeholder="Describe the product — material, fit, style…"
+                  className="bg-white/5 border-white/10 text-white placeholder-white/25 min-h-[80px] resize-none"
+                />
+              </Field>
+            </Section>
 
-              <div className="pt-4 flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={uploading || createProduct.isPending || updateProduct.isPending} className="font-bold uppercase tracking-wider fire-gradient border-none">
-                  {editingId ? "Save Changes" : "Create Item"}
-                </Button>
+            {/* Pricing & Stock */}
+            <Section title="Pricing & Stock" icon={DollarSign} accent="rgba(34,197,94,0.18)">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Price (AED) *">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm font-bold">AED</span>
+                    <Input
+                      type="number" step="0.01" min="0"
+                      value={formData.price || ""}
+                      onChange={e => set({ price: parseFloat(e.target.value) || 0 })}
+                      required
+                      className="bg-white/5 border-white/10 text-white font-mono pl-12"
+                    />
+                  </div>
+                </Field>
+                <Field label="Availability">
+                  <div className="flex h-10 items-center gap-3 px-3 rounded-md border border-white/10 bg-white/5">
+                    <span className={`text-xs font-black uppercase tracking-wider transition-colors ${!inStock ? "text-red-400" : "text-white/30"}`}>Out</span>
+                    <Toggle checked={inStock} onChange={setInStock} color="#22c55e" />
+                    <span className={`text-xs font-black uppercase tracking-wider transition-colors ${inStock ? "text-green-400" : "text-white/30"}`}>In Stock</span>
+                  </div>
+                </Field>
               </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <Field label="Sizes" hint="Leave empty for one-size items">
+                <SizeChips value={formData.sizes || ""} onChange={v => set({ sizes: v })} />
+              </Field>
+            </Section>
 
-      {/* Bulk Actions Bar */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-          <input type="checkbox" className="h-4 w-4"
-            checked={selectedIds.size > 0 && selectedIds.size === products?.length}
-            onChange={toggleAll} />
-          {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select All"}
-        </label>
-        {selectedIds.size > 0 && (
-          <div className="flex items-center gap-2">
-            <select value={bulkAction} onChange={e => setBulkAction(e.target.value)}
-              className="h-8 px-3 text-xs bg-background border border-border rounded-lg focus:outline-none">
-              <option value="">Bulk action...</option>
-              {BULK_ACTIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
-            </select>
-            <Button size="sm" onClick={executeBulkAction} disabled={!bulkAction || bulkLoading}
-              className={`text-xs font-black uppercase tracking-wider h-8 ${bulkAction === "delete" ? "bg-destructive hover:bg-destructive/90 text-white" : "bg-primary text-primary-foreground"}`}>
-              {bulkLoading ? "Working..." : "Apply"}
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())} className="text-xs h-8 text-muted-foreground">
-              Clear
-            </Button>
-          </div>
-        )}
-        <span className="ml-auto text-xs text-muted-foreground">{products?.length ?? 0} items total</span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {products?.map(product => {
-          const primaryMedia = getPrimaryProductMedia(product.imageUrl);
-          const mediaCount = parseProductMedia(product.imageUrl).length;
-          const isPreOrder = (product as ProductFormData).isPreOrder;
-          const isHidden = (product as ProductFormData).hidden;
-          const isSelected = selectedIds.has(product.id);
-          return (
-            <div key={product.id}
-              onClick={() => toggleSelect(product.id)}
-              className={`bg-card border rounded-xl overflow-hidden flex flex-col group hover:border-primary/30 transition-all cursor-pointer ${isSelected ? "border-primary ring-2 ring-primary/30" : "border-border"}`}>
-              <div className="aspect-[4/3] bg-muted relative border-b border-border">
-                {primaryMedia ? (
-                  primaryMedia.type === "video" ? (
-                    <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
-                  ) : (
-                    <img src={primaryMedia.url} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
-                  )
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="h-10 w-10 text-muted-foreground/30" />
-                  </div>
-                )}
-                {isHidden && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="flex items-center gap-2 bg-black/80 text-white text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-lg">
-                      <EyeOff className="h-3.5 w-3.5" /> Hidden
-                    </div>
-                  </div>
-                )}
-                {isSelected && (
-                  <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center z-10">
-                    <CheckCircle className="h-4 w-4 text-primary-foreground" />
-                  </div>
-                )}
-                <div className="absolute top-2 left-2 flex flex-col gap-1">
-                  {product.featured && <div className="bg-primary text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">Featured</div>}
-                  {isPreOrder && <div className="bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">Pre-Order</div>}
-                  {(product as ProductFormData).sellingFast && <div className="bg-orange-500 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">🔥 Selling Fast</div>}
-                  {(product as ProductFormData).spotlight && <div className="bg-yellow-400 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">⭐ Spotlight</div>}
-                  {product.rep ? (
-                    <div className="bg-[#111827] text-white border border-white/20 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">REP</div>
-                  ) : (
-                    <div className="bg-green-500/90 text-black text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">Original</div>
-                  )}
-                </div>
-                {mediaCount > 1 && <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm">{mediaCount} imgs</div>}
-                {!isSelected && !isHidden && <div className={`absolute top-2 right-2 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm ${product.stock > 0 ? "bg-green-500/90 text-black" : "bg-red-500/90 text-white"}`}>
-                  {product.stock > 0 ? "In Stock" : "Sold Out"}
-                </div>}
+            {/* Badges & Flags */}
+            <Section title="Badges & Flags" icon={Sparkles} accent="rgba(251,191,36,0.18)">
+              <div className="grid grid-cols-2 gap-2">
+                <PillToggle checked={formData.featured} onChange={v => set({ featured: v })}
+                  label="Featured" icon={Star} color="#ff6600" />
+                <PillToggle checked={formData.sellingFast ?? false} onChange={v => set({ sellingFast: v })}
+                  label="Selling Fast" icon={Flame} color="#f97316" />
+                <PillToggle checked={formData.spotlight ?? false} onChange={v => set({ spotlight: v })}
+                  label="Spotlight" icon={Sparkles} color="#facc15" />
+                <PillToggle checked={formData.hidden ?? false} onChange={v => set({ hidden: v })}
+                  label="Hidden" icon={EyeOff} color="#94a3b8" />
               </div>
-              <div className="p-4 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="text-xs uppercase text-muted-foreground tracking-widest">{product.categoryName}</p>
-                    <h3 className="font-bold leading-tight">{product.name}</h3>
-                  </div>
-                  <p className="font-mono font-bold text-primary shrink-0 ml-2">AED {product.price.toFixed(2)}</p>
-                </div>
-                <div className="mt-auto pt-3 flex items-center gap-2 border-t border-border/50">
-                  <button
-                    onClick={(e) => handleSetSpotlight(e, product as ProductFormData & { id: number })}
-                    title={(product as ProductFormData).spotlight ? "Currently the Featured Drop" : "Set as Featured Drop"}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${
-                      (product as ProductFormData).spotlight
-                        ? "bg-yellow-400/20 text-yellow-400 border border-yellow-400/40 cursor-default"
-                        : "bg-muted text-muted-foreground hover:bg-yellow-400/10 hover:text-yellow-400 hover:border-yellow-400/30 border border-transparent"
-                    }`}
+            </Section>
+
+            {/* Pre-Order — collapsible */}
+            <Section title="Pre-Order" icon={Calendar} accent="rgba(234,179,8,0.18)" collapsible>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-white/60 font-bold">Enable Pre-Order Mode</span>
+                <Toggle checked={formData.isPreOrder ?? false} onChange={v => set({ isPreOrder: v })} color="#eab308" />
+              </div>
+              <AnimatePresence>
+                {formData.isPreOrder && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.22, ease: EASE }}
+                    className="overflow-hidden"
                   >
-                    <Star className={`h-3 w-3 ${(product as ProductFormData).spotlight ? "fill-yellow-400" : ""}`} />
-                    {(product as ProductFormData).spotlight ? "Featured Drop" : "Set Drop"}
-                  </button>
-                  <div className="ml-auto flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(product); }} className="h-8 w-8 hover:text-primary">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(product.id); }} className="h-8 w-8 hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                    <div className="space-y-3 pt-2">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Badge Label">
+                          <Input value={formData.preOrderLabel ?? ""} onChange={e => set({ preOrderLabel: e.target.value })}
+                            placeholder="Pre-Order" className="bg-white/5 border-white/10 text-white h-9 text-sm" />
+                        </Field>
+                        <Field label="Expected Ship Date">
+                          <Input value={formData.preOrderDate ?? ""} onChange={e => set({ preOrderDate: e.target.value })}
+                            placeholder="e.g. August 2025" className="bg-white/5 border-white/10 text-white h-9 text-sm" />
+                        </Field>
+                      </div>
+                      <Field label="Pre-Order Note">
+                        <Input value={formData.preOrderNote ?? ""} onChange={e => set({ preOrderNote: e.target.value })}
+                          placeholder="Ships when available. No charge until shipped." className="bg-white/5 border-white/10 text-white h-9 text-sm" />
+                      </Field>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Section>
+
+            {/* Scheduling — collapsible */}
+            <Section title="Scheduling" icon={Layers} accent="rgba(139,92,246,0.18)" collapsible>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Publish At (optional)" hint="Auto-publish at this date">
+                  <Input type="datetime-local"
+                    value={formData.publishAt ? formData.publishAt.slice(0, 16) : ""}
+                    onChange={e => set({ publishAt: e.target.value || null })}
+                    className="bg-white/5 border-white/10 text-white h-9 text-xs" />
+                </Field>
+                <Field label="Unpublish At (optional)" hint="Auto-hide at this date">
+                  <Input type="datetime-local"
+                    value={formData.unpublishAt ? formData.unpublishAt.slice(0, 16) : ""}
+                    onChange={e => set({ unpublishAt: e.target.value || null })}
+                    className="bg-white/5 border-white/10 text-white h-9 text-xs" />
+                </Field>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            </Section>
+
+            {/* Bottom padding */}
+            <div className="h-4" />
+          </form>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
