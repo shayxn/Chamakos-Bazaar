@@ -171,18 +171,27 @@ export default function Home() {
 
         {/* ══════════════ HERO ══════════════ */}
         <section
-          className="relative min-h-screen w-full flex items-center overflow-hidden"
+          className="relative w-full flex items-center overflow-hidden"
+          style={{ background: "#000" }}
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
+          {/* ── Image carousel: natural height, full image visible ── */}
+          {/* Ghost image drives the section height (invisible, just for layout) */}
+          <img
+            src={heroImages[slideIdx]}
+            alt=""
+            aria-hidden="true"
+            style={{ width: "100%", height: "auto", display: "block", visibility: "hidden", minHeight: "50vh", maxHeight: "90vh", objectFit: "contain" }}
+          />
 
-          {/* ── Full-bleed carousel images — CSS crossfade ── */}
+          {/* Actual crossfade slides — absolutely positioned over the ghost */}
           {heroImages.map((src, i) => {
             const isActive = i === slideIdx;
             const isVideo = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(src);
             const style: React.CSSProperties = {
               position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "cover", objectPosition: "center",
+              objectFit: "contain", objectPosition: "center",
               opacity: isActive ? 1 : 0,
               transition: "opacity 1s cubic-bezier(0.22,1,0.36,1)",
               pointerEvents: isActive ? "auto" : "none",
