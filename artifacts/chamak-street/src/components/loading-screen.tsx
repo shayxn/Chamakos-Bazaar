@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 const SESSION_KEY = "chamak_loaded";
-const TOTAL_DURATION = 1100;
+const TOTAL_DURATION = 1800;
 
 export function LoadingScreen() {
   const [skip] = useState(() => {
@@ -10,6 +10,7 @@ export function LoadingScreen() {
   const [exiting, setExiting] = useState(false);
   const [visible, setVisible] = useState(!skip);
   const [progress, setProgress] = useState(0);
+  const [logoReady, setLogoReady] = useState(false);
 
   useEffect(() => {
     if (skip) return;
@@ -28,7 +29,7 @@ export function LoadingScreen() {
     const t2 = setTimeout(() => {
       try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
       setVisible(false);
-    }, TOTAL_DURATION + 350);
+    }, TOTAL_DURATION + 500);
 
     return () => { cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2); };
   }, [skip]);
@@ -38,63 +39,119 @@ export function LoadingScreen() {
   return (
     <>
       <style>{`
-        @keyframes chamakFadeOut { from { opacity: 1; } to { opacity: 0; } }
-        @keyframes chamakLogoIn {
-          from { opacity: 0; transform: scale(0.94); }
-          to   { opacity: 1; transform: scale(1); }
+        @keyframes csLogoReveal {
+          0%   { opacity: 0; transform: scale(1.08); filter: blur(12px); }
+          40%  { opacity: 1; filter: blur(0px); }
+          100% { opacity: 1; transform: scale(1); filter: blur(0px); }
         }
-        @keyframes chamakBgShift {
-          0%   { background-position: 0% 50%; }
-          50%  { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+        @keyframes csTaglineIn {
+          from { opacity: 0; letter-spacing: 0.35em; transform: translateY(8px); }
+          to   { opacity: 1; letter-spacing: 0.55em; transform: translateY(0); }
+        }
+        @keyframes csBarIn {
+          from { opacity: 0; transform: scaleX(0.6); }
+          to   { opacity: 1; transform: scaleX(1); }
+        }
+        @keyframes csFadeOut {
+          0%   { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        @keyframes csGlowPulse {
+          0%, 100% { opacity: 0.5; }
+          50%      { opacity: 1; }
         }
       `}</style>
 
       <div
         style={{
           position: "fixed", inset: 0, zIndex: 9999,
+          background: "#000",
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
-          background: "linear-gradient(120deg, #000000, #1a0800, #4d1a00, #1a0800, #000000)",
-          backgroundSize: "300% 300%",
-          animation: exiting
-            ? "chamakFadeOut 0.35s ease forwards"
-            : "chamakBgShift 6s ease-in-out infinite",
+          animation: exiting ? "csFadeOut 0.5s cubic-bezier(0.4,0,1,1) forwards" : undefined,
           userSelect: "none",
+          overflow: "hidden",
         }}
       >
+        {/* Ambient glow behind logo */}
+        <div style={{
+          position: "absolute",
+          width: "min(600px, 80vw)",
+          height: "min(600px, 80vw)",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,102,0,0.12) 0%, transparent 70%)",
+          animation: "csGlowPulse 2.5s ease-in-out infinite",
+          pointerEvents: "none",
+        }} />
+
+        {/* Logo — 4K, fills the screen */}
         <img
           src="/chamak-logo-transparent.png"
           alt="Chamak Street"
+          onLoad={() => setLogoReady(true)}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/chamak-logo.png";
+            setLogoReady(true);
+          }}
           style={{
-            height: "clamp(110px, 26vw, 220px)",
-            width: "auto",
+            width: "min(72vw, 640px)",
+            height: "auto",
+            maxHeight: "55vh",
             objectFit: "contain",
             display: "block",
-            animation: "chamakLogoIn 0.4s ease-out both",
+            imageRendering: "crisp-edges",
+            animation: logoReady
+              ? "csLogoReveal 0.9s cubic-bezier(0.16,1,0.3,1) both"
+              : undefined,
+            opacity: logoReady ? undefined : 0,
+            position: "relative",
+            zIndex: 1,
           }}
-          onError={e => { (e.target as HTMLImageElement).src = "/chamak-logo.png"; }}
         />
 
-        {/* Loading bar + percentage */}
-        <div style={{ marginTop: 32, width: "min(240px, 60vw)" }}>
-          <div style={{
-            width: "100%", height: 3, borderRadius: 2,
-            background: "rgba(255,255,255,0.1)", overflow: "hidden",
-          }}>
-            <div style={{
-              width: `${progress}%`, height: "100%", borderRadius: 2,
-              background: "linear-gradient(to right, #cc4400, #ff6600, #ffcc00)",
-              transition: "width 0.05s linear",
-            }} />
-          </div>
-          <p style={{
-            marginTop: 10, textAlign: "center",
-            fontSize: 11, fontWeight: 900, fontFamily: "inherit",
-            letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)",
-          }}>
-            {progress}%
-          </p>
+        {/* Tagline */}
+        <p
+          style={{
+            marginTop: 28,
+            fontSize: "clamp(9px, 1.4vw, 12px)",
+            fontWeight: 900,
+            fontFamily: "inherit",
+            letterSpacing: "0.55em",
+            color: "rgba(255,255,255,0.35)",
+            textTransform: "uppercase",
+            animation: logoReady
+              ? "csTaglineIn 0.8s 0.35s cubic-bezier(0.16,1,0.3,1) both"
+              : undefined,
+            opacity: logoReady ? undefined : 0,
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
+          Premium Streetwear · Dubai
+        </p>
+
+        {/* Progress bar — pinned to bottom */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+            background: "rgba(255,255,255,0.06)",
+            animation: "csBarIn 0.5s 0.2s ease both",
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${progress}%`,
+              background: "linear-gradient(to right, #cc4400, #ff6600, #ffaa00)",
+              boxShadow: "0 0 12px rgba(255,102,0,0.7)",
+              transition: "width 0.06s linear",
+              borderRadius: "0 1px 1px 0",
+            }}
+          />
         </div>
       </div>
     </>
