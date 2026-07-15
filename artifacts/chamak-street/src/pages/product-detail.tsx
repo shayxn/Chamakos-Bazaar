@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRoute } from "wouter";
 import { useGetProduct, useAddToCart, useListProducts, getGetProductQueryKey, getGetCartQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { useCartFly } from "@/components/cart-fly-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Bell, Eye, Heart, TrendingUp, Check, Sparkles } from "lucide-react";
+import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Bell, Eye, Heart, TrendingUp, Check, Sparkles, Truck, Shield, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
@@ -396,8 +396,29 @@ export default function ProductDetail() {
   const [addedPulse, setAddedPulse] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
+  const [stickyVisible, setStickyVisible] = useState(false);
 
   const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()) : [];
+  const mediaItems = parseProductMedia(product?.imageUrl ?? null);
+
+  // Show sticky ATC bar after scrolling past the main ATC button
+  useEffect(() => {
+    const onScroll = () => setStickyVisible(window.scrollY > 520);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Keyboard navigation for gallery
+  const handleGalleryKey = useCallback((e: KeyboardEvent) => {
+    if (mediaItems.length <= 1) return;
+    if (e.key === "ArrowLeft") setSelectedMediaIndex(i => (i - 1 + mediaItems.length) % mediaItems.length);
+    if (e.key === "ArrowRight") setSelectedMediaIndex(i => (i + 1) % mediaItems.length);
+  }, [mediaItems.length]);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleGalleryKey);
+    return () => window.removeEventListener("keydown", handleGalleryKey);
+  }, [handleGalleryKey]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -445,7 +466,6 @@ export default function ProductDetail() {
   }
 
   const isOutOfStock = product.stock === 0;
-  const mediaItems = parseProductMedia(product.imageUrl);
   const selectedMedia = mediaItems[selectedMediaIndex] ?? mediaItems[0] ?? null;
 
   return (
@@ -803,6 +823,40 @@ export default function ProductDetail() {
         )}
       </div>
       <QuickViewModal productId={quickViewId} onClose={() => setQuickViewId(null)} />
+
+      {/* Sticky mobile ATC bar */}
+      <AnimatePresence>
+        {stickyVisible && !isOutOfStock && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+            className="fixed bottom-0 inset-x-0 z-40 md:hidden"
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.85) 100%)", backdropFilter: "blur(12px)", borderTop: "1px solid rgba(255,102,0,0.2)" }}
+          >
+            <div className="px-4 py-3 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-white/50 font-bold uppercase tracking-wider truncate">{product.name}</p>
+                <p className="text-primary font-mono font-black text-lg">AED {product.price.toFixed(2)}</p>
+              </div>
+              {sizes.length > 0 && !selectedSize && (
+                <div className="text-[10px] font-bold text-orange-400 uppercase tracking-wider shrink-0">↑ Pick size first</div>
+              )}
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleAddToCart}
+                disabled={addToCart.isPending}
+                className="shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-black uppercase tracking-widest text-sm text-black disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", boxShadow: "0 0 20px rgba(255,102,0,0.45)" }}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {addToCart.isPending ? "Adding…" : "Add to Cart"}
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PageTransition>
   );
 }

@@ -176,6 +176,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Footer */}
       <footer className="relative mt-20 bg-[#0a0a0a] border-t border-white/8">
+
+        {/* Trust row */}
+        <div className="border-b border-white/6">
+          <div className="max-w-[1440px] mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: "🚚", title: "Fast Delivery", desc: "UAE-wide, 1-3 days" },
+              { icon: "💳", title: "Cash on Delivery", desc: "Pay when it arrives" },
+              { icon: "🔒", title: "Secure Orders", desc: "Your info is safe" },
+              { icon: "✅", title: "Authentic Drops", desc: "Quality guaranteed" },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="flex items-center gap-3">
+                <span className="text-xl shrink-0">{icon}</span>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider text-white/70">{title}</p>
+                  <p className="text-[10px] text-white/30">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="max-w-[1440px] mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <img

@@ -2,12 +2,13 @@ import { useGetCart, useUpdateCartItem, useRemoveCartItem, getGetCartQueryKey } 
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Trash2, ArrowRight, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, ArrowLeft, Truck, Shield, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+const FREE_SHIPPING_THRESHOLD = 300;
 
 export default function Cart() {
   const { data: cart, isLoading } = useGetCart({ query: { queryKey: getGetCartQueryKey() } });
@@ -39,7 +40,7 @@ export default function Cart() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: n * 0.08, ease: EASE }}
-            className="h-28 bg-muted rounded-lg animate-pulse"
+            className="h-28 bg-muted rounded-xl animate-pulse"
           />
         ))}
       </div>
@@ -49,30 +50,37 @@ export default function Cart() {
   if (!cart || cart.items.length === 0) {
     return (
       <PageTransition>
-        <div className="container mx-auto px-4 py-40 text-center max-w-md">
+        <div className="container mx-auto px-4 py-36 text-center max-w-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.88 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.55, ease: EASE }}
+            className="space-y-6"
           >
             <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mx-auto"
             >
-              <ShoppingBag className="h-20 w-20 mx-auto text-muted-foreground/30 mb-8" />
+              <ShoppingBag className="h-9 w-9 text-white/25" />
             </motion.div>
-            <h1 className="text-4xl font-black uppercase tracking-tighter mb-4">Cart is Empty</h1>
-            <p className="text-muted-foreground mb-10 text-lg">Looks like you haven't added any heat yet.</p>
+            <div>
+              <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Cart is Empty</h1>
+              <p className="text-white/40 text-sm">You haven't added any heat yet.</p>
+            </div>
             <Link href="/shop">
               <motion.div
-                whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
+                whileHover={{ scale: 1.04, filter: "brightness(1.1)" }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 380, damping: 22 }}
               >
-                <Button size="lg" className="w-full font-black uppercase tracking-widest fire-gradient border-none h-14 shadow-[0_0_24px_rgba(255,102,0,0.35)]">
+                <Button size="lg" className="w-full font-black uppercase tracking-widest fire-gradient border-none h-13 shadow-[0_0_24px_rgba(255,102,0,0.35)]">
                   Browse the Shop <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </motion.div>
+            </Link>
+            <Link href="/" className="block text-xs text-white/30 hover:text-white/60 transition-colors font-bold uppercase tracking-widest">
+              ← Back to Home
             </Link>
           </motion.div>
         </div>
@@ -80,181 +88,276 @@ export default function Cart() {
     );
   }
 
+  const subtotal = cart.total;
+  const shipping = 25;
+  const total = subtotal + shipping;
+  const freeShippingGap = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
+  const freeShippingProgress = Math.min(1, subtotal / FREE_SHIPPING_THRESHOLD);
+
   return (
     <PageTransition>
-      <div className="container mx-auto px-4 py-12">
-        <motion.h1
-          className="text-5xl font-black uppercase tracking-tighter mb-12"
-          initial={{ opacity: 0, y: -24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: EASE }}
-        >
-          Your Cart
-        </motion.h1>
+      <div className="container mx-auto px-4 py-10 max-w-6xl">
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {/* Header */}
+        <motion.div
+          className="flex items-center justify-between mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE }}
+        >
+          <div>
+            <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter">Your Cart</h1>
+            <p className="text-white/40 text-sm mt-1">{cart.items.length} item{cart.items.length !== 1 ? "s" : ""}</p>
+          </div>
+          <Link href="/shop">
+            <motion.button
+              whileHover={{ x: -3 }}
+              transition={{ type: "spring", stiffness: 400 }}
+              className="hidden sm:flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors border border-white/10 hover:border-white/25 px-4 py-2.5 rounded-full"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> Continue Shopping
+            </motion.button>
+          </Link>
+        </motion.div>
+
+        {/* Free shipping progress */}
+        {freeShippingGap > 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, ease: EASE }}
+            className="mb-6 p-4 rounded-xl border border-white/8 bg-white/3"
+          >
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-2">
+                <Truck className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-bold text-white/70">
+                  Add <span className="text-primary font-black">AED {freeShippingGap.toFixed(0)}</span> more for free shipping
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                AED {subtotal.toFixed(0)} / {FREE_SHIPPING_THRESHOLD}
+              </span>
+            </div>
+            <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${freeShippingProgress * 100}%` }}
+                transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
+                className="h-full rounded-full"
+                style={{ background: "linear-gradient(90deg, #ff6600, #ffaa00)" }}
+              />
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-6 p-3 rounded-xl border border-green-500/30 bg-green-500/8 flex items-center gap-2.5"
+          >
+            <Truck className="h-4 w-4 text-green-400 shrink-0" />
+            <span className="text-xs font-bold text-green-400">You've unlocked free shipping! 🎉</span>
+          </motion.div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3">
             <AnimatePresence initial={false}>
               {cart.items.map((item, i) => {
                 const primaryMedia = getPrimaryProductMedia(item.productImageUrl);
                 return (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, y: 28, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: -80, scale: 0.93, transition: { duration: 0.28, ease: [0.4, 0, 0.2, 1] } }}
-                  transition={{ duration: 0.5, delay: i * 0.06, ease: EASE }}
-                  className="flex gap-5 p-4 bg-card border border-border rounded-lg relative pr-14 hover:border-primary/35 transition-colors duration-300"
-                  data-testid={`cart-item-${item.id}`}
-                >
-                  {/* Thumbnail */}
                   <motion.div
-                    className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 bg-muted rounded-md overflow-hidden border border-border/50"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -72, scale: 0.93, transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] } }}
+                    transition={{ duration: 0.45, delay: i * 0.05, ease: EASE }}
+                    className="flex gap-4 p-4 bg-card border border-border rounded-xl relative group hover:border-primary/25 transition-colors duration-300"
+                    data-testid={`cart-item-${item.id}`}
                   >
-                    {primaryMedia ? (
-                      primaryMedia.type === "video" ? (
-                        <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
-                      ) : (
-                        <img src={primaryMedia.url} alt={item.productName} className="w-full h-full object-cover" />
-                      )
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground font-mono">No Img</div>
-                    )}
-                  </motion.div>
-
-                  {/* Info */}
-                  <div className="flex flex-col justify-between py-1 flex-1">
-                    <div>
-                      <Link href={`/product/${item.productId}`} className="font-black text-base hover:text-primary transition-colors line-clamp-2 uppercase tracking-wide">
-                        {item.productName}
-                      </Link>
-                      {item.size && (
-                        <p className="text-sm text-muted-foreground mt-1">Size: <span className="font-bold text-foreground">{item.size}</span></p>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
-                      {/* Qty controls */}
-                      <div className="flex items-center h-9 border border-border rounded-sm bg-background overflow-hidden">
-                        <motion.button
-                          whileTap={{ scale: 0.78 }}
-                          whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
-                          className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-                          disabled={updateItem.isPending}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </motion.button>
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={item.quantity}
-                            initial={{ opacity: 0, y: -6, scale: 0.8 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 6, scale: 0.8 }}
-                            transition={{ duration: 0.16, ease: EASE }}
-                            className="w-8 text-center font-black font-mono text-sm"
-                          >
-                            {item.quantity}
-                          </motion.div>
-                        </AnimatePresence>
-                        <motion.button
-                          whileTap={{ scale: 0.78 }}
-                          whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
-                          className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-                          disabled={updateItem.isPending}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </motion.button>
-                      </div>
+                    {/* Thumbnail */}
+                    <Link href={`/product/${item.productId}`} className="shrink-0">
                       <motion.div
-                        key={item.price * item.quantity}
-                        initial={{ scale: 1.18, color: "#ffcc00" }}
-                        animate={{ scale: 1, color: "#ff6600" }}
-                        transition={{ duration: 0.35, ease: EASE }}
-                        className="font-mono font-black text-lg text-primary"
+                        className="w-22 h-22 sm:w-26 sm:h-26 bg-muted rounded-lg overflow-hidden border border-border/50"
+                        whileHover={{ scale: 1.04 }}
+                        transition={{ type: "spring", stiffness: 320, damping: 24 }}
+                        style={{ width: 88, height: 88 }}
                       >
-                        AED {(item.price * item.quantity).toFixed(2)}
+                        {primaryMedia ? (
+                          primaryMedia.type === "video" ? (
+                            <video src={primaryMedia.url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                          ) : (
+                            <img src={primaryMedia.url} alt={item.productName} className="w-full h-full object-cover hover:scale-110 transition-transform duration-400" />
+                          )
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">—</div>
+                        )}
                       </motion.div>
-                    </div>
-                  </div>
+                    </Link>
 
-                  {/* Remove */}
-                  <motion.button
-                    whileHover={{ scale: 1.25, color: "#ef4444" }}
-                    whileTap={{ scale: 0.88 }}
-                    transition={{ type: "spring", stiffness: 420, damping: 20 }}
-                    onClick={() => handleRemove(item.id)}
-                    disabled={removeItem.isPending}
-                    className="absolute top-4 right-4 text-muted-foreground transition-colors p-1.5 rounded-md hover:bg-destructive/10"
-                    aria-label="Remove item"
-                    data-testid={`button-remove-${item.id}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </motion.button>
-                </motion.div>
+                    {/* Info */}
+                    <div className="flex flex-col justify-between py-0.5 flex-1 min-w-0 pr-8">
+                      <div>
+                        <Link href={`/product/${item.productId}`} className="font-black text-sm hover:text-primary transition-colors line-clamp-2 uppercase tracking-wide">
+                          {item.productName}
+                        </Link>
+                        {item.size && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Size: <span className="font-bold text-white/70 bg-white/8 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">{item.size}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-4 mt-3">
+                        {/* Qty controls */}
+                        <div className="flex items-center h-8 border border-border/60 rounded-lg bg-background overflow-hidden">
+                          <motion.button
+                            whileTap={{ scale: 0.75 }}
+                            whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
+                            className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                            disabled={updateItem.isPending}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </motion.button>
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={item.quantity}
+                              initial={{ opacity: 0, y: -5, scale: 0.8 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 5, scale: 0.8 }}
+                              transition={{ duration: 0.14, ease: EASE }}
+                              className="w-8 text-center font-black font-mono text-sm"
+                            >
+                              {item.quantity}
+                            </motion.div>
+                          </AnimatePresence>
+                          <motion.button
+                            whileTap={{ scale: 0.75 }}
+                            whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
+                            className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                            disabled={updateItem.isPending}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </motion.button>
+                        </div>
+
+                        <motion.div
+                          key={item.price * item.quantity}
+                          initial={{ scale: 1.2, color: "#ffcc00" }}
+                          animate={{ scale: 1, color: "#ff6600" }}
+                          transition={{ duration: 0.32, ease: EASE }}
+                          className="font-mono font-black text-base text-primary"
+                        >
+                          AED {(item.price * item.quantity).toFixed(2)}
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    {/* Remove */}
+                    <motion.button
+                      whileHover={{ scale: 1.2, color: "#ef4444" }}
+                      whileTap={{ scale: 0.85 }}
+                      transition={{ type: "spring", stiffness: 420, damping: 20 }}
+                      onClick={() => handleRemove(item.id)}
+                      disabled={removeItem.isPending}
+                      className="absolute top-3.5 right-3.5 text-muted-foreground/60 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
+                      aria-label="Remove item"
+                      data-testid={`button-remove-${item.id}`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </motion.button>
+                  </motion.div>
                 );
               })}
             </AnimatePresence>
+
+            {/* Continue shopping link */}
+            <Link href="/shop">
+              <motion.button
+                whileHover={{ x: 4 }}
+                transition={{ type: "spring", stiffness: 400 }}
+                className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/35 hover:text-white/60 transition-colors mt-2 pt-2"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> Continue Shopping
+              </motion.button>
+            </Link>
           </div>
 
           {/* Summary */}
           <div className="lg:col-span-1">
             <motion.div
-              className="bg-card border border-border rounded-lg p-6 sticky top-24"
-              initial={{ opacity: 0, y: 28 }}
+              className="bg-card border border-border rounded-xl p-6 sticky top-[130px]"
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.22, duration: 0.6, ease: EASE }}
+              transition={{ delay: 0.18, duration: 0.55, ease: EASE }}
             >
-              <h2 className="text-xl font-black uppercase tracking-wider mb-6 pb-4 border-b border-border">Order Summary</h2>
+              <h2 className="text-lg font-black uppercase tracking-wider mb-5 pb-4 border-b border-border/60">Order Summary</h2>
 
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-mono font-bold">AED {cart.total.toFixed(2)}</span>
+                  <span className="font-mono font-bold">AED {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-mono font-bold text-primary">AED 25.00</span>
+                  {freeShippingGap > 0 ? (
+                    <span className="font-mono font-bold text-primary">AED {shipping.toFixed(2)}</span>
+                  ) : (
+                    <span className="font-bold text-green-400">Free 🎉</span>
+                  )}
                 </div>
               </div>
 
-              <div className="border-t border-border pt-4 mb-8">
+              <div className="border-t border-border/60 pt-4 mb-6">
                 <div className="flex justify-between items-end">
-                  <span className="font-black uppercase tracking-wider">Total</span>
+                  <span className="font-black uppercase tracking-wider text-sm">Total</span>
                   <AnimatePresence mode="wait">
                     <motion.span
-                      key={cart.total}
+                      key={total}
                       initial={{ opacity: 0, y: -8, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.28, ease: EASE }}
-                      className="font-mono text-3xl font-black text-primary"
+                      transition={{ duration: 0.26, ease: EASE }}
+                      className="font-mono text-2xl font-black text-primary"
                     >
-                      AED {(cart.total + 25).toFixed(2)}
+                      AED {(freeShippingGap > 0 ? total : subtotal).toFixed(2)}
                     </motion.span>
                   </AnimatePresence>
                 </div>
               </div>
 
               <motion.div
-                whileHover={{ scale: 1.03, filter: "brightness(1.08)" }}
+                whileHover={{ scale: 1.02, filter: "brightness(1.08)" }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 380, damping: 22 }}
               >
                 <Button
                   size="lg"
-                  className="w-full h-14 font-black uppercase tracking-widest flex items-center justify-center gap-2 fire-gradient border-none shadow-[0_0_24px_rgba(255,102,0,0.35)] hover:shadow-[0_0_48px_rgba(255,102,0,0.58)] transition-shadow duration-300"
+                  className="w-full h-13 font-black uppercase tracking-widest flex items-center justify-center gap-2 fire-gradient border-none shadow-[0_0_24px_rgba(255,102,0,0.35)] hover:shadow-[0_0_48px_rgba(255,102,0,0.55)] transition-shadow duration-300"
                   onClick={() => setLocation("/checkout")}
                   data-testid="button-checkout"
                 >
-                  Secure Checkout <ArrowRight className="h-5 w-5" />
+                  Secure Checkout <ArrowRight className="h-4 w-4" />
                 </Button>
               </motion.div>
+
+              {/* Trust badges */}
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {[
+                  { icon: Shield, label: "Secure Pay" },
+                  { icon: Truck, label: "Fast Ship" },
+                  { icon: Zap, label: "COD Avail." },
+                ].map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex flex-col items-center gap-1.5 py-2.5 rounded-lg bg-white/3 border border-white/6">
+                    <Icon className="h-3.5 w-3.5 text-white/40" />
+                    <span className="text-[9px] font-black uppercase tracking-wider text-white/30">{label}</span>
+                  </div>
+                ))}
+              </div>
             </motion.div>
           </div>
         </div>
