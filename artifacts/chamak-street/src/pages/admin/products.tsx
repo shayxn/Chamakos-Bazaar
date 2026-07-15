@@ -325,6 +325,8 @@ export default function AdminProducts() {
   const [bulkAction, setBulkAction] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const [formData, setFormData] = useState<ProductFormData>({
     name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "",
@@ -408,14 +410,19 @@ export default function AdminProducts() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Delete this product?")) {
-      deleteProduct.mutate({ id }, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
-          toast({ title: "Product deleted" });
-        }
-      });
-    }
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (!pendingDeleteId) return;
+    deleteProduct.mutate({ id: pendingDeleteId }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+        toast({ title: "Product deleted" });
+        setPendingDeleteId(null);
+      },
+      onError: () => { setPendingDeleteId(null); }
+    });
   };
 
   const handleSetSpotlight = (e: React.MouseEvent, product: Product & ProductFormData) => {
@@ -431,7 +438,7 @@ export default function AdminProducts() {
 
   const executeBulkAction = async () => {
     if (!bulkAction || selectedIds.size === 0) return;
-    if (bulkAction === "delete" && !confirm(`Delete ${selectedIds.size} products?`)) return;
+    if (bulkAction === "delete") { setBulkDeleteConfirm(true); return; }
     setBulkLoading(true);
     try {
       const res = await fetch(`${BASE}/api/products/bulk-action`, {
@@ -621,6 +628,78 @@ export default function AdminProducts() {
           <p className="font-bold">{searchQuery ? `No products matching "${searchQuery}"` : "No products yet"}</p>
         </div>
       )}
+
+      {/* ═══════════════════════════════
+          DELETE CONFIRMATION DIALOG
+      ═══════════════════════════════ */}
+      <AnimatePresence>
+        {(pendingDeleteId !== null || bulkDeleteConfirm) && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            onClick={() => { setPendingDeleteId(null); setBulkDeleteConfirm(false); }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 16, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.92, y: 8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 420, damping: 28 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-[#0f0f0f] border border-white/12 rounded-2xl p-7 max-w-xs w-full mx-4 shadow-2xl"
+            >
+              <div className="w-12 h-12 rounded-full bg-red-500/15 border border-red-500/25 flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="h-5 w-5 text-red-400" />
+              </div>
+              <h3 className="text-center font-black text-lg tracking-tight mb-1">
+                {bulkDeleteConfirm ? `Delete ${selectedIds.size} products?` : "Delete product?"}
+              </h3>
+              <p className="text-center text-sm text-muted-foreground mb-6">
+                {bulkDeleteConfirm
+                  ? `This will permanently remove ${selectedIds.size} selected product${selectedIds.size !== 1 ? "s" : ""}. This cannot be undone.`
+                  : "This product will be permanently removed. This cannot be undone."}
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1 border-white/12 text-white/60 hover:text-white"
+                  onClick={() => { setPendingDeleteId(null); setBulkDeleteConfirm(false); }}>
+                  Cancel
+                </Button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  disabled={deleteProduct.isPending || bulkLoading}
+                  onClick={async () => {
+                    if (bulkDeleteConfirm) {
+                      setBulkLoading(true);
+                      try {
+                        const res = await fetch(`${BASE}/api/products/bulk-action`, {
+                          method: "POST", credentials: "include",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ ids: Array.from(selectedIds), action: "delete" }),
+                        });
+                        if (res.ok) {
+                          const d = await res.json() as { affected: number };
+                          toast({ title: `${d.affected} products deleted` });
+                          setSelectedIds(new Set()); setBulkAction("");
+                          queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+                        }
+                      } finally { setBulkLoading(false); setBulkDeleteConfirm(false); }
+                    } else {
+                      confirmDelete();
+                    }
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white text-sm font-black uppercase tracking-wider rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
+                >
+                  {(deleteProduct.isPending || bulkLoading) ? (
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
+                      className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
+                  ) : (
+                    <><Trash2 className="h-4 w-4" /> Delete</>
+                  )}
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ═══════════════════════════════
           PRODUCT FORM SHEET
