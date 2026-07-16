@@ -22,6 +22,7 @@ import abandonedCartsRouter from "./abandoned-carts";
 import refundRequestsRouter from "./refund-requests";
 import productRequestsRouter from "./product-requests";
 import visitorSessionsRouter from "./visitor-sessions";
+import logosRouter from "./logos";
 
 const router: IRouter = Router();
 
@@ -48,5 +49,6 @@ router.use(abandonedCartsRouter);
 router.use(refundRequestsRouter);
 router.use(productRequestsRouter);
 router.use(visitorSessionsRouter);
+router.use(logosRouter);
 
 export default router;
