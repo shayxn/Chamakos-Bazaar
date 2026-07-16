@@ -1,8 +1,70 @@
+import React from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-context";
+
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div
+          style={{
+            minHeight: "100vh",
+            background: "#0a0a0a",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: "16px",
+            fontFamily: "monospace",
+            color: "rgba(255,255,255,0.6)",
+            padding: "32px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: "48px" }}>⚠</div>
+          <div style={{ fontSize: "20px", fontWeight: 900, color: "#fff", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            Something went wrong
+          </div>
+          <div style={{ fontSize: "12px", maxWidth: "480px", lineHeight: 1.6, color: "rgba(255,255,255,0.4)" }}>
+            {this.state.error.message}
+          </div>
+          <button
+            onClick={() => { this.setState({ error: null }); window.location.reload(); }}
+            style={{
+              marginTop: "8px",
+              padding: "10px 28px",
+              background: "#ff6600",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: 900,
+              fontSize: "12px",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+            }}
+          >
+            Reload
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { Layout } from "@/components/layout";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useMobile } from "@/lib/use-mobile";
@@ -136,22 +198,26 @@ function CustomerOverlays() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AccountProvider>
-            <CartFlyProvider>
-              <CustomerOverlays />
-              <LoadingScreen />
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                <MainRouter />
-              </WouterRouter>
-              <Toaster />
-            </CartFlyProvider>
-          </AccountProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AccountProvider>
+              <CartFlyProvider>
+                <CustomerOverlays />
+                <LoadingScreen />
+                <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                  <ErrorBoundary>
+                    <MainRouter />
+                  </ErrorBoundary>
+                </WouterRouter>
+                <Toaster />
+              </CartFlyProvider>
+            </AccountProvider>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -135,9 +135,11 @@ function MiniStatBadge({ label, value, icon: Icon, color }: {
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useGetStoreStats({ query: { queryKey: getGetStoreStatsQueryKey() } });
-  const orders = stats?.recentOrders ?? [];
-  const pendingCount = orders.filter((o: any) => o.status === "pending").length;
-  const processingCount = orders.filter((o: any) => o.status === "processing").length;
+  const sc = (stats as any)?.statusCounts as Record<string, number> | undefined;
+  const pendingCount = sc?.pending ?? 0;
+  const processingCount = sc?.processing ?? 0;
+  const deliveredCount = sc?.delivered ?? 0;
+  const cancelledCount = sc?.cancelled ?? 0;
 
   return (
     <div className="space-y-8 max-w-7xl">
@@ -198,8 +200,8 @@ export default function AdminDashboard() {
       {!isLoading && stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <MiniStatBadge label="Processing" value={processingCount} icon={Clock} color="#60a5fa" />
-          <MiniStatBadge label="Delivered" value={orders.filter((o: any) => o.status === "delivered").length} icon={CheckCircle2} color="#4ade80" />
-          <MiniStatBadge label="Cancelled" value={orders.filter((o: any) => o.status === "cancelled").length} icon={XCircle} color="#f87171" />
+          <MiniStatBadge label="Delivered" value={deliveredCount} icon={CheckCircle2} color="#4ade80" />
+          <MiniStatBadge label="Cancelled" value={cancelledCount} icon={XCircle} color="#f87171" />
           <MiniStatBadge label="Low Stock" value={stats.lowStockProducts.length} icon={TrendingUp} color={ACCENT} />
         </div>
       )}

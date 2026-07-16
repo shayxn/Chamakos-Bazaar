@@ -2,20 +2,28 @@ import { Router } from "express";
 import { db, tiktokVideosTable } from "@workspace/db";
 import { eq, asc } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
+import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 
 const router = Router();
+const tiktokCache = createTtlCache<unknown>(60_000);
 
 function serializeVideo(v: typeof tiktokVideosTable.$inferSelect) {
   return { ...v, createdAt: v.createdAt.toISOString() };
 }
 
 router.get("/tiktok", async (_req, res) => {
+  const cached = tiktokCache.get("public");
+  if (cached) { setPublicReadCacheHeaders(res, 60); res.json(cached); return; }
+
   const videos = await db
     .select()
     .from(tiktokVideosTable)
     .where(eq(tiktokVideosTable.isVisible, true))
     .orderBy(asc(tiktokVideosTable.displayOrder), asc(tiktokVideosTable.createdAt));
-  res.json(videos.map(serializeVideo));
+  const result = videos.map(serializeVideo);
+  tiktokCache.set("public", result);
+  setPublicReadCacheHeaders(res, 60);
+  res.json(result);
 });
 
 router.get("/tiktok/all", requireAdmin, async (_req, res) => {

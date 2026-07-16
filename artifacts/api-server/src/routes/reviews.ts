@@ -2,20 +2,28 @@ import { Router } from "express";
 import { db, reviewsTable } from "@workspace/db";
 import { eq, asc } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
+import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 
 const router = Router();
+const reviewsCache = createTtlCache<unknown>(60_000);
 
 function serializeReview(r: typeof reviewsTable.$inferSelect) {
   return { ...r, createdAt: r.createdAt.toISOString() };
 }
 
 router.get("/reviews", async (_req, res) => {
+  const cached = reviewsCache.get("public");
+  if (cached) { setPublicReadCacheHeaders(res, 60); res.json(cached); return; }
+
   const reviews = await db
     .select()
     .from(reviewsTable)
     .where(eq(reviewsTable.isVisible, true))
     .orderBy(asc(reviewsTable.displayOrder), asc(reviewsTable.createdAt));
-  res.json(reviews.map(serializeReview));
+  const result = reviews.map(serializeReview);
+  reviewsCache.set("public", result);
+  setPublicReadCacheHeaders(res, 60);
+  res.json(result);
 });
 
 router.get("/reviews/all", requireAdmin, async (_req, res) => {
