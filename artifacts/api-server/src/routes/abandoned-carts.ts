@@ -19,9 +19,10 @@ router.get("/abandoned-carts", requireAdmin, async (_req, res) => {
         FROM cart_items GROUP BY session_id`
   );
 
-  const sessionSet = new Set(
-    (activeSessions as unknown as { session_id: string }[]).map(s => s.session_id)
-  );
+  const sessionRows: { session_id: string }[] = Array.isArray(activeSessions)
+    ? (activeSessions as any[])
+    : ((activeSessions as any).rows ?? []);
+  const sessionSet = new Set(sessionRows.map(s => s.session_id));
 
   const result = rows.map(r => ({
     ...r,

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, productsTable, categoriesTable, siteSettingsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 
 const router = Router();
@@ -135,11 +135,9 @@ async function getSyncStats(supplier: string): Promise<SyncStats> {
     `sync_error_${supplier}`,
     `sync_auto_enabled_${supplier}`,
   ];
+  const rows = await db.select().from(siteSettingsTable).where(inArray(siteSettingsTable.key, keys));
   const map: Record<string, string> = {};
-  for (const key of keys) {
-    const row = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, key));
-    if (row[0]) map[key] = row[0].value;
-  }
+  for (const row of rows) map[row.key] = row.value;
   return {
     lastSyncAt: map[`sync_last_at_${supplier}`] ?? null,
     nextSyncAt: map[`sync_next_at_${supplier}`] ?? null,
@@ -151,14 +149,14 @@ async function getSyncStats(supplier: string): Promise<SyncStats> {
   };
 }
 
-async function setSyncStat(supplier: string, key: string, value: string) {
-  const fullKey = `${key}_${supplier}`;
-  const existing = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, fullKey));
-  if (existing.length > 0) {
-    await db.update(siteSettingsTable).set({ value }).where(eq(siteSettingsTable.key, fullKey));
-  } else {
-    await db.insert(siteSettingsTable).values({ key: fullKey, value });
-  }
+async function setSyncStats(supplier: string, stats: Record<string, string>) {
+  const entries = Object.entries(stats).map(([k, v]) => ({ key: `${k}_${supplier}`, value: v }));
+  await db.execute(sql`
+    INSERT INTO site_settings (key, value)
+    SELECT * FROM jsonb_to_recordset(${JSON.stringify(entries.map(e => ({ key: e.key, value: e.value })))}::jsonb)
+      AS t(key text, value text)
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+  `);
 }
 
 async function runSupplierImport(baseUrl: string, supplierName: string): Promise<{
@@ -277,17 +275,19 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
 
     const now = new Date().toISOString();
     const nextSync = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    await setSyncStat(supplierName, "sync_last_at", now);
-    await setSyncStat(supplierName, "sync_next_at", nextSync);
-    await setSyncStat(supplierName, "sync_import_count", String(imported));
-    await setSyncStat(supplierName, "sync_update_count", String(updated));
-    await setSyncStat(supplierName, "sync_skip_count", String(skipped));
-    await setSyncStat(supplierName, "sync_error", "");
+    await setSyncStats(supplierName, {
+      sync_last_at: now,
+      sync_next_at: nextSync,
+      sync_import_count: String(imported),
+      sync_update_count: String(updated),
+      sync_skip_count: String(skipped),
+      sync_error: "",
+    });
 
     return { imported, updated, skipped, total: shopifyProducts.length };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Import failed";
-    await setSyncStat(supplierName, "sync_error", message);
+    await setSyncStats(supplierName, { sync_error: message }).catch(() => {});
     return { imported: 0, updated: 0, skipped: 0, total: 0, error: message };
   }
 }
@@ -374,26 +374,20 @@ router.post("/import/toggle-autosync", requireAdmin, async (req, res) => {
     res.status(400).json({ error: "Unknown supplier" });
     return;
   }
-  await setSyncStat(supplier, "sync_auto_enabled", enabled ? "true" : "false");
+  await setSyncStats(supplier, { sync_auto_enabled: enabled ? "true" : "false" });
   res.json({ ok: true });
 });
 
 /* ─── recalculate prices ─── */
 router.post("/import/recalculate-prices", requireAdmin, async (_req, res) => {
-  const products = await db
-    .select({ id: productsTable.id, supplierPrice: productsTable.supplierPrice })
-    .from(productsTable);
-
-  let updated = 0;
-  for (const p of products) {
-    if (p.supplierPrice != null) {
-      const newPrice = calcSellingPrice(Number(p.supplierPrice));
-      await db.update(productsTable).set({ price: String(newPrice) }).where(eq(productsTable.id, p.id));
-      updated++;
-    }
-  }
-
-  res.json({ updated });
+  const result = await db.execute<{ updated: string }>(sql`
+    UPDATE products
+    SET price = ROUND(((supplier_price::numeric + 25) * 1.3), 2)::text
+    WHERE supplier_price IS NOT NULL AND supplier_price != '0'
+    RETURNING id
+  `);
+  const rows = Array.isArray(result) ? result : (result as any).rows ?? [];
+  res.json({ updated: rows.length });
 });
 
 export { runSupplierImport };

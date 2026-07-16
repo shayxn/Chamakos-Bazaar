@@ -13,3 +13,5 @@
 - [Framer-motion ease types](framer-motion-ease-types.md) — ease: number[] fails TS inside Variants objects; use `const EASE_CURVE: any = [...]` or cast `as any` on ease. Move transitions out of variants into direct motion props when possible.
 - [Free shipping threshold](free-shipping-threshold.md) — AED 300 threshold; both cart.tsx and checkout.tsx must use: shipping = subtotal >= 300 ? 0 : 25. Cart shows progress bar; checkout shows "Free 🎉" label.
 - [GitHub push setup](github-push-setup.md) — Remote is HTTPS github.com/shayxn/Chamakos-Bazaar; no SSH keys; no token in env. push-to-github.sh in repo root handles token-based push with force-with-lease. User needs GITHUB_TOKEN secret.
+- [Uploads lost on git push](uploads-git-warning.md) — uploads/ folder is not git-tracked; hero images and product images uploaded via admin are wiped on fresh clone/push. Always reset DB hero_image to static /chamako-hero.png as fallback.
+- [Vite Fast Refresh mixed exports](vite-fast-refresh-mixed.md) — files exporting both a React component AND a hook (useXxx) crash React on HMR; fix with `/* @refresh reset */` at top of file or split into two files.

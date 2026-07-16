@@ -1,3 +1,4 @@
+/* @refresh reset */
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "default" | "liquid-glass";

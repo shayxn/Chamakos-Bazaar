@@ -3,6 +3,14 @@ import { db, visitorSessionsTable } from "@workspace/db";
 import { eq, desc, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 
+function extractRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  if (result && typeof result === "object" && "rows" in result && Array.isArray((result as any).rows)) {
+    return (result as any).rows as T[];
+  }
+  return [];
+}
+
 const router = Router();
 
 router.post("/visitor-sessions/track", async (req, res) => {
@@ -56,7 +64,7 @@ router.get("/visitor-sessions", requireAdmin, async (req, res) => {
     FROM visitor_sessions`
   );
 
-  const s = ((stats as unknown) as any[])[0] ?? { total: "0", today: "0", mobile: "0" };
+  const s = extractRows<{ total: string; today: string; mobile: string }>(stats)[0] ?? { total: "0", today: "0", mobile: "0" };
   res.json({ sessions: rows, stats: { total: Number(s.total), today: Number(s.today), mobile: Number(s.mobile) } });
 });
 
