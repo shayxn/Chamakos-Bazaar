@@ -190,9 +190,10 @@ function MainRouter() {
 }
 
 function CustomerOverlays() {
-  const isAdmin = window.location.pathname.startsWith(import.meta.env.BASE_URL + "admin") ||
-    window.location.pathname.startsWith("/admin");
-  if (isAdmin) return null;
+  const path = window.location.pathname;
+  const isAdmin = path.startsWith(import.meta.env.BASE_URL + "admin") || path.startsWith("/admin");
+  const isLogin = path.includes("/login");
+  if (isAdmin || isLogin) return null;
   return <WelcomePopup />;
 }
 

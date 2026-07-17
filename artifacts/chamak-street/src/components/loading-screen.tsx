@@ -5,7 +5,11 @@ const TOTAL_DURATION = 1800;
 
 export function LoadingScreen() {
   const [skip] = useState(() => {
-    try { return !!sessionStorage.getItem(SESSION_KEY); } catch { return false; }
+    try {
+      const path = window.location.pathname;
+      if (path.includes("/admin") || path.includes("/login")) return true;
+      return !!sessionStorage.getItem(SESSION_KEY);
+    } catch { return false; }
   });
   const [exiting, setExiting] = useState(false);
   const [visible, setVisible] = useState(!skip);
