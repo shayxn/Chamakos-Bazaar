@@ -1,4 +1,4 @@
-import { useGetStoreStats, getGetStoreStatsQueryKey } from "@workspace/api-client-react";
+import { useGetStoreStats, getGetStoreStatsQueryKey, useListOrders } from "@workspace/api-client-react";
 import { Package, ShoppingBag, DollarSign, AlertTriangle, TrendingUp, Clock, CheckCircle2, XCircle, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { getPrimaryProductMedia } from "@/lib/product-media";
@@ -135,6 +135,7 @@ function MiniStatBadge({ label, value, icon: Icon, color }: {
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useGetStoreStats({ query: { queryKey: getGetStoreStatsQueryKey() } });
+  const { data: orders = [] } = useListOrders({ query: { staleTime: 30_000, queryKey: ["admin", "dashboard-orders"] } });
   const sc = (stats as any)?.statusCounts as Record<string, number> | undefined;
   const pendingCount = sc?.pending ?? 0;
   const processingCount = sc?.processing ?? 0;
