@@ -2,11 +2,19 @@ import { Router } from "express";
 import { db, eventsTable } from "@workspace/db";
 import { eq, desc, asc } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
+import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 
 const router = Router();
 
+const eventsActiveCache = createTtlCache<unknown[]>(30_000);
+
+function clearEventsCache() { eventsActiveCache.clear(); }
+
 // Public: get currently active events (respects start/end dates)
 router.get("/events/active", async (_req, res) => {
+  const cached = eventsActiveCache.get("active");
+  if (cached) { setPublicReadCacheHeaders(res, 30); res.json(cached); return; }
+
   const events = await db.select().from(eventsTable)
     .where(eq(eventsTable.isActive, true))
     .orderBy(asc(eventsTable.priority), desc(eventsTable.createdAt));
@@ -16,6 +24,8 @@ router.get("/events/active", async (_req, res) => {
     if (e.endAt && new Date(e.endAt) < now) return false;
     return true;
   });
+  eventsActiveCache.set("active", active);
+  setPublicReadCacheHeaders(res, 30);
   res.json(active);
 });
 
@@ -26,8 +36,9 @@ router.get("/events", requireAdmin, async (_req, res) => {
   res.json(events);
 });
 
-// Admin: create event
+// Admin: create event (clear public cache)
 router.post("/events", requireAdmin, async (req, res) => {
+  clearEventsCache();
   const body = req.body as Partial<typeof eventsTable.$inferInsert>;
   const [evt] = await db.insert(eventsTable).values({
     name: body.name ?? "New Event",
@@ -59,8 +70,9 @@ router.post("/events", requireAdmin, async (req, res) => {
   res.status(201).json(evt);
 });
 
-// Admin: update event
+// Admin: update event (clear public cache so next visitor sees fresh data)
 router.patch("/events/:id", requireAdmin, async (req, res) => {
+  clearEventsCache();
   const id = parseInt(req.params.id as string);
   const body = req.body as Partial<typeof eventsTable.$inferInsert>;
   const allowed: Partial<typeof eventsTable.$inferInsert> = {};
@@ -93,8 +105,9 @@ router.post("/events/:id/duplicate", requireAdmin, async (req, res) => {
   res.status(201).json(copy);
 });
 
-// Admin: delete event
+// Admin: delete event (clear public cache)
 router.delete("/events/:id", requireAdmin, async (req, res) => {
+  clearEventsCache();
   const id = parseInt(req.params.id as string);
   await db.delete(eventsTable).where(eq(eventsTable.id, id));
   res.json({ ok: true });

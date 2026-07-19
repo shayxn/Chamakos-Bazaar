@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ShoppingCart, CheckCircle, Trash2, Phone, Mail, DollarSign, TrendingUp, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -17,16 +17,28 @@ export default function AbandonedCarts() {
   const [stats, setStats] = useState<Stats>({ total: 0, withEmail: 0, totalValue: 0 });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const load = () => {
-    fetch(`${BASE}/api/abandoned-carts`, { credentials: "include" })
+    const controller = new AbortController();
+    fetch(`${BASE}/api/abandoned-carts`, { credentials: "include", signal: controller.signal })
       .then(r => r.json()).then((d: { carts: AbandonedCart[]; stats: Stats }) => {
+        if (!mountedRef.current) return;
         setCarts(d.carts);
         setStats(d.stats);
-      }).finally(() => setLoading(false));
+      }).catch(() => {}).finally(() => { if (mountedRef.current) setLoading(false); });
+    return controller;
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const ctrl = load();
+    return () => ctrl.abort();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const markRecovered = async (id: number) => {
     await fetch(`${BASE}/api/abandoned-carts/${id}/recover`, { method: "POST", credentials: "include" });
@@ -48,102 +60,85 @@ export default function AbandonedCarts() {
         <h1 className="text-3xl font-black uppercase tracking-tighter mb-2 flex items-center gap-3">
           <ShoppingCart className="h-7 w-7 text-primary" /> Abandoned Cart Recovery
         </h1>
-        <p className="text-muted-foreground font-mono text-sm">Carts with contact info captured at checkout</p>
+        <p className="text-muted-foreground font-mono text-sm">{stats.total} total · {stats.withEmail} with email</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Total Abandoned</p>
-          <p className="text-3xl font-black font-mono text-primary">{stats.total}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
+          <Users className="h-8 w-8 text-primary/60" />
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">Total Carts</p>
+            <p className="text-2xl font-black">{stats.total}</p>
+          </div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">With Contact Info</p>
-          <p className="text-3xl font-black font-mono text-green-400">{stats.withEmail}</p>
+        <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
+          <Mail className="h-8 w-8 text-blue-500/60" />
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">With Email</p>
+            <p className="text-2xl font-black">{stats.withEmail}</p>
+          </div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Lost Revenue</p>
-          <p className="text-3xl font-black font-mono text-red-400">AED {stats.totalValue.toFixed(0)}</p>
-        </div>
-      </div>
-
-      <div className="bg-card border border-yellow-500/30 rounded-xl p-4 flex items-start gap-3">
-        <AlertTriangle className="h-5 w-5 text-yellow-400 shrink-0 mt-0.5" />
-        <div>
-          <p className="font-bold text-sm text-yellow-400">How Abandoned Carts Are Tracked</p>
-          <p className="text-xs text-muted-foreground mt-1">When customers start filling in their details at checkout (name, phone), their cart is automatically tracked here. You can follow up manually via WhatsApp.</p>
+        <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
+          <DollarSign className="h-8 w-8 text-green-500/60" />
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-muted-foreground">Total Value</p>
+            <p className="text-2xl font-black">AED {stats.totalValue?.toFixed(0) ?? 0}</p>
+          </div>
         </div>
       </div>
 
       {carts.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-16 text-center">
           <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-30" />
-          <p className="text-muted-foreground font-bold uppercase tracking-widest text-sm">No abandoned carts tracked yet</p>
-          <p className="text-xs text-muted-foreground mt-2">Carts appear here when customers start checkout but don't complete it.</p>
+          <p className="text-muted-foreground font-bold uppercase tracking-widest text-sm">No abandoned carts yet</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {carts.map(c => {
-            let cartItems: { name: string; qty: number; price: number }[] = [];
-            try { if (c.cartData) cartItems = JSON.parse(c.cartData); } catch {}
-            return (
-              <div key={c.id} className="bg-card border border-border rounded-xl p-5">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      {c.hasActiveCart && (
-                        <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border text-orange-400 bg-orange-500/10 border-orange-500/30">
-                          Cart Still Active
-                        </span>
-                      )}
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(c.updatedAt).toLocaleDateString()} {new Date(c.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          {carts.map(c => (
+            <div key={c.id} className={`bg-card border rounded-xl p-4 ${c.recovered ? "border-green-500/20 opacity-60" : "border-border"}`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    {c.recovered && (
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border text-green-400 bg-green-500/10 border-green-500/30">
+                        Recovered
                       </span>
-                    </div>
-                    {c.customerName && <p className="font-black">{c.customerName}</p>}
-                    <div className="flex flex-wrap gap-3 mt-1">
-                      {c.customerPhone && (
-                        <a href={`https://wa.me/${c.customerPhone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 text-xs text-green-400 hover:underline font-bold">
-                          <Phone className="h-3.5 w-3.5" /> {c.customerPhone}
-                        </a>
-                      )}
-                      {c.customerEmail && (
-                        <a href={`mailto:${c.customerEmail}`} className="flex items-center gap-1.5 text-xs text-blue-400 hover:underline font-bold">
-                          <Mail className="h-3.5 w-3.5" /> {c.customerEmail}
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    {c.totalValue != null && (
-                      <p className="font-mono font-black text-lg text-primary">AED {c.totalValue.toFixed(0)}</p>
                     )}
-                    <p className="text-xs text-muted-foreground">{c.itemCount} item{c.itemCount !== 1 ? "s" : ""}</p>
+                    {!c.recovered && c.hasActiveCart && (
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border text-yellow-400 bg-yellow-500/10 border-yellow-500/30">
+                        Active
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground">{new Date(c.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                  <p className="font-bold text-sm">{c.customerName || "Unknown Customer"}</p>
+                  {c.customerEmail && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" />{c.customerEmail}</p>
+                  )}
+                  {c.customerPhone && (
+                    <a href={`https://wa.me/${c.customerPhone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-green-400 flex items-center gap-1 hover:text-green-300">
+                      <Phone className="h-3 w-3" />{c.customerPhone}
+                    </a>
+                  )}
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs font-black text-primary">{c.itemCount} item{c.itemCount !== 1 ? "s" : ""}</span>
+                    {c.totalValue != null && <span className="text-xs text-muted-foreground">AED {c.totalValue.toFixed(2)}</span>}
                   </div>
                 </div>
-
-                {cartItems.length > 0 && (
-                  <div className="bg-muted/40 rounded-lg p-3 mb-3 text-xs space-y-1">
-                    {cartItems.map((item, i) => (
-                      <div key={i} className="flex justify-between">
-                        <span className="text-muted-foreground">{item.name} ×{item.qty}</span>
-                        <span className="font-mono font-bold">AED {(item.price * item.qty).toFixed(0)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex gap-2 mt-3">
-                  <Button size="sm" onClick={() => markRecovered(c.id)} className="text-xs bg-green-600 hover:bg-green-700 text-white">
-                    <CheckCircle className="h-3.5 w-3.5 mr-1" /> Mark Recovered
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => dismiss(c.id)} className="text-xs text-muted-foreground">
-                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Dismiss
+                <div className="flex items-center gap-2 shrink-0">
+                  {!c.recovered && (
+                    <Button size="sm" onClick={() => markRecovered(c.id)} className="text-xs bg-green-600 hover:bg-green-700 text-white h-8">
+                      <CheckCircle className="h-3.5 w-3.5 mr-1" /> Recover
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={() => dismiss(c.id)} className="text-destructive h-8 w-8 p-0">
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>

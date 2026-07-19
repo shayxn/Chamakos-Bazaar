@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RefreshCw, CheckCircle, XCircle, Trash2, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -31,13 +31,27 @@ export default function AdminRefundRequests() {
   const [loading, setLoading] = useState(true);
   const [forms, setForms] = useState<Record<number, { note: string; amount: string }>>({});
   const { toast } = useToast();
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const load = () => {
-    fetch(`${BASE}/api/refund-requests`, { credentials: "include" })
-      .then(r => r.json()).then(setRequests).finally(() => setLoading(false));
+    const controller = new AbortController();
+    fetch(`${BASE}/api/refund-requests`, { credentials: "include", signal: controller.signal })
+      .then(r => r.json())
+      .then(d => { if (mountedRef.current) setRequests(d); })
+      .catch(() => {})
+      .finally(() => { if (mountedRef.current) setLoading(false); });
+    return controller;
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const ctrl = load();
+    return () => ctrl.abort();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateStatus = async (id: number, status: string) => {
     const f = forms[id] ?? {};

@@ -35,6 +35,8 @@ function getOrCreateSessionId(): string {
 
 const BASE = import.meta.env.BASE_URL ?? "/";
 
+let _initialPingSent = false;
+
 async function sendTracking(payload: Record<string, unknown>) {
   try {
     await fetch(`${BASE}api/visitor-sessions/track`, {
@@ -53,20 +55,22 @@ export function useVisitorTracking() {
   const sent = useRef(false);
 
   useEffect(() => {
-    const { deviceType, deviceOs, browser } = getDeviceInfo();
-    const payload = {
-      sessionId: sessionId.current,
-      deviceType,
-      deviceOs,
-      browser,
-      screenWidth: window.screen.width,
-      screenHeight: window.screen.height,
-      referrer: document.referrer || null,
-      entryPage: window.location.pathname,
-      events: JSON.stringify([]),
-      durationSeconds: 0,
-    };
-    sendTracking(payload);
+    if (!_initialPingSent) {
+      _initialPingSent = true;
+      const { deviceType, deviceOs, browser } = getDeviceInfo();
+      sendTracking({
+        sessionId: sessionId.current,
+        deviceType,
+        deviceOs,
+        browser,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        referrer: document.referrer || null,
+        entryPage: window.location.pathname,
+        events: JSON.stringify([]),
+        durationSeconds: 0,
+      });
+    }
 
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -101,18 +105,20 @@ export function useVisitorTracking() {
       flush();
     }, 30_000);
 
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") { sent.current = false; flush(); }
-    });
-    window.addEventListener("beforeunload", () => { sent.current = false; flush(); });
-    window.addEventListener("pagehide", () => { sent.current = false; flush(); });
+    const onHide = () => { if (document.visibilityState === "hidden") { sent.current = false; flush(); } };
+    const onUnload = () => { sent.current = false; flush(); };
+
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("beforeunload", onUnload);
+    window.addEventListener("pagehide", onUnload);
 
     return () => {
       document.removeEventListener("click", handleClick);
       window.removeEventListener("popstate", handleNav);
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("beforeunload", onUnload);
+      window.removeEventListener("pagehide", onUnload);
       clearInterval(interval);
-      sent.current = false;
-      flush();
     };
   }, []);
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { useListProducts, useListCategories, getListProductsQueryKey, getListCategoriesQueryKey } from "@workspace/api-client-react";
 import { Link, useSearch, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -58,7 +59,7 @@ export default function Shop() {
   };
 
   const { data: rawProducts, isLoading } = useListProducts(queryParams, {
-    query: { queryKey: getListProductsQueryKey(queryParams), staleTime: 30_000 }
+    query: { queryKey: getListProductsQueryKey(queryParams), staleTime: 30_000, placeholderData: keepPreviousData }
   });
 
   const products = useMemo(() => {

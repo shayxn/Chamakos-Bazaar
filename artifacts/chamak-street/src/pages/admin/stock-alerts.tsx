@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Bell, CheckCircle, Trash2, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -15,15 +15,26 @@ export default function AdminStockAlerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const load = () => {
-    fetch(`${BASE}/api/stock-alerts`, { credentials: "include" })
+    const controller = new AbortController();
+    fetch(`${BASE}/api/stock-alerts`, { credentials: "include", signal: controller.signal })
       .then((r) => r.json())
-      .then((d) => { setAlerts(d as Alert[]); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => { if (mountedRef.current) { setAlerts(d as Alert[]); setLoading(false); } })
+      .catch(() => { if (mountedRef.current) setLoading(false); });
+    return controller;
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const ctrl = load();
+    return () => ctrl.abort();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const markNotified = async (id: number) => {
     await fetch(`${BASE}/api/stock-alerts/${id}/notified`, { method: "PATCH", credentials: "include" });

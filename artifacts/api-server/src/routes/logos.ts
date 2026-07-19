@@ -5,6 +5,7 @@ const router = Router();
 
 const logoCache = createTtlCache<Buffer>(60 * 60_000);
 const logoTypeCache = createTtlCache<string>(60 * 60_000);
+const logoFailCache = createTtlCache<boolean>(24 * 60 * 60_000);
 
 const DOMAIN_RE = /^[a-zA-Z0-9.-]{3,100}$/;
 
@@ -18,6 +19,11 @@ router.get("/brand-logo/:domain", async (req, res) => {
   const domain = req.params.domain;
   if (!DOMAIN_RE.test(domain)) {
     res.status(400).json({ error: "Invalid domain" });
+    return;
+  }
+
+  if (logoFailCache.get(domain)) {
+    res.status(404).json({ error: "Logo not found" });
     return;
   }
 
@@ -36,7 +42,7 @@ router.get("/brand-logo/:domain", async (req, res) => {
           "User-Agent": "Mozilla/5.0 (compatible; ChamakStreet/1.0)",
           "Accept": "image/*,*/*",
         },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(3000),
         redirect: "follow",
       });
 
@@ -60,6 +66,7 @@ router.get("/brand-logo/:domain", async (req, res) => {
     }
   }
 
+  logoFailCache.set(domain, true);
   res.status(404).json({ error: "Logo not found" });
 });
 

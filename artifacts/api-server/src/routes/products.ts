@@ -52,6 +52,7 @@ router.get("/products", async (req, res) => {
   const featured = req.query.featured === "true" ? true : req.query.featured === "false" ? false : undefined;
 
   const conditions: SQL[] = [];
+  if (!isAdmin) conditions.push(eq(productsTable.hidden, false));
   if (categoryId !== undefined) conditions.push(eq(productsTable.categoryId, categoryId));
   if (search) conditions.push(ilike(productsTable.name, `%${search}%`));
   if (featured !== undefined) conditions.push(eq(productsTable.featured, featured));
@@ -154,6 +155,7 @@ router.get("/products/complete-the-look", async (req, res) => {
         eq(productsTable.importSource, source),
         ne(productsTable.id, productId),
         isNotNull(productsTable.imageUrl),
+        eq(productsTable.hidden, false),
       ];
       if (tryFeatured) conds.push(eq(productsTable.featured, true));
 
@@ -184,9 +186,12 @@ router.get("/products/complete-the-look", async (req, res) => {
 router.get("/products/:id", async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const cacheKey = req.originalUrl;
-  const cached = productDetailCache.get(cacheKey);
-  if (cached) { setPublicReadCacheHeaders(res); res.json(cached); return; }
+  const isAdmin = (req as any).session?.userId != null;
+  const cacheKey = isAdmin ? null : req.originalUrl;
+  if (cacheKey) {
+    const cached = productDetailCache.get(cacheKey);
+    if (cached) { setPublicReadCacheHeaders(res); res.json(cached); return; }
+  }
 
   const [product] = await db
     .select({
@@ -218,9 +223,9 @@ router.get("/products/:id", async (req, res) => {
     .where(eq(productsTable.id, id));
 
   if (!product) { res.status(404).json({ error: "Not found" }); return; }
+  if (!isAdmin && !isPublished(product as any)) { res.status(404).json({ error: "Not found" }); return; }
   const result = serializeProduct(product);
-  productDetailCache.set(cacheKey, result);
-  setPublicReadCacheHeaders(res);
+  if (cacheKey) { productDetailCache.set(cacheKey, result); setPublicReadCacheHeaders(res); }
   res.json(result);
 });
 
