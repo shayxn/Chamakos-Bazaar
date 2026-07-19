@@ -18,8 +18,8 @@ const TAB_ITEMS = [
 export function MobileLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const settings = useSettings();
-  const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 2 * 60_000 } });
-  const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 5 * 60_000 } });
+  const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 15_000 } });
+  const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
   const { cartBounceKey } = useCartFly();
 
   const cartCount = cart?.items.reduce((a, i) => a + i.quantity, 0) || 0;

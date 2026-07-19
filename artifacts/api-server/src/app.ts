@@ -1,5 +1,6 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import compression from "compression";
 import cookieSession from "cookie-session";
 import pinoHttp from "pino-http";
 import path from "path";
@@ -11,6 +12,8 @@ import bcrypt from "bcryptjs";
 
 const app: Express = express();
 app.set("trust proxy", 1);
+
+app.use(compression({ level: 6, threshold: 512 }));
 
 app.use(
   pinoHttp({

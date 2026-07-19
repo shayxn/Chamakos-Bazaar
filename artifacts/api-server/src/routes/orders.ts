@@ -2,8 +2,11 @@ import { Router } from "express";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable } from "@workspace/db";
 import { eq, inArray } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
+import { createTtlCache } from "../lib/response-cache";
 
 const router = Router();
+
+const ordersListCache = createTtlCache<ReturnType<typeof serializeOrder>[]>(15_000);
 
 function generateOrderNumber(): string {
   const num = 100000 + Math.floor(Math.random() * 900000);
@@ -27,8 +30,11 @@ async function buildOrder(orderId: number) {
 }
 
 router.get("/orders", requireAdmin, async (_req, res) => {
+  const cached = ordersListCache.get("all");
+  if (cached) { res.json(cached); return; }
+
   const orders = await db.select().from(ordersTable).orderBy(ordersTable.createdAt);
-  if (orders.length === 0) { res.json([]); return; }
+  if (orders.length === 0) { ordersListCache.set("all", []); res.json([]); return; }
 
   const items = await db
     .select()
@@ -40,7 +46,9 @@ router.get("/orders", requireAdmin, async (_req, res) => {
     itemsByOrderId.get(item.orderId)!.push(item);
   }
 
-  res.json(orders.map((order) => serializeOrder(order, itemsByOrderId.get(order.id) ?? [])));
+  const result = orders.map((order) => serializeOrder(order, itemsByOrderId.get(order.id) ?? []));
+  ordersListCache.set("all", result);
+  res.json(result);
 });
 
 router.get("/orders/track", async (req, res) => {
@@ -162,6 +170,7 @@ router.post("/orders", async (req, res) => {
   });
 
   const fullOrder = await buildOrder(order.id);
+  ordersListCache.clear();
   (req.session as Record<string, unknown>).lastOrderId = order.id;
   res.status(201).json(fullOrder);
 });
@@ -189,6 +198,7 @@ router.patch("/orders/:id", requireAdmin, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const [order] = await db.update(ordersTable).set(req.body).where(eq(ordersTable.id, id)).returning();
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
+  ordersListCache.clear();
   const fullOrder = await buildOrder(id);
   res.json(fullOrder);
 });
@@ -199,6 +209,7 @@ router.patch("/orders/:id/status", requireAdmin, async (req, res) => {
   const { status } = req.body as { status: string };
   if (!status) { res.status(400).json({ error: "status required" }); return; }
   await db.update(ordersTable).set({ status }).where(eq(ordersTable.id, id));
+  ordersListCache.clear();
   const order = await buildOrder(id);
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
   res.json(order);

@@ -363,7 +363,7 @@ export default function ProductDetail() {
   const id = params?.id ? parseInt(params.id) : 0;
 
   const { data: product, isLoading } = useGetProduct(id, {
-    query: { enabled: !!id, queryKey: getGetProductQueryKey(id), staleTime: 2 * 60_000 }
+    query: { enabled: !!id, queryKey: getGetProductQueryKey(id), staleTime: 30_000 }
   });
 
   const settings = useSettings();
@@ -375,7 +375,7 @@ export default function ProductDetail() {
   const categoryId = product?.categoryId ?? undefined;
   const { data: relatedProducts } = useListProducts(
     categoryId ? { categoryId } : undefined,
-    { query: { enabled: !!categoryId && recVisible, queryKey: getListProductsQueryKey(categoryId ? { categoryId } : undefined), staleTime: 2 * 60_000 } }
+    { query: { enabled: !!categoryId && recVisible, queryKey: getListProductsQueryKey(categoryId ? { categoryId } : undefined), staleTime: 30_000 } }
   );
   const related = (relatedProducts ?? []).filter((p) => p.id !== id).slice(0, recCount);
 

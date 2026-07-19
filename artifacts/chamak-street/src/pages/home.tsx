@@ -131,7 +131,7 @@ export default function Home() {
   const settings = useSettings();
   const { data: featuredProducts } = useListProducts(
     { featured: true },
-    { query: { queryKey: getListProductsQueryKey({ featured: true }), staleTime: 2 * 60_000 } }
+    { query: { queryKey: getListProductsQueryKey({ featured: true }), staleTime: 30_000 } }
   );
   const heroTitle = settings.hero_title || "Ignite the";
   const heroSubtitle = settings.hero_subtitle || "Streets.";

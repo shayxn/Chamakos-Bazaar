@@ -67,11 +67,11 @@ export const SETTING_DEFAULTS: Record<string, string> = {
 };
 
 export function useSetting(key: string): string {
-  const { data: settings } = useGetAllSettings({ query: { staleTime: 60_000, queryKey: ["settings", key] } });
+  const { data: settings } = useGetAllSettings({ query: { staleTime: 30_000, queryKey: ["settings", key] } });
   return settings?.[key] ?? SETTING_DEFAULTS[key] ?? "";
 }
 
 export function useSettings(): Record<string, string> {
-  const { data: settings } = useGetAllSettings({ query: { staleTime: 60_000, queryKey: ["settings", "all"] } });
+  const { data: settings } = useGetAllSettings({ query: { staleTime: 30_000, queryKey: ["settings", "all"] } });
   return { ...SETTING_DEFAULTS, ...(settings ?? {}) };
 }

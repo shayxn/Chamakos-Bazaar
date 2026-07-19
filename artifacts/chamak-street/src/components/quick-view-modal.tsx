@@ -21,7 +21,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
   const [addedPulse, setAddedPulse] = useState(false);
 
   const { data: product, isLoading } = useGetProduct(productId ?? 0, {
-    query: { enabled: !!productId, queryKey: getGetProductQueryKey(productId ?? 0), staleTime: 2 * 60_000 },
+    query: { enabled: !!productId, queryKey: getGetProductQueryKey(productId ?? 0), staleTime: 30_000 },
   });
 
   const addToCart = useAddToCart();

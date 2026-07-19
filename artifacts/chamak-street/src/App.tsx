@@ -114,9 +114,9 @@ import GameDetail from "@/pages/game-detail";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60_000,
-      gcTime: 5 * 60_000,
-      refetchOnWindowFocus: false,
+      staleTime: 30_000,
+      gcTime: 3 * 60_000,
+      refetchOnWindowFocus: true,
       retry: 1,
     },
   },

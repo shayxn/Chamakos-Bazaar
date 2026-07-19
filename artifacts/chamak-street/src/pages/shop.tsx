@@ -49,7 +49,7 @@ export default function Shop() {
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: categories } = useListCategories({
-    query: { queryKey: getListCategoriesQueryKey(), staleTime: 5 * 60_000 }
+    query: { queryKey: getListCategoriesQueryKey(), staleTime: 60_000 }
   });
 
   const queryParams = {
@@ -58,7 +58,7 @@ export default function Shop() {
   };
 
   const { data: rawProducts, isLoading } = useListProducts(queryParams, {
-    query: { queryKey: getListProductsQueryKey(queryParams), staleTime: 2 * 60_000 }
+    query: { queryKey: getListProductsQueryKey(queryParams), staleTime: 30_000 }
   });
 
   const products = useMemo(() => {

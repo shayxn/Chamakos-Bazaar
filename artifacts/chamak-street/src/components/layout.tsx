@@ -15,9 +15,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const settings = useSettings();
-  const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 2 * 60_000 } });
-  const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 5 * 60_000 } });
-  const { data: categories } = useListCategories({ query: { queryKey: getListCategoriesQueryKey(), staleTime: 5 * 60_000 } });
+  const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 15_000 } });
+  const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
+  const { data: categories } = useListCategories({ query: { queryKey: getListCategoriesQueryKey(), staleTime: 60_000 } });
   const logout = useLogout();
 
   const cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
