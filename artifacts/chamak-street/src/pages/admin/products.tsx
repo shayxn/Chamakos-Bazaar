@@ -327,6 +327,8 @@ export default function AdminProducts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const [deleteAllConfirm, setDeleteAllConfirm] = useState(false);
+  const [deleteAllLoading, setDeleteAllLoading] = useState(false);
 
   const [formData, setFormData] = useState<ProductFormData>({
     name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "",
@@ -433,6 +435,19 @@ export default function AdminProducts() {
     });
   };
 
+  const deleteAllProducts = async () => {
+    setDeleteAllLoading(true);
+    try {
+      await fetch(`${BASE}/api/products/all`, { method: "DELETE", credentials: "include" });
+      queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+      toast({ title: "All products deleted" });
+      setSelectedIds(new Set());
+    } finally {
+      setDeleteAllLoading(false);
+      setDeleteAllConfirm(false);
+    }
+  };
+
   const toggleSelect = (id: number) => setSelectedIds(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleAll = () => setSelectedIds(selectedIds.size === products?.length ? new Set() : new Set(products?.map(p => p.id) ?? []));
 
@@ -476,9 +491,39 @@ export default function AdminProducts() {
           <h1 className="text-3xl font-black uppercase tracking-tighter mb-1">Inventory</h1>
           <p className="text-muted-foreground text-sm">{products?.length ?? 0} products · Manage stock, media, and drops</p>
         </div>
-        <Button onClick={openNew} className="font-bold uppercase tracking-wider fire-gradient border-none shrink-0">
-          <Plus className="mr-2 h-4 w-4" /> Add Product
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          {deleteAllConfirm ? (
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => setDeleteAllConfirm(false)}
+                className="text-xs font-bold h-9 text-muted-foreground"
+                disabled={deleteAllLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={deleteAllProducts}
+                disabled={deleteAllLoading}
+                className="font-bold uppercase tracking-wider h-9 bg-destructive hover:bg-destructive/90 text-white border-none"
+              >
+                {deleteAllLoading ? "Deleting…" : `Yes, delete all ${products?.length ?? ""}`}
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={() => setDeleteAllConfirm(true)}
+              className="font-bold uppercase tracking-wider h-9 border-destructive/40 text-destructive hover:bg-destructive hover:text-white"
+              disabled={!products?.length}
+            >
+              Delete All
+            </Button>
+          )}
+          <Button onClick={openNew} className="font-bold uppercase tracking-wider fire-gradient border-none">
+            <Plus className="mr-2 h-4 w-4" /> Add Product
+          </Button>
+        </div>
       </div>
 
       {/* Search + Bulk */}

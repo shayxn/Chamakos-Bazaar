@@ -240,6 +240,12 @@ router.patch("/products/:id", requireAdmin, async (req, res) => {
   res.json(serializeProduct({ ...product, categoryName: null }));
 });
 
+router.delete("/products/all", requireAdmin, async (_req, res) => {
+  await db.delete(productsTable);
+  clearProductCaches();
+  res.json({ message: "All products deleted" });
+});
+
 router.delete("/products/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
