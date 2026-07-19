@@ -1,13 +1,6 @@
-// Chamak Street — Push Notification Service Worker
-const CACHE_NAME = "chamak-sw-v1";
-
-self.addEventListener("install", (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
-});
+// Chamak Street — Push Notification Service Worker v2
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
@@ -21,22 +14,23 @@ self.addEventListener("push", (event) => {
 
   const { title, body, type, data } = payload;
 
-  // Notify all open tabs so they can play the cash sound
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      clients.forEach((client) => {
-        client.postMessage({ type: type || "NEW_ORDER", data });
-      });
+      // Tell any open tab to play the cash register sound
+      clients.forEach((client) => client.postMessage({ type: type || "NEW_ORDER", data }));
 
       return self.registration.showNotification(title || "New Order — Chamak Street", {
         body: body || "A new order has been placed.",
         icon: "/chamak-logo.png",
-        badge: "/favicon.svg",
+        badge: "/chamak-logo.png",
         tag: `order-${data?.orderNumber || Date.now()}`,
         requireInteraction: true,
-        vibrate: [200, 100, 200],
+        vibrate: [200, 100, 200, 100, 200],
         data: data || {},
-        actions: [{ action: "view", title: "View Orders" }],
+        actions: [
+          { action: "view-order", title: "📦 View Order" },
+          { action: "dismiss",    title: "Dismiss" },
+        ],
       });
     })
   );
@@ -45,18 +39,25 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const url = "/admin/orders";
+  if (event.action === "dismiss") return;
+
+  // Navigate to the specific admin orders page
+  const targetUrl = event.notification.data?.url || "/admin/orders";
 
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      for (const client of clients) {
-        if ("focus" in client) {
-          return client.focus();
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clients) => {
+        // If there's already a window open on this origin, focus + navigate it
+        for (const client of clients) {
+          if (client.url.includes(self.location.origin) && "focus" in client) {
+            client.focus();
+            client.navigate?.(targetUrl);
+            return;
+          }
         }
-      }
-      if (self.clients.openWindow) {
-        return self.clients.openWindow(url);
-      }
-    })
+        // Otherwise open a new window
+        return self.clients.openWindow(targetUrl);
+      })
   );
 });

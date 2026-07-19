@@ -92,7 +92,7 @@ export function useAdminPushNotifications() {
   const [subscribed, setSubscribed] = useState(false);
   const swRegRef = useRef<ServiceWorkerRegistration | null>(null);
 
-  // Listen for SW messages (NEW_ORDER) to play sound
+  // Listen for SW messages (NEW_ORDER) to play the cash register sound
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     const handler = (event: MessageEvent) => {
@@ -104,16 +104,10 @@ export function useAdminPushNotifications() {
     return () => navigator.serviceWorker.removeEventListener("message", handler);
   }, []);
 
-  const subscribe = useCallback(async (): Promise<boolean> => {
-    if (typeof Notification === "undefined") return false;
+  // Subscribe to push after permission is already granted (no dialog needed)
+  const subscribeAfterGrant = useCallback(async (): Promise<boolean> => {
     try {
-      const perm = await Notification.requestPermission();
-      setPermission(perm as NotifPermission);
-      if (perm !== "granted") return false;
-
-      const res = await fetch(`${BASE}/api/push/vapid-key`, {
-        credentials: "include",
-      });
+      const res = await fetch(`${BASE}/api/push/vapid-key`, { credentials: "include" });
       if (!res.ok) return false;
       const { publicKey } = (await res.json()) as { publicKey: string };
 
@@ -136,10 +130,7 @@ export function useAdminPushNotifications() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           endpoint: sub.endpoint,
-          keys: {
-            p256dh: subJson.keys?.p256dh,
-            auth: subJson.keys?.auth,
-          },
+          keys: { p256dh: subJson.keys?.p256dh, auth: subJson.keys?.auth },
         }),
       });
 
@@ -150,6 +141,22 @@ export function useAdminPushNotifications() {
       return false;
     }
   }, []);
+
+  // Request browser permission and subscribe if granted
+  const subscribe = useCallback(async (): Promise<NotifPermission> => {
+    if (typeof Notification === "undefined") return "unsupported";
+    try {
+      const perm = await Notification.requestPermission();
+      setPermission(perm as NotifPermission);
+      if (perm === "granted") {
+        await subscribeAfterGrant();
+      }
+      return perm as NotifPermission;
+    } catch (err) {
+      console.warn("[Push] requestPermission failed:", err);
+      return "denied";
+    }
+  }, [subscribeAfterGrant]);
 
   const unsubscribe = useCallback(async () => {
     try {
@@ -179,15 +186,15 @@ export function useAdminPushNotifications() {
     });
   }, []);
 
-  // Auto-subscribe if already granted
+  // Auto-subscribe silently if permission already granted (returning admins)
   useEffect(() => {
     if (
       typeof Notification !== "undefined" &&
       Notification.permission === "granted"
     ) {
-      subscribe();
+      subscribeAfterGrant();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { permission, subscribed, subscribe, unsubscribe, sendTest };
+  return { permission, subscribed, subscribe, subscribeAfterGrant, unsubscribe, sendTest };
 }
