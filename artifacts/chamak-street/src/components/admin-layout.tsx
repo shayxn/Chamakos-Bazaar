@@ -2,13 +2,75 @@ import { useGetMe, useListProducts, useListCategories } from "@workspace/api-cli
 import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag,
-  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Bell, BellOff, BellRing,
-  TrendingUp, ShoppingCart, Zap, Users, Volume2
+  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Bell,
+  TrendingUp, ShoppingCart, Zap, Users, BellRing
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
-import { useAdminPushNotifications, playCashSound } from "@/hooks/use-admin-notifications";
+import { useAdminPushNotifications } from "@/hooks/use-admin-notifications";
 import { motion, AnimatePresence } from "framer-motion";
+
+const NOTIF_KEY = "chamak_notif_asked";
+
+function NotificationPromptModal({ onAllow, onDismiss }: { onAllow: () => void; onDismiss: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(10px)" }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.88, y: 28 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.88, y: 28 }}
+        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl relative"
+        style={{ background: "#0d0d0d", border: "1px solid rgba(255,102,0,0.3)" }}
+      >
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-56 h-36 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, rgba(255,102,0,0.15) 0%, transparent 70%)" }}
+        />
+        <div className="relative p-7 flex flex-col items-center text-center gap-5">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, #ff6600, #ffcc00)", boxShadow: "0 4px 28px rgba(255,102,0,0.5)" }}
+          >
+            <BellRing className="h-7 w-7 text-white" />
+          </div>
+          <div>
+            <h2 className="font-black uppercase tracking-tight text-xl text-white mb-2">
+              Enable Order Alerts
+            </h2>
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
+              Get a notification + sound the moment a customer places an order — even when this tab is in the background.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2.5 w-full">
+            <button
+              onClick={onAllow}
+              className="w-full py-3.5 rounded-xl font-black uppercase tracking-wide text-sm transition-all hover:scale-[1.02] active:scale-[0.97]"
+              style={{
+                background: "linear-gradient(135deg, #ff6600, #ffcc00)",
+                color: "#000000",
+                boxShadow: "0 4px 22px rgba(255,102,0,0.45)",
+              }}
+            >
+              <Bell className="h-4 w-4 inline mr-2" />
+              Allow Notifications
+            </button>
+            <button
+              onClick={onDismiss}
+              className="w-full py-2 rounded-xl font-bold text-xs uppercase tracking-wide transition-colors"
+              style={{ color: "rgba(255,255,255,0.35)" }}
+            >
+              No thanks
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -190,7 +252,31 @@ const contentVariants = {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { data: user, isLoading } = useGetMe({ query: { retry: false, queryKey: ["auth", "me"] } });
-  const { permission, subscribe, sendTest } = useAdminPushNotifications();
+  const { permission, subscribe } = useAdminPushNotifications();
+  const [showNotifPrompt, setShowNotifPrompt] = useState(false);
+
+  // Show the one-time prompt once the admin is confirmed logged in
+  useEffect(() => {
+    if (!user?.isAdmin) return;
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission === "denied") return;
+    if (Notification.permission === "granted") return; // already handled by hook auto-subscribe
+    if (localStorage.getItem(NOTIF_KEY)) return;
+    // Small delay so the page settles first
+    const t = setTimeout(() => setShowNotifPrompt(true), 800);
+    return () => clearTimeout(t);
+  }, [user]);
+
+  const handleNotifAllow = async () => {
+    setShowNotifPrompt(false);
+    localStorage.setItem(NOTIF_KEY, "true");
+    await subscribe();
+  };
+
+  const handleNotifDismiss = () => {
+    setShowNotifPrompt(false);
+    localStorage.setItem(NOTIF_KEY, "true");
+  };
 
   if (isLoading) {
     return (
@@ -419,47 +505,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-[9px] font-black uppercase tracking-widest text-orange-400/70">System Online</span>
           </div>
 
-          {/* Notification Control */}
-          {typeof Notification !== "undefined" && (
-            <div className="rounded-lg px-3 py-2 space-y-1.5"
-              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Order Alerts</p>
-              {permission === "granted" ? (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 flex-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" style={{ boxShadow: "0 0 6px #4ade80" }} />
-                    <span className="text-[10px] font-bold text-green-400">Notifications Active</span>
-                  </div>
-                  <button
-                    onClick={playCashSound}
-                    title="Test cash sound"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <Volume2 className="h-3 w-3" />
-                  </button>
-                  <button
-                    onClick={sendTest}
-                    title="Send test push"
-                    className="text-muted-foreground hover:text-green-400 transition-colors"
-                  >
-                    <BellRing className="h-3 w-3" />
-                  </button>
-                </div>
-              ) : permission === "denied" ? (
-                <div className="flex items-center gap-1.5">
-                  <BellOff className="h-3 w-3 text-red-400 shrink-0" />
-                  <span className="text-[10px] text-red-400/80">Blocked in browser</span>
-                </div>
-              ) : (
-                <button
-                  onClick={subscribe}
-                  className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all hover:opacity-90 active:scale-95"
-                  style={{ background: "rgba(255,102,0,0.15)", border: "1px solid rgba(255,102,0,0.3)", color: "#ff9944" }}
-                >
-                  <Bell className="h-3 w-3 shrink-0" />
-                  Enable Order Notifications
-                </button>
-              )}
+          {/* Notification status — minimal */}
+          {permission === "granted" && (
+            <div className="flex items-center gap-2 px-3 py-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" style={{ boxShadow: "0 0 6px #4ade80" }} />
+              <span className="text-[9px] font-bold uppercase tracking-widest text-green-400/70">Alerts ON</span>
             </div>
           )}
         </motion.div>
@@ -480,6 +530,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* One-time notification permission prompt */}
+      <AnimatePresence>
+        {showNotifPrompt && (
+          <NotificationPromptModal
+            onAllow={handleNotifAllow}
+            onDismiss={handleNotifDismiss}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
