@@ -1,0 +1,64 @@
+and also, after syncing all teh changes from git. when i import products, or preview products, it doesnt let me, fix that on both backend and frontend. And Add real-time order notifications for the admin.
+
+Whenever a customer successfully places an order, send me an instant notification even if I am not currently using the website.
+
+The notification should include:
+
+* Customer name
+* Order number
+* Total price
+* Products ordered
+* Time of purchase
+
+Also play a cash register sound whenever a new order is received.
+
+Use browser push notifications with a service worker. Notifications should only work after the admin allows notification permission. If permission is denied or not enabled, do not show push notifications.
+
+Only the admin should receive these notifications and hear the cash sound. Customers and normal users should not receive them.
+
+Also add an email notification as a backup in case browser notifications are blocked or unavailable. And Add a professional WhatsApp order-confirmation feature to the admin order dashboard.
+
+When a new order appears and the admin opens the order details, add a button labelled:
+
+“Confirm Order via WhatsApp”
+
+When the admin presses the button, open a WhatsApp chat with the customer’s phone number and prepare this message:
+
+“Hi! Thank you for ordering from Chamak Street. Please reply ‘YES’ to confirm your order. Once confirmed, we will begin preparing it.”
+
+Also generate a clean image receipt containing:
+
+* Customer name
+* Order number
+* Products ordered
+* Quantities
+* Total price
+* Delivery address
+* Customer phone number
+* Order date and time
+* Payment method
+
+Place the Chamak Street logo neatly in the bottom-right corner of the receipt image.
+
+The admin should be able to preview and download or copy the receipt image before opening WhatsApp, so it can be attached to the message easily. Do not automatically send anything without the admin pressing the final send button in WhatsApp.
+
+Make the receipt professional, easy to read, mobile-friendly, and consistent with the Chamak Street website design. Good. Now review the entire website carefully from start to finish and fix every issue you find.
+
+Check all pages, buttons, links, forms, animations, images, product pages, cart, checkout, admin panel, order system, notifications, WhatsApp confirmation feature, mobile layout, desktop layout, loading speed, spacing, text, prices, and responsiveness.
+
+Fix any bugs, broken features, visual issues, duplicated elements, missing information, slow sections, incorrect redirects, or anything that does not work properly.
+
+Make sure:
+
+* The website works smoothly on phone, tablet, and PC
+* Every button and link works
+* The checkout and order system work correctly
+* The admin panel can manage products and orders properly
+* Notifications only go to the admin after permission is allowed
+* The cash sound plays when a new order is received
+* The WhatsApp confirmation button opens the correct customer chat with the prepared message
+* The order receipt image includes all order details and the Chamak Street logo in the bottom-right corner
+* No customer or admin information is exposed publicly
+* The design stays professional and consistent with the Chamak Street brand
+
+Do not remove any existing working feature unless it is causing a problem. Improve and repair the full website, then test everything again after the fixes.

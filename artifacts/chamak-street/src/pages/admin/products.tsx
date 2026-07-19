@@ -308,7 +308,7 @@ function MediaZone({ items, onChange, uploading, onUpload }: {
    MAIN PAGE
 ══════════════════════════════════════ */
 export default function AdminProducts() {
-  const { data: products, isLoading } = useListProducts(undefined, { query: { queryKey: getListProductsQueryKey() } });
+  const { data: products, isLoading } = useListProducts(undefined, { query: { queryKey: ["admin", "products", "all"], staleTime: 0 } });
   const { data: categories } = useListCategories({ query: { queryKey: ["categories"] } });
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();

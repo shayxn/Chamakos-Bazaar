@@ -3,6 +3,7 @@ import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderT
 import { eq, inArray } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache } from "../lib/response-cache";
+import { sendOrderPush } from "../lib/push";
 
 const router = Router();
 
@@ -172,6 +173,18 @@ router.post("/orders", async (req, res) => {
   const fullOrder = await buildOrder(order.id);
   ordersListCache.clear();
   (req.session as Record<string, unknown>).lastOrderId = order.id;
+
+  // Fire push notification asynchronously — don't block response
+  if (fullOrder) {
+    sendOrderPush({
+      orderNumber: fullOrder.orderNumber ?? `#${fullOrder.id}`,
+      customerName: fullOrder.customerName,
+      total: fullOrder.total,
+      items: fullOrder.items.map((i) => ({ productName: i.productName, quantity: i.quantity })),
+      createdAt: fullOrder.createdAt,
+    }).catch(() => {});
+  }
+
   res.status(201).json(fullOrder);
 });
 

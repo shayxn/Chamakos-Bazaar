@@ -111,11 +111,23 @@ function SupplierTab({
     setResult(null);
     try {
       const res = await fetch(`${BASE}/api/import/${supplier.id}/preview`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch preview");
+      if (res.status === 401 || res.status === 403) {
+        toast({ title: "Not logged in as admin", description: "Please log in to the admin panel first.", variant: "destructive" });
+        return;
+      }
+      if (res.status === 502 || res.status === 504) {
+        toast({ title: `Cannot reach ${supplier.domain}`, description: "The supplier website is currently unreachable. Try again in a few minutes.", variant: "destructive" });
+        return;
+      }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
       const data = (await res.json()) as PreviewResult;
       setPreview(data);
-    } catch {
-      toast({ title: `Failed to fetch preview from ${supplier.domain}`, variant: "destructive" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast({ title: `Preview failed`, description: msg, variant: "destructive" });
     } finally {
       setLoadingPreview(false);
     }
@@ -126,8 +138,12 @@ function SupplierTab({
     setResult(null);
     try {
       const res = await fetch(`${BASE}/api/import/${supplier.id}`, { method: "POST", credentials: "include" });
+      if (res.status === 401 || res.status === 403) {
+        toast({ title: "Not logged in as admin", description: "Please log in first.", variant: "destructive" });
+        return;
+      }
       const data = (await res.json()) as ImportResult;
-      if (!res.ok || data.error) throw new Error(data.error || "Import failed");
+      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
       setResult(data);
       onRefreshStats();
       toast({

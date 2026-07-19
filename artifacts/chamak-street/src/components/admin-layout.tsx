@@ -2,11 +2,12 @@ import { useGetMe, useListProducts, useListCategories } from "@workspace/api-cli
 import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag,
-  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Bell,
-  TrendingUp, ShoppingCart, Zap, Users
+  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Bell, BellOff, BellRing,
+  TrendingUp, ShoppingCart, Zap, Users, Volume2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
+import { useAdminPushNotifications, playCashSound } from "@/hooks/use-admin-notifications";
 import { motion, AnimatePresence } from "framer-motion";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -189,6 +190,7 @@ const contentVariants = {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { data: user, isLoading } = useGetMe({ query: { retry: false, queryKey: ["auth", "me"] } });
+  const { permission, subscribe, sendTest } = useAdminPushNotifications();
 
   if (isLoading) {
     return (
@@ -402,9 +404,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="px-4 py-3"
+          className="px-4 py-3 space-y-2"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
         >
+          {/* System Online */}
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
             style={{ background: "rgba(255,102,0,0.06)", border: "1px solid rgba(255,102,0,0.15)" }}>
             <motion.div
@@ -415,6 +418,50 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             />
             <span className="text-[9px] font-black uppercase tracking-widest text-orange-400/70">System Online</span>
           </div>
+
+          {/* Notification Control */}
+          {typeof Notification !== "undefined" && (
+            <div className="rounded-lg px-3 py-2 space-y-1.5"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Order Alerts</p>
+              {permission === "granted" ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" style={{ boxShadow: "0 0 6px #4ade80" }} />
+                    <span className="text-[10px] font-bold text-green-400">Notifications Active</span>
+                  </div>
+                  <button
+                    onClick={playCashSound}
+                    title="Test cash sound"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Volume2 className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={sendTest}
+                    title="Send test push"
+                    className="text-muted-foreground hover:text-green-400 transition-colors"
+                  >
+                    <BellRing className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : permission === "denied" ? (
+                <div className="flex items-center gap-1.5">
+                  <BellOff className="h-3 w-3 text-red-400 shrink-0" />
+                  <span className="text-[10px] text-red-400/80">Blocked in browser</span>
+                </div>
+              ) : (
+                <button
+                  onClick={subscribe}
+                  className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all hover:opacity-90 active:scale-95"
+                  style={{ background: "rgba(255,102,0,0.15)", border: "1px solid rgba(255,102,0,0.3)", color: "#ff9944" }}
+                >
+                  <Bell className="h-3 w-3 shrink-0" />
+                  Enable Order Notifications
+                </button>
+              )}
+            </div>
+          )}
         </motion.div>
       </aside>
 

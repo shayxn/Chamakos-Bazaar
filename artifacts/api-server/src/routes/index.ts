@@ -23,6 +23,7 @@ import refundRequestsRouter from "./refund-requests";
 import productRequestsRouter from "./product-requests";
 import visitorSessionsRouter from "./visitor-sessions";
 import logosRouter from "./logos";
+import pushRouter from "./push-notifications";
 
 const router: IRouter = Router();
 
@@ -50,5 +51,6 @@ router.use(refundRequestsRouter);
 router.use(productRequestsRouter);
 router.use(visitorSessionsRouter);
 router.use(logosRouter);
+router.use(pushRouter);
 
 export default router;
