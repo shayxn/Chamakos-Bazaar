@@ -66,7 +66,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md"
             onClick={onClose}
           />
           <motion.div
@@ -77,7 +77,16 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
             transition={{ duration: 0.35, ease: EASE }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl pointer-events-auto overflow-hidden">
+            <div
+              className="relative w-full max-w-2xl pointer-events-auto overflow-hidden rounded-3xl"
+              style={{
+                background: "rgba(8,8,8,0.82)",
+                backdropFilter: "blur(40px) saturate(180%)",
+                WebkitBackdropFilter: "blur(40px) saturate(180%)",
+                border: "1px solid rgba(255,255,255,0.11)",
+                boxShadow: "0 32px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.10)",
+              }}
+            >
               {isLoading || !product ? (
                 <div className="flex items-center justify-center h-64">
                   <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />

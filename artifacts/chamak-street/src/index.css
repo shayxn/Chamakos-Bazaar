@@ -72,7 +72,7 @@
   --input: 0 0% 15%;
   --ring: 24 100% 50%;
   
-  --radius: 0.25rem;
+  --radius: 0.75rem;
   
   --app-font-sans: 'Space Grotesk', 'Inter', sans-serif;
   --app-font-mono: 'Space Mono', monospace;
@@ -218,6 +218,112 @@
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─────────────────────────────────────────────────────────────────────
+   Liquid Glass — iOS 26 System
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Base glass surface */
+.glass {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.11);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.32),
+    inset 0 1px 0 rgba(255,255,255,0.11),
+    inset 0 -1px 0 rgba(0,0,0,0.18);
+}
+
+/* Lighter, more subtle glass */
+.glass-sm {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.24),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* Deep, thick glass — panels and sidebars */
+.glass-heavy {
+  background: rgba(0,0,0,0.50);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border-right: 1px solid rgba(255,255,255,0.07);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.05) inset,
+    4px 0 40px rgba(0,0,0,0.45);
+}
+
+/* Orange-tinted glass for brand accents */
+.glass-orange {
+  background: rgba(255,102,0,0.08);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,102,0,0.22);
+  box-shadow:
+    0 8px 32px rgba(255,102,0,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.10);
+}
+
+/* Navigation bar glass */
+.glass-nav {
+  background: rgba(0,0,0,0.60);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05),
+    0 4px 24px rgba(0,0,0,0.35);
+}
+
+/* Modal/sheet overlay glass */
+.glass-modal {
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow:
+    0 24px 64px rgba(0,0,0,0.65),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset 0 -1px 0 rgba(0,0,0,0.3);
+}
+
+/* Specular shine overlay — place as first child inside glass containers */
+.glass-shine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glass pill — tags, chips */
+.glass-pill {
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+  border-radius: 9999px;
+}
+
+/* Glass input */
+.glass-input {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(255,255,255,0.03);
+}
+.glass-input:focus {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,102,0,0.45);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 0 0 3px rgba(255,102,0,0.12);
+}
 
 video::-webkit-media-controls { display: none !important; }
 video::-webkit-media-controls-enclosure { display: none !important; }

@@ -54,8 +54,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-black text-white overflow-x-hidden">
       <header
-        className="sticky top-0 z-50 w-full bg-black"
-        style={{ borderBottom: scrolled ? "1px solid rgba(255,102,0,0.18)" : "none" }}
+        className="sticky top-0 z-50 w-full glass-nav transition-all duration-300"
+        style={{
+          borderBottom: scrolled ? "1px solid rgba(255,102,0,0.18)" : "1px solid rgba(255,255,255,0.06)",
+        }}
       >
         {/* Row 1: Search | Logo (center) | User + Cart */}
         <div className="max-w-[1440px] mx-auto px-6 h-[68px] flex items-center">
@@ -175,7 +177,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="relative mt-20 bg-[#0a0a0a] border-t border-white/8">
+      <footer className="relative mt-20 border-t border-white/[0.07]" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
 
         {/* Trust row */}
         <div className="border-b border-white/6">

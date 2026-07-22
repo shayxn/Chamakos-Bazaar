@@ -46,11 +46,13 @@ export function WelcomePopup() {
             className="fixed inset-0 z-[201] flex items-center justify-center p-5 pointer-events-none"
           >
             <div
-              className="relative pointer-events-auto w-full max-w-sm rounded-2xl overflow-hidden"
+              className="relative pointer-events-auto w-full max-w-sm rounded-3xl overflow-hidden"
               style={{
-                background: "linear-gradient(160deg, #0d0d0d 0%, #080808 100%)",
-                border: "1px solid rgba(255,102,0,0.3)",
-                boxShadow: "0 0 60px rgba(255,102,0,0.18), 0 30px 60px rgba(0,0,0,0.7)",
+                background: "rgba(8,8,8,0.85)",
+                backdropFilter: "blur(40px) saturate(180%)",
+                WebkitBackdropFilter: "blur(40px) saturate(180%)",
+                border: "1px solid rgba(255,102,0,0.28)",
+                boxShadow: "0 0 60px rgba(255,102,0,0.18), 0 32px 80px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.09)",
               }}
             >
               {/* Glowing top line */}

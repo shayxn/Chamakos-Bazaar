@@ -321,12 +321,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "transparent" }}>
       {/* ── Sidebar ── */}
       <aside
-        className="w-full md:w-64 shrink-0 flex flex-col relative overflow-hidden"
-        style={{
-          background: "rgba(0,0,0,0.55)",
-          backdropFilter: "blur(12px)",
-          borderRight: "1px solid rgba(255,255,255,0.07)",
-        }}
+        className="w-full md:w-64 shrink-0 flex flex-col relative overflow-hidden glass-heavy"
+        style={{ minHeight: "100vh" }}
       >
         {/* Animated accent bar on left edge */}
         <div

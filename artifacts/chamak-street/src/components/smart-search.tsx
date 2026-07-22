@@ -422,12 +422,15 @@ export function SmartSearchModal() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: -16 }}
               transition={{ duration: 0.25, ease: EASE }}
-              className="fixed top-[8vh] left-1/2 -translate-x-1/2 z-[101] w-full overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,102,0,0.12)]"
+              className="fixed top-[8vh] left-1/2 -translate-x-1/2 z-[101] w-full overflow-hidden"
               style={{
                 maxWidth: "min(680px, 94vw)",
-                background: "rgba(10,10,10,0.97)",
-                border: "1px solid rgba(255,255,255,0.09)",
-                borderRadius: 16,
+                background: "rgba(6,6,6,0.82)",
+                backdropFilter: "blur(40px) saturate(180%)",
+                WebkitBackdropFilter: "blur(40px) saturate(180%)",
+                border: "1px solid rgba(255,255,255,0.11)",
+                borderRadius: 24,
+                boxShadow: "0 32px 80px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 0.5px rgba(255,102,0,0.10)",
               }}
             >
               {/* Top accent line */}
