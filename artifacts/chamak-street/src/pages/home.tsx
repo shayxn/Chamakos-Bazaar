@@ -98,80 +98,56 @@ function GlitchWord({ text, delay = 0 }: { text: string; delay?: number }) {
 
 
 
-/* ── Scroll-driven video scrubber ── */
-function ScrollDrivenVideo({ src }: { src: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+/* ── Viewport-aware autoplay video ── */
+function ViewportVideo({ src }: { src: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"],
-  });
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    return scrollYProgress.on("change", (v) => {
-      const dur = video.duration;
-      if (!dur || isNaN(dur)) return;
-      video.currentTime = Math.max(0, Math.min(dur, v * dur));
-    });
-  }, [scrollYProgress]);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.25 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div ref={containerRef} style={{ height: "300vh", position: "relative" }}>
-      <div
-        style={{
-          position: "sticky", top: 0,
-          height: "100vh", overflow: "hidden", background: "#000",
-        }}
-      >
-        {/* Top gradient */}
-        <div className="absolute inset-x-0 top-0 z-10 pointer-events-none"
-          style={{ height: 110, background: "linear-gradient(to bottom, #000, transparent)" }} />
-        {/* Bottom gradient */}
-        <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
-          style={{ height: 110, background: "linear-gradient(to top, #000, transparent)" }} />
-        {/* Side vignettes */}
-        <div className="absolute inset-y-0 left-0 z-10 pointer-events-none"
-          style={{ width: 140, background: "linear-gradient(to right, rgba(0,0,0,0.55), transparent)" }} />
-        <div className="absolute inset-y-0 right-0 z-10 pointer-events-none"
-          style={{ width: 140, background: "linear-gradient(to left, rgba(0,0,0,0.55), transparent)" }} />
-        {/* Orange glow */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
-          style={{ width: "45%", height: 90, background: "rgba(255,102,0,0.10)", filter: "blur(48px)" }} />
+    <section className="relative overflow-hidden bg-black">
+      {/* Top gradient */}
+      <div className="absolute inset-x-0 top-0 z-10 pointer-events-none"
+        style={{ height: 80, background: "linear-gradient(to bottom, #000, transparent)" }} />
+      {/* Bottom gradient */}
+      <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+        style={{ height: 80, background: "linear-gradient(to top, #000, transparent)" }} />
+      {/* Side vignettes */}
+      <div className="absolute inset-y-0 left-0 z-10 pointer-events-none"
+        style={{ width: 120, background: "linear-gradient(to right, rgba(0,0,0,0.5), transparent)" }} />
+      <div className="absolute inset-y-0 right-0 z-10 pointer-events-none"
+        style={{ width: 120, background: "linear-gradient(to left, rgba(0,0,0,0.5), transparent)" }} />
+      {/* Orange glow */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
+        style={{ width: "50%", height: 80, background: "rgba(255,102,0,0.12)", filter: "blur(40px)" }} />
 
-        <video
-          ref={videoRef}
-          src={src}
-          muted
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-        />
-
-        {/* Scroll-to-play hint */}
-        <motion.div
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
-          animate={{ opacity: [0.35, 0.75, 0.35] }}
-          transition={{ duration: 2.5, repeat: Infinity }}
-        >
-          <p className="text-[9px] font-black uppercase tracking-[0.45em] text-white/40">Scroll to play</p>
-          <motion.div
-            animate={{ y: [0, 9, 0] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-            className="w-5 h-9 border border-white/20 rounded-full flex justify-center pt-1.5"
-          >
-            <motion.div
-              animate={{ opacity: [1, 0, 1], y: [0, 12, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity }}
-              className="w-1 h-2 rounded-full bg-primary"
-            />
-          </motion.div>
-        </motion.div>
-      </div>
-    </div>
+      <video
+        ref={videoRef}
+        src={src}
+        muted
+        loop
+        playsInline
+        preload="auto"
+        disablePictureInPicture
+        className="w-full block"
+        style={{ maxHeight: "85vh", objectFit: "cover", display: "block" }}
+      />
+    </section>
   );
 }
 
@@ -594,8 +570,8 @@ export default function Home() {
 
         <SectionDivider />
 
-        {/* ══════════════ SCROLL-DRIVEN VIDEO ══════════════ */}
-        <ScrollDrivenVideo src={settings.hero_middle_video || "/firstpick-video.mov"} />
+        {/* ══════════════ FEATURE VIDEO ══════════════ */}
+        <ViewportVideo src={settings.hero_middle_video || "/firstpick-video.mov"} />
 
         <SectionDivider />
 
