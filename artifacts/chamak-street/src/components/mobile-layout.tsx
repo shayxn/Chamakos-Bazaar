@@ -33,7 +33,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col bg-black text-white overflow-x-hidden">
 
       {/* ── Top Header ── */}
-      <header className="sticky top-0 z-50 w-full bg-black border-b border-white/8">
+      <header className="sticky top-0 z-50 w-full glass-nav border-b border-white/8">
         <div className="flex items-center justify-between px-4 h-14">
           <SmartSearchModal />
 
@@ -99,7 +99,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
 
       {/* ── Bottom Tab Bar ── */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch bg-black border-t border-white/10"
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch glass-nav border-t border-white/10"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         {TAB_ITEMS.map(({ href, label, Icon }) => {

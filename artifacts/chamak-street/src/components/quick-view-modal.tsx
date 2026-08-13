@@ -78,14 +78,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
             <div
-              className="relative w-full max-w-2xl pointer-events-auto overflow-hidden rounded-3xl"
-              style={{
-                background: "rgba(8,8,8,0.82)",
-                backdropFilter: "blur(40px) saturate(180%)",
-                WebkitBackdropFilter: "blur(40px) saturate(180%)",
-                border: "1px solid rgba(255,255,255,0.11)",
-                boxShadow: "0 32px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.10)",
-              }}
+              className="glass-modal relative w-full max-w-2xl pointer-events-auto rounded-3xl max-h-[calc(100dvh-2rem)] overflow-y-auto mx-2 sm:mx-4"
             >
               {isLoading || !product ? (
                 <div className="flex items-center justify-center h-64">

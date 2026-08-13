@@ -262,7 +262,7 @@ export default function Home() {
           {/* ── Slide dots + arrows ── */}
           {heroImages.length > 1 && (
             <motion.div
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3"
+              className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: HD + 1.0 }}
@@ -319,7 +319,7 @@ export default function Home() {
 
           {/* Scroll indicator */}
           <motion.div
-            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
+            className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: HD + 1.1 }}
@@ -347,13 +347,13 @@ export default function Home() {
         <SpotlightBanner />
 
         {/* ══════════════ FEATURED PRODUCTS ══════════════ */}
-        <section className="py-20 overflow-hidden relative">
+        <section className="py-12 md:py-20 overflow-hidden relative">
           <div className="container mx-auto px-4 relative z-10">
             <RevealSection className="mb-12">
               <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.35em] text-primary/70 mb-2">Handpicked For You</p>
-                  <h2 className="text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none">
+                  <h2 className="text-2xl sm:text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none">
                     Heat <span className="gradient-text-animate">Check</span>
                   </h2>
                 </div>
@@ -371,7 +371,7 @@ export default function Home() {
                     <Link href={`/product/${product.id}`}>
                       <TiltCard className="group cursor-pointer">
                         <motion.div
-                          className="product-img-frame relative aspect-[4/5] mb-4 overflow-hidden rounded-2xl bg-card border border-border/40 group-hover:border-primary/40 transition-colors duration-400"
+                          className="product-img-frame relative aspect-[4/5] mb-4 overflow-hidden rounded-2xl glass-card group-hover:border-primary/40 transition-all duration-400"
                           whileHover={{ boxShadow: "0 36px 90px rgba(255,102,0,0.35), 0 0 0 1px rgba(255,102,0,0.18)" }}
                           transition={{ duration: 0.35 }}
                         >

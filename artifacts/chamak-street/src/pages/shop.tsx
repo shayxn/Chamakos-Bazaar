@@ -98,7 +98,7 @@ export default function Shop() {
       <div className="min-h-screen bg-black">
 
         {/* ── Sticky filter bar ── */}
-        <div className="sticky top-[109px] z-30 border-b border-white/8 bg-black/95 backdrop-blur-md">
+        <div className="sticky top-[56px] md:top-[109px] z-30 border-b border-white/8 glass-nav">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6">
 
             {/* Category pills row */}
@@ -134,9 +134,9 @@ export default function Shop() {
             </div>
 
             {/* Controls row */}
-            <div className="flex items-center gap-3 pb-2.5 border-t border-white/5 pt-2">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 pb-2.5 border-t border-white/5 pt-2">
               {/* Search */}
-              <div className="relative flex-1 max-w-[220px]">
+              <div className="relative flex-1 min-w-0 max-w-full sm:max-w-[220px]">
                 <input
                   type="text"
                   placeholder="Search products…"
@@ -275,7 +275,7 @@ export default function Shop() {
                     <motion.div key={product.id} variants={cardVariants} layout>
                       <div className="group cursor-pointer" data-testid={`card-product-${product.id}`}>
                         {/* Image */}
-                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-white/5 border border-white/8 transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(255,102,0,0.2)]">
+                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(255,102,0,0.2)]">
                           <Link href={`/product/${product.id}`} className="block w-full h-full">
                             {primaryMedia ? (
                               primaryMedia.type === "video" ? (
@@ -300,12 +300,12 @@ export default function Shop() {
                           <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none">
                             <EventProductBadge />
                             {product.featured && (
-                              <span className="bg-primary text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">Featured</span>
+                              <span className="bg-primary/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Featured</span>
                             )}
                             {product.sellingFast && (
-                              <span className="bg-orange-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">🔥 Hot</span>
+                              <span className="bg-orange-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">🔥 Hot</span>
                             )}
-                            <span className="bg-green-600/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">✓ Authentic</span>
+                            <span className="bg-green-600/80 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">✓ Authentic</span>
                           </div>
 
                           {/* Low stock / sold out */}

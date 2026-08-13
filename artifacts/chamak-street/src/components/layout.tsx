@@ -144,7 +144,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Row 2: Category nav */}
         <div className="hidden md:block border-t border-white/8">
           <div className="max-w-[1440px] mx-auto px-6">
-            <div className="flex items-center justify-center gap-8 h-10">
+            <div className="flex items-center justify-start md:justify-center gap-4 md:gap-8 h-10 overflow-x-auto scrollbar-none">
               {[...navCategories, { href: "/order-tracking", label: "Track Order" }].map((link) => {
                 const isActive = link.href === "/shop"
                   ? location === "/shop" && !location.includes("?")

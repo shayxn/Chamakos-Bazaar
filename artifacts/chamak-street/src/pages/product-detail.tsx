@@ -484,7 +484,7 @@ export default function ProductDetail() {
           </Link>
         </MotionItem>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-20">
           {/* Media gallery */}
           <div className="space-y-3">
             <motion.div
@@ -536,13 +536,13 @@ export default function ProductDetail() {
               />
             </motion.div>
             {mediaItems.length > 1 && (
-              <div className="grid grid-cols-5 gap-2">
+              <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
                 {mediaItems.map((item, index) => (
                   <button
                     key={`${item.url}-${index}`}
                     type="button"
                     onClick={() => setSelectedMediaIndex(index)}
-                    className={`relative aspect-square overflow-hidden rounded-md border bg-card transition-colors duration-300 ${selectedMediaIndex === index ? "thumb-selected" : "border-border hover:border-primary/40"}`}
+                    className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-md border bg-card transition-colors duration-300 ${selectedMediaIndex === index ? "thumb-selected" : "border-border hover:border-primary/40"}`}
                   >
                     {item.type === "video" ? (
                       <>
@@ -562,28 +562,28 @@ export default function ProductDetail() {
           <div className="flex flex-col justify-center">
             <MotionItem delay={0.15}>
               <div className="flex flex-wrap gap-2">
-                <span className="text-xs font-black tracking-widest uppercase text-primary bg-primary/10 px-3 py-1.5 rounded-sm">
+                <span className="text-xs font-black tracking-widest uppercase text-primary bg-primary/10 backdrop-blur-sm px-3 py-1.5 rounded-sm border border-primary/20">
                   {product.categoryName}
                 </span>
                 {product.featured && (
-                  <span className="text-xs font-black tracking-widest uppercase bg-primary text-primary-foreground px-3 py-1.5 rounded-sm">
+                  <span className="text-xs font-black tracking-widest uppercase bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-sm backdrop-blur-sm">
                     Featured
                   </span>
                 )}
                 {product.rep ? (
-                  <span className="text-xs font-black tracking-widest uppercase bg-black/85 text-white border border-white/20 px-3 py-1.5 rounded-sm">
+                  <span className="glass-badge text-xs font-black tracking-widest uppercase text-white px-3 py-1.5 rounded-sm">
                     REP
                   </span>
                 ) : (
-                  <span className="text-xs font-black tracking-widest uppercase bg-green-500/90 text-black px-3 py-1.5 rounded-sm">
-                    Original
+                  <span className="text-xs font-black tracking-widest uppercase bg-green-500/80 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">
+                    Authentic
                   </span>
                 )}
               </div>
             </MotionItem>
 
             <MotionItem delay={0.22} className="mt-4">
-              <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
                 {product.name}
               </h1>
             </MotionItem>
@@ -617,7 +617,7 @@ export default function ProductDetail() {
                         onClick={() => setSelectedSize(size)}
                         whileHover={{ scale: 1.08, y: -2 }}
                         whileTap={{ scale: 0.93 }}
-                        className={`h-12 min-w-[3rem] px-4 font-bold border rounded-sm transition-all duration-200 ${
+                        className={`h-10 sm:h-12 min-w-[2.5rem] sm:min-w-[3rem] px-3 sm:px-4 font-bold border rounded-sm transition-all duration-200 ${
                           selectedSize === size
                             ? "size-swatch-selected"
                             : "border-border bg-card text-muted-foreground hover:border-primary/60 hover:text-foreground"
