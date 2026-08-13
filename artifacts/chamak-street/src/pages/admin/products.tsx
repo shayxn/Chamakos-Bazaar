@@ -380,7 +380,7 @@ export default function AdminProducts() {
       name: product.name, price: product.price,
       stock: product.stock > 0 ? 100 : 0,
       imageUrl: product.imageUrl || "", description: product.description || "",
-      sizes: product.sizes || "", featured: product.featured, rep: product.rep,
+      sizes: product.sizes || "", featured: product.featured, rep: false,
       categoryId: product.categoryId || undefined,
       isPreOrder: (product as ProductFormData).isPreOrder ?? false,
       preOrderLabel: (product as ProductFormData).preOrderLabel ?? "",
@@ -818,17 +818,6 @@ export default function AdminProducts() {
                     <option value="">No category</option>
                     {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
-                </Field>
-                <Field label="Product Type">
-                  <div className="grid grid-cols-2 h-10 border border-white/10 rounded-md overflow-hidden">
-                    {[{ val: false, label: "Original", color: "#22c55e" }, { val: true, label: "REP", color: "#94a3b8" }].map(opt => (
-                      <button key={String(opt.val)} type="button" onClick={() => set({ rep: opt.val })}
-                        className={`text-xs font-black uppercase tracking-widest transition-colors ${formData.rep === opt.val ? "text-black" : "text-white/30"}`}
-                        style={{ background: formData.rep === opt.val ? opt.color : "transparent" }}>
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
                 </Field>
               </div>
               <Field label="Description" hint={`${(formData.description || "").length}/500 characters`}>

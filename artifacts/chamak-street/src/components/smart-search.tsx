@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Loader2, Sparkles, ArrowRight, Clock, TrendingUp, Tag, Package } from "lucide-react";
 import { Link } from "wouter";
@@ -43,7 +43,6 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
   );
 }
 
-const TRENDING = ["Hoodies", "Sneakers", "Caps", "Jackets", "Cargo Pants", "Graphic Tees"];
 
 export function SmartSearch({ onClose }: { onClose?: () => void }) {
   const [query, setQuery] = useState("");
@@ -64,19 +63,65 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
       .catch(() => {});
   }, []);
 
+  // Dynamic categories from loaded products — used as "Browse" chips in empty state
+  const browseTerms = useMemo(() => {
+    const cats = [...new Set(allProducts.map(p => p.categoryName).filter(Boolean) as string[])];
+    return cats.slice(0, 10);
+  }, [allProducts]);
+
   useEffect(() => {
     if (!query.trim()) { setResults([]); setSelectedIdx(-1); return; }
     setLoading(true);
     setSelectedIdx(-1);
     const t = setTimeout(() => {
-      const q = query.toLowerCase();
-      const filtered = allProducts.filter((p) =>
-        p.name.toLowerCase().includes(q) ||
-        (p.categoryName ?? "").toLowerCase().includes(q)
-      ).slice(0, 9);
-      setResults(filtered);
+      // Split multi-word queries ("black hoodie" → ["black", "hoodie"])
+      const words = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+
+      const scored = allProducts
+        .map((p) => {
+          const name = p.name.toLowerCase();
+          const cat = (p.categoryName ?? "").toLowerCase();
+          const desc = ((p as any).description ?? "").toLowerCase();
+
+          // Every word must match somewhere (name OR category OR description)
+          const allMatch = words.every(w =>
+            name.includes(w) || cat.includes(w) || desc.includes(w)
+          );
+          if (!allMatch) return { p, score: -1 };
+
+          let score = 0;
+          const primary = words[0];
+
+          // Name scoring — highest weight
+          if (name === query.toLowerCase())    score += 120;
+          else if (name.startsWith(primary))   score += 90;
+          else if (name.includes(primary))     score += 60;
+
+          // Bonus for each additional matched word in name
+          words.forEach(w => { if (name.includes(w)) score += 10; });
+
+          // Category scoring
+          if (cat === primary)                 score += 55;
+          else if (cat.startsWith(primary))    score += 40;
+          else if (cat.includes(primary))      score += 20;
+
+          // Description match (lower weight)
+          if (desc.includes(primary))          score += 8;
+
+          // Boosts
+          if ((p as any).featured && score > 0)   score += 6;
+          if (p.stock > 0)                         score += 3;
+
+          return { p, score };
+        })
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 12)
+        .map(x => x.p);
+
+      setResults(scored);
       setLoading(false);
-    }, 150);
+    }, 100);
     return () => clearTimeout(t);
   }, [query, allProducts]);
 
@@ -206,28 +251,30 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
                 </div>
               )}
 
-              {/* Trending */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3 flex items-center gap-1.5">
-                  <TrendingUp className="h-3 w-3" /> Trending Now
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {TRENDING.map((term, i) => (
-                    <motion.button
-                      key={term}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04, ease: EASE }}
-                      whileHover={{ scale: 1.05, backgroundColor: "rgba(255,102,0,0.12)" }}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => handleTrendingClick(term)}
-                      className="flex items-center gap-1.5 text-xs font-bold text-white/60 hover:text-primary px-3 py-1.5 rounded-full border border-white/10 hover:border-primary/40 transition-all"
-                    >
-                      <TrendingUp className="h-3 w-3 shrink-0 text-primary/50" /> {term}
-                    </motion.button>
-                  ))}
+              {/* Browse by category */}
+              {browseTerms.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3 flex items-center gap-1.5">
+                    <Tag className="h-3 w-3" /> Browse by Category
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {browseTerms.map((term, i) => (
+                      <motion.button
+                        key={term}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04, ease: EASE }}
+                        whileHover={{ scale: 1.05, backgroundColor: "rgba(255,102,0,0.12)" }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => handleTrendingClick(term)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-white/60 hover:text-primary px-3 py-1.5 rounded-full border border-white/10 hover:border-primary/40 transition-all"
+                      >
+                        <TrendingUp className="h-3 w-3 shrink-0 text-primary/50" /> {term}
+                      </motion.button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Quick Links */}
               <div>
