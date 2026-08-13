@@ -48,6 +48,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const navCategories = [
     { href: "/shop", label: "All Products" },
+    { href: "/basics", label: "FP Basics" },
     ...(categories ?? []).slice(0, 6).map((c) => ({ href: `/shop?cat=${c.id}`, label: c.name })),
     { href: "/shop?new=1", label: "Latest Arrivals" },
   ];

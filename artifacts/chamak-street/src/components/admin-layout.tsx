@@ -1,7 +1,7 @@
 import { useGetMe, useListProducts, useListCategories } from "@workspace/api-client-react";
 import { Link, useLocation, Redirect } from "wouter";
 import {
-  FileText, LayoutDashboard, Package, ShoppingBag,
+  FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
   Zap, Users, BellRing
 } from "lucide-react";
@@ -292,6 +292,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       links: [
         { href: "/admin",               label: "Dashboard",      icon: LayoutDashboard },
         { href: "/admin/products",       label: "Products",       icon: Package },
+        { href: "/admin/basics",         label: "FP Basics",      icon: Layers },
         { href: "/admin/categories",     label: "Categories",     icon: Tag },
         { href: "/admin/orders",         label: "Orders",         icon: ShoppingBag },
       ],

@@ -83,6 +83,7 @@ import OrderTracking from "@/pages/order-tracking";
 import Login from "@/pages/login";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminProducts from "@/pages/admin/products";
+import AdminBasics from "@/pages/admin/basics";
 import AdminOrders from "@/pages/admin/orders";
 import AdminTerms from "@/pages/admin/terms";
 import AdminCategories from "@/pages/admin/categories";
@@ -103,6 +104,7 @@ import AccountPage from "@/pages/account/index";
 import AccountLogin from "@/pages/account/login";
 import AccountRegister from "@/pages/account/register";
 import Returns from "@/pages/returns";
+import Basics from "@/pages/basics";
 import RequestProduct from "@/pages/request-product";
 import Games from "@/pages/games";
 import GameDetail from "@/pages/game-detail";
@@ -124,6 +126,7 @@ function AdminRouter() {
       <Switch>
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/products" component={AdminProducts} />
+        <Route path="/admin/basics" component={AdminBasics} />
         <Route path="/admin/orders" component={AdminOrders} />
         <Route path="/admin/categories" component={AdminCategories} />
         <Route path="/admin/site-settings" component={AdminSiteSettings} />
@@ -169,6 +172,7 @@ function MainRouter() {
             <Route path="/account/login" component={AccountLogin} />
             <Route path="/account/register" component={AccountRegister} />
             <Route path="/returns" component={Returns} />
+            <Route path="/basics" component={Basics} />
             <Route path="/request-product" component={RequestProduct} />
             <Route path="/games" component={Games} />
             <Route path="/games/:id" component={GameDetail} />

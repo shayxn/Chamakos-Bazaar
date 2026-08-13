@@ -27,6 +27,7 @@ export const productsTable = pgTable("products", {
   hidden: boolean("hidden").notNull().default(false),
   publishAt: timestamp("publish_at", { withTimezone: true }),
   unpublishAt: timestamp("unpublish_at", { withTimezone: true }),
+  collection: text("collection"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

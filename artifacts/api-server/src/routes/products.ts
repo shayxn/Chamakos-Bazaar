@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, productsTable, categoriesTable } from "@workspace/db";
-import { eq, ilike, and, inArray, ne, isNotNull, type SQL } from "drizzle-orm";
+import { eq, ilike, and, inArray, ne, isNotNull, isNull, or, type SQL } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 
@@ -21,6 +21,7 @@ function serializeProduct(p: {
   preOrderDate: string | null; preOrderNote: string | null; createdAt: Date | string;
   sellingFast?: boolean; spotlight?: boolean; hidden?: boolean;
   publishAt?: Date | string | null; unpublishAt?: Date | string | null;
+  collection?: string | null;
 }) {
   return {
     ...p,
@@ -50,12 +51,20 @@ router.get("/products", async (req, res) => {
   const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
   const search = typeof req.query.search === "string" ? req.query.search : undefined;
   const featured = req.query.featured === "true" ? true : req.query.featured === "false" ? false : undefined;
+  const collection = typeof req.query.collection === "string" ? req.query.collection : undefined;
 
   const conditions: SQL[] = [];
   if (!isAdmin) conditions.push(eq(productsTable.hidden, false));
   if (categoryId !== undefined) conditions.push(eq(productsTable.categoryId, categoryId));
   if (search) conditions.push(ilike(productsTable.name, `%${search}%`));
   if (featured !== undefined) conditions.push(eq(productsTable.featured, featured));
+  if (collection !== undefined) {
+    conditions.push(eq(productsTable.collection, collection));
+  } else {
+    // Default: main store only (collection IS NULL)
+    // Basics products must be accessed explicitly via ?collection=basics
+    conditions.push(isNull(productsTable.collection));
+  }
 
   const products = await db
     .select({
@@ -80,6 +89,7 @@ router.get("/products", async (req, res) => {
       hidden: productsTable.hidden,
       publishAt: productsTable.publishAt,
       unpublishAt: productsTable.unpublishAt,
+      collection: productsTable.collection,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
@@ -124,6 +134,7 @@ router.post("/products", requireAdmin, async (req, res) => {
     hidden: body.hidden ?? false,
     publishAt: body.publishAt ? new Date(body.publishAt) : null,
     unpublishAt: body.unpublishAt ? new Date(body.unpublishAt) : null,
+    collection: (body as any).collection ?? null,
   }).returning();
   clearProductCaches();
   res.status(201).json(serializeProduct({ ...product, categoryName: null }));
@@ -216,6 +227,7 @@ router.get("/products/:id", async (req, res) => {
       hidden: productsTable.hidden,
       publishAt: productsTable.publishAt,
       unpublishAt: productsTable.unpublishAt,
+      collection: productsTable.collection,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)

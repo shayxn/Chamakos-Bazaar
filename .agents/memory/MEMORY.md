@@ -18,3 +18,4 @@
 - [Uploads lost on git push](uploads-git-warning.md) — uploads/ folder is not git-tracked; hero images and product images uploaded via admin are wiped on fresh clone/push. Always reset DB hero_image to static /chamako-hero.png as fallback.
 - [Vite Fast Refresh mixed exports](vite-fast-refresh-mixed.md) — files exporting both a React component AND a hook (useXxx) crash React on HMR; fix with `/* @refresh reset */` at top of file or split into two files.
 - [FirstPick rebrand](firstpick-rebrand.md) — brand renamed from Chamak Street to FirstPick; logos, session keys, admin labels, all visible text updated.
+- [Basics collection](basics-collection.md) — `collection` text col on products table; null=main store, 'basics'=Basics; API always filters by it; admin/basics.tsx + /basics route.
