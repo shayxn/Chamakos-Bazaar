@@ -305,11 +305,7 @@ export default function Shop() {
                             {product.sellingFast && (
                               <span className="bg-orange-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">🔥 Hot</span>
                             )}
-                            {product.rep ? (
-                              <span className="bg-black/80 text-white border border-white/20 text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">REP</span>
-                            ) : (
-                              <span className="bg-green-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">Original</span>
-                            )}
+                            <span className="bg-green-600/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm">✓ Authentic</span>
                           </div>
 
                           {/* Low stock / sold out */}

@@ -25,7 +25,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   const cartCount = cart?.items.reduce((a, i) => a + i.quantity, 0) || 0;
 
   const rawLogoUrl = settings.logo_url || "";
-  const logoUrl = (!rawLogoUrl || rawLogoUrl === "/chamak-logo.png") ? "/chamak-logo-transparent.png" : rawLogoUrl;
+  const logoUrl = (!rawLogoUrl || rawLogoUrl === "/chamak-logo.png" || rawLogoUrl === "/chamak-logo-transparent.png") ? "/firstpick-logo.svg" : rawLogoUrl;
   const logoHeight = Math.min(Number(settings.logo_height ?? 44) || 44, 50);
 
   return (
@@ -39,7 +39,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
           <Link href="/" className="absolute left-1/2 -translate-x-1/2">
             <img
               src={logoUrl}
-              alt="Chamak Street"
+              alt="FirstPick"
               style={{ height: `${logoHeight}px`, width: "auto", objectFit: "contain" }}
             />
           </Link>

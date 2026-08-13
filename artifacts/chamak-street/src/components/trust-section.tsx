@@ -9,8 +9,8 @@ const DEFAULT_CARDS = [
   },
   {
     Icon: Tag,
-    title: "Superior Quality Products",
-    desc: "We Tested 100+ Replicas To Find The Best Of The Best. Now We Ship It To You!",
+    title: "Authentic Products Only",
+    desc: "Every item is genuine and quality-checked before it ships to you.",
   },
   {
     Icon: RotateCcw,

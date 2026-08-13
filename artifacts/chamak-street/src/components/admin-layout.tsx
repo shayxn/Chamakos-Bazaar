@@ -2,26 +2,26 @@ import { useGetMe, useListProducts, useListCategories } from "@workspace/api-cli
 import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag,
-  ArrowLeft, Tag, Settings, Star, Video, Globe, Download, Search, X, Bell,
-  TrendingUp, ShoppingCart, Zap, Users, BellRing
+  ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
+  Zap, Users, BellRing
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import { useAdminPushNotifications } from "@/hooks/use-admin-notifications";
 import { motion, AnimatePresence } from "framer-motion";
 
-const NOTIF_KEY = "chamak_notif_asked";
+const NOTIF_KEY = "firstpick_notif_asked";
 
 function NotificationDeniedBanner({ onDismiss }: { onDismiss: () => void }) {
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   const isMac = /macintosh/i.test(navigator.userAgent);
 
-  let instructions = "Open your browser settings → find Chamak Street → set Notifications to Allow.";
+  let instructions = "Open your browser settings → find FirstPick → set Notifications to Allow.";
   if (isIOS) {
-    instructions = "On iPhone/iPad: Open the Settings app → scroll to Safari → Advanced → Website Data, or add this site to your Home Screen first, then Settings → [Chamak Street] → Notifications → Allow.";
+    instructions = "On iPhone/iPad: Open the Settings app → scroll to Safari → Advanced → Website Data, or add this site to your Home Screen first, then enable Notifications.";
   } else if (isSafari && isMac) {
-    instructions = "In Safari: go to Safari menu → Settings → Websites → Notifications → find chamakstreet.me → set to Allow.";
+    instructions = "In Safari: go to Safari menu → Settings → Websites → Notifications → find this site → set to Allow.";
   } else if (!isSafari) {
     instructions = "In Chrome/Edge: click the lock icon (🔒) in the address bar → Notifications → Allow.";
   }
@@ -294,15 +294,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: "/admin/products",       label: "Products",       icon: Package },
         { href: "/admin/categories",     label: "Categories",     icon: Tag },
         { href: "/admin/orders",         label: "Orders",         icon: ShoppingBag },
-        { href: "/admin/import",         label: "Import Products",icon: Download },
-        { href: "/admin/stock-alerts",   label: "Stock Alerts",   icon: Bell },
-        { href: "/admin/abandoned-carts",label: "Abandoned Carts",icon: ShoppingCart },
       ],
     },
     {
       label: "Analytics",
       links: [
-        { href: "/admin/sales-reports", label: "Sales Reports", icon: TrendingUp },
         { href: "/admin/visitors",      label: "Visitors",      icon: Users },
       ],
     },
@@ -363,7 +359,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 style={{ border: "1px solid rgba(255,204,0,0.8)", animation: "statusDotPulse 2s ease-in-out infinite" }} />
             </motion.div>
             <span className="font-black uppercase tracking-[0.18em] text-sm gradient-text-animate">
-              Chamak Admin
+              FirstPick Admin
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground pl-9">@{user.username}</p>

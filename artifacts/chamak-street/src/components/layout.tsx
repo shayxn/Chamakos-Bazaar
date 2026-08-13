@@ -34,7 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   };
 
   const rawLogoUrl = settings.logo_url || "";
-  const logoUrl = (!rawLogoUrl || rawLogoUrl === "/chamak-logo.png") ? "/chamak-logo-transparent.png" : rawLogoUrl;
+  const logoUrl = (!rawLogoUrl || rawLogoUrl === "/chamak-logo.png" || rawLogoUrl === "/chamak-logo-transparent.png") ? "/firstpick-logo.svg" : rawLogoUrl;
   const logoHeight = Number(settings.logo_height ?? 52) || 52;
   const logoBgColor = settings.logo_bg_color || "transparent";
   const logoOpacity = Number(settings.logo_opacity ?? 1) || 1;
@@ -70,7 +70,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/" className="flex items-center justify-center absolute left-1/2 -translate-x-1/2">
             <img
               src={logoUrl}
-              alt="Chamak Street"
+              alt="FirstPick"
               style={{
                 height: `${logoHeight}px`,
                 width: "auto",
@@ -186,7 +186,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               { icon: "🚚", title: "Fast Delivery", desc: "UAE-wide, 1-3 days" },
               { icon: "💳", title: "Cash on Delivery", desc: "Pay when it arrives" },
               { icon: "🔒", title: "Secure Orders", desc: "Your info is safe" },
-              { icon: "✅", title: "Authentic Drops", desc: "Quality guaranteed" },
+              { icon: "✅", title: "100% Authentic", desc: "Genuine products only" },
             ].map(({ icon, title, desc }) => (
               <div key={title} className="flex items-center gap-3">
                 <span className="text-xl shrink-0">{icon}</span>
@@ -203,7 +203,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="col-span-1 md:col-span-2">
             <img
               src={logoUrl}
-              alt="Chamak Street"
+              alt="FirstPick"
               style={{
                 height: "38px",
                 width: "auto",
@@ -257,8 +257,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <div className="max-w-[1440px] mx-auto px-6 pb-8 pt-6 border-t border-white/8 flex items-center justify-between text-xs text-white/25">
-          <span className="font-black tracking-widest uppercase text-white/40">Chamak Street</span>
-          <span>&copy; {new Date().getFullYear()} All rights reserved. Premium Streetwear — Dubai</span>
+          <span className="font-black tracking-widest uppercase text-white/40">FirstPick</span>
+          <span>&copy; {new Date().getFullYear()} All rights reserved. Authentic Products — Dubai</span>
         </div>
       </footer>
 

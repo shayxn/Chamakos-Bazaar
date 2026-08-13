@@ -77,7 +77,10 @@ export default function Login() {
         <div className="absolute top-0 left-0 right-0 h-0.5 fire-gradient rounded-t-xl" />
 
         <div className="flex justify-center mb-8">
-          <img src="/chamak-logo.png" alt="Chamak Street" className="h-16 w-auto object-contain" />
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0px" }}>
+            <span style={{ fontSize: 36, fontFamily: "'Arial Black', Impact, sans-serif", fontWeight: 900, color: "#fff", letterSpacing: "-1px" }}>FIRST</span>
+            <span style={{ fontSize: 36, fontFamily: "'Arial Black', Impact, sans-serif", fontWeight: 900, letterSpacing: "-1px", background: "linear-gradient(135deg,#ff6600,#ffcc00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>PICK</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 justify-center mb-8">

@@ -137,7 +137,7 @@ export default function Home() {
   const heroSubtitle = settings.hero_subtitle || "Streets.";
   const heroDescription = settings.hero_description || "Bold aesthetic. Unmatched drip. Dress like you own the block.";
   const heroCtaText = settings.hero_cta_text || "Shop Now";
-  const HD = (typeof sessionStorage !== "undefined" && !sessionStorage.getItem("chamak_loaded")) ? 5.1 : 0.1;
+  const HD = (typeof sessionStorage !== "undefined" && !sessionStorage.getItem("firstpick_loaded")) ? 5.1 : 0.1;
 
   /* ── Hero images carousel ── */
   const heroImages = useMemo<string[]>(() => {
@@ -200,7 +200,7 @@ export default function Home() {
             return isVideo ? (
               <video key={src} src={src} style={style} autoPlay loop playsInline muted />
             ) : (
-              <img key={src} src={src} alt="Chamak Street" style={style} loading={i === 0 ? "eager" : "lazy"} />
+              <img key={src} src={src} alt="FirstPick" style={style} loading={i === 0 ? "eager" : "lazy"} />
             );
           })}
 

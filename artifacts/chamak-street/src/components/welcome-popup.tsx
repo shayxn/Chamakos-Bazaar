@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star, ArrowRight, Sparkles } from "lucide-react";
+import { X, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 
-const STORAGE_KEY = "chamak_welcome_v2";
+const STORAGE_KEY = "firstpick_welcome_v1";
 
 export function WelcomePopup() {
   const [show, setShow] = useState(false);
@@ -13,7 +13,7 @@ export function WelcomePopup() {
     try {
       const seen = localStorage.getItem(STORAGE_KEY);
       if (!seen) {
-        t = setTimeout(() => setShow(true), 1400);
+        t = setTimeout(() => setShow(true), 2200);
       }
     } catch {}
     return () => { if (t !== undefined) clearTimeout(t); };
@@ -27,160 +27,125 @@ export function WelcomePopup() {
   return (
     <AnimatePresence>
       {show && (
-        <>
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-md"
-            onClick={close}
-          />
-          <motion.div
-            key="popup"
-            initial={{ opacity: 0, scale: 0.86, y: 48 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 24 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[201] flex items-center justify-center p-5 pointer-events-none"
+        <motion.div
+          key="notification-bar"
+          initial={{ opacity: 0, y: 80 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 60 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed bottom-6 left-1/2 z-[200]"
+          style={{
+            transform: "translateX(-50%)",
+            width: "min(460px, calc(100vw - 32px))",
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(10,10,10,0.88)",
+              backdropFilter: "blur(40px) saturate(200%)",
+              WebkitBackdropFilter: "blur(40px) saturate(200%)",
+              border: "1px solid rgba(255,255,255,0.10)",
+              borderRadius: "18px",
+              boxShadow:
+                "0 4px 40px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(255,102,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08)",
+              padding: "14px 16px 14px 18px",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+            }}
           >
+            {/* Icon */}
             <div
-              className="relative pointer-events-auto w-full max-w-sm rounded-3xl overflow-hidden"
               style={{
-                background: "rgba(8,8,8,0.85)",
-                backdropFilter: "blur(40px) saturate(180%)",
-                WebkitBackdropFilter: "blur(40px) saturate(180%)",
-                border: "1px solid rgba(255,102,0,0.28)",
-                boxShadow: "0 0 60px rgba(255,102,0,0.18), 0 32px 80px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.09)",
+                width: 36,
+                height: 36,
+                borderRadius: "10px",
+                background: "linear-gradient(135deg, rgba(255,102,0,0.25), rgba(255,200,0,0.12))",
+                border: "1px solid rgba(255,102,0,0.3)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
               }}
             >
-              {/* Glowing top line */}
-              <div
-                className="absolute inset-x-0 top-0 h-px"
-                style={{ background: "linear-gradient(90deg, transparent 0%, #ff6600 50%, transparent 100%)" }}
-              />
-              {/* Ambient glow */}
-              <div
-                className="absolute inset-x-0 top-0 h-32 pointer-events-none"
-                style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,102,0,0.12), transparent)" }}
-              />
-
-              {/* Close */}
-              <button
-                onClick={close}
-                className="absolute top-4 right-4 z-10 w-7 h-7 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
-              >
-                <X className="h-4 w-4" />
-              </button>
-
-              <div className="relative px-7 py-9 text-center">
-                {/* Icon */}
-                <motion.div
-                  initial={{ scale: 0, rotate: -20 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 20 }}
-                  className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(255,102,0,0.2), rgba(255,204,0,0.1))",
-                    border: "1px solid rgba(255,102,0,0.35)",
-                  }}
-                >
-                  <Sparkles className="h-6 w-6" style={{ color: "#ff6600" }} />
-                </motion.div>
-
-                {/* Badge */}
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4"
-                  style={{
-                    background: "rgba(255,102,0,0.12)",
-                    color: "#ff9944",
-                    border: "1px solid rgba(255,102,0,0.25)",
-                  }}
-                >
-                  <Star className="h-2.5 w-2.5 fill-current" />
-                  Dubai's Premium Streetwear
-                </motion.div>
-
-                <motion.h2
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25 }}
-                  className="text-2xl font-black uppercase tracking-tight text-white mb-1"
-                >
-                  Welcome to
-                </motion.h2>
-                <motion.h2
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-3xl font-black uppercase tracking-tight mb-5"
-                  style={{
-                    background: "linear-gradient(135deg, #ff6600 0%, #ffcc00 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}
-                >
-                  Chamak Street
-                </motion.h2>
-
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.35 }}
-                  className="text-white/45 text-sm leading-relaxed mb-6"
-                >
-                  Premium streetwear from the heart of Dubai. Bold designs,
-                  unmatched quality — where the streets meet luxury.
-                </motion.p>
-
-                {/* Promo card */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="rounded-xl p-4 mb-6 text-left"
-                  style={{
-                    background: "rgba(255,204,0,0.07)",
-                    border: "1px solid rgba(255,204,0,0.18)",
-                  }}
-                >
-                  <p className="font-black uppercase tracking-widest text-sm" style={{ color: "#ffcc00" }}>
-                    🚚 Free Shipping Across UAE
-                  </p>
-                  <p className="text-white/35 text-xs mt-1">Cash on delivery · Fast dispatch · Premium packaging</p>
-                </motion.div>
-
-                {/* CTA */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.45 }}
-                >
-                  <Link href="/shop" onClick={close}>
-                    <motion.button
-                      whileHover={{ scale: 1.04, boxShadow: "0 8px 32px rgba(255,102,0,0.45)" }}
-                      whileTap={{ scale: 0.97 }}
-                      className="w-full py-4 rounded-xl font-black uppercase tracking-widest text-white text-sm flex items-center justify-center gap-2"
-                      style={{ background: "linear-gradient(135deg, #ff6600 0%, #ffcc00 100%)" }}
-                    >
-                      Shop the Collection <ArrowRight className="h-4 w-4" />
-                    </motion.button>
-                  </Link>
-                  <button
-                    onClick={close}
-                    className="mt-3 text-white/25 text-xs hover:text-white/45 transition-colors font-medium"
-                  >
-                    Just browsing for now
-                  </button>
-                </motion.div>
-              </div>
+              <Sparkles style={{ width: 16, height: 16, color: "#ff8833" }} />
             </div>
-          </motion.div>
-        </>
+
+            {/* Text */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{
+                fontSize: "13px",
+                fontWeight: 800,
+                color: "#fff",
+                margin: 0,
+                letterSpacing: "0.01em",
+                lineHeight: 1.3,
+              }}>
+                Welcome to FirstPick
+              </p>
+              <p style={{
+                fontSize: "11px",
+                color: "rgba(255,255,255,0.42)",
+                margin: 0,
+                marginTop: 2,
+                letterSpacing: "0.01em",
+              }}>
+                Free shipping across UAE · Authentic products only
+              </p>
+            </div>
+
+            {/* CTA */}
+            <Link href="/shop" onClick={close}>
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  background: "linear-gradient(135deg, #ff6600, #ff9900)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  padding: "8px 14px",
+                  fontSize: "11px",
+                  fontWeight: 900,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 4px 16px rgba(255,102,0,0.3)",
+                }}
+              >
+                Shop
+                <ArrowRight style={{ width: 12, height: 12 }} />
+              </motion.button>
+            </Link>
+
+            {/* Close */}
+            <button
+              onClick={close}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                color: "rgba(255,255,255,0.3)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "6px",
+                flexShrink: 0,
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
+            >
+              <X style={{ width: 14, height: 14 }} />
+            </button>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

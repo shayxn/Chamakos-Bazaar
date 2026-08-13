@@ -89,12 +89,8 @@ import AdminCategories from "@/pages/admin/categories";
 import AdminSiteSettings from "@/pages/admin/site-settings";
 import AdminReviews from "@/pages/admin/reviews";
 import AdminTiktok from "@/pages/admin/tiktok";
-import AdminImport from "@/pages/admin/import";
-import AdminStockAlerts from "@/pages/admin/stock-alerts";
-import AdminSalesReports from "@/pages/admin/sales-reports";
 import AdminEvents from "@/pages/admin/events";
 import AdminGames from "@/pages/admin/games";
-import AdminAbandonedCarts from "@/pages/admin/abandoned-carts";
 import AdminRefundRequests from "@/pages/admin/refund-requests";
 import AdminProductRequests from "@/pages/admin/product-requests";
 import AdminVisitors from "@/pages/admin/visitors";
@@ -134,12 +130,8 @@ function AdminRouter() {
         <Route path="/admin/reviews" component={AdminReviews} />
         <Route path="/admin/tiktok" component={AdminTiktok} />
         <Route path="/admin/terms" component={AdminTerms} />
-        <Route path="/admin/import" component={AdminImport} />
-        <Route path="/admin/stock-alerts" component={AdminStockAlerts} />
-        <Route path="/admin/sales-reports" component={AdminSalesReports} />
         <Route path="/admin/events" component={AdminEvents} />
         <Route path="/admin/games" component={AdminGames} />
-        <Route path="/admin/abandoned-carts" component={AdminAbandonedCarts} />
         <Route path="/admin/refund-requests" component={AdminRefundRequests} />
         <Route path="/admin/product-requests" component={AdminProductRequests} />
         <Route path="/admin/visitors" component={AdminVisitors} />
