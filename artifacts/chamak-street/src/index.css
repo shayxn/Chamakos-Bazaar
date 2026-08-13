@@ -389,6 +389,25 @@ body {
   scroll-behavior: smooth;
   overflow-y: scroll;
   overflow-x: hidden;
+  /* Prevent elastic bounce on overscroll */
+  overscroll-behavior-y: none;
+}
+
+/* GPU-composited sticky elements */
+[style*="position: sticky"],
+[style*="position:sticky"] {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Ensure smooth compositing for animated elements */
+.motion-safe\:transform-gpu {
+  transform: translateZ(0);
+}
+
+/* Reduce paint on sections that don't affect outside layout */
+.section-contained {
+  contain: style;
 }
 
 /* Buttons — subtle scale on hover */

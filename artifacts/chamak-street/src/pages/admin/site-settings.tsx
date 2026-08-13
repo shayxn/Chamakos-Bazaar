@@ -129,6 +129,65 @@ function ImageSettingInput({
   );
 }
 
+function VideoSettingInput({
+  label, settingKey, settings, onChange,
+}: {
+  label: string;
+  settingKey: string;
+  settings: SettingsMap;
+  onChange: (key: string, val: string) => void;
+}) {
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const val = settings[settingKey] ?? "";
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImageFile(file);
+      onChange(settingKey, url);
+      toast({ title: "Video uploaded!" });
+    } catch {
+      toast({ title: "Upload failed", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div>
+      <label className="label-xs mb-1.5 block">{label}</label>
+      <div className="flex gap-2">
+        <Input value={val} onChange={(e) => onChange(settingKey, e.target.value)} placeholder="https://... or upload from device" className="flex-1" />
+        <Button
+          type="button" variant="outline" size="sm"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="shrink-0 gap-1.5 font-bold uppercase tracking-wide text-xs border-primary/40 hover:border-primary"
+        >
+          <Upload className="h-3.5 w-3.5" />
+          {uploading ? "Uploading…" : "Upload"}
+        </Button>
+        <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={handleFile} />
+      </div>
+      {val && (
+        <video
+          src={val}
+          muted
+          playsInline
+          preload="metadata"
+          className="mt-2 w-full rounded-lg border border-border/40"
+          style={{ maxHeight: 80, objectFit: "cover" }}
+        />
+      )}
+    </div>
+  );
+}
+
 function ToggleInput({
   label, settingKey, settings, onChange,
 }: {
@@ -558,7 +617,7 @@ export default function AdminSiteSettings() {
               <p className="text-xs text-muted-foreground mb-3">Live Preview:</p>
               <div style={{ background: settings.logo_bg_color === "transparent" ? "transparent" : settings.logo_bg_color, display: "inline-block", padding: `${settings.logo_padding}px`, borderRadius: `${settings.logo_border_radius}px` }}>
                 <img
-                  src={settings.logo_url || "/chamak-logo.png"}
+                  src={settings.logo_url || "/firstpick-logo.svg"}
                   alt="Logo Preview"
                   style={{
                     height: `${settings.logo_height || 56}px`,
@@ -598,6 +657,36 @@ export default function AdminSiteSettings() {
                 <ToggleInput label="Show Reviews Section" settingKey="reviews_section_visible" settings={settings} onChange={onChange} />
                 <SettingInput label="Section Title" settingKey="reviews_section_title" settings={settings} onChange={onChange} />
               </div>
+              <div className="p-4 bg-muted/30 rounded-xl space-y-4 border border-border/40">
+                <div className="flex items-center gap-2">
+                  <Video className="h-4 w-4 text-primary" />
+                  <h3 className="font-black uppercase tracking-wide text-sm">Middle Feature Video</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Scroll-driven video shown in the center of the homepage — plays frame-by-frame as users scroll through it.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onChange("hero_middle_video", "")}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border ${!settings.hero_middle_video ? "bg-primary text-primary-foreground border-primary" : "bg-muted/60 text-muted-foreground border-border hover:border-primary/40"}`}
+                  >
+                    ✓ Default
+                  </button>
+                  <button
+                    onClick={() => { if (!settings.hero_middle_video) onChange("hero_middle_video", " "); }}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wide transition-all border ${settings.hero_middle_video?.trim() ? "bg-primary text-primary-foreground border-primary" : "bg-muted/60 text-muted-foreground border-border hover:border-primary/40"}`}
+                  >
+                    Custom Upload
+                  </button>
+                </div>
+                {settings.hero_middle_video?.trim() && (
+                  <VideoSettingInput label="Custom video URL or file" settingKey="hero_middle_video" settings={settings} onChange={onChange} />
+                )}
+                {!settings.hero_middle_video?.trim() && (
+                  <p className="text-[11px] text-muted-foreground/60 italic">Using the built-in FirstPick video.</p>
+                )}
+              </div>
+
               <div className="p-4 bg-muted/30 rounded-xl space-y-3 border border-border/40">
                 <h3 className="font-black uppercase tracking-wide text-sm">Recommended Products</h3>
                 <p className="text-xs text-muted-foreground">Shown at the bottom of every product page — automatically picks similar products from the same category.</p>
@@ -655,7 +744,7 @@ export default function AdminSiteSettings() {
               </div>
               <p className="text-xs text-muted-foreground mb-3">Shown in the footer, links to your TikTok profile.</p>
               <ToggleInput label="Show TikTok Button" settingKey="tiktok_btn_visible" settings={settings} onChange={onChange} />
-              <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@chamakstreet" />
+              <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@firstpick" />
               <SettingInput label="Button Text" settingKey="tiktok_btn_text" settings={settings} onChange={onChange} placeholder="Follow on TikTok" />
               <div>
                 <label className="label-xs mb-1.5 block">Button Color</label>
@@ -685,7 +774,7 @@ export default function AdminSiteSettings() {
               <SettingInput label="Email" settingKey="contact_email" settings={settings} onChange={onChange} type="email" />
               <SettingInput label="WhatsApp / Phone" settingKey="contact_phone" settings={settings} onChange={onChange} />
               <SettingInput label="Instagram Handle" settingKey="contact_instagram" settings={settings} onChange={onChange} placeholder="@chamakstreet" />
-              <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@chamakstreet" />
+              <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@firstpick" />
             </div>
           </div>
         )}

@@ -50,3 +50,21 @@ Brand renamed "Chamak Street" → "FirstPick" (Aug 2026).
 - scroll-reveal: willChange on all motion divs
 - Buttons: spring cubic-bezier(0.34,1.56,0.64,1) with overshot bounce
 - CSS: smooth scroll, overflow-x hidden, hardware-accelerated with will-change
+
+## Scroll-driven video (ScrollDrivenVideo component in home.tsx)
+- Uses `useScroll({ target: containerRef, offset: ["start end", "end start"] })` from framer-motion
+- Container is 300vh tall; video is `position: sticky; height: 100vh`
+- `scrollYProgress.on("change", v => video.currentTime = v * duration)` — maps 0→1 scroll to full video
+- No autoPlay — video is paused by default, only advances via scroll
+- Video src: `settings.hero_middle_video || "/firstpick-video.mov"` (admin-configurable)
+
+## Admin: Middle Feature Video (site-settings.tsx "Sections" tab)
+- Setting key: `hero_middle_video` (empty string = use default /firstpick-video.mov)
+- Toggle: Default / Custom Upload buttons
+- `VideoSettingInput` component added (same as `ImageSettingInput` but `accept="video/*"`)
+- SETTING_DEFAULTS: `hero_middle_video: ""`
+
+## Smoothness / performance
+- `overscroll-behavior-y: none` on body (prevents elastic bounce)
+- `[style*="position: sticky"]` selector adds `transform: translateZ(0)` for GPU compositing
+- Removed `contain: layout style` from all sections (breaks sticky positioning)
