@@ -50,7 +50,7 @@ export default function Terms() {
     <div className="container mx-auto px-4 py-16 max-w-4xl">
       <div className="mb-10">
         <p className="text-primary font-bold uppercase tracking-[0.3em] text-sm mb-3">
-          Chamak Street
+          FirstPick
         </p>
         <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight">
           {page?.title ?? "Terms of Policy"}

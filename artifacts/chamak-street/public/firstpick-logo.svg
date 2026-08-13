@@ -1,16 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 80" width="340" height="80">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 82" fill="none">
   <defs>
-    <linearGradient id="fpGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="100%" stop-color="#e0e0e0"/>
-    </linearGradient>
-    <linearGradient id="fpAccent" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ff6600"/>
-      <stop offset="100%" stop-color="#ffaa00"/>
+    <linearGradient id="pickGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ff5200"/>
+      <stop offset="100%" stop-color="#ffb300"/>
     </linearGradient>
   </defs>
-  <text x="6" y="60" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="62" fill="url(#fpGrad)" letter-spacing="-2">FIRST</text>
-  <text x="200" y="60" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="62" fill="url(#fpAccent)" letter-spacing="-2">PICK</text>
-  <rect x="6" y="68" width="326" height="2.5" rx="1.25" fill="url(#fpAccent)" opacity="0.45"/>
-  <circle cx="194" cy="51" r="5" fill="url(#fpAccent)" opacity="0.7"/>
+  <text
+    x="0" y="70"
+    font-family="'Arial Black','Impact','Franklin Gothic Heavy',sans-serif"
+    font-weight="900"
+    font-size="72"
+    fill="#ffffff"
+    letter-spacing="-2"
+  >FIRST</text>
+  <text
+    x="200" y="70"
+    font-family="'Arial Black','Impact','Franklin Gothic Heavy',sans-serif"
+    font-weight="900"
+    font-size="72"
+    fill="url(#pickGrad)"
+    letter-spacing="-2"
+  >PICK</text>
 </svg>

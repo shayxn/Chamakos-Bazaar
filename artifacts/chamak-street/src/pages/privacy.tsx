@@ -25,7 +25,7 @@ export default function Privacy() {
           <section>
             <h2 className="text-lg font-black uppercase tracking-wider text-foreground mb-3">Cash on Delivery</h2>
             <p>
-              Chamak Street operates on a Cash on Delivery (COD) model. We do not collect or store any payment card information.
+              FirstPick operates on a Cash on Delivery (COD) model. We do not collect or store any payment card information.
             </p>
           </section>
 

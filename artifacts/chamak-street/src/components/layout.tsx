@@ -9,6 +9,7 @@ import { SmartSearchModal } from "./smart-search";
 import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
 import { BackToTop } from "./back-to-top";
+import { ChamakLogo } from "./chamak-logo";
 
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -68,21 +69,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Center: Logo */}
           <Link href="/" className="flex items-center justify-center absolute left-1/2 -translate-x-1/2">
-            <img
-              src={logoUrl}
-              alt="FirstPick"
-              style={{
-                height: `${logoHeight}px`,
-                width: "auto",
-                objectFit: "contain",
-                backgroundColor: logoBgColor,
-                opacity: logoOpacity,
-                filter: `blur(${logoBlur}px) brightness(${logoBrightness}) contrast(${logoContrast})`,
-                mixBlendMode: logoBlendMode as React.CSSProperties["mixBlendMode"],
-                padding: `${logoPadding}px`,
-                borderRadius: `${logoBorderRadius}px`,
-              }}
-            />
+            {logoUrl === "/firstpick-logo.svg" ? (
+              <ChamakLogo size="md" />
+            ) : (
+              <img
+                src={logoUrl}
+                alt="FirstPick"
+                style={{
+                  height: `${logoHeight}px`,
+                  width: "auto",
+                  objectFit: "contain",
+                  backgroundColor: logoBgColor,
+                  opacity: logoOpacity,
+                  filter: `blur(${logoBlur}px) brightness(${logoBrightness}) contrast(${logoContrast})`,
+                  mixBlendMode: logoBlendMode as React.CSSProperties["mixBlendMode"],
+                  padding: `${logoPadding}px`,
+                  borderRadius: `${logoBorderRadius}px`,
+                }}
+              />
+            )}
           </Link>
 
           {/* Right: Admin + User + Cart */}
@@ -201,18 +206,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         <div className="max-w-[1440px] mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <img
-              src={logoUrl}
-              alt="FirstPick"
-              style={{
-                height: "38px",
-                width: "auto",
-                objectFit: "contain",
-                opacity: 0.7,
-                filter: `brightness(${logoBrightness}) contrast(${logoContrast})`,
-                marginBottom: "14px",
-              }}
-            />
+            {logoUrl === "/firstpick-logo.svg" ? (
+              <div style={{ marginBottom: "14px", opacity: 0.65 }}>
+                <ChamakLogo size="sm" />
+              </div>
+            ) : (
+              <img
+                src={logoUrl}
+                alt="FirstPick"
+                style={{
+                  height: "38px",
+                  width: "auto",
+                  objectFit: "contain",
+                  opacity: 0.65,
+                  filter: `brightness(${logoBrightness}) contrast(${logoContrast})`,
+                  marginBottom: "14px",
+                }}
+              />
+            )}
             <p className="text-white/40 text-sm max-w-sm">
               {settings.footer_description || "Premium streetwear for those who walk their own path."}
             </p>

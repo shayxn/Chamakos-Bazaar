@@ -7,6 +7,7 @@ import { AnnouncementBanner } from "./announcement-banner";
 import { SmartSearchModal } from "./smart-search";
 import { useCartFly } from "./cart-fly-context";
 import { motion, AnimatePresence } from "@/lib/motion-noop";
+import { ChamakLogo } from "./chamak-logo";
 
 const TAB_ITEMS = [
   { href: "/",              label: "Home",  Icon: Home },
@@ -37,11 +38,15 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
           <SmartSearchModal />
 
           <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-            <img
-              src={logoUrl}
-              alt="FirstPick"
-              style={{ height: `${logoHeight}px`, width: "auto", objectFit: "contain" }}
-            />
+            {logoUrl === "/firstpick-logo.svg" ? (
+              <ChamakLogo size="sm" />
+            ) : (
+              <img
+                src={logoUrl}
+                alt="FirstPick"
+                style={{ height: `${logoHeight}px`, width: "auto", objectFit: "contain" }}
+              />
+            )}
           </Link>
 
           <div className="flex items-center gap-1">

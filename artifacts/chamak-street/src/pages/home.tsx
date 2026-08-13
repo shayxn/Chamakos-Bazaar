@@ -9,7 +9,6 @@ import { PageTransition, RevealSection, RevealList, revealItem } from "@/compone
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
 import { TrustSection } from "@/components/trust-section";
-import { BrandsSection } from "@/components/brands-section";
 import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
 import { EventHomepageBanner } from "@/components/event-homepage-banner";
@@ -427,7 +426,7 @@ export default function Home() {
           >
             {[...Array(12)].map((_, i) => (
               <span key={i} className="flex items-center gap-10">
-                <span>Chamak Street</span>
+                <span>FirstPick</span>
                 <Flame className="h-4 w-4 inline-block" />
                 <span>New Drop</span>
                 <span>★</span>
@@ -464,7 +463,7 @@ export default function Home() {
                 <span>✦</span>
                 <span className="gradient-text">Street Culture</span>
                 <span>✦</span>
-                <span>Rep Nation</span>
+                <span className="gradient-text">Authentic Drops</span>
                 <span>✦</span>
               </span>
             ))}
@@ -491,7 +490,7 @@ export default function Home() {
               {[
                 { value: 500, suffix: "+", label: "Products", color: "#ff6600" },
                 { value: 3, suffix: "", label: "Top Brands", color: "#ffcc00" },
-                { value: 100, suffix: "%", label: "Authentic Rep", color: "#ff9933" },
+                { value: 100, suffix: "%", label: "Authentic", color: "#ff9933" },
                 { value: 1, suffix: " Day", label: "UAE Delivery", color: "#ff6600" },
               ].map((stat, i) => (
                 <div key={i} className="relative">
@@ -518,8 +517,39 @@ export default function Home() {
 
         <SectionDivider />
 
-        {/* ── BRANDS + CATEGORIES ── */}
-        <BrandsSection />
+        {/* ══════════════ FEATURED VIDEO ══════════════ */}
+        <section className="py-8 relative overflow-hidden bg-black">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 1.0, ease: [0.16,1,0.3,1] }}
+            className="relative"
+          >
+            {/* Top cinematic bar */}
+            <div className="absolute top-0 inset-x-0 h-8 bg-black z-10 pointer-events-none" />
+            {/* Bottom cinematic bar */}
+            <div className="absolute bottom-0 inset-x-0 h-8 bg-black z-10 pointer-events-none" />
+            {/* Side vignettes */}
+            <div className="absolute inset-y-0 left-0 w-24 z-10 pointer-events-none" style={{ background: "linear-gradient(to right, black, transparent)" }} />
+            <div className="absolute inset-y-0 right-0 w-24 z-10 pointer-events-none" style={{ background: "linear-gradient(to left, black, transparent)" }} />
+            {/* Orange glow beneath */}
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-2/3 h-16 blur-3xl pointer-events-none" style={{ background: "rgba(255,102,0,0.18)" }} />
+
+            <video
+              src="/firstpick-video.mov"
+              autoPlay
+              muted
+              loop
+              playsInline
+              disablePictureInPicture
+              className="w-full block"
+              style={{ maxHeight: "82vh", objectFit: "cover", display: "block" }}
+            />
+          </motion.div>
+        </section>
+
+        <SectionDivider />
 
         {/* ══════════════ QUOTE BANNER ══════════════ */}
         <RevealSection amount={0.15} className="mx-4 mb-12">
@@ -548,7 +578,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
               >
-                ✦ The Chamak Mantra ✦
+                ✦ The FirstPick Promise ✦
               </motion.p>
 
               <div className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight md:tracking-tighter leading-[0.92] mb-6 overflow-hidden">
@@ -567,7 +597,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.6, duration: 0.6 }}
               >
-                — Chamak Street, Dubai
+                — FirstPick, Dubai
               </motion.p>
 
               <motion.div
