@@ -408,6 +408,7 @@ export default function ProductDetail() {
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [justSelectedSize, setJustSelectedSize] = useState<string | null>(null);
   const [addedPulse, setAddedPulse] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
@@ -603,11 +604,6 @@ export default function ProductDetail() {
                     Featured
                   </span>
                 )}
-                {product.rep && (
-                  <span className="glass-badge text-xs font-black tracking-widest uppercase text-white px-3 py-1.5 rounded-sm">
-                    REP
-                  </span>
-                )}
               </div>
             </MotionItem>
 
@@ -641,18 +637,43 @@ export default function ProductDetail() {
                       <motion.button
                         key={size}
                         initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.48 + i * 0.05, ease: EASE }}
-                        onClick={() => setSelectedSize(size)}
-                        whileHover={{ scale: 1.08, y: -2 }}
-                        whileTap={{ scale: 0.93 }}
-                        className={`h-10 sm:h-12 min-w-[2.5rem] sm:min-w-[3rem] px-3 sm:px-4 font-bold border rounded-sm transition-all duration-200 ${
+                        animate={
+                          justSelectedSize === size
+                            ? { opacity: 1, scale: [1, 1.32, 0.88, 1.1, 1] }
+                            : { opacity: 1, scale: 1 }
+                        }
+                        transition={
+                          justSelectedSize === size
+                            ? { duration: 0.42, ease: "easeOut", times: [0, 0.25, 0.5, 0.75, 1] }
+                            : { delay: 0.48 + i * 0.05, ease: EASE }
+                        }
+                        onClick={() => {
+                          setSelectedSize(size);
+                          setJustSelectedSize(size);
+                          setTimeout(() => setJustSelectedSize(null), 600);
+                        }}
+                        whileHover={justSelectedSize === size ? undefined : { scale: 1.08, y: -2 }}
+                        whileTap={{ scale: 0.88 }}
+                        className={`relative overflow-hidden h-10 sm:h-12 min-w-[2.5rem] sm:min-w-[3rem] px-3 sm:px-4 font-bold border rounded-sm transition-all duration-200 ${
                           selectedSize === size
                             ? "size-swatch-selected"
                             : "border-white/12 glass-sm text-muted-foreground hover:border-primary/60 hover:text-foreground"
                         }`}
                         data-testid={`size-${size}`}
                       >
+                        <AnimatePresence>
+                          {justSelectedSize === size && (
+                            <motion.span
+                              key="flash"
+                              className="absolute inset-0 rounded-sm bg-primary"
+                              initial={{ opacity: 0.55, scale: 0.5 }}
+                              animate={{ opacity: 0, scale: 2.2 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.38, ease: "easeOut" }}
+                              style={{ pointerEvents: "none" }}
+                            />
+                          )}
+                        </AnimatePresence>
                         {size}
                       </motion.button>
                     ))}

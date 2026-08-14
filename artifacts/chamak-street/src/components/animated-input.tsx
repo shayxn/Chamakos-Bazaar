@@ -1,12 +1,13 @@
 /**
  * AnimatedInput — each character fades in as the user types.
  *
- * Renders a real <input> (transparent text, visible caret) for all native
- * browser behaviour (cursor, selection, paste, autofill), then overlays an
- * absolutely-positioned div whose character <span>s animate on entry.
+ * Drop-in replacement for <Input>: includes all base shadcn Input classes
+ * so it visually matches without needing extra className props.
  *
- * Pass `wrapperClass` to forward font-size / text-color classes to the
- * container so the overlay inherits the same metrics as the hidden input.
+ * The real <input> has transparent text (native cursor/selection/paste/autofill
+ * all work normally). An absolutely-positioned overlay renders the animated chars.
+ *
+ * Pass `wrapperClass` to forward extra classes to the outer wrapper div.
  */
 import { useState, useRef, useCallback, useEffect, forwardRef } from "react";
 import { motion } from "framer-motion";
@@ -14,13 +15,23 @@ import { cn } from "@/lib/utils";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
+// Same base classes as shadcn/ui Input — keeps them in sync automatically
+const INPUT_BASE =
+  "flex w-full rounded-xl px-3 py-1 text-base md:text-sm " +
+  "border border-white/[0.10] bg-white/[0.05] backdrop-blur-sm " +
+  "shadow-[inset_0_1px_0_rgba(0,0,0,0.2),inset_0_-1px_0_rgba(255,255,255,0.03)] " +
+  "placeholder:text-muted-foreground " +
+  "transition-all duration-200 " +
+  "focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:bg-white/[0.08] " +
+  "disabled:cursor-not-allowed disabled:opacity-50";
+
 type Char = { char: string; id: number };
 
 export interface AnimatedInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  /** Classes forwarded to the outer wrapper div — use for text-size / color so the overlay matches the input. */
+  /** Extra classes on the outer wrapper div — use for width/color overrides. */
   wrapperClass?: string;
 }
 
@@ -28,7 +39,6 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
   ({ value = "", onChange, className, wrapperClass, style, ...props }, ref) => {
     const counter = useRef(0);
 
-    // Initialise char list from any pre-filled value (no animation on mount)
     const [chars, setChars] = useState<Char[]>(() =>
       (value ?? "").split("").map(char => ({ char, id: ++counter.current }))
     );
@@ -38,7 +48,6 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
     useEffect(() => {
       if ((value ?? "") !== prevValue.current) {
         prevValue.current = value ?? "";
-        // External change — reinitialise without animation
         counter.current = 0;
         setChars((value ?? "").split("").map(char => ({ char, id: ++counter.current })));
       }
@@ -55,17 +64,12 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
           if (next.length === 0) return [];
 
           if (next.length < prev.length) {
-            // Deletion — just trim
             return current.slice(0, next.length);
           }
 
-          // Find first point of divergence (handles mid-word insertions too)
+          // Find first point of divergence
           let diffAt = 0;
-          while (
-            diffAt < prev.length &&
-            diffAt < next.length &&
-            prev[diffAt] === next[diffAt]
-          ) {
+          while (diffAt < prev.length && diffAt < next.length && prev[diffAt] === next[diffAt]) {
             diffAt++;
           }
 
@@ -83,21 +87,14 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
     );
 
     return (
-      <div
-        className={cn("relative", wrapperClass)}
-        style={style}
-      >
-        {/* Real input — text is transparent so only the native caret is visible.
+      <div className={cn("relative w-full", wrapperClass)} style={style}>
+        {/* Real input — text transparent, only caret visible.
             All native UX (cursor, selection, paste, autofill) works normally. */}
         <input
           ref={ref}
           value={value}
           onChange={handleChange}
-          className={cn(
-            className,
-            "!text-transparent caret-white",
-            // Keep placeholder visible (::placeholder is unaffected by text-transparent)
-          )}
+          className={cn(INPUT_BASE, className, "!text-transparent caret-white")}
           {...props}
         />
 

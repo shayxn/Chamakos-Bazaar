@@ -768,7 +768,7 @@ export default function AdminBasics() {
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
           side="right"
-          className="w-full sm:max-w-2xl flex flex-col p-0 gap-0 border-l border-white/8"
+          className="w-full sm:max-w-2xl flex flex-col p-0 gap-0 border-l border-white/8 [&>button]:hidden"
           style={{ background: "#0a0a0a" }}
         >
           {/* Fixed header */}

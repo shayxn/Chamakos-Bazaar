@@ -484,10 +484,10 @@ export function SmartSearchModal() {
 
             {/* Modal */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -28 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: -16 }}
-              transition={{ duration: 0.25, ease: EASE }}
+              initial={{ opacity: 0, scale: 0.95, y: -28, filter: "blur(8px)" }}
+              animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, scale: 0.96, y: 14, filter: "blur(10px)" }}
+              transition={{ duration: 0.28, ease: [0.4, 0, 0.6, 1] }}
               className="fixed left-1/2 -translate-x-1/2 z-[101] w-full overflow-hidden"
               style={{
                 top: "max(calc(env(safe-area-inset-top, 0px) + 0.5rem), 8vh)",

@@ -210,6 +210,15 @@ export function useAdminPushNotifications() {
         const ok = await subscribeAfterGrant();
         if (!ok) {
           // subscribeAfterGrant already set subscribeError
+        } else {
+          // Confirmation notification — fires immediately after permission granted
+          try {
+            new Notification("FirstPick Admin 🔔", {
+              body: "Notifications are on! You'll now receive real-time updates for new orders, customer activity, and important FirstPick alerts.",
+              icon: "/favicon.ico",
+              tag: "fp-notifications-enabled",
+            });
+          } catch { /* ignore if service worker context blocks direct Notification */ }
         }
       } else if (perm === "denied") {
         setSubscribeError("Notifications were blocked. Open browser settings and allow notifications for this site.");

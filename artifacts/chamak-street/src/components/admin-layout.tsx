@@ -3,7 +3,7 @@ import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
-  Zap, Users, BellRing
+  Zap, Users, BellRing, Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -295,6 +295,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: "/admin/basics",         label: "FP Basics",      icon: Layers },
         { href: "/admin/categories",     label: "Categories",     icon: Tag },
         { href: "/admin/orders",         label: "Orders",         icon: ShoppingBag },
+        { href: "/admin/firstpick-plus", label: "FirstPick+",     icon: Crown },
       ],
     },
     {

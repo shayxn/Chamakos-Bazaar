@@ -129,17 +129,6 @@ function TrackingTimeline({ status, events }: { status: string; events?: { statu
           const date = getEventTime(key);
           return (
             <div key={key} className="flex-1 flex flex-col items-center relative" style={{ minWidth: 0 }}>
-              {/* Connector line */}
-              {i < STAGES.length - 1 && (
-                <div className="absolute top-4 left-1/2 w-full h-0.5 z-0"
-                  style={{
-                    background: i < currentStage
-                      ? "linear-gradient(90deg, #ff6600, #ff9900)"
-                      : "rgba(255,255,255,0.1)",
-                    transition: "background 0.6s ease",
-                  }}
-                />
-              )}
               {/* Icon circle */}
               <motion.div
                 initial={false}

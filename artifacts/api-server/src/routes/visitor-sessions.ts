@@ -148,8 +148,40 @@ router.post("/visitor-sessions/track", async (req, res) => {
 
     // New visitor
     if (isNew && await getNotifEnabled("notif_new_visitors")) {
+      // Build a human-readable device name from UA + device info
+      const ua = ((req as any).headers?.["user-agent"] ?? "") as string;
+      let deviceLabel: string;
+      if (/ipad/i.test(ua)) {
+        deviceLabel = "iPad";
+      } else if (/iphone/i.test(ua)) {
+        deviceLabel = "iPhone";
+      } else if (/android/i.test(ua) && !/mobile/i.test(ua)) {
+        deviceLabel = "Android Tablet";
+      } else if (/android/i.test(ua)) {
+        deviceLabel = "Android Phone";
+      } else if (/macintosh|mac os x/i.test(ua)) {
+        deviceLabel = "MacBook";
+      } else if (/windows/i.test(ua)) {
+        deviceLabel = "Windows PC";
+      } else if (deviceOs === "iOS") {
+        deviceLabel = deviceType === "tablet" ? "iPad" : "iPhone";
+      } else if (deviceOs === "Android") {
+        deviceLabel = deviceType === "tablet" ? "Android Tablet" : "Android Phone";
+      } else if (deviceOs === "macOS") {
+        deviceLabel = "MacBook";
+      } else if (deviceOs === "Windows") {
+        deviceLabel = "Windows PC";
+      } else if (deviceType === "tablet") {
+        deviceLabel = "Tablet";
+      } else if (deviceType === "mobile") {
+        deviceLabel = "Mobile Device";
+      } else if (deviceType === "desktop") {
+        deviceLabel = "Computer";
+      } else {
+        deviceLabel = deviceOs ?? deviceType ?? "Visitor";
+      }
       sendActivityPush("NEW_VISITOR", {
-        label: deviceOs ?? deviceType ?? "visitor",
+        label: deviceLabel,
         page: entryPage ?? "/",
       }).catch(() => {});
     }
