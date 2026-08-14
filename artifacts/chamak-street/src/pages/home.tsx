@@ -200,6 +200,12 @@ export default function Home() {
     return [settings.hero_image || "/chamako-hero.png"];
   }, [settings.hero_images, settings.hero_image]);
 
+  // Track which hero image indices have failed to load → swap in fallback
+  const [heroImgFailed, setHeroImgFailed] = useState<Record<number, boolean>>({});
+  const heroSrc = useCallback((i: number) =>
+    heroImgFailed[i] ? "/chamako-hero.png" : heroImages[i],
+  [heroImages, heroImgFailed]);
+
   const slideInterval = Math.max(2000, Number(settings.hero_slide_interval || 5000));
   const [slideIdx, setSlideIdx] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -231,15 +237,17 @@ export default function Home() {
           {/* ── Image carousel: natural height, full image visible ── */}
           {/* Ghost image drives the section height (invisible, just for layout) */}
           <img
-            src={heroImages[slideIdx]}
+            src={heroSrc(slideIdx)}
             alt=""
             aria-hidden="true"
-            style={{ width: "100%", height: "auto", display: "block", visibility: "hidden", minHeight: "50vh", maxHeight: "90vh", objectFit: "contain" }}
+            onError={() => setHeroImgFailed(prev => ({ ...prev, [slideIdx]: true }))}
+            style={{ width: "100%", height: "auto", display: "block", visibility: "hidden", minHeight: "60vh", maxHeight: "90vh", objectFit: "contain" }}
           />
 
           {/* Actual crossfade slides — absolutely positioned over the ghost */}
-          {heroImages.map((src, i) => {
+          {heroImages.map((_src, i) => {
             const isActive = i === slideIdx;
+            const src = heroSrc(i);
             const isVideo = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(src);
             const style: React.CSSProperties = {
               position: "absolute", inset: 0, width: "100%", height: "100%",
@@ -250,9 +258,16 @@ export default function Home() {
               zIndex: isActive ? 1 : 0,
             };
             return isVideo ? (
-              <video key={src} src={src} style={style} autoPlay loop playsInline muted />
+              <video key={i} src={src} style={style} autoPlay loop playsInline muted />
             ) : (
-              <img key={src} src={src} alt="FirstPick" style={style} loading={i === 0 ? "eager" : "lazy"} />
+              <img
+                key={i}
+                src={src}
+                alt="FirstPick"
+                style={style}
+                loading={i === 0 ? "eager" : "lazy"}
+                onError={() => setHeroImgFailed(prev => ({ ...prev, [i]: true }))}
+              />
             );
           })}
 

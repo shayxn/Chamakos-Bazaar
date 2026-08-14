@@ -263,7 +263,6 @@ export default function Basics() {
                             {(product as any).sellingFast && (
                               <span className="bg-orange-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">🔥 Hot</span>
                             )}
-                            <span className="bg-green-600/80 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">✓ Authentic</span>
                           </div>
 
                           {/* Low stock / sold out */}

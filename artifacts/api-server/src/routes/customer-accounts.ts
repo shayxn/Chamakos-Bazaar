@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, customerAccountsTable, customerAddressesTable, ordersTable, siteSettingsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, or } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import type { Request } from "express";
 import { sendActivityPush, initPush } from "../lib/push";
@@ -108,10 +108,15 @@ router.post("/customers/change-password", async (req, res) => {
 router.get("/customers/orders", async (req, res) => {
   const customerId = getCustomerId(req);
   if (!customerId) { res.status(401).json({ error: "Not logged in" }); return; }
-  const [customer] = await db.select({ email: customerAccountsTable.email }).from(customerAccountsTable).where(eq(customerAccountsTable.id, customerId));
+  const [customer] = await db.select({ email: customerAccountsTable.email, phone: customerAccountsTable.phone })
+    .from(customerAccountsTable).where(eq(customerAccountsTable.id, customerId));
   if (!customer) { res.status(401).json({ error: "Not found" }); return; }
+
+  // Match orders by email OR phone — checkout only collects phone, not email
+  const conditions = [eq(ordersTable.customerEmail, customer.email)];
+  if (customer.phone) conditions.push(eq(ordersTable.customerPhone, customer.phone));
   const orders = await db.select().from(ordersTable)
-    .where(eq(ordersTable.customerEmail, customer.email))
+    .where(or(...conditions))
     .orderBy(desc(ordersTable.createdAt));
   res.json(orders.map(o => ({ ...o, total: Number(o.total), createdAt: o.createdAt.toISOString() })));
 });

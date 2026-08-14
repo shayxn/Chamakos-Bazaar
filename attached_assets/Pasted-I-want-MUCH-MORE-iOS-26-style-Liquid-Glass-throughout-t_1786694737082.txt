@@ -1,0 +1,184 @@
+I want MUCH MORE iOS 26-style Liquid Glass throughout the entire FirstPick website and admin dashboard.
+
+Keep the existing black, orange, and yellow FirstPick theme, but make the UI feel much more like a premium Apple-style Liquid Glass interface.
+
+Apply Liquid Glass heavily across:
+
+* Header and navigation
+* Mobile bottom navigation
+* Search bars
+* Product cards
+* Category cards
+* FirstPick Basics
+* Cart
+* Checkout
+* Order confirmation
+* Order tracking
+* Account pages
+* Login and signup
+* Popups
+* Toast notifications
+* Dropdowns
+* Modals
+* Filters
+* Size selectors
+* Buttons
+* Admin sidebar
+* Admin cards
+* Orders
+* Customers
+* Live Customers
+* Notification settings
+* Product management
+
+Use:
+
+* Strong background blur
+* Semi-transparent dark glass panels
+* Layered glass depth
+* Subtle orange reflections
+* Soft orange edge glow
+* Thin translucent borders
+* Highlight/refraction effects
+* Smooth glass morphing animations
+* Glossy light reflections
+* Rounded Apple-style shapes
+* Floating glass elements
+* Smooth shadows
+* Depth between layers
+
+The glass should react visually to whatever is behind it.
+
+For example, when a panel floats over an orange section, it should pick up a very subtle orange tint/reflection.
+
+When it floats over a dark area, it should stay dark but still visibly look like glass.
+
+Mobile Navigation
+
+Make the bottom mobile navigation strongly Liquid Glass.
+
+It should float slightly above the bottom edge instead of looking like a normal flat navigation bar.
+
+Use a blurred transparent dark background, soft border, subtle reflections, and an orange glow around the selected item.
+
+Make sure it respects the iPhone safe area and Home Indicator.
+
+Popups
+
+Make popups such as:
+
+Welcome to FirstPick
+
+look like premium floating Liquid Glass notifications.
+
+They should:
+
+* Blur the content behind them
+* Have subtle reflections
+* Have an orange glow around the icon
+* Smoothly fade + slide into view
+* Smoothly disappear
+* NEVER be cropped
+* Automatically resize correctly on every screen size
+
+Checkout
+
+Make the mobile checkout/order confirmation page especially polished with Liquid Glass.
+
+Order cards, delivery tracking, shipping information, totals, and sign-in prompts should all use layered dark glass panels with orange highlights.
+
+Do not copy Amazon’s branding, but keep the simple, clear, easy-to-understand mobile structure.
+
+Buttons
+
+Improve buttons with a glass-like feel.
+
+Primary actions can still use strong FirstPick orange, but include subtle depth, highlights, and smooth press animations.
+
+Secondary buttons should use dark translucent glass.
+
+Product Options
+
+When selecting a product size, color, or variant:
+
+Do NOT use green.
+
+The selected option should have:
+
+* Orange border
+* Soft orange glow
+* Slight background illumination
+* Smooth animated transition
+* Small scale/press feedback
+
+The glow should smoothly appear instead of instantly popping in.
+
+Animation
+
+Liquid Glass should move naturally.
+
+Improve:
+
+* Card entrances
+* Button presses
+* Navigation transitions
+* Popups
+* Search
+* Dropdowns
+* Modals
+* Page transitions
+* Product option selection
+* Cart updates
+* Checkout
+* Admin interactions
+
+Use subtle spring-like movement and smooth easing.
+
+Avoid excessive or distracting animation.
+
+Performance
+
+Even though I want a lot of Liquid Glass, keep performance smooth.
+
+Do not create excessive blur layers that make scrolling laggy.
+
+Optimize backdrop blur and animations for mobile Safari.
+
+Keep scrolling smooth on iPhone.
+
+Readability
+
+Do not make glass so transparent that text becomes difficult to read.
+
+Maintain strong contrast.
+
+Text should remain sharp and easy to see.
+
+Orange should remain the primary accent color.
+
+Yellow can be used sparingly for premium/highlight elements.
+
+Final Goal
+
+I want someone opening FirstPick on an iPhone to immediately notice the Liquid Glass design.
+
+It should feel like:
+
+FirstPick + premium Apple-style Liquid Glass + black/orange luxury ecommerce.
+
+Make the glass styling clearly visible throughout the site, not just on one or two components.
+
+After implementing it, review the entire mobile and desktop site again and make sure:
+
+* Glass effects are consistent
+* Nothing is cropped
+* Nothing overlaps
+* Text remains readable
+* Animations stay smooth
+* Mobile performance remains good
+* Safe areas are correct
+* Spacing remains consistent
+* Checkout remains easy to use
+* Admin remains fully functional
+
+Do not remove or break any existing functionality while applying the new Liquid Glass design.

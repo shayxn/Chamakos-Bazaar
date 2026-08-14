@@ -574,13 +574,9 @@ export default function ProductDetail() {
                     Featured
                   </span>
                 )}
-                {product.rep ? (
+                {product.rep && (
                   <span className="glass-badge text-xs font-black tracking-widest uppercase text-white px-3 py-1.5 rounded-sm">
                     REP
-                  </span>
-                ) : (
-                  <span className="text-xs font-black tracking-widest uppercase bg-green-500/80 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">
-                    Authentic
                   </span>
                 )}
               </div>
