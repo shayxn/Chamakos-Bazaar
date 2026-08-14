@@ -14,6 +14,7 @@ import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
 import { EventHomepageBanner } from "@/components/event-homepage-banner";
 import { SpotlightBanner } from "@/components/spotlight-banner";
+import { WidgetZone } from "@/components/widget-zone";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -217,18 +218,28 @@ export default function Home() {
       const parsed = JSON.parse(settings.hero_images || "[]");
       if (Array.isArray(parsed) && parsed.filter(Boolean).length > 0) return parsed.filter(Boolean);
     } catch {}
-    // Use admin-configured single image if set, else use brand default
     if (settings.hero_image) return [settings.hero_image];
-    // Default: portrait on mobile, landscape on desktop
     return [isMobile ? "/firstpick-hero-portrait.png" : "/firstpick-hero.png"];
   }, [settings.hero_images, settings.hero_image, isMobile]);
+
+  /* ── Portrait (mobile) variants — parallel array, optional per slide ── */
+  const heroPortraits = useMemo<string[]>(() => {
+    try {
+      const parsed = JSON.parse(settings.hero_images_portrait || "[]");
+      if (Array.isArray(parsed)) return parsed;
+    } catch {}
+    return [];
+  }, [settings.hero_images_portrait]);
 
   // Track which hero image indices have failed to load → swap in fallback
   const [heroImgFailed, setHeroImgFailed] = useState<Record<number, boolean>>({});
   const defaultFallback = isMobile ? "/firstpick-hero-portrait.png" : "/firstpick-hero.png";
-  const heroSrc = useCallback((i: number) =>
-    heroImgFailed[i] ? defaultFallback : heroImages[i],
-  [heroImages, heroImgFailed, defaultFallback]);
+  const heroSrc = useCallback((i: number) => {
+    if (heroImgFailed[i]) return defaultFallback;
+    // On mobile use portrait version when available for this slide
+    if (isMobile && heroPortraits[i]) return heroPortraits[i];
+    return heroImages[i];
+  }, [heroImages, heroPortraits, heroImgFailed, defaultFallback, isMobile]);
 
   const slideInterval = Math.max(2000, Number(settings.hero_slide_interval || 5000));
   const [slideIdx, setSlideIdx] = useState(0);
@@ -397,6 +408,14 @@ export default function Home() {
 
         {/* ── SPOTLIGHT BANNER ── */}
         <SpotlightBanner />
+
+        {/* ── PWA WIDGETS ── */}
+        <WidgetZone
+          placement="home"
+          showOrderWidget
+          compactPrompt
+          className="container mx-auto px-4 mb-2"
+        />
 
         {/* ══════════════ FEATURED PRODUCTS ══════════════ */}
         <section className="py-12 md:py-20 overflow-hidden relative">

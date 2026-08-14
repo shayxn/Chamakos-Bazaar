@@ -17,3 +17,4 @@ export * from "./refund_requests";
 export * from "./customer_accounts";
 export * from "./abandoned_carts";
 export * from "./visitor_sessions";
+export * from "./widgets";

@@ -1,0 +1,124 @@
+Add a new Widgets system to the EXISTING FirstPick website.
+
+Default Order Status Widget
+
+Create a default customer widget called:
+
+Recent Order
+
+It should automatically connect to the signed-in customer’s REAL most recent order.
+
+Show:
+
+Order #FP1042
+
+Then a clean animated progress bar:
+
+Ordered → Confirmed → Preparing → Shipped → Out for Delivery → Delivered
+
+The orange progress bar should move/update automatically based on the REAL order status set by admins.
+
+Show the estimated delivery date underneath when available.
+
+If the customer has no orders, show:
+
+You Don’t Have Any Orders Yet
+
+with a small Start Shopping button.
+
+Use FirstPick’s black/orange iOS Liquid Glass design with smooth animations.
+
+Admin Widget Creator
+
+Inside the Admin Dashboard add:
+
+Widgets
+
+This should let me create widgets that can appear to customers on the FirstPick website.
+
+Give me two widget types:
+
+1. Image Widget
+
+I can:
+
+* Upload an image
+* Add optional title/subtitle
+* Add an optional button
+* Choose where the button links
+* Choose where the widget appears
+* Preview it
+* Publish/unpublish it
+
+2. Custom Widget
+
+Allow me to actually BUILD a widget from Admin instead of uploading an image.
+
+Let me configure:
+
+* Title
+* Subtitle/text
+* Icon
+* Button
+* Button destination
+* Background
+* Orange/yellow accents
+* Liquid Glass amount
+* Layout
+* Size
+* Border radius
+* Animation
+* Visibility
+
+Give me a LIVE preview while editing.
+
+Widget Placement
+
+Allow me to choose where each widget appears, such as:
+
+Home
+
+Shop
+
+Account
+
+Order Page
+
+or other appropriate existing FirstPick areas.
+
+Allow me to reorder widgets from Admin.
+
+Targeting
+
+Allow widgets to optionally be shown to:
+
+Everyone
+
+Signed-in customers
+
+Guests
+
+FirstPick+ Members
+
+Non-FirstPick+ Customers
+
+This should use the customer’s REAL account/membership status.
+
+Responsive Design
+
+Every admin-created widget MUST automatically adapt to:
+
+* iPhone
+* Android
+* iPad
+* Desktop
+
+Admins should not need to create separate versions unless they choose to.
+
+Nothing should ever be cropped or overflow the screen.
+
+Keep everything consistent with FirstPick’s black, orange and yellow Liquid Glass design.
+
+Widgets should load smoothly and use subtle fade/slide animations without slowing down the website.
+
+Most importantly: make these real database-backed widgets. When I create, edit, publish, unpublish, reorder, or delete a widget from Admin, the customer website should update accordingly.

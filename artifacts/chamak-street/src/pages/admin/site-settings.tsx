@@ -247,98 +247,189 @@ function SliderInput({
 
 function HeroImagesManager({ settings, onChange }: { settings: SettingsMap; onChange: (key: string, val: string) => void }) {
   const { toast } = useToast();
-  const fileRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // Separate refs for landscape and portrait uploads per slide
+  const lsFileRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const ptFileRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const parseArr = (key: string): string[] => {
+    try {
+      const parsed = JSON.parse(settings[key] || "[]");
+      if (Array.isArray(parsed)) return parsed;
+    } catch {}
+    return [];
+  };
 
   const getImages = (): string[] => {
-    try {
-      const parsed = JSON.parse(settings.hero_images || "[]");
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch {}
+    const arr = parseArr("hero_images");
+    if (arr.length > 0) return arr;
     const fallback = settings.hero_image || SETTING_DEFAULTS.hero_image;
     return fallback ? [fallback] : [];
   };
 
-  const setImages = (imgs: string[]) => {
-    onChange("hero_images", JSON.stringify(imgs));
-    if (imgs.length > 0) onChange("hero_image", imgs[0]);
-  };
+  const getPortraits = (): string[] => parseArr("hero_images_portrait");
 
   const images = getImages();
+  const portraits = getPortraits();
 
-  const handleUrlChange = (i: number, val: string) => {
+  const setImages = (imgs: string[], pts?: string[]) => {
+    onChange("hero_images", JSON.stringify(imgs));
+    if (imgs.length > 0) onChange("hero_image", imgs[0]);
+    if (pts !== undefined) onChange("hero_images_portrait", JSON.stringify(pts));
+  };
+
+  const handleLsChange = (i: number, val: string) => {
     const next = [...images]; next[i] = val; setImages(next);
   };
-  const handleAdd = () => setImages([...images, ""]);
-  const handleRemove = (i: number) => { const next = images.filter((_, idx) => idx !== i); setImages(next.length > 0 ? next : [SETTING_DEFAULTS.hero_image]); };
-  const handleMoveUp = (i: number) => { if (i === 0) return; const next = [...images]; [next[i - 1], next[i]] = [next[i], next[i - 1]]; setImages(next); };
-  const handleMoveDown = (i: number) => { if (i === images.length - 1) return; const next = [...images]; [next[i], next[i + 1]] = [next[i + 1], next[i]]; setImages(next); };
+  const handlePtChange = (i: number, val: string) => {
+    const next = [...portraits];
+    while (next.length <= i) next.push("");
+    next[i] = val;
+    onChange("hero_images_portrait", JSON.stringify(next));
+  };
 
-  const handleFile = async (i: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAdd = () => setImages([...images, ""], [...portraits, ""]);
+  const handleRemove = (i: number) => {
+    const nextLs = images.filter((_, idx) => idx !== i);
+    const nextPt = portraits.filter((_, idx) => idx !== i);
+    setImages(nextLs.length > 0 ? nextLs : [SETTING_DEFAULTS.hero_image], nextPt);
+  };
+  const handleMoveUp = (i: number) => {
+    if (i === 0) return;
+    const ls = [...images]; [ls[i - 1], ls[i]] = [ls[i], ls[i - 1]];
+    const pt = [...portraits]; [pt[i - 1], pt[i]] = [pt[i], pt[i - 1]];
+    setImages(ls, pt);
+  };
+  const handleMoveDown = (i: number) => {
+    if (i === images.length - 1) return;
+    const ls = [...images]; [ls[i], ls[i + 1]] = [ls[i + 1], ls[i]];
+    const pt = [...portraits]; [pt[i], pt[i + 1]] = [pt[i + 1], pt[i]];
+    setImages(ls, pt);
+  };
+
+  const handleFile = async (i: number, isPortrait: boolean, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
+    const refs = isPortrait ? ptFileRefs : lsFileRefs;
     try {
       const url = await uploadImageFile(file);
-      handleUrlChange(i, url);
+      isPortrait ? handlePtChange(i, url) : handleLsChange(i, url);
       toast({ title: "Image uploaded!" });
     } catch { toast({ title: "Upload failed", variant: "destructive" }); }
-    if (fileRefs.current[i]) fileRefs.current[i]!.value = "";
+    if (refs.current[i]) refs.current[i]!.value = "";
   };
+
+  const isVideo = (url: string) => /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(url);
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="label-xs flex items-center gap-2"><Images className="h-3.5 w-3.5" /> Hero Images (Slideshow)</label>
-        <span className="text-[10px] font-mono text-muted-foreground">{images.length} image{images.length !== 1 ? "s" : ""}</span>
+        <span className="text-[10px] font-mono text-muted-foreground">{images.length} slide{images.length !== 1 ? "s" : ""}</span>
       </div>
-      <p className="text-xs text-muted-foreground -mt-1">Add multiple images — the hero will automatically cycle through them. Drag order = slide order.</p>
+      <p className="text-xs text-muted-foreground -mt-1">
+        Each slide supports a <span className="text-foreground font-semibold">Landscape</span> (desktop/tablet) and a <span className="text-foreground font-semibold">Portrait</span> (mobile) version. Portrait is optional — falls back to Landscape when not set.
+      </p>
 
-      <div className="space-y-3">
-        {images.map((url, i) => (
-          <div key={i} className="border border-border/60 rounded-xl overflow-hidden bg-muted/20">
-            <div className="flex items-center gap-2 p-3">
-              <div className="flex flex-col gap-0.5 shrink-0">
-                <button onClick={() => handleMoveUp(i)} disabled={i === 0} className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-opacity">
-                  <ChevronUp className="h-3.5 w-3.5" />
-                </button>
-                <button onClick={() => handleMoveDown(i)} disabled={i === images.length - 1} className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-opacity">
-                  <ChevronDown className="h-3.5 w-3.5" />
+      <div className="space-y-4">
+        {images.map((lsUrl, i) => {
+          const ptUrl = portraits[i] ?? "";
+          return (
+            <div key={i} className="border border-border/60 rounded-xl overflow-hidden bg-muted/20">
+              {/* Slide header row */}
+              <div className="flex items-center gap-2 px-3 py-2 border-b border-border/30 bg-muted/30">
+                <div className="flex flex-col gap-0.5 shrink-0">
+                  <button onClick={() => handleMoveUp(i)} disabled={i === 0} className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-opacity">
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button onClick={() => handleMoveDown(i)} disabled={i === images.length - 1} className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 transition-opacity">
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <span className="text-[10px] font-black font-mono text-muted-foreground/60 shrink-0">SLIDE {String(i + 1).padStart(2, "0")}</span>
+                <div className="flex-1" />
+                <button onClick={() => handleRemove(i)} disabled={images.length === 1}
+                  className="shrink-0 p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-20 transition-colors">
+                  <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <span className="text-[10px] font-black font-mono text-muted-foreground/60 shrink-0 w-5">{String(i + 1).padStart(2, "0")}</span>
-              <Input
-                value={url}
-                onChange={(e) => handleUrlChange(i, e.target.value)}
-                placeholder="https://... or upload →"
-                className="flex-1 text-sm"
-              />
-              <Button type="button" variant="outline" size="sm" onClick={() => fileRefs.current[i]?.click()}
-                className="shrink-0 gap-1 text-xs font-bold uppercase tracking-wide border-primary/30 hover:border-primary px-2.5">
-                <Upload className="h-3 w-3" /> Upload
-              </Button>
-              <button onClick={() => handleRemove(i)} disabled={images.length === 1}
-                className="shrink-0 p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-20 transition-colors">
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-              <input ref={(el) => { fileRefs.current[i] = el; }} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => handleFile(i, e)} />
+
+              {/* Two-column: Landscape | Portrait */}
+              <div className="grid grid-cols-2 divide-x divide-border/40">
+                {/* ── Landscape (desktop) ── */}
+                <div className="p-3 space-y-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">🖥 Landscape</span>
+                    <span className="text-[9px] text-muted-foreground/50">(desktop)</span>
+                  </div>
+                  <Input
+                    value={lsUrl}
+                    onChange={(e) => handleLsChange(i, e.target.value)}
+                    placeholder="https://... or upload"
+                    className="text-xs h-8"
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={() => lsFileRefs.current[i]?.click()}
+                    className="w-full gap-1 text-xs font-bold uppercase tracking-wide border-primary/30 hover:border-primary h-8">
+                    <Upload className="h-3 w-3" /> Upload
+                  </Button>
+                  <input ref={(el) => { lsFileRefs.current[i] = el; }} type="file" accept="image/*,video/*" className="hidden"
+                    onChange={(e) => handleFile(i, false, e)} />
+                  {lsUrl && (
+                    <div className="h-16 rounded-lg overflow-hidden border border-border/30 relative">
+                      {isVideo(lsUrl) ? (
+                        <>
+                          <video src={lsUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                          <span className="absolute top-1 right-1 text-[8px] font-black bg-black/70 text-white px-1 py-0.5 rounded">VID</span>
+                        </>
+                      ) : (
+                        <img src={lsUrl} alt={`Slide ${i + 1} landscape`} className="w-full h-full object-cover object-center" />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Portrait (mobile) ── */}
+                <div className="p-3 space-y-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-primary/80">📱 Portrait</span>
+                    <span className="text-[9px] text-muted-foreground/50">(mobile)</span>
+                  </div>
+                  <Input
+                    value={ptUrl}
+                    onChange={(e) => handlePtChange(i, e.target.value)}
+                    placeholder="Optional — falls back to landscape"
+                    className="text-xs h-8"
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={() => ptFileRefs.current[i]?.click()}
+                    className="w-full gap-1 text-xs font-bold uppercase tracking-wide border-primary/30 hover:border-primary h-8">
+                    <Upload className="h-3 w-3" /> Upload
+                  </Button>
+                  <input ref={(el) => { ptFileRefs.current[i] = el; }} type="file" accept="image/*,video/*" className="hidden"
+                    onChange={(e) => handleFile(i, true, e)} />
+                  {ptUrl ? (
+                    <div className="h-16 rounded-lg overflow-hidden border border-primary/30 relative">
+                      {isVideo(ptUrl) ? (
+                        <>
+                          <video src={ptUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                          <span className="absolute top-1 right-1 text-[8px] font-black bg-black/70 text-white px-1 py-0.5 rounded">VID</span>
+                        </>
+                      ) : (
+                        <img src={ptUrl} alt={`Slide ${i + 1} portrait`} className="w-full h-full object-cover object-center" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="h-16 rounded-lg border border-dashed border-border/30 flex items-center justify-center">
+                      <span className="text-[10px] text-muted-foreground/40 text-center leading-tight px-2">Uses landscape<br/>as fallback</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            {url && (
-              <div className="h-20 border-t border-border/30 overflow-hidden relative">
-                {/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(url) ? (
-                  <>
-                    <video src={url} className="w-full h-full object-cover object-center" muted playsInline preload="metadata" />
-                    <span className="absolute top-1.5 right-2 text-[9px] font-black uppercase tracking-wider bg-black/60 text-white px-1.5 py-0.5 rounded">VIDEO</span>
-                  </>
-                ) : (
-                  <img src={url} alt={`Slide ${i + 1}`} className="w-full h-full object-cover object-center" />
-                )}
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <Button type="button" variant="outline" onClick={handleAdd}
         className="w-full gap-2 border-dashed border-primary/30 hover:border-primary font-bold uppercase tracking-wide text-xs">
-        <Plus className="h-3.5 w-3.5" /> Add Another Image
+        <Plus className="h-3.5 w-3.5" /> Add Another Slide
       </Button>
 
       {/* Default image quick-insert */}
@@ -349,7 +440,7 @@ function HeroImagesManager({ settings, onChange }: { settings: SettingsMap; onCh
           <p className="text-[10px] text-muted-foreground truncate">/chamako-hero.png</p>
         </div>
         <Button type="button" variant="outline" size="sm"
-          onClick={() => { if (!images.includes("/chamako-hero.png")) setImages([...images.filter(Boolean), "/chamako-hero.png"]); }}
+          onClick={() => { if (!images.includes("/chamako-hero.png")) setImages([...images.filter(Boolean), "/chamako-hero.png"], [...portraits, ""]); }}
           className="shrink-0 text-xs font-bold uppercase tracking-wide border-primary/30 hover:border-primary px-2.5">
           + Use
         </Button>

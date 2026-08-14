@@ -24,6 +24,7 @@ import productRequestsRouter from "./product-requests";
 import visitorSessionsRouter from "./visitor-sessions";
 import logosRouter from "./logos";
 import pushRouter from "./push-notifications";
+import widgetsRouter from "./widgets";
 
 
 const router: IRouter = Router();
@@ -53,6 +54,7 @@ router.use(productRequestsRouter);
 router.use(visitorSessionsRouter);
 router.use(logosRouter);
 router.use(pushRouter);
+router.use(widgetsRouter);
 
 
 export default router;

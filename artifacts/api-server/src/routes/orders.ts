@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable, customerAccountsTable } from "@workspace/db";
-import { eq, inArray, asc } from "drizzle-orm";
+import { eq, inArray, asc, desc, or } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache } from "../lib/response-cache";
 import { sendOrderPush } from "../lib/push";
@@ -65,6 +65,52 @@ router.get("/orders", requireAdmin, async (_req, res) => {
   const result = orders.map((order) => serializeOrder(order, itemsByOrderId.get(order.id) ?? []));
   ordersListCache.set("all", result);
   res.json(result);
+});
+
+// ─── Customer: most recent order for signed-in account ───────────────────────
+router.get("/orders/my-latest", async (req, res) => {
+  const session = req.session as Record<string, unknown>;
+  const customerId = session.customerId as number | undefined;
+
+  if (!customerId) {
+    res.status(401).json({ error: "Not signed in" });
+    return;
+  }
+
+  const [customer] = await db
+    .select({ phone: customerAccountsTable.phone, email: customerAccountsTable.email })
+    .from(customerAccountsTable)
+    .where(eq(customerAccountsTable.id, customerId));
+
+  if (!customer) {
+    res.status(404).json({ error: "Customer not found" });
+    return;
+  }
+
+  // Find most recent order matching by phone OR email
+  const conditions = [];
+  if (customer.phone) conditions.push(eq(ordersTable.customerPhone, customer.phone));
+  if (customer.email) conditions.push(eq(ordersTable.customerEmail, customer.email));
+
+  if (conditions.length === 0) {
+    res.status(404).json({ error: "No orders" });
+    return;
+  }
+
+  const [order] = await db
+    .select()
+    .from(ordersTable)
+    .where(conditions.length === 1 ? conditions[0] : or(...conditions)!)
+    .orderBy(desc(ordersTable.createdAt))
+    .limit(1);
+
+  if (!order) {
+    res.status(404).json({ error: "No orders" });
+    return;
+  }
+
+  const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, order.id));
+  res.json(serializeOrder(order, items));
 });
 
 router.get("/orders/track", async (req, res) => {

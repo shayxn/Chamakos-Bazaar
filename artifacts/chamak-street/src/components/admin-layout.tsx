@@ -3,7 +3,7 @@ import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
-  Zap, Users, BellRing
+  Zap, Users, BellRing, Smartphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -309,6 +309,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       label: "Content",
       links: [
         { href: "/admin/site-settings", label: "Site Settings",  icon: Settings },
+        { href: "/admin/widgets",        label: "Widgets",        icon: Smartphone },
         { href: "/admin/reviews",        label: "Reviews",        icon: Star },
         { href: "/admin/tiktok",         label: "TikTok Videos",  icon: Video },
         { href: "/admin/terms",          label: "Pages & Legal",  icon: FileText },
