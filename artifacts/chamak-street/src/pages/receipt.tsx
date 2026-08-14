@@ -47,8 +47,35 @@ export default function Receipt() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.88, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          className="glass-liquid rounded-2xl px-10 py-10 flex flex-col items-center gap-5"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
+            className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full"
+          />
+          <div className="space-y-1 text-center">
+            <p className="text-sm font-black uppercase tracking-[0.22em] text-white/70">Loading Receipt</p>
+            <p className="text-[11px] text-white/30 tracking-wider">Fetching your order details…</p>
+          </div>
+          {/* Animated bar rows skeleton */}
+          <div className="w-48 space-y-2 mt-1">
+            {[80, 60, 72, 50].map((w, i) => (
+              <motion.div
+                key={i}
+                className="h-2 rounded-full bg-white/8"
+                animate={{ opacity: [0.4, 0.8, 0.4] }}
+                transition={{ duration: 1.6, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+                style={{ width: `${w}%` }}
+              />
+            ))}
+          </div>
+        </motion.div>
       </div>
     );
   }

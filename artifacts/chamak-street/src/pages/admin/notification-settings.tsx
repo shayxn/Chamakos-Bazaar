@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "@/lib/motion-noop";
 import {
   Bell, BellRing, BellOff, Check, X, Loader2, Send,
   ShoppingBag, Search, UserPlus, ShoppingCart, CreditCard, Wifi
@@ -82,7 +82,7 @@ const EVENT_DEFS = [
 ] as const;
 
 export default function AdminNotificationSettings() {
-  const { permission, subscribed, subscribe, unsubscribe, sendTest } = useAdminPushNotifications();
+  const { permission, subscribed, subscribeError, subscribe, unsubscribe, sendTest } = useAdminPushNotifications();
   const [settings, setSettings] = useState<NotifSettings>({
     notif_new_orders: true,
     notif_searches: false,
@@ -147,6 +147,10 @@ export default function AdminNotificationSettings() {
   };
 
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  // Running as installed PWA (added to Home Screen) — required for iOS web push
+  const isPWA = window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true;
+  const isIOSNonPWA = isIOS && !isPWA;
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -182,62 +186,89 @@ export default function AdminNotificationSettings() {
                 : "Enable to receive real push notifications."}
             </p>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto shrink-0">
             {permission === "granted" && subscribed
-              ? <span className="flex items-center gap-1.5 text-xs font-black text-green-400 bg-green-400/10 border border-green-400/30 px-3 py-1.5 rounded-full"><Check className="h-3 w-3" /> Enabled</span>
+              ? <span className="flex items-center gap-1.5 text-xs font-black text-green-400 bg-green-400/10 border border-green-400/30 px-3 py-1.5 rounded-full whitespace-nowrap"><Check className="h-3 w-3" /> Enabled</span>
               : permission === "denied"
-              ? <span className="flex items-center gap-1.5 text-xs font-black text-red-400 bg-red-400/10 border border-red-400/30 px-3 py-1.5 rounded-full"><X className="h-3 w-3" /> Blocked</span>
-              : <span className="text-xs font-black text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-3 py-1.5 rounded-full">Not enabled</span>
+              ? <span className="flex items-center gap-1.5 text-xs font-black text-red-400 bg-red-400/10 border border-red-400/30 px-3 py-1.5 rounded-full whitespace-nowrap"><X className="h-3 w-3" /> Blocked</span>
+              : <span className="text-xs font-black text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-3 py-1.5 rounded-full whitespace-nowrap">Not enabled</span>
             }
           </div>
         </div>
 
-        {/* iOS PWA hint */}
-        {isIOS && permission !== "granted" && (
+        {/* iOS non-PWA hint */}
+        {isIOSNonPWA && permission !== "granted" && (
           <div className="rounded-xl p-4 text-xs leading-relaxed" style={{ background: "rgba(255,102,0,0.07)", border: "1px solid rgba(255,102,0,0.2)" }}>
-            <p className="font-black text-primary mb-1">📱 iPhone / iPad Instructions</p>
-            <p className="text-white/60">
-              To receive push notifications on iPhone, you must first <strong className="text-white/80">add FirstPick to your Home Screen</strong>:
-              tap the Share button (↑) in Safari → "Add to Home Screen" → open the installed app → then tap Enable below.
-            </p>
+            <p className="font-black text-primary mb-2">📱 iPhone / iPad — 3 quick steps</p>
+            <ol className="text-white/70 space-y-1 list-none">
+              <li><span className="text-primary font-black">1.</span> Tap the <strong className="text-white/90">Share</strong> button <span className="text-white/90">⎙</span> at the bottom of Safari</li>
+              <li><span className="text-primary font-black">2.</span> Tap <strong className="text-white/90">"Add to Home Screen"</strong></li>
+              <li><span className="text-primary font-black">3.</span> Open the <strong className="text-white/90">FirstPick</strong> icon from your Home Screen and come back to this page</li>
+            </ol>
+          </div>
+        )}
+        {/* iOS PWA — running as installed app, show normal flow */}
+        {isIOS && isPWA && permission !== "granted" && (
+          <div className="rounded-xl p-3 text-xs" style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)" }}>
+            <p className="text-green-400 font-black">✓ Running as Home Screen app — tap Enable below</p>
           </div>
         )}
 
-        <div className="flex flex-wrap gap-3">
-          {permission === "granted" && subscribed ? (
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={handleUnsubscribe} disabled={subbing}
-              className="flex items-center gap-2 text-xs font-black uppercase tracking-wider border border-white/10 hover:border-red-400/40 text-muted-foreground hover:text-red-400 px-4 py-2.5 rounded-xl transition-all"
-            >
-              {subbing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BellOff className="h-3.5 w-3.5" />}
-              Disable on this device
-            </motion.button>
-          ) : permission === "denied" ? (
-            <p className="text-xs text-muted-foreground">
-              Open your browser settings and allow notifications for this site, then reload.
-            </p>
-          ) : (
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={handleSubscribe} disabled={subbing}
-              className="flex items-center gap-2 text-xs font-black uppercase tracking-wider bg-primary hover:bg-primary/90 text-black px-4 py-2.5 rounded-xl transition-all"
-            >
-              {subbing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5" />}
-              Enable Push Notifications
-            </motion.button>
-          )}
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-3">
+            {permission === "granted" && subscribed ? (
+              <motion.button
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={handleUnsubscribe} disabled={subbing}
+                className="flex items-center gap-2 text-xs font-black uppercase tracking-wider border border-white/10 hover:border-red-400/40 text-muted-foreground hover:text-red-400 px-4 py-2.5 rounded-xl transition-all"
+              >
+                {subbing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <BellOff className="h-3.5 w-3.5" />}
+                Disable on this device
+              </motion.button>
+            ) : permission === "denied" ? (
+              <p className="text-xs text-muted-foreground">
+                Open your browser settings and allow notifications for this site, then reload.
+              </p>
+            ) : isIOSNonPWA ? (
+              <p className="text-xs text-white/40 font-bold uppercase tracking-wider">
+                ↑ Follow the iPhone steps above first
+              </p>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={handleSubscribe} disabled={subbing}
+                className="flex items-center gap-2 text-xs font-black uppercase tracking-wider bg-primary hover:bg-primary/90 text-black px-4 py-2.5 rounded-xl transition-all disabled:opacity-60"
+              >
+                {subbing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5" />}
+                {subbing ? "Enabling…" : "Enable Push Notifications"}
+              </motion.button>
+            )}
 
-          {permission === "granted" && subscribed && (
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={handleTest} disabled={testing}
-              className="flex items-center gap-2 text-xs font-black uppercase tracking-wider border border-white/10 hover:border-primary/40 text-muted-foreground hover:text-primary px-4 py-2.5 rounded-xl transition-all"
-            >
-              {testing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : testSent ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Send className="h-3.5 w-3.5" />}
-              {testSent ? "Test sent!" : "Send Test Notification"}
-            </motion.button>
-          )}
+            {permission === "granted" && subscribed && (
+              <motion.button
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={handleTest} disabled={testing}
+                className="flex items-center gap-2 text-xs font-black uppercase tracking-wider border border-white/10 hover:border-primary/40 text-muted-foreground hover:text-primary px-4 py-2.5 rounded-xl transition-all"
+              >
+                {testing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : testSent ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Send className="h-3.5 w-3.5" />}
+                {testSent ? "Test sent!" : "Send Test Notification"}
+              </motion.button>
+            )}
+          </div>
+
+          {/* Error feedback */}
+          <AnimatePresence>
+            {subscribeError && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex items-start gap-2 rounded-xl px-4 py-3 text-xs text-red-300"
+                style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}
+              >
+                <X className="h-3.5 w-3.5 shrink-0 mt-0.5 text-red-400" />
+                <span>{subscribeError}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
 

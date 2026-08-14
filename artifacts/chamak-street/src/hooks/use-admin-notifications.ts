@@ -60,21 +60,21 @@ export function playCashSound() {
   }
 }
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+// Returns an ArrayBuffer suitable for pushManager.subscribe applicationServerKey
+function urlBase64ToArrayBuffer(base64String: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const rawData = window.atob(base64);
   const output = new Uint8Array(rawData.length);
   for (let i = 0; i < rawData.length; i++) output[i] = rawData.charCodeAt(i);
-  return output;
+  return output.buffer;
 }
 
 async function registerSW(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
   try {
-    const reg = await navigator.serviceWorker.register(`${BASE}/sw.js`, {
-      scope: "/",
-    });
+    const swUrl = `${BASE}/sw.js`;
+    const reg = await navigator.serviceWorker.register(swUrl, { scope: "/" });
     await navigator.serviceWorker.ready;
     return reg;
   } catch (err) {
@@ -87,9 +87,10 @@ export type NotifPermission = "default" | "granted" | "denied" | "unsupported";
 
 export function useAdminPushNotifications() {
   const [permission, setPermission] = useState<NotifPermission>(
-    typeof Notification !== "undefined" ? Notification.permission : "unsupported"
+    typeof Notification !== "undefined" ? (Notification.permission as NotifPermission) : "unsupported"
   );
   const [subscribed, setSubscribed] = useState(false);
+  const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const swRegRef = useRef<ServiceWorkerRegistration | null>(null);
 
   // Listen for SW messages (NEW_ORDER) to play the cash register sound
@@ -104,15 +105,36 @@ export function useAdminPushNotifications() {
     return () => navigator.serviceWorker.removeEventListener("message", handler);
   }, []);
 
+  // Quick local check — reads browser PushManager without hitting the server
+  // so the UI shows "Enabled" immediately on revisit instead of after async fetch
+  useEffect(() => {
+    const quickCheck = async () => {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+      if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+      try {
+        const reg = await navigator.serviceWorker.getRegistration("/sw.js");
+        if (!reg) return;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          setSubscribed(true);
+          swRegRef.current = reg;
+        }
+      } catch { /* ignore */ }
+    };
+    quickCheck();
+  }, []);
+
   // Subscribe to push after permission is already granted (no dialog needed)
   const subscribeAfterGrant = useCallback(async (): Promise<boolean> => {
     try {
       const res = await fetch(`${BASE}/api/push/vapid-key`, { credentials: "include" });
-      if (!res.ok) return false;
+      if (!res.ok) {
+        throw new Error(`Server returned ${res.status} — are you logged in as admin?`);
+      }
       const { publicKey } = (await res.json()) as { publicKey: string };
 
       const reg = await registerSW();
-      if (!reg) return false;
+      if (!reg) throw new Error("Service worker could not be registered in this browser.");
       swRegRef.current = reg;
 
       const existing = await reg.pushManager.getSubscription();
@@ -120,11 +142,11 @@ export function useAdminPushNotifications() {
         existing ||
         (await reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey),
+          applicationServerKey: urlBase64ToArrayBuffer(publicKey),
         }));
 
       const subJson = sub.toJSON();
-      await fetch(`${BASE}/api/push/subscribe`, {
+      const saveRes = await fetch(`${BASE}/api/push/subscribe`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -133,27 +155,45 @@ export function useAdminPushNotifications() {
           keys: { p256dh: subJson.keys?.p256dh, auth: subJson.keys?.auth },
         }),
       });
+      if (!saveRes.ok) throw new Error("Failed to save subscription on the server.");
 
       setSubscribed(true);
+      setSubscribeError(null);
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.warn("[Push] Subscribe failed:", err);
+      setSubscribeError(err?.message || "Unknown error — check browser console.");
       return false;
     }
   }, []);
 
   // Request browser permission and subscribe if granted
   const subscribe = useCallback(async (): Promise<NotifPermission> => {
-    if (typeof Notification === "undefined") return "unsupported";
+    if (typeof Notification === "undefined") {
+      setSubscribeError("This browser does not support push notifications.");
+      return "unsupported";
+    }
     try {
+      setSubscribeError(null);
       const perm = await Notification.requestPermission();
       setPermission(perm as NotifPermission);
       if (perm === "granted") {
-        await subscribeAfterGrant();
+        const ok = await subscribeAfterGrant();
+        if (!ok) {
+          // subscribeAfterGrant already set subscribeError
+        }
+      } else if (perm === "denied") {
+        setSubscribeError("Notifications were blocked. Open browser settings and allow notifications for this site.");
       }
       return perm as NotifPermission;
-    } catch (err) {
+    } catch (err: any) {
       console.warn("[Push] requestPermission failed:", err);
+      const msg = err?.message || String(err);
+      setSubscribeError(
+        msg.includes("secure origin")
+          ? "Notifications require HTTPS."
+          : "Could not request notification permission — is this running as a PWA?"
+      );
       return "denied";
     }
   }, [subscribeAfterGrant]);
@@ -174,6 +214,7 @@ export function useAdminPushNotifications() {
       });
       await sub.unsubscribe();
       setSubscribed(false);
+      setSubscribeError(null);
     } catch (err) {
       console.warn("[Push] Unsubscribe failed:", err);
     }
@@ -196,5 +237,5 @@ export function useAdminPushNotifications() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { permission, subscribed, subscribe, subscribeAfterGrant, unsubscribe, sendTest };
+  return { permission, subscribed, subscribeError, subscribe, subscribeAfterGrant, unsubscribe, sendTest };
 }

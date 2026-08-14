@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -72,48 +72,64 @@ import { useVisitorTracking } from "@/lib/use-visitor-tracking";
 import { LoadingScreen } from "@/components/loading-screen";
 import { CartFlyProvider } from "@/components/cart-fly-context";
 import { WelcomePopup } from "@/components/welcome-popup";
+// AccountProvider kept eager — it's a root context provider
 import { AccountProvider } from "@/pages/account/index";
+import AccountPage from "@/pages/account/index";
+
+// ── Core customer pages (eagerly loaded — always needed) ──
 import Home from "@/pages/home";
 import Shop from "@/pages/shop";
 import ProductDetail from "@/pages/product-detail";
 import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
-import OrderConfirmation from "@/pages/order";
-import OrderTracking from "@/pages/order-tracking";
 import Login from "@/pages/login";
-import AdminDashboard from "@/pages/admin/dashboard";
-import AdminProducts from "@/pages/admin/products";
-import AdminBasics from "@/pages/admin/basics";
-import AdminOrders from "@/pages/admin/orders";
-import AdminTerms from "@/pages/admin/terms";
-import AdminCategories from "@/pages/admin/categories";
-import AdminSiteSettings from "@/pages/admin/site-settings";
-import AdminReviews from "@/pages/admin/reviews";
-import AdminTiktok from "@/pages/admin/tiktok";
-import AdminEvents from "@/pages/admin/events";
-import AdminGames from "@/pages/admin/games";
-import AdminRefundRequests from "@/pages/admin/refund-requests";
-import AdminProductRequests from "@/pages/admin/product-requests";
-import AdminVisitors from "@/pages/admin/visitors";
-import AdminNotificationSettings from "@/pages/admin/notification-settings";
-import AdminAbandonedCarts from "@/pages/admin/abandoned-carts";
-import AdminStockAlerts from "@/pages/admin/stock-alerts";
-import AdminSalesReports from "@/pages/admin/sales-reports";
-import AdminImport from "@/pages/admin/import";
-import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
-import Terms from "@/pages/terms";
-import Privacy from "@/pages/privacy";
-import Shipping from "@/pages/shipping";
-import AccountPage from "@/pages/account/index";
-import AccountLogin from "@/pages/account/login";
-import AccountRegister from "@/pages/account/register";
-import Returns from "@/pages/returns";
 import Basics from "@/pages/basics";
-import RequestProduct from "@/pages/request-product";
-import Games from "@/pages/games";
-import GameDetail from "@/pages/game-detail";
-import Receipt from "@/pages/receipt";
+
+// ── Secondary customer pages (lazy — only loaded when visited) ──
+const OrderConfirmation = lazy(() => import("@/pages/order"));
+const OrderTracking = lazy(() => import("@/pages/order-tracking"));
+const Terms = lazy(() => import("@/pages/terms"));
+const Privacy = lazy(() => import("@/pages/privacy"));
+const Shipping = lazy(() => import("@/pages/shipping"));
+const AccountLogin = lazy(() => import("@/pages/account/login"));
+const AccountRegister = lazy(() => import("@/pages/account/register"));
+const Returns = lazy(() => import("@/pages/returns"));
+const RequestProduct = lazy(() => import("@/pages/request-product"));
+const Games = lazy(() => import("@/pages/games"));
+const GameDetail = lazy(() => import("@/pages/game-detail"));
+const Receipt = lazy(() => import("@/pages/receipt"));
+
+// ── Admin pages (lazy — customers never load these) ──
+import AdminLayout from "@/components/admin-layout";
+const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
+const AdminProducts = lazy(() => import("@/pages/admin/products"));
+const AdminBasics = lazy(() => import("@/pages/admin/basics"));
+const AdminOrders = lazy(() => import("@/pages/admin/orders"));
+const AdminTerms = lazy(() => import("@/pages/admin/terms"));
+const AdminCategories = lazy(() => import("@/pages/admin/categories"));
+const AdminSiteSettings = lazy(() => import("@/pages/admin/site-settings"));
+const AdminReviews = lazy(() => import("@/pages/admin/reviews"));
+const AdminTiktok = lazy(() => import("@/pages/admin/tiktok"));
+const AdminEvents = lazy(() => import("@/pages/admin/events"));
+const AdminGames = lazy(() => import("@/pages/admin/games"));
+const AdminRefundRequests = lazy(() => import("@/pages/admin/refund-requests"));
+const AdminProductRequests = lazy(() => import("@/pages/admin/product-requests"));
+const AdminVisitors = lazy(() => import("@/pages/admin/visitors"));
+const AdminNotificationSettings = lazy(() => import("@/pages/admin/notification-settings"));
+const AdminAbandonedCarts = lazy(() => import("@/pages/admin/abandoned-carts"));
+const AdminStockAlerts = lazy(() => import("@/pages/admin/stock-alerts"));
+const AdminSalesReports = lazy(() => import("@/pages/admin/sales-reports"));
+const AdminImport = lazy(() => import("@/pages/admin/import"));
+
+// ── Suspense fallback ──
+function PageSkeleton() {
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin opacity-50" />
+    </div>
+  );
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -217,7 +233,9 @@ function App() {
                 <LoadingScreen />
                 <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
                   <ErrorBoundary>
-                    <MainRouter />
+                    <Suspense fallback={<PageSkeleton />}>
+                      <MainRouter />
+                    </Suspense>
                   </ErrorBoundary>
                 </WouterRouter>
                 <Toaster />

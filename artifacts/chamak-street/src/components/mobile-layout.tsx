@@ -109,7 +109,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
 
       {/* ── Bottom Tab Bar ── */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch glass-nav border-t border-white/10"
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch glass-nav-float border-t border-white/10"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         {TAB_ITEMS.map(({ href, label, Icon }) => {

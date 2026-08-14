@@ -120,7 +120,7 @@ export default function Cart() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, ease: EASE }}
-          className="mb-6 p-4 rounded-xl border border-white/8 bg-white/3 flex items-center gap-3"
+          className="mb-6 p-4 rounded-xl glass-liquid flex items-center gap-3"
         >
           <Truck className="h-4 w-4 text-primary shrink-0" />
           <span className="text-xs font-bold text-white/70">
@@ -142,7 +142,7 @@ export default function Cart() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, x: -72, scale: 0.93, transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] } }}
                     transition={{ duration: 0.45, delay: i * 0.05, ease: EASE }}
-                    className="flex gap-4 p-4 glass-sm rounded-xl relative group hover:border-primary/25 transition-colors duration-300"
+                    className="flex gap-4 p-4 glass rounded-2xl relative group hover:border-primary/25 transition-all duration-300 glass-shimmer"
                     data-testid={`cart-item-${item.id}`}
                   >
                     {/* Thumbnail */}
@@ -180,7 +180,7 @@ export default function Cart() {
 
                       <div className="flex items-center justify-between gap-4 mt-3">
                         {/* Qty controls */}
-                        <div className="flex items-center h-11 border border-border/60 rounded-lg bg-background overflow-hidden">
+                        <div className="flex items-center h-11 glass-qty rounded-xl overflow-hidden">
                           <motion.button
                             whileTap={{ scale: 0.75 }}
                             whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
@@ -258,12 +258,12 @@ export default function Cart() {
           {/* Summary */}
           <div className="lg:col-span-1">
             <motion.div
-              className="bg-card border border-border rounded-xl p-6 sticky top-[130px]"
+              className="glass rounded-2xl p-6 sticky top-[130px] glass-shimmer"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.18, duration: 0.55, ease: EASE }}
             >
-              <h2 className="text-lg font-black uppercase tracking-wider mb-5 pb-4 border-b border-border/60">Order Summary</h2>
+              <h2 className="text-lg font-black uppercase tracking-wider mb-5 pb-4 border-b border-white/10">Order Summary</h2>
 
               <div className="space-y-3 mb-5">
                 <div className="flex justify-between text-sm">
@@ -276,7 +276,7 @@ export default function Cart() {
                 </div>
               </div>
 
-              <div className="border-t border-border/60 pt-4 mb-6">
+              <div className="border-t border-white/10 pt-4 mb-6">
                 <div className="flex justify-between items-end">
                   <span className="font-black uppercase tracking-wider text-sm">Subtotal</span>
                   <AnimatePresence mode="wait">
@@ -316,7 +316,7 @@ export default function Cart() {
                   { icon: Truck, label: "Fast Ship" },
                   { icon: Zap, label: "COD Avail." },
                 ].map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex flex-col items-center gap-1.5 py-2.5 rounded-lg bg-white/3 border border-white/6">
+                  <div key={label} className="flex flex-col items-center gap-1.5 py-2.5 rounded-xl glass-sm">
                     <Icon className="h-3.5 w-3.5 text-white/40" />
                     <span className="text-[9px] font-black uppercase tracking-wider text-white/30">{label}</span>
                   </div>

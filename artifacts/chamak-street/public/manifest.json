@@ -9,9 +9,8 @@
   "orientation": "portrait-primary",
   "categories": ["shopping", "business"],
   "icons": [
-    { "src": "/firstpick-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
-    { "src": "/chamak-logo.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/chamak-logo.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/firstpick-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/firstpick-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "screenshots": [],
   "share_target": null

@@ -546,7 +546,7 @@ export default function ProductDetail() {
                     key={`${item.url}-${index}`}
                     type="button"
                     onClick={() => setSelectedMediaIndex(index)}
-                    className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-md border bg-card transition-colors duration-300 ${selectedMediaIndex === index ? "thumb-selected" : "border-border hover:border-primary/40"}`}
+                    className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-xl glass-thumb transition-all duration-300 ${selectedMediaIndex === index ? "thumb-selected !border-primary/70 !shadow-[0_0_16px_rgba(255,102,0,0.30),inset_0_2px_0_rgba(255,180,80,0.18)]" : ""}`}
                   >
                     {item.type === "video" ? (
                       <>
@@ -566,7 +566,7 @@ export default function ProductDetail() {
           <div className="flex flex-col justify-center">
             <MotionItem delay={0.15}>
               <div className="flex flex-wrap gap-2">
-                <span className="text-xs font-black tracking-widest uppercase text-primary bg-primary/10 backdrop-blur-sm px-3 py-1.5 rounded-sm border border-primary/20">
+                <span className="text-xs font-black tracking-widest uppercase text-primary glass-orange px-3 py-1.5 rounded-lg">
                   {product.categoryName}
                 </span>
                 {product.featured && (
@@ -620,7 +620,7 @@ export default function ProductDetail() {
                         className={`h-10 sm:h-12 min-w-[2.5rem] sm:min-w-[3rem] px-3 sm:px-4 font-bold border rounded-sm transition-all duration-200 ${
                           selectedSize === size
                             ? "size-swatch-selected"
-                            : "border-border bg-card text-muted-foreground hover:border-primary/60 hover:text-foreground"
+                            : "border-white/12 glass-sm text-muted-foreground hover:border-primary/60 hover:text-foreground"
                         }`}
                         data-testid={`size-${size}`}
                       >
@@ -634,7 +634,7 @@ export default function ProductDetail() {
               {/* Quantity */}
               <div>
                 <h3 className="font-black uppercase tracking-wider text-sm mb-3">Quantity</h3>
-                <div className="flex items-center h-12 w-36 border border-border rounded-sm bg-card overflow-hidden">
+                <div className="flex items-center h-12 w-36 glass-qty rounded-xl overflow-hidden">
                   <motion.button
                     whileTap={{ scale: 0.82 }}
                     whileHover={{ backgroundColor: "rgba(255,102,0,0.08)" }}

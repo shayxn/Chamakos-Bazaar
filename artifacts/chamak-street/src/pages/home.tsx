@@ -56,25 +56,43 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
   );
 }
 
-/* ── Stat item ── */
+/* ── Stat item — count-up on entry ── */
 function StatItem({ value, suffix, label, color = "#ff6600" }: { value: number; suffix: string; label: string; color?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.5 });
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    if (!isInView) return;
+    const duration = 1400;
+    const startTime = performance.now();
+    let raf: number;
+    const tick = (now: number) => {
+      const t = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      setDisplay(Math.round(eased * value));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [isInView, value]);
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 28 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      initial={{ opacity: 0, y: 28, scale: 0.85 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
       transition={{ duration: 0.65, ease: EASE }}
       className="flex flex-col items-center gap-2 px-6 py-6 relative"
     >
-      <span
+      <motion.span
         className="text-5xl md:text-6xl font-black tabular-nums leading-none"
         style={{ color, textShadow: `0 0 40px ${color}44` }}
+        animate={isInView ? { textShadow: [`0 0 10px ${color}22`, `0 0 60px ${color}66`, `0 0 40px ${color}44`] } : {}}
+        transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
       >
-        {value}{suffix}
-      </span>
+        {display}{suffix}
+      </motion.span>
       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">{label}</span>
     </motion.div>
   );
