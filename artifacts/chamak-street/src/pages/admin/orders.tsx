@@ -14,16 +14,17 @@ import { useToast } from "@/hooks/use-toast";
 import { playCashSound } from "@/hooks/use-admin-notifications";
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
-  confirmed: "bg-blue-500/10 text-blue-400 border-blue-500/30",
-  packed: "bg-purple-500/10 text-purple-400 border-purple-500/30",
-  shipped: "bg-primary/10 text-primary border-primary/30",
+  pending:          "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
+  confirmed:        "bg-blue-500/10 text-blue-400 border-blue-500/30",
+  packed:           "bg-purple-500/10 text-purple-400 border-purple-500/30",
+  preparing:        "bg-purple-500/10 text-purple-400 border-purple-500/30",
+  shipped:          "bg-primary/10 text-primary border-primary/30",
   out_for_delivery: "bg-orange-500/10 text-orange-400 border-orange-500/30",
-  delivered: "bg-green-500/10 text-green-400 border-green-500/30",
-  cancelled: "bg-destructive/10 text-destructive border-destructive/30",
+  delivered:        "bg-green-500/10 text-green-400 border-green-500/30",
+  cancelled:        "bg-destructive/10 text-destructive border-destructive/30",
 };
 
-const ALL_STATUSES = ["pending", "confirmed", "packed", "shipped", "out_for_delivery", "delivered", "cancelled"] as const;
+const ALL_STATUSES = ["pending", "confirmed", "preparing", "shipped", "out_for_delivery", "delivered", "cancelled"] as const;
 
 type Order = {
   id: number;

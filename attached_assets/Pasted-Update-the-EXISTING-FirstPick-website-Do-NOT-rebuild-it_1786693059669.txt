@@ -1,0 +1,493 @@
+Update the EXISTING FirstPick website. Do NOT rebuild it from scratch and do NOT replace working functionality.
+
+Use the PROVIDED REFERENCE IMAGE as a DESIGN REFERENCE for how the mobile checkout/order confirmation experience should feel.
+
+IMPORTANT: Do NOT simply place, embed, overlay, or display the provided image anywhere on the website. Recreate the interface properly using real HTML/CSS/components and connect it to the real FirstPick order system.
+
+Keep FirstPick’s existing visual identity:
+
+* Black background
+* Orange as the primary accent
+* Yellow/gold secondary accents
+* Premium dark appearance
+* iOS 26-inspired Liquid Glass
+* Smooth, high-quality animations
+
+1. NEW MOBILE ORDER CONFIRMATION EXPERIENCE
+
+Completely improve the page customers see immediately after successfully placing an order.
+
+Use the provided reference image and the Amazon-style order confirmation concept as inspiration for the STRUCTURE and mobile usability, but make it completely FirstPick-branded.
+
+The page should immediately make it obvious that the order was successful.
+
+At the top show something like:
+
+✓ Order placed, thanks!
+
+Then show:
+
+* Order number
+* Order date/time
+* Customer delivery address
+* Estimated delivery date
+* Ordered product images
+* Product names
+* Sizes/colors selected
+* Quantity
+* Order total
+* Payment status
+* Shipping status
+
+Use FirstPick’s black/orange/yellow theme.
+
+The success checkmark and important highlights should use orange rather than Amazon green.
+
+2. ORDER DELIVERY TRACKING
+
+Add a beautiful mobile-friendly order tracking section.
+
+Use real order statuses:
+
+Order Placed → Confirmed → Preparing → Shipped → Out for Delivery → Delivered
+
+Show these visually with a clean progress tracker.
+
+Completed/current stages should glow orange.
+
+Future stages should remain dark/gray.
+
+Animate the progress smoothly when the order status changes.
+
+Do NOT use random/fake tracking information.
+
+The tracking information must come from the actual order status stored in the database.
+
+3. SIGN-IN MESSAGE AFTER CHECKOUT
+
+If the customer checks out without being signed in, show a polished section underneath the successful order confirmation.
+
+Use improved wording similar to:
+
+Keep track of your order
+
+Sign in to view your recent orders, follow delivery updates, and see when your order is expected to arrive.
+
+Add a clear:
+
+Sign In
+
+button.
+
+Make this section feel useful rather than intrusive.
+
+If the customer is already signed in, do NOT show an unnecessary sign-in message. Instead provide:
+
+View My Orders
+
+and/or:
+
+Track Order
+
+4. ADMIN MUST CONTROL SHIPPING STATUS
+
+Inside:
+
+Admin → Orders
+
+allow admins to update the real status of every order.
+
+Available statuses:
+
+* Order Placed
+* Confirmed
+* Preparing
+* Shipped
+* Out for Delivery
+* Delivered
+* Cancelled
+
+When an admin changes the status, immediately save it to the database.
+
+The customer’s order tracking page must update accordingly.
+
+For example:
+
+Admin changes:
+
+Preparing → Shipped
+
+Customer’s tracking page should now display:
+
+Shipped
+
+and animate the tracking progress to the Shipped stage.
+
+Do NOT make this visual-only.
+
+Persist every status change.
+
+Record the timestamp for important status changes so the order history can display when each stage occurred.
+
+5. ORDER STATUS NOTIFICATIONS
+
+Connect order status changes to the real notification system.
+
+When appropriate, send customers notifications such as:
+
+Your FirstPick order has shipped
+Order #FP1042 is on the way.
+
+Out for delivery
+Your FirstPick order is out for delivery today.
+
+Delivered
+Your FirstPick order has been delivered.
+
+Also ensure the existing ADMIN notification system actually works.
+
+When a real customer successfully places an order:
+
+→ Create the order
+→ Confirm payment/order creation
+→ Save it to the database
+→ Trigger the notification backend
+→ Send a REAL web push notification to every subscribed admin
+
+Do NOT simulate notifications.
+
+Do NOT just show an in-site toast and call it a push notification.
+
+Test actual push delivery.
+
+6. FIX THE CROPPED “WELCOME TO FIRSTPICK” MESSAGE
+
+The mobile Welcome to FirstPick popup/toast is STILL CROPPED.
+
+FIX IT.
+
+The screenshot provided demonstrates the problem.
+
+Currently part of the message extends beyond the mobile viewport and text becomes inaccessible.
+
+The entire notification must ALWAYS fit inside the visible screen.
+
+Fix:
+
+* Width
+* max-width
+* left/right positioning
+* padding
+* text wrapping
+* overflow
+* safe areas
+* responsive sizing
+
+On mobile it should have appropriate margins from BOTH sides of the screen.
+
+Nothing should extend beyond the viewport.
+
+Long text should wrap naturally.
+
+Test it on narrow mobile screens.
+
+Do not consider this fixed just because it works on one iPhone size.
+
+7. FIRSTPICK BASICS IS MISSING ON MOBILE
+
+The mobile version currently does not properly show FirstPick Basics.
+
+Fix this.
+
+Customers must be able to access:
+
+FirstPick Basics
+
+on mobile just as they can on desktop.
+
+Add it naturally to the mobile navigation/menu/shop experience.
+
+Do NOT remove another important navigation option just to make room.
+
+If necessary, reorganize the mobile navigation intelligently.
+
+FirstPick Basics must connect to the REAL existing FirstPick Basics collection and display the real products managed through:
+
+Admin → FirstPick Basics
+
+8. COMPLETELY IMPROVE MOBILE ANIMATIONS
+
+Review EVERY animation on mobile.
+
+Animations should feel extremely smooth, responsive, premium, and intentional.
+
+Improve:
+
+* Page transitions
+* Navigation transitions
+* Product cards
+* Product opening
+* Add to cart
+* Cart opening
+* Checkout
+* Order confirmation
+* Order tracking
+* Search
+* Search results
+* Account page
+* Login
+* Sign-up
+* FirstPick Basics
+* Dropdowns
+* Bottom sheets
+* Modals
+* Toast notifications
+* Buttons
+* Size selection
+* Color selection
+* Loading states
+* Admin mobile interface
+
+Aim for smooth Apple-quality motion rather than excessive flashy animations.
+
+Do not make animations slow.
+
+Do not make animations interfere with tapping or scrolling.
+
+Respect prefers-reduced-motion.
+
+9. SMOOTH TEXT APPEARANCE WHILE TYPING
+
+Improve text/input interactions.
+
+When text or dynamic suggestions/results appear while the customer types, they should smoothly fade into view instead of suddenly popping onto the screen.
+
+Use subtle transitions such as:
+
+* Opacity
+* Very small translate movement
+* Smooth easing
+
+Do NOT animate every individual keyboard character in a distracting way.
+
+The actual typing must remain instant and responsive.
+
+The UI/results around the typing can smoothly fade/update.
+
+10. REMOVE GREEN PRODUCT SELECTION EFFECTS
+
+There are product interactions, such as selecting a size on products like the Nike Mind, where a green animated effect appears.
+
+Remove that green effect.
+
+FirstPick’s interaction color should be ORANGE.
+
+When a customer selects a size:
+
+42
+
+for example, make the selected size have a tasteful orange glow.
+
+Use:
+
+* Orange border
+* Subtle orange outer glow
+* Slight orange background tint
+* Smooth transition
+
+Do NOT make it bright neon or excessive.
+
+The effect should feel premium.
+
+Apply this consistently to other selectable product options where appropriate.
+
+Remove inconsistent green selection animations unless green has an actual semantic meaning such as a successful payment.
+
+11. LIQUID GLASS
+
+Continue improving the iOS 26-inspired Liquid Glass appearance.
+
+Use it intelligently for:
+
+* Mobile navigation
+* Bottom navigation
+* Popups
+* Toasts
+* Search
+* Modals
+* Account controls
+* Checkout panels
+* Order tracking cards
+* Admin controls
+
+Use translucent dark glass, background blur, subtle borders, reflections, depth, and soft highlights.
+
+Keep everything readable.
+
+Do NOT turn every single container into glass.
+
+12. MOBILE SPACING AUDIT
+
+Perform a COMPLETE spacing audit.
+
+Check:
+
+* Left/right margins
+* Top/bottom padding
+* Card spacing
+* Product grids
+* Navigation
+* Safe areas
+* Dynamic Island/notch spacing
+* Home Indicator spacing
+* Toast positioning
+* Checkout
+* Account
+* Cart
+* Search
+* FirstPick Basics
+* Product pages
+* Admin
+
+Nothing should:
+
+* Be cropped
+* Touch the edge accidentally
+* Overlap
+* Extend outside the screen
+* Appear uneven
+* Have inconsistent padding
+* Hide behind navigation
+* Hide behind the Home Indicator
+
+13. TEST MANY MOBILE SIZES
+
+Do NOT optimize only for the developer’s current browser window.
+
+Test representative sizes for:
+
+* Small iPhones
+* Standard iPhones
+* Pro-sized iPhones
+* Pro Max iPhones
+* Android phones
+* Narrow Android phones
+* Tablets
+* iPad
+* iPad Pro
+
+Also verify desktop afterward to make sure mobile changes did not break desktop.
+
+14. REAL TEST ORDERS
+
+After implementation, perform actual end-to-end test orders in the development/test environment.
+
+Test:
+
+Customer opens FirstPick
+→ Searches for a product
+→ Opens product
+→ Selects size
+→ Adds to cart
+→ Opens cart
+→ Starts checkout
+→ Completes a TEST order
+→ Sees the new order confirmation screen
+→ Order appears in Admin → Orders
+→ Admin receives the configured real push notification where supported
+→ Admin opens the order
+→ Admin changes status to Preparing
+→ Customer order tracker updates
+→ Admin changes status to Shipped
+→ Customer order tracker updates
+→ Admin changes status to Out for Delivery
+→ Customer order tracker updates
+→ Admin changes status to Delivered
+→ Customer order tracker reaches Delivered
+
+Do not create fake production orders or charge a real payment method during testing. Use the existing payment provider’s test/sandbox mode where available.
+
+15. TEST THE ENTIRE ADMIN DASHBOARD
+
+Go through EVERY admin section.
+
+Actually click and test functionality.
+
+Check:
+
+* Dashboard
+* Orders
+* Products
+* Add product
+* Edit product
+* Delete product
+* Product images
+* Stock
+* Pricing
+* Categories
+* FirstPick Basics
+* Customers
+* Live Customers
+* Customer activity
+* Notifications
+* Notification settings
+* Admin accounts/settings
+* Order status controls
+* Mobile admin layout
+
+Do not assume something works because the UI exists.
+
+Check the actual database/API behavior.
+
+16. VERIFY REAL PUSH NOTIFICATIONS
+
+The notification system MUST actually work.
+
+Test:
+
+1. Admin enables notifications.
+2. Admin device receives a test push.
+3. Customer completes a test order.
+4. Backend detects the successfully created order.
+5. All subscribed admins receive the notification.
+6. Notification uses the normal device/iOS notification sound where supported.
+7. Tapping the notification opens the relevant order.
+8. Duplicate notifications are not sent.
+
+If notification permission is denied, display the correct status rather than pretending notifications are enabled.
+
+If something fails, surface the actual error and fix the implementation.
+
+17. FINAL FULL-WEBSITE QA
+
+After all changes are complete, inspect the ENTIRE website again.
+
+Test customer-facing AND admin-facing experiences.
+
+Check every important page at desktop, tablet, and mobile sizes.
+
+Fix:
+
+* Cropping
+* Overflow
+* Bad spacing
+* Broken responsive layouts
+* Dead buttons
+* Broken links
+* Failed requests
+* Console errors
+* Animation glitches
+* Incorrect colors
+* Missing mobile features
+* Loading problems
+* Incorrect order information
+* Notification failures
+* Database synchronization issues
+
+The final website should feel extremely smooth and polished.
+
+Most importantly:
+
+DO NOT just make these features LOOK functional. Make them ACTUALLY functional.
+
+Preserve the existing FirstPick brand, products, database, admin system, and working features while upgrading the experience.

@@ -338,10 +338,10 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
             /* ── Results ── */
             <motion.div
               key="results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             >
               <p className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white/25 border-b border-white/5">
                 {results.length} result{results.length !== 1 ? "s" : ""}
@@ -353,9 +353,9 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
                   return (
                     <motion.div
                       key={p.id}
-                      initial={{ opacity: 0, x: -12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.035, ease: EASE, duration: 0.28 }}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, ease: EASE, duration: 0.3 }}
                     >
                       <Link
                         href={`/product/${p.id}`}

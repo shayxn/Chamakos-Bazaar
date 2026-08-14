@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable } from "@workspace/db";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, asc } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache } from "../lib/response-cache";
 import { sendOrderPush } from "../lib/push";
@@ -26,8 +26,14 @@ function serializeOrder(order: typeof ordersTable.$inferSelect, items: Array<typ
 async function buildOrder(orderId: number) {
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
   if (!order) return null;
-  const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, orderId));
-  return serializeOrder(order, items);
+  const [items, events] = await Promise.all([
+    db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, orderId)),
+    db.select().from(orderTrackingEventsTable).where(eq(orderTrackingEventsTable.orderId, orderId)).orderBy(asc(orderTrackingEventsTable.createdAt)),
+  ]);
+  return {
+    ...serializeOrder(order, items),
+    trackingEvents: events.map(e => ({ ...e, createdAt: e.createdAt.toISOString() })),
+  };
 }
 
 router.get("/orders", requireAdmin, async (_req, res) => {
@@ -222,6 +228,8 @@ router.patch("/orders/:id/status", requireAdmin, async (req, res) => {
   const { status } = req.body as { status: string };
   if (!status) { res.status(400).json({ error: "status required" }); return; }
   await db.update(ordersTable).set({ status }).where(eq(ordersTable.id, id));
+  // Auto-record tracking event for every status change
+  await db.insert(orderTrackingEventsTable).values({ orderId: id, status, note: null });
   ordersListCache.clear();
   const order = await buildOrder(id);
   if (!order) { res.status(404).json({ error: "Not found" }); return; }

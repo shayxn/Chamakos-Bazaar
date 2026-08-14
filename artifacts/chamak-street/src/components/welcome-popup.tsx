@@ -27,16 +27,17 @@ export function WelcomePopup() {
   return (
     <AnimatePresence>
       {show && (
+        <div className="fixed bottom-24 sm:bottom-6 left-0 right-0 z-[200] flex justify-center px-4 pointer-events-none">
         <motion.div
           key="notification-bar"
           initial={{ opacity: 0, y: 80 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 60 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed bottom-24 sm:bottom-6 left-1/2 z-[200]"
           style={{
-            transform: "translateX(-50%)",
-            width: "min(460px, calc(100vw - 32px))",
+            width: "100%",
+            maxWidth: "460px",
+            pointerEvents: "auto",
           }}
         >
           <div
@@ -146,6 +147,7 @@ export function WelcomePopup() {
             </button>
           </div>
         </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

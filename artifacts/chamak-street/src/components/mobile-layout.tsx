@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Grid3X3, ShoppingBag, User, MessageCircle } from "lucide-react";
+import { Home, Grid3X3, ShoppingBag, User, MessageCircle, Layers } from "lucide-react";
 import { useState } from "react";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe } from "@workspace/api-client-react";
 import { useSettings } from "@/lib/use-settings";
@@ -10,10 +10,11 @@ import { motion, AnimatePresence } from "@/lib/motion-noop";
 import { ChamakLogo } from "./chamak-logo";
 
 const TAB_ITEMS = [
-  { href: "/",              label: "Home",  Icon: Home },
-  { href: "/shop",          label: "Shop",  Icon: Grid3X3 },
-  { href: "/cart",          label: "Cart",  Icon: ShoppingBag },
-  { href: "/account",       label: "Account", Icon: User },
+  { href: "/",        label: "Home",    Icon: Home },
+  { href: "/shop",    label: "Shop",    Icon: Grid3X3 },
+  { href: "/basics",  label: "Basics",  Icon: Layers },
+  { href: "/cart",    label: "Cart",    Icon: ShoppingBag },
+  { href: "/account", label: "Account", Icon: User },
 ];
 
 export function MobileLayout({ children }: { children: React.ReactNode }) {
