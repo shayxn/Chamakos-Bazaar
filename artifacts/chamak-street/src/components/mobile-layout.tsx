@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Grid3X3, ShoppingBag, User, MessageCircle, Layers } from "lucide-react";
+import { Home, Grid3X3, ShoppingBag, User, MessageCircle, Layers, Shield } from "lucide-react";
 import { useState } from "react";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe } from "@workspace/api-client-react";
 import { useSettings } from "@/lib/use-settings";
@@ -52,6 +52,14 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
           </Link>
 
           <div className="flex items-center gap-1">
+            <Link href="/admin">
+              <motion.div
+                whileTap={{ scale: 0.88 }}
+                className="p-2"
+              >
+                <Shield className={`h-5 w-5 transition-colors ${user ? "text-primary/70" : "text-white/30"}`} />
+              </motion.div>
+            </Link>
             <Link href="/cart">
               <motion.div
                 key={`cart-bounce-${cartBounceKey}`}
