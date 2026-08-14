@@ -129,11 +129,11 @@ export default function Checkout() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -60, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 28 }}
-            className="relative z-50 bg-[#25D366] text-black px-4 py-3 flex items-center justify-center gap-3 text-sm font-black uppercase tracking-wider"
+            className="relative z-50 bg-[#25D366] text-black px-4 py-2.5 pr-12 flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-center"
           >
-            <MessageCircle className="h-5 w-5 shrink-0" />
-            USE A WORKING WHATSAPP NUMBER — we'll contact you on WhatsApp to confirm your order
-            <button onClick={() => setShowBanner(false)} className="absolute right-4 top-1/2 -translate-y-1/2 hover:opacity-70">
+            <MessageCircle className="h-4 w-4 shrink-0" />
+            <span>Use a working WhatsApp number — we'll confirm your order on WhatsApp</span>
+            <button onClick={() => setShowBanner(false)} className="absolute right-0 top-0 h-full w-12 flex items-center justify-center hover:opacity-70 shrink-0">
               <X className="h-4 w-4" />
             </button>
           </motion.div>
@@ -147,8 +147,8 @@ export default function Checkout() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Lock className="h-5 w-5 text-primary" />
-          <h1 className="text-4xl font-black uppercase tracking-tighter">Secure Checkout</h1>
+          <Lock className="h-5 w-5 text-primary shrink-0" />
+          <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter">Secure Checkout</h1>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">

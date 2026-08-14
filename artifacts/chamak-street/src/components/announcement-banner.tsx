@@ -30,42 +30,44 @@ export function AnnouncementBanner() {
 
   const inner = (
     <div
-      className="relative flex items-center px-10 py-2"
+      className="relative flex items-center gap-2 px-3 sm:px-8 py-2 overflow-hidden"
       style={{ backgroundColor: color }}
     >
-      {/* Social icons left */}
-      <div className="flex items-center gap-2.5 mr-4 shrink-0">
-        {instagram && (
-          <a
-            href={`https://instagram.com/${instagram.replace("@", "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="text-white/80 hover:text-white transition-colors"
-          >
-            <InstagramIcon />
-          </a>
-        )}
-        {tiktok && (
-          <a
-            href={`https://tiktok.com/@${tiktok.replace("@", "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="text-white/80 hover:text-white transition-colors"
-          >
-            <TikTokIcon />
-          </a>
-        )}
-      </div>
+      {/* Social icons left — hidden on very narrow screens */}
+      {(instagram || tiktok) && (
+        <div className="hidden xs:flex items-center gap-2 shrink-0">
+          {instagram && (
+            <a
+              href={`https://instagram.com/${instagram.replace("@", "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center justify-center w-7 h-7 text-white/80 hover:text-white transition-colors"
+            >
+              <InstagramIcon />
+            </a>
+          )}
+          {tiktok && (
+            <a
+              href={`https://tiktok.com/@${tiktok.replace("@", "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center justify-center w-7 h-7 text-white/80 hover:text-white transition-colors"
+            >
+              <TikTokIcon />
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Centered text */}
-      <p className="flex-1 text-white text-xs font-black uppercase tracking-widest text-center">{text}</p>
+      <p className="flex-1 text-white text-[10px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest text-center truncate px-6">{text}</p>
 
-      {/* Dismiss */}
+      {/* Dismiss — 44×44 tap target */}
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDismissed(true); }}
-        className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+        className="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-white/60 hover:text-white transition-colors shrink-0"
       >
         <X className="h-3.5 w-3.5" />
       </button>

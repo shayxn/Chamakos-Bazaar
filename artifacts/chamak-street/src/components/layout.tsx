@@ -268,9 +268,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </ul>
           </div>
         </div>
-        <div className="max-w-[1440px] mx-auto px-6 pb-8 pt-6 border-t border-white/8 flex items-center justify-between text-xs text-white/25">
+        <div className="max-w-[1440px] mx-auto px-6 pb-8 pt-6 border-t border-white/8 flex flex-wrap items-center justify-between gap-2 text-xs text-white/25">
           <span className="font-black tracking-widest uppercase text-white/40">FirstPick</span>
-          <span>&copy; {new Date().getFullYear()} All rights reserved. Authentic Products — Dubai</span>
+          <span className="text-right">&copy; {new Date().getFullYear()} All rights reserved. Authentic Products — Dubai</span>
         </div>
       </footer>
 

@@ -212,15 +212,15 @@ export default function Cart() {
 
                       <div className="flex items-center justify-between gap-4 mt-3">
                         {/* Qty controls */}
-                        <div className="flex items-center h-8 border border-border/60 rounded-lg bg-background overflow-hidden">
+                        <div className="flex items-center h-11 border border-border/60 rounded-lg bg-background overflow-hidden">
                           <motion.button
                             whileTap={{ scale: 0.75 }}
                             whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
-                            className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                            className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                             disabled={updateItem.isPending}
                           >
-                            <Minus className="h-3 w-3" />
+                            <Minus className="h-3.5 w-3.5" />
                           </motion.button>
                           <AnimatePresence mode="wait">
                             <motion.div
@@ -238,10 +238,10 @@ export default function Cart() {
                             whileTap={{ scale: 0.75 }}
                             whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
-                            className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                            className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                             disabled={updateItem.isPending}
                           >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="h-3.5 w-3.5" />
                           </motion.button>
                         </div>
 
@@ -257,14 +257,14 @@ export default function Cart() {
                       </div>
                     </div>
 
-                    {/* Remove */}
+                    {/* Remove — 44×44 touch target */}
                     <motion.button
-                      whileHover={{ scale: 1.2, color: "#ef4444" }}
+                      whileHover={{ scale: 1.15, color: "#ef4444" }}
                       whileTap={{ scale: 0.85 }}
                       transition={{ type: "spring", stiffness: 420, damping: 20 }}
                       onClick={() => handleRemove(item.id)}
                       disabled={removeItem.isPending}
-                      className="absolute top-3.5 right-3.5 text-muted-foreground/60 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
+                      className="absolute top-0 right-0 w-11 h-11 flex items-center justify-center text-muted-foreground/60 rounded-lg hover:bg-red-500/10 hover:text-red-400 transition-colors"
                       aria-label="Remove item"
                       data-testid={`button-remove-${item.id}`}
                     >

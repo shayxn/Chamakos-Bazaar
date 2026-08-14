@@ -85,7 +85,8 @@ function BackInStockAlert({ productId, productName }: { productId: number; produ
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ ease: EASE }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-card border border-border rounded-2xl p-6"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm mx-4 bg-card border border-border rounded-2xl p-6"
+              style={{ width: "calc(100% - 2rem)" }}
             >
               {sent ? (
                 <div className="text-center py-4">
@@ -550,7 +551,7 @@ export default function ProductDetail() {
                         <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-black uppercase text-white">Video</span>
                       </>
                     ) : (
-                      <img src={item.url} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
+                      <img src={item.url} alt={`${product.name} ${index + 1}`} loading="lazy" className="w-full h-full object-cover" />
                     )}
                   </button>
                 ))}

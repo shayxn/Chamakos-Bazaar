@@ -191,7 +191,7 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search products, styles, brands…"
-          className="flex-1 bg-transparent text-white placeholder-white/25 text-lg outline-none font-semibold"
+          className="flex-1 min-w-0 bg-transparent text-white placeholder-white/25 text-lg outline-none font-semibold"
         />
         <div className="flex items-center gap-2 shrink-0">
           <AnimatePresence>
@@ -409,7 +409,7 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
                     <ArrowRight className="h-5 w-5 text-primary/60" />
                   </div>
                   <div>
-                    <p className="text-primary font-bold text-sm">View all results for "{query}"</p>
+                    <p className="text-primary font-bold text-sm truncate">View all results for "{query}"</p>
                     <p className="text-white/30 text-xs">Browse the full shop</p>
                   </div>
                 </motion.div>

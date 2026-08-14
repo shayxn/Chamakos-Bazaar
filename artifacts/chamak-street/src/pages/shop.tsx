@@ -164,7 +164,7 @@ export default function Shop() {
               <select
                 value={sortKey}
                 onChange={e => setSortKey(e.target.value as SortKey)}
-                className="h-8 px-2.5 text-[11px] font-bold bg-white/5 border border-white/10 rounded-lg text-white/70 focus:outline-none focus:border-primary/40 cursor-pointer"
+                className="h-11 px-2.5 text-[11px] font-bold bg-white/5 border border-white/10 rounded-lg text-white/70 focus:outline-none focus:border-primary/40 cursor-pointer"
               >
                 <option value="default">Sort: Default</option>
                 <option value="newest">Newest First</option>
@@ -184,7 +184,8 @@ export default function Shop() {
                   <button
                     key={n}
                     onClick={() => setCols(n)}
-                    className={`w-8 h-8 flex items-center justify-center transition-colors ${cols === n ? "bg-primary/20 text-primary" : "text-white/30 hover:text-white/60"}`}
+                    className={`w-11 h-11 flex items-center justify-center transition-colors ${cols === n ? "bg-primary/20 text-primary" : "text-white/30 hover:text-white/60"}`}
+                    aria-label={n === 4 ? "4 columns" : "2 columns"}
                   >
                     {n === 4 ? <LayoutGrid className="h-3.5 w-3.5" /> : <Grid2X2 className="h-3.5 w-3.5" />}
                   </button>
@@ -288,6 +289,7 @@ export default function Shop() {
                                 <img
                                   src={primaryMedia.url}
                                   alt={product.name}
+                                  loading="lazy"
                                   className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-106"
                                 />
                               )

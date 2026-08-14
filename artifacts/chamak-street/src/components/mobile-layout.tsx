@@ -37,14 +37,15 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-between px-4 h-14">
           <SmartSearchModal />
 
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2">
+          {/* Logo — centered but constrained so it never overlaps controls */}
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2 max-w-[140px] flex items-center justify-center pointer-events-auto">
             {logoUrl === "/firstpick-logo.svg" ? (
               <ChamakLogo size="sm" />
             ) : (
               <img
                 src={logoUrl}
                 alt="FirstPick"
-                style={{ height: `${logoHeight}px`, width: "auto", objectFit: "contain" }}
+                style={{ height: `${logoHeight}px`, maxWidth: "140px", width: "auto", objectFit: "contain" }}
               />
             )}
           </Link>

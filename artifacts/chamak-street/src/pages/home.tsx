@@ -273,7 +273,8 @@ export default function Home() {
                   whileHover={{ scale: 1.15, backgroundColor: "rgba(255,102,0,0.2)" }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => goToSlide(slideIdx - 1)}
-                  className="w-7 h-7 rounded-full border border-white/20 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                  className="w-11 h-11 rounded-full border border-white/20 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                  aria-label="Previous slide"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </motion.button>
@@ -284,12 +285,14 @@ export default function Home() {
                       key={i}
                       onClick={() => goToSlide(i)}
                       animate={{
-                        width: i === slideIdx ? 24 : 6,
+                        width: i === slideIdx ? 24 : 8,
                         backgroundColor: i === slideIdx ? "#ff6600" : "rgba(255,255,255,0.3)",
                         boxShadow: i === slideIdx ? "0 0 10px rgba(255,102,0,0.8)" : "none",
                       }}
                       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      className="h-1.5 rounded-full cursor-pointer"
+                      className="h-2 rounded-full cursor-pointer"
+                      style={{ minWidth: 8 }}
+                      aria-label={`Go to slide ${i + 1}`}
                     />
                   ))}
                 </div>
@@ -298,7 +301,8 @@ export default function Home() {
                   whileHover={{ scale: 1.15, backgroundColor: "rgba(255,102,0,0.2)" }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => goToSlide(slideIdx + 1)}
-                  className="w-7 h-7 rounded-full border border-white/20 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                  className="w-11 h-11 rounded-full border border-white/20 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                  aria-label="Next slide"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2L8.5 6L4.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </motion.button>
@@ -475,7 +479,7 @@ export default function Home() {
             animate={{ x: [0, -1600] }}
             transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
             className="flex items-center gap-10 whitespace-nowrap font-black uppercase tracking-[0.3em] text-black text-sm"
-            style={{ width: "max-content" }}
+            style={{ width: "max-content", willChange: "transform" }}
           >
             {[...Array(12)].map((_, i) => (
               <span key={i} className="flex items-center gap-10">
@@ -504,7 +508,7 @@ export default function Home() {
             animate={{ x: [-1600, 0] }}
             transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
             className="flex items-center gap-10 whitespace-nowrap font-black uppercase tracking-[0.28em] text-sm"
-            style={{ width: "max-content" }}
+            style={{ width: "max-content", willChange: "transform" }}
           >
             {[...Array(12)].map((_, i) => (
               <span key={i} className="flex items-center gap-10 text-muted-foreground/50">
