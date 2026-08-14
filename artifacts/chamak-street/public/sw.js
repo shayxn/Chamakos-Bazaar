@@ -1,4 +1,8 @@
-// FirstPick — Push Notification Service Worker v3
+// FirstPick — Push Notification Service Worker v4
+// Derive base path from this file's own URL so click-through URLs work in both
+// dev (/chamak-street/sw.js → base=/chamak-street) and prod (/sw.js → base=)
+const BASE_PATH = self.location.pathname.replace(/\/sw\.js$/, "");
+
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
@@ -13,29 +17,29 @@ self.addEventListener("push", (event) => {
 
   // Determine icon/badge/tag/url per notification type
   let tag = `notif-${Date.now()}`;
-  let url = "/admin";
+  let url = `${BASE_PATH}/admin`;
   let requireInteraction = false;
 
   if (type === "NEW_ORDER") {
     tag = `order-${data?.orderNumber || Date.now()}`;
-    url = data?.url || "/admin/orders";
+    url = data?.url || `${BASE_PATH}/admin/orders`;
     requireInteraction = true;
   } else if (type === "CUSTOMER_SEARCH") {
     tag = "search-notif";
-    url = data?.url || "/admin/visitors";
+    url = data?.url || `${BASE_PATH}/admin/visitors`;
   } else if (type === "NEW_VISITOR") {
     tag = "visitor-notif";
-    url = "/admin/visitors";
+    url = `${BASE_PATH}/admin/visitors`;
   } else if (type === "CART_ADD") {
     tag = "cart-notif";
-    url = "/admin/visitors";
+    url = `${BASE_PATH}/admin/visitors`;
   } else if (type === "CHECKOUT_STARTED") {
     tag = "checkout-notif";
-    url = "/admin/visitors";
+    url = `${BASE_PATH}/admin/visitors`;
     requireInteraction = true;
   } else if (type === "NEW_ACCOUNT") {
     tag = "account-notif";
-    url = "/admin/visitors";
+    url = `${BASE_PATH}/admin/visitors`;
   }
 
   event.waitUntil(
@@ -58,7 +62,7 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/admin";
+  const targetUrl = event.notification.data?.url || `${BASE_PATH}/admin`;
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {

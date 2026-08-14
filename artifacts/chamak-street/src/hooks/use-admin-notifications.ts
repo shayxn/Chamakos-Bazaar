@@ -103,7 +103,9 @@ async function registerSW(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
   try {
     const swUrl = `${BASE}/sw.js`;
-    const reg = await navigator.serviceWorker.register(swUrl, { scope: "/" });
+    // scope must not exceed the SW file's own directory — use BASE_URL (e.g. /chamak-street/ in dev, / in prod)
+    const swScope = import.meta.env.BASE_URL || "/";
+    const reg = await navigator.serviceWorker.register(swUrl, { scope: swScope });
     await navigator.serviceWorker.ready;
     return reg;
   } catch (err) {
