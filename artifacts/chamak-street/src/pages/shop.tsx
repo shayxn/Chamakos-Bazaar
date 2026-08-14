@@ -1,15 +1,65 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useListProducts, useListCategories, getListProductsQueryKey, getListCategoriesQueryKey } from "@workspace/api-client-react";
 import { Link, useSearch, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, LayoutGrid, Grid2X2, SlidersHorizontal, X } from "lucide-react";
+import { AnimatedInput } from "@/components/animated-input";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
 import { EventProductBadge } from "@/components/event-product-badge";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+/* ── 3D Perspective Tilt Card ── */
+function TiltCard({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [glare, setGlare] = useState({ x: 50, y: 50, show: false });
+  const isResting = tilt.x === 0 && tilt.y === 0;
+
+  const onMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const cx = (e.clientX - rect.left) / rect.width;
+    const cy = (e.clientY - rect.top) / rect.height;
+    setTilt({ x: (cy - 0.5) * -11, y: (cx - 0.5) * 11 });
+    setGlare({ x: cx * 100, y: cy * 100, show: true });
+  }, []);
+
+  const onMouseLeave = useCallback(() => {
+    setTilt({ x: 0, y: 0 });
+    setGlare(g => ({ ...g, show: false }));
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      style={{
+        transform: `perspective(700px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateZ(${isResting ? 0 : 6}px)`,
+        transition: isResting ? "transform 0.65s cubic-bezier(0.16,1,0.3,1)" : "transform 0.08s linear",
+        willChange: "transform",
+        position: "relative",
+      }}
+    >
+      {children}
+      {/* Glare highlight follows cursor */}
+      <div
+        className="absolute inset-0 pointer-events-none z-20 rounded-xl"
+        style={{
+          background: `radial-gradient(circle at ${glare.x}% ${glare.y}%, rgba(255,255,255,0.12), transparent 62%)`,
+          opacity: glare.show ? 1 : 0,
+          transition: "opacity 0.35s ease",
+          borderRadius: "inherit",
+        }}
+      />
+    </div>
+  );
+}
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.96 },
@@ -137,13 +187,14 @@ export default function Shop() {
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 pb-2.5 border-t border-white/5 pt-2">
               {/* Search */}
               <div className="relative flex-1 min-w-0 max-w-full sm:max-w-[220px]">
-                <input
+                <AnimatedInput
                   type="text"
                   placeholder="Search products…"
                   value={localSearch}
                   onChange={(e) => setLocalSearch(e.target.value)}
                   data-testid="input-search"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg text-white text-xs placeholder:text-white/30 px-3 py-2 outline-none focus:border-primary/50 focus:bg-white/7 transition-all pr-7"
+                  wrapperClass="text-xs text-white"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg text-xs placeholder:text-white/30 px-3 py-2 outline-none focus:border-primary/50 focus:bg-white/7 transition-all pr-7"
                 />
                 <AnimatePresence>
                   {localSearch && (
@@ -229,23 +280,38 @@ export default function Shop() {
           {isLoading ? (
             <div className={`grid ${gridCols} gap-3 sm:gap-4`}>
               {Array.from({ length: 10 }).map((_, n) => (
-                <div key={n} className="animate-pulse">
-                  <div className="aspect-square bg-white/5 rounded-xl mb-3" />
-                  <div className="h-2.5 bg-white/5 w-1/3 mb-2 rounded-full" />
-                  <div className="h-3.5 bg-white/5 w-2/3 mb-1.5 rounded-full" />
-                  <div className="h-3.5 bg-white/5 w-1/4 rounded-full" />
-                </div>
+                <motion.div
+                  key={n}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: n * 0.04, duration: 0.4 }}
+                >
+                  <div
+                    className="aspect-square rounded-xl mb-0 glass-skeleton"
+                    style={{ animationDelay: `${n * 0.09}s`, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                  />
+                  <div className="glass-tray rounded-b-xl px-2 pt-2.5 pb-2.5 space-y-2">
+                    <div className="h-2 glass-skeleton rounded-full w-1/3" style={{ animationDelay: `${n * 0.09 + 0.12}s` }} />
+                    <div className="h-3 glass-skeleton rounded-full w-2/3" style={{ animationDelay: `${n * 0.09 + 0.22}s` }} />
+                    <div className="h-3 glass-skeleton rounded-full w-1/4" style={{ animationDelay: `${n * 0.09 + 0.32}s` }} />
+                  </div>
+                </motion.div>
               ))}
             </div>
           ) : products?.length === 0 ? (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.6, ease: EASE }}
               className="text-center py-28 max-w-xs mx-auto"
             >
-              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-5">
-                <SlidersHorizontal className="h-7 w-7 text-white/20" />
-              </div>
+              <motion.div
+                className="w-16 h-16 rounded-2xl glass-liquid flex items-center justify-center mx-auto mb-5"
+                animate={{ boxShadow: ["0 0 0 0 rgba(255,102,0,0)", "0 0 0 10px rgba(255,102,0,0.08)", "0 0 0 0 rgba(255,102,0,0)"] }}
+                transition={{ duration: 2.8, repeat: Infinity }}
+              >
+                <SlidersHorizontal className="h-7 w-7 text-white/35" />
+              </motion.div>
               <h3 className="text-xl font-black uppercase tracking-wider text-white mb-2">No results</h3>
               <p className="text-white/40 text-sm mb-7">
                 {debouncedSearch ? `Nothing matched "${debouncedSearch}"` : "No products in this category yet."}
@@ -274,6 +340,7 @@ export default function Shop() {
                   const primaryMedia = getPrimaryProductMedia(product.imageUrl);
                   return (
                     <motion.div key={product.id} variants={cardVariants} layout>
+                      <TiltCard>
                       <div className="group cursor-pointer" data-testid={`card-product-${product.id}`}>
                         {/* Image */}
                         <div className="relative aspect-square mb-3 overflow-hidden rounded-xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(255,102,0,0.2)]">
@@ -334,7 +401,7 @@ export default function Shop() {
 
                         {/* Info */}
                         <Link href={`/product/${product.id}`}>
-                          <div className="px-0.5 space-y-0.5">
+                          <div className="glass-tray rounded-b-xl px-2 pt-2.5 pb-2.5 space-y-0.5 transition-colors duration-200 group-hover:bg-white/5">
                             <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold">{product.categoryName || "Streetwear"}</p>
                             <h3 className="font-black text-white text-xs leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">{product.name}</h3>
                             <div className="flex items-center justify-between pt-0.5">
@@ -348,6 +415,7 @@ export default function Shop() {
                           </div>
                         </Link>
                       </div>
+                      </TiltCard>
                     </motion.div>
                   );
                 })}

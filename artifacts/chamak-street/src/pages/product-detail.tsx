@@ -22,16 +22,29 @@ function TrendingMeter({ productId }: { productId: number }) {
   const added = 18 + (productId * 13) % 80;
   const sold = 5 + (productId * 7) % 40;
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-2">
       {[
-        { icon: Eye, label: `${views} viewed today`, color: "text-blue-400" },
-        { icon: Heart, label: `${added} added to cart`, color: "text-rose-400" },
-        { icon: TrendingUp, label: `${sold} sold this week`, color: "text-green-400" },
-      ].map(({ icon: Icon, label, color }) => (
-        <div key={label} className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground bg-muted/60 px-2.5 py-1.5 rounded-full border border-border/50">
-          <Icon className={`h-3 w-3 ${color}`} />
+        { icon: Eye, label: `${views} viewed today`, color: "text-blue-400", glow: "rgba(96,165,250,0.14)" },
+        { icon: Heart, label: `${added} added to cart`, color: "text-rose-400", glow: "rgba(251,113,133,0.14)" },
+        { icon: TrendingUp, label: `${sold} sold this week`, color: "text-emerald-400", glow: "rgba(52,211,153,0.14)" },
+      ].map(({ icon: Icon, label, color, glow }, i) => (
+        <motion.div
+          key={label}
+          className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground glass-sm px-2.5 py-1.5 rounded-full"
+          initial={{ opacity: 0, scale: 0.80, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: i * 0.09, ease: [0.16,1,0.3,1] }}
+          whileHover={{ scale: 1.06, y: -2, boxShadow: `0 0 18px ${glow}` }}
+          style={{ cursor: "default" }}
+        >
+          <motion.div
+            animate={{ rotate: [0, -5, 5, 0] }}
+            transition={{ duration: 2, delay: i * 0.4 + 1, repeat: Infinity, repeatDelay: 4 }}
+          >
+            <Icon className={`h-3 w-3 ${color}`} />
+          </motion.div>
           {label}
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -453,13 +466,29 @@ export default function ProductDetail() {
     return (
       <div className="container mx-auto px-4 py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div className="aspect-square bg-muted rounded-lg animate-pulse" />
-          <div className="space-y-6 py-4">
-            <div className="h-4 bg-muted w-1/4 rounded animate-pulse" />
-            <div className="h-12 bg-muted w-3/4 rounded animate-pulse" />
-            <div className="h-8 bg-muted w-1/3 rounded animate-pulse" />
-            <div className="h-20 bg-muted rounded animate-pulse" />
-          </div>
+          <motion.div
+            className="aspect-square rounded-2xl glass-skeleton"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.55, ease: [0.16,1,0.3,1] }}
+          />
+          <motion.div
+            className="space-y-5 py-4"
+            initial={{ opacity: 0, x: 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55, delay: 0.1, ease: [0.16,1,0.3,1] }}
+          >
+            <div className="h-4 glass-skeleton rounded-full w-1/4" />
+            <div className="h-12 glass-skeleton rounded-xl w-3/4" style={{ animationDelay: "0.1s" }} />
+            <div className="h-8 glass-skeleton rounded-full w-1/3" style={{ animationDelay: "0.2s" }} />
+            <div className="h-20 glass-skeleton rounded-xl" style={{ animationDelay: "0.3s" }} />
+            <div className="h-14 glass-skeleton rounded-full" style={{ animationDelay: "0.4s" }} />
+            <div className="flex gap-2 mt-2">
+              {[40, 32, 36, 28].map((w, i) => (
+                <div key={i} className="h-8 glass-skeleton rounded-lg" style={{ width: `${w}px`, animationDelay: `${0.5 + i * 0.06}s` }} />
+              ))}
+            </div>
+          </motion.div>
         </div>
       </div>
     );
@@ -782,7 +811,7 @@ export default function ProductDetail() {
                   >
                     <Link href={`/product/${p.id}`}>
                       <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}>
-                        <div className="product-img-frame relative aspect-square mb-3 overflow-hidden rounded-xl bg-card border border-border group-hover:border-primary/40 transition-all duration-300">
+                        <div className="product-img-frame relative aspect-square mb-3 overflow-hidden rounded-xl glass-card group-hover:shadow-[0_0_24px_rgba(255,102,0,0.22)] transition-all duration-300">
                           {media ? (
                             <img
                               src={media.url}
@@ -832,8 +861,8 @@ export default function ProductDetail() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            className="fixed inset-x-0 z-[49] md:hidden"
-            style={{ bottom: "56px", background: "linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.85) 100%)", backdropFilter: "blur(12px)", borderTop: "1px solid rgba(255,102,0,0.2)" }}
+            className="fixed inset-x-0 z-[49] md:hidden glass-nav"
+            style={{ bottom: "56px", borderTop: "1px solid rgba(255,102,0,0.28)", boxShadow: "0 -8px 40px rgba(0,0,0,0.70), inset 0 1px 0 rgba(255,255,255,0.08)" }}
           >
             <div className="px-4 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">

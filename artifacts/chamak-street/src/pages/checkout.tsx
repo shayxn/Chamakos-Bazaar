@@ -9,6 +9,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AnimatedInput } from "@/components/animated-input";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
@@ -235,7 +236,7 @@ export default function Checkout() {
                     <FormItem>
                       <FormLabel className="uppercase text-[10px] font-black tracking-widest text-muted-foreground">Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John Doe" className="glass-input h-11" {...field} />
+                        <AnimatedInput placeholder="John Doe" className="glass-input h-11 text-sm" wrapperClass="text-sm" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -250,8 +251,8 @@ export default function Checkout() {
                         <MessageCircle className="h-3 w-3 text-[#25D366]" /> WhatsApp Number
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="tel" placeholder="+971 50 000 0000" className="glass-input h-11"
+                        <AnimatedInput
+                          type="tel" placeholder="+971 50 000 0000" className="glass-input h-11 text-sm" wrapperClass="text-sm"
                           {...field}
                           onBlur={(e) => {
                             field.onBlur();

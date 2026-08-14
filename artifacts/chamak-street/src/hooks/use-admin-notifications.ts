@@ -8,53 +8,82 @@ export function playCashSound() {
       window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass() as AudioContext;
-
     const now = ctx.currentTime;
 
-    // High "ching" oscillator
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-    osc1.type = "triangle";
-    osc1.frequency.setValueAtTime(1500, now);
-    osc1.frequency.exponentialRampToValueAtTime(800, now + 0.45);
-    gain1.gain.setValueAtTime(0.38, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-    osc1.start(now);
-    osc1.stop(now + 0.45);
+    // ── "CHA" — mechanical register key strike ─────────────────────────────
+    // Low thump: simulates the key/lever hitting the register mechanism
+    const thump = ctx.createOscillator();
+    const thumpGain = ctx.createGain();
+    thump.connect(thumpGain);
+    thumpGain.connect(ctx.destination);
+    thump.type = "sine";
+    thump.frequency.setValueAtTime(190, now);
+    thump.frequency.exponentialRampToValueAtTime(55, now + 0.065);
+    thumpGain.gain.setValueAtTime(0.55, now);
+    thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+    thump.start(now);
+    thump.stop(now + 0.065);
 
-    // Mid ring oscillator
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(2200, now);
-    osc2.frequency.exponentialRampToValueAtTime(1100, now + 0.3);
-    gain2.gain.setValueAtTime(0.22, now);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-    osc2.start(now);
-    osc2.stop(now + 0.3);
+    // Clatter noise burst: mechanical rattle of the drawer mechanism
+    const clatterBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.055), ctx.sampleRate);
+    const clatterData = clatterBuf.getChannelData(0);
+    for (let i = 0; i < clatterData.length; i++) clatterData[i] = Math.random() * 2 - 1;
+    const clatter = ctx.createBufferSource();
+    clatter.buffer = clatterBuf;
+    const clatterFilter = ctx.createBiquadFilter();
+    clatterFilter.type = "bandpass";
+    clatterFilter.frequency.value = 900;
+    clatterFilter.Q.value = 0.7;
+    const clatterGain = ctx.createGain();
+    clatter.connect(clatterFilter);
+    clatterFilter.connect(clatterGain);
+    clatterGain.connect(ctx.destination);
+    clatterGain.gain.setValueAtTime(0.45, now);
+    clatterGain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+    clatter.start(now);
+    clatter.stop(now + 0.055);
 
-    // Drawer "click" noise burst
-    const bufferSize = ctx.sampleRate * 0.08;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    const noiseFilter = ctx.createBiquadFilter();
-    noiseFilter.type = "bandpass";
-    noiseFilter.frequency.value = 1200;
-    const noiseGain = ctx.createGain();
-    noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(ctx.destination);
-    noiseGain.gain.setValueAtTime(0.18, now + 0.02);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-    noise.start(now + 0.02);
-    noise.stop(now + 0.1);
+    // ── "CHING" — metallic bell ring, delayed 35 ms after the strike ───────
+    // Primary bell: E7 (2637 Hz) — classic cash-register pitch
+    const RING = now + 0.035;
+
+    const bell1 = ctx.createOscillator();
+    const bellGain1 = ctx.createGain();
+    bell1.connect(bellGain1);
+    bellGain1.connect(ctx.destination);
+    bell1.type = "sine";
+    bell1.frequency.setValueAtTime(2637, RING);
+    bellGain1.gain.setValueAtTime(0, RING);
+    bellGain1.gain.linearRampToValueAtTime(0.38, RING + 0.012);
+    bellGain1.gain.exponentialRampToValueAtTime(0.001, RING + 1.5);
+    bell1.start(RING);
+    bell1.stop(RING + 1.5);
+
+    // Second partial: slightly detuned to create the characteristic shimmer beating
+    const bell2 = ctx.createOscillator();
+    const bellGain2 = ctx.createGain();
+    bell2.connect(bellGain2);
+    bellGain2.connect(ctx.destination);
+    bell2.type = "sine";
+    bell2.frequency.setValueAtTime(2756, RING); // ~minor 3rd above — creates shimmer
+    bellGain2.gain.setValueAtTime(0, RING);
+    bellGain2.gain.linearRampToValueAtTime(0.24, RING + 0.012);
+    bellGain2.gain.exponentialRampToValueAtTime(0.001, RING + 1.1);
+    bell2.start(RING);
+    bell2.stop(RING + 1.1);
+
+    // Octave overtone: E8 (5274 Hz) — adds the bright "ting" brightness on attack
+    const bell3 = ctx.createOscillator();
+    const bellGain3 = ctx.createGain();
+    bell3.connect(bellGain3);
+    bellGain3.connect(ctx.destination);
+    bell3.type = "triangle";
+    bell3.frequency.setValueAtTime(5274, RING);
+    bellGain3.gain.setValueAtTime(0, RING);
+    bellGain3.gain.linearRampToValueAtTime(0.17, RING + 0.008);
+    bellGain3.gain.exponentialRampToValueAtTime(0.001, RING + 0.5);
+    bell3.start(RING);
+    bell3.stop(RING + 0.5);
   } catch {
     /* ignore */
   }
