@@ -1,0 +1,392 @@
+Add a REAL receipt generator to the EXISTING FirstPick website.
+
+Do NOT rebuild the website or checkout.
+
+Keep the existing FirstPick design:
+
+* Black background
+* Orange primary accent
+* Yellow used only where appropriate
+* Heavy premium Liquid Glass styling
+* Smooth mobile animations
+* Existing order/database system
+
+The receipt must be generated from the REAL order data stored in FirstPick.
+
+Do NOT use fake/sample information for real customer receipts.
+
+1. Receipt Design
+
+Create a premium FirstPick receipt with a black background and orange accents.
+
+At the TOP LEFT, show the:
+
+FirstPick logo
+
+Near the top, show:
+
+RECEIPT
+
+and important order information such as:
+
+* Order number
+* Order date
+* Payment status
+* Customer name
+* Customer email
+* Delivery method
+* Shipping address where appropriate
+
+Keep the design clean, premium, and easy to read.
+
+Do not overcrowd it.
+
+2. Purchased Items
+
+In the middle of the receipt, clearly show every item purchased.
+
+For each item include:
+
+* Product image
+* Product name
+* Size
+* Color
+* Quantity
+* Individual price
+* Line total
+
+Example:
+
+Nike Mind 001
+
+Size: 42
+Color: Black / Orange
+Qty: 1
+
+AED 399
+
+Make sure long product names and multiple products never break or crop the receipt.
+
+3. Price Breakdown
+
+Below the items show a complete payment breakdown.
+
+For example:
+
+Subtotal — AED 749
+
+Discount — -AED 50
+
+Delivery — AED 30
+
+Tip — AED 10
+
+Total — AED 739
+
+Only show a Discount line if a discount was actually used.
+
+Only show Tip if the order contains a tip.
+
+Always show the real delivery charge and selected delivery method.
+
+The final total must match the actual stored order/payment total exactly.
+
+4. Payment Information
+
+Show useful payment information without exposing sensitive data.
+
+For example:
+
+Payment
+
+Apple Pay
+
+or:
+
+Visa •••• 4821
+
+Only show masked payment details if they are legitimately provided by the payment provider.
+
+NEVER display or store:
+
+* Full card number
+* CVV
+* Sensitive payment credentials
+
+5. Delivery Information
+
+Show:
+
+Delivery
+
+Express Delivery
+
+Estimated arrival
+
+18 August 2026
+
+Also show current order status where appropriate:
+
+Preparing
+
+Shipped
+
+Out for Delivery
+
+Delivered
+
+6. Receipt Footer
+
+At the bottom add:
+
+Thanks for shopping with FirstPick.
+
+Also include:
+
+Order #FP1042
+
+Optionally include a QR code containing a safe FirstPick order lookup/reference URL.
+
+Do NOT place private customer information inside the QR code.
+
+If the receipt is intended as an official tax invoice, only include real legally required business information that exists in the admin/business settings.
+
+Do not invent:
+
+* VAT registration numbers
+* Company registration numbers
+* Business addresses
+* Tax information
+
+7. View Receipt
+
+Inside:
+
+Account → My Orders → Select Order
+
+add:
+
+View Receipt
+
+When pressed, open a beautiful receipt viewer.
+
+On mobile, make it feel like a premium FirstPick sheet/page with Liquid Glass controls around the receipt.
+
+Do not crop the receipt.
+
+Allow smooth scrolling for long orders.
+
+8. Download Receipt
+
+Add:
+
+Download PDF
+
+Generate an actual PDF receipt.
+
+The PDF should preserve the FirstPick orange-and-black design while still being readable.
+
+Use proper page sizing.
+
+If the order contains many products, automatically continue onto additional pages rather than shrinking everything until it is unreadable.
+
+PDF generation must use the REAL order data.
+
+Do NOT generate the receipt as a blurry screenshot.
+
+Use proper HTML/PDF generation or another suitable server-side PDF solution.
+
+9. Admin Receipt Access
+
+Inside:
+
+Admin → Orders → Select Order
+
+add:
+
+View Receipt
+
+and:
+
+Download Receipt
+
+Admins should see the exact receipt belonging to that order.
+
+Do not make admins manually enter the information again.
+
+10. Receipt Number
+
+Give every completed order a receipt/reference identifier.
+
+It can use the existing order number when appropriate.
+
+For example:
+
+Receipt #FP1042
+
+Do not create duplicate receipt IDs.
+
+11. Customer Privacy
+
+Customers must ONLY be able to access receipts belonging to their own account/orders.
+
+A customer must not be able to change a URL or order ID and access another customer’s receipt.
+
+Guest receipt access must use an appropriate secure verification/token system.
+
+Do not expose receipts publicly.
+
+12. Printing
+
+Make the receipt printable.
+
+When printed:
+
+* No admin/customer website navigation
+* No unnecessary buttons
+* Receipt is centered
+* Nothing is cropped
+* Text remains readable
+* Item list stays aligned
+* Page breaks happen properly
+
+13. Responsive Design
+
+Test the receipt viewer on:
+
+* Small iPhone
+* Standard iPhone
+* Pro Max-sized iPhone
+* Android phone
+* iPad
+* Laptop
+* Desktop
+
+Nothing should:
+
+* Overflow
+* Get cropped
+* Overlap
+* Become unreadable
+
+Make the item section adapt properly on mobile.
+
+14. Liquid Glass
+
+The receipt itself should remain clean and printable.
+
+However, the surrounding receipt viewer UI can use lots of FirstPick Liquid Glass.
+
+Use:
+
+* Dark translucent controls
+* Orange glow
+* Smooth blur
+* Rounded glass buttons
+* Premium transitions
+
+Do not make the actual receipt so transparent that it becomes difficult to read or print.
+
+15. Smooth Animations
+
+When opening the receipt:
+
+* Smooth fade-in
+* Subtle upward motion
+* Smooth Liquid Glass transition
+
+When pressing:
+
+Download PDF
+
+show a clean loading state such as:
+
+Generating receipt…
+
+Then show completion feedback.
+
+Do not use green effects.
+
+Use orange FirstPick styling.
+
+16. Order Changes
+
+The receipt should represent the FINAL stored financial details of the order.
+
+Do not let later frontend price changes alter old receipts.
+
+For example, if a product was AED 399 when purchased but later becomes AED 449, the receipt must continue showing:
+
+AED 399
+
+Use the order’s stored line-item price snapshots.
+
+The same applies to:
+
+* Delivery charge
+* Discount
+* Tip
+* Taxes where applicable
+* Final total
+
+17. Cancelled Orders
+
+If an order is cancelled, keep its receipt/order record for history where appropriate.
+
+Clearly show:
+
+CANCELLED
+
+on the receipt.
+
+Do not delete the financial/order history simply because the order was cancelled.
+
+If a confirmed refund exists, show:
+
+Refunded
+
+and the legitimate refunded amount where available.
+
+18. Final Testing
+
+Create several safe TEST orders.
+
+Test:
+
+* One item
+* Multiple items
+* Different sizes
+* Different colors
+* Standard Delivery
+* Express Delivery
+* FirstPick Priority
+* AED 5 tip
+* AED 10 tip
+* Custom tip
+* Promo/discount if available
+* Guest order
+* Signed-in order
+* Cancelled order
+
+For every test verify:
+
+* Correct customer
+* Correct products
+* Correct sizes
+* Correct quantities
+* Correct prices
+* Correct delivery
+* Correct tip
+* Correct discount
+* Correct total
+* Correct payment status
+* Correct order number
+* PDF generates correctly
+* Mobile viewer is not cropped
+* Admin can access receipt
+* Customer can access their own receipt
+* Customer cannot access another customer’s receipt
+
+Fix any problems discovered.
+
+The finished result should look like a premium FirstPick black-and-orange digital receipt, while still being functional, accurate, secure, printable, and connected to the real FirstPick order system.

@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import compression from "compression";
 import cookieSession from "cookie-session";
@@ -80,6 +80,13 @@ async function seedAdminUser() {
     logger.error({ err }, "Failed to seed admin user");
   }
 }
+
+// Global error handler — catches any error thrown or passed via next(err) in route handlers
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  logger.error({ err }, "Unhandled route error");
+  if (res.headersSent) return;
+  res.status(500).json({ error: "An unexpected error occurred. Please try again." });
+});
 
 seedAdminUser();
 

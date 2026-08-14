@@ -180,7 +180,7 @@ export default function AccountPage() {
                     <Link href="/shop"><button className="mt-4 px-6 py-2 bg-primary text-primary-foreground font-black uppercase tracking-wider text-xs rounded-lg">Shop Now</button></Link>
                   </div>
                 ) : orders.map(o => (
-                  <div key={o.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between gap-4">
+                  <div key={o.id} className="bg-card border border-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-mono font-black text-primary">#{o.orderNumber}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{new Date(o.createdAt).toLocaleDateString()}</p>
@@ -191,9 +191,14 @@ export default function AccountPage() {
                       </span>
                     </div>
                     <p className="font-mono font-black">AED {o.total.toFixed(2)}</p>
-                    <Link href={`/order/${o.id}`}>
-                      <button className="text-xs font-bold text-primary hover:underline uppercase tracking-wider">View →</button>
-                    </Link>
+                    <div className="flex gap-2">
+                      <Link href={`/order/${o.id}`}>
+                        <button className="text-xs font-bold text-primary hover:underline uppercase tracking-wider">Track →</button>
+                      </Link>
+                      <Link href={`/receipt/${o.id}`}>
+                        <button className="text-xs font-bold text-muted-foreground hover:text-primary hover:underline uppercase tracking-wider transition-colors">Receipt</button>
+                      </Link>
+                    </div>
                   </div>
                 ))}
               </motion.div>

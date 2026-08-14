@@ -1,0 +1,794 @@
+This is the FINAL pre-launch check for FirstPick.
+
+DO NOT add random new features.
+
+DO NOT redesign the website.
+
+DO NOT replace working systems.
+
+Your job now is to thoroughly inspect, test, fix, optimize, and polish EVERYTHING that already exists so FirstPick is genuinely ready for customers.
+
+Treat this as a real production ecommerce launch.
+
+1. Test the Entire Customer Journey
+
+Actually test the complete shopping experience from beginning to end:
+
+Homepage → Category → Product → Size/Color → Add to Cart → Cart → Checkout → Delivery → Tip → Payment → Order Confirmation → My Orders → Tracking → Receipt
+
+Test both:
+
+* Guest customers
+* Signed-in customers
+
+Do not simply inspect the code. Actually test the flows.
+
+2. Check EVERY Page
+
+Go through every existing customer-facing page, including:
+
+* Homepage
+* Search
+* Categories
+* FirstPick Basics
+* Product pages
+* Cart
+* Checkout
+* Order confirmation
+* My Orders
+* Order details
+* Tracking
+* Receipt
+* Login
+* Sign up
+* Account
+* Wishlist if currently implemented
+* Contact/support
+* All existing information/policy pages
+* 404/error pages
+
+Find and fix anything broken.
+
+3. Mobile Navigation
+
+Check the mobile navigation carefully.
+
+FirstPick Basics MUST be visible and accessible on mobile.
+
+Make sure all important categories/navigation items can be reached without being cropped.
+
+If horizontal scrolling is used, make it smooth and obvious enough to use naturally.
+
+4. Fix “Welcome to FirstPick” Cropping
+
+The Welcome to FirstPick component has previously been cropped on mobile.
+
+CHECK IT AGAIN.
+
+Do not assume it was fixed.
+
+Test it on multiple mobile viewport sizes and orientations.
+
+It must:
+
+* Stay completely inside the visible viewport
+* Respect iPhone safe areas
+* Not collide with navigation
+* Not go behind the Home Indicator
+* Not have text cut off
+* Not overflow horizontally
+
+Fix it properly if ANY cropping remains.
+
+5. Responsive Testing
+
+Test representative viewport sizes for:
+
+* Small iPhone
+* Standard iPhone
+* Large iPhone
+* Pro Max-sized iPhone
+* Android phones
+* iPad
+* iPad Pro
+* Small laptop
+* Standard laptop
+* Desktop
+* Large desktop
+* Ultra-wide screen
+
+Do not only resize the homepage.
+
+Check ALL major pages.
+
+Nothing should be:
+
+* Cropped
+* Overlapping
+* Off-screen
+* Unreadable
+* Stretched
+* Squashed
+* Hidden behind another element
+* Accidentally horizontally scrolling
+
+6. Spacing Audit
+
+Review spacing throughout the ENTIRE website.
+
+Fix:
+
+* Uneven padding
+* Inconsistent margins
+* Cards touching each other
+* Text too close to edges
+* Huge unnecessary gaps
+* Misaligned buttons
+* Uneven product grids
+* Incorrect mobile spacing
+* Modal spacing
+* Checkout spacing
+* Admin spacing
+
+Everything should feel intentionally positioned.
+
+7. Animation Audit
+
+Review EVERY animation.
+
+Animations should feel smooth, premium, and consistent.
+
+Check:
+
+* Page transitions
+* Navigation
+* Search
+* Typing/search suggestions
+* Product cards
+* Product images
+* Size selection
+* Color selection
+* Buttons
+* Add to Cart
+* Cart changes
+* Checkout
+* Delivery selection
+* Tip selection
+* Payment loading
+* Order confirmation
+* Popups
+* Modals
+* Dropdowns
+* Toasts
+* Admin sidebar
+* Admin actions
+* Loading states
+
+When text/results appear while typing, make them smoothly fade/transition into view.
+
+Remove janky, delayed, duplicated, excessively bouncy, or laggy animations.
+
+Respect reduced-motion accessibility preferences.
+
+8. Product Selection
+
+Check size/color/variant selection.
+
+REMOVE any remaining green or random multicolor selection effects.
+
+Selected options should use:
+
+* Orange outline
+* Soft orange glow
+* Subtle orange illumination
+* Smooth press animation
+
+Keep it consistent with FirstPick.
+
+9. Liquid Glass Final Pass
+
+FirstPick should have a LOT of premium iOS 26-style Liquid Glass while remaining usable.
+
+Check:
+
+* Header
+* Navigation
+* Mobile bottom navigation
+* Search
+* Product cards
+* Filters
+* Cart
+* Checkout
+* Delivery cards
+* Tip selector
+* Order confirmation
+* Tracking
+* Receipt viewer
+* Account
+* Popups
+* Modals
+* Admin dashboard
+* Live Customers
+* Notifications
+
+Make the glass feel consistent.
+
+Use:
+
+* Background blur
+* Dark translucency
+* Reflections
+* Thin translucent borders
+* Layered depth
+* Soft orange reflections/glow
+* Smooth glass transitions
+
+Do NOT sacrifice readability.
+
+Do NOT add so many expensive blur layers that mobile scrolling becomes laggy.
+
+10. Cart
+
+Test the REAL cart.
+
+Verify:
+
+* Add to Cart
+* Remove
+* Quantity increase/decrease
+* Correct size
+* Correct color
+* Correct product image
+* Correct price
+* Stock validation
+* Cart persistence where implemented
+* Correct subtotal
+
+Try intentionally unusual interactions and make sure the cart does not break.
+
+11. Checkout
+
+Thoroughly test checkout.
+
+Verify:
+
+* Customer information
+* Shipping address
+* Validation
+* Delivery selection
+* Tip
+* Promo codes if currently implemented
+* Payment
+* Final total
+* Mobile keyboard behavior
+* Error messages
+* Loading states
+* Double-click/double-submit protection
+
+The customer should NEVER accidentally create two orders by pressing Place Order twice.
+
+12. Delivery
+
+Verify the configured delivery options.
+
+Default pricing should currently be:
+
+Standard Delivery — AED 20
+
+Express Delivery — AED 30
+
+FirstPick Priority — AED 40
+
+Verify the real current admin configuration and make sure checkout uses it.
+
+Do not trust frontend-provided delivery prices.
+
+Make sure delivery charges are validated/calculated server-side.
+
+13. Tips
+
+Verify:
+
+No Tip
+
+AED 5
+
+AED 10
+
+Custom
+
+No Tip must be the default.
+
+Never automatically add a tip.
+
+Check that custom values are validated.
+
+Verify:
+
+Subtotal + Delivery + Tip - applicable discount = Final Total
+
+The server must calculate/validate the final amount.
+
+14. Ziina Payments
+
+Thoroughly review the existing Ziina integration.
+
+Make sure:
+
+* Payment requests are created securely
+* Secret credentials remain server-side
+* Correct amount is sent
+* Currency is correct
+* Successful payments are verified
+* Failed payments do not create paid orders
+* Cancelled payments are handled correctly
+* Duplicate callbacks/webhooks do not create duplicate orders
+* Refreshing the success page does not create another order
+
+Where supported/configured, verify the customer payment experience for:
+
+* Card
+* Apple Pay
+* Google Pay
+
+Do NOT create fake Apple Pay or Google Pay buttons if the payment method is not actually available for that customer/device.
+
+15. Payment Security
+
+NEVER store:
+
+* Full card numbers
+* CVVs
+* Apple Pay credentials
+* Google Pay payment credentials
+
+Use the legitimate payment provider flow.
+
+Make sure customers cannot manipulate the frontend to change:
+
+* Product price
+* Delivery price
+* Tip
+* Discount
+* Final order total
+* Payment status
+
+Validate critical values on the server.
+
+16. Orders
+
+After successful payment/order creation, verify:
+
+* Exactly ONE order is created
+* Correct customer
+* Correct items
+* Correct quantities
+* Correct sizes
+* Correct colors
+* Correct product prices
+* Correct subtotal
+* Correct delivery method
+* Correct delivery charge
+* Correct tip
+* Correct discount
+* Correct total
+* Correct payment status
+* Correct timestamp
+
+17. Order Tracking
+
+Test the complete order lifecycle:
+
+Order Placed → Confirmed → Preparing → Shipped → Out for Delivery → Delivered
+
+When admin changes the status, verify the customer-facing order updates correctly.
+
+Make sure completed tracking stages use FirstPick orange styling.
+
+18. Admin New-Order Push Notifications
+
+THIS MUST ACTUALLY WORK.
+
+When a real/test order is successfully created, verify:
+
+Order Created → Backend Event → Push Provider → Subscribed Admin → Real Notification
+
+The notification should contain useful information such as:
+
+FirstPick — New Order
+
+Order #FP1042 • AED 789
+Express Delivery
+
+If there is a tip, it may show:
+
+Tip • AED 10
+
+For Priority orders, make the Priority status obvious.
+
+Tapping the notification should open the EXACT order in Admin → Orders.
+
+Do not claim this works unless it was actually verified in the available environment.
+
+19. Notification Permission
+
+Check the admin notification setup.
+
+Verify:
+
+* Enable Notifications
+* Permission request
+* Subscription registration
+* Subscription persistence
+* Test Notification
+* Disabled state
+* Permission denied state
+
+Check the installed iPhone/PWA path where applicable.
+
+Use the normal iOS notification sound.
+
+20. Admin Dashboard
+
+Go through EVERY existing Admin section.
+
+Actually press buttons and test functionality.
+
+Check:
+
+* Dashboard
+* Orders
+* Products
+* Add Product
+* Edit Product
+* Delete Product
+* Images
+* Sizes
+* Colors
+* Stock
+* Categories
+* FirstPick Basics
+* Customers
+* Live Customers
+* Notifications
+* Delivery settings
+* Analytics
+* Receipt access
+* All other existing admin settings/pages
+
+There should be NO fake buttons.
+
+21. Live Customers
+
+Verify Admin → Customers actually works.
+
+Do NOT display randomly generated activity.
+
+Use real FirstPick session activity.
+
+Check appropriate information such as:
+
+* Online/offline
+* Current FirstPick page
+* Search performed on FirstPick
+* Product viewed
+* Cart activity
+* Checkout started
+* Order completed
+* Device category
+* Browser
+* Logged-in/guest
+* Last active
+
+Do not claim to track activity outside FirstPick.
+
+22. Inventory
+
+Test stock carefully.
+
+Verify:
+
+* Correct stock displayed
+* Sold Out works
+* Customers cannot purchase unavailable quantities
+* Successful orders update/reserve stock according to the existing architecture
+* Failed payments do not incorrectly destroy inventory
+* Admin stock changes update the store
+* Concurrent orders cannot trivially oversell the same final unit
+
+23. Receipt Generator
+
+Test the new FirstPick receipt system.
+
+The receipt should use:
+
+* Black background
+* Orange accents
+* FirstPick logo top-left
+* Order information
+* Customer information where appropriate
+* Purchased items
+* Size/color
+* Quantity
+* Prices
+* Subtotal
+* Delivery
+* Tip
+* Discount if applicable
+* Final total
+* Payment status
+* Delivery method
+* Order number
+
+Verify:
+
+View Receipt
+
+and:
+
+Download PDF
+
+Make sure PDF generation uses REAL stored order data.
+
+Old receipts must retain the price paid at the time of purchase even if product prices later change.
+
+24. Search
+
+Test search thoroughly.
+
+Check:
+
+* Typing
+* Suggestions
+* Product results
+* Categories
+* FirstPick Basics
+* No-result state
+* Mobile keyboard
+* Clearing search
+* Fast repeated searches
+
+Suggestions should smoothly fade into view.
+
+No jarring pop-in.
+
+25. Images
+
+Check every important image.
+
+Make sure:
+
+* No stretching
+* No accidental cropping
+* Correct aspect ratios
+* Product photos load
+* Logo is sharp
+* Hero images respond correctly
+* Loading does not cause huge layout jumps
+
+Optimize unnecessarily huge images where possible without visibly damaging quality.
+
+26. Performance
+
+Check performance on mobile.
+
+Pay special attention to the heavy Liquid Glass effects.
+
+Look for:
+
+* Scroll lag
+* Animation stuttering
+* Excessive re-renders
+* Huge images
+* Duplicate API requests
+* Memory problems
+* Unnecessary JavaScript
+* Excessive backdrop-filter usage
+* Layout shifts
+
+Keep the premium appearance while making FirstPick feel FAST.
+
+27. Loading States
+
+No important page should look broken while loading.
+
+Use polished skeleton/loading states where appropriate.
+
+Test with simulated slower connections if possible.
+
+28. Error Handling
+
+Test failures intentionally.
+
+Examples:
+
+* Network request fails
+* Product unavailable
+* Payment fails
+* Payment cancelled
+* Invalid address
+* Invalid custom tip
+* Invalid promo code if implemented
+* Server error
+* Notification permission denied
+
+Show understandable FirstPick error messages.
+
+Never expose raw stack traces or internal errors to customers.
+
+29. Security Check
+
+Perform a final security review.
+
+Check:
+
+* Authentication
+* Admin authorization
+* Customer order authorization
+* Receipt authorization
+* Server-side price validation
+* Payment verification
+* Database access
+* API validation
+* Rate limiting where appropriate
+* Secrets/environment variables
+* Input sanitization
+* Common injection risks
+* Cross-site scripting risks
+* CSRF protections where applicable
+
+A customer must NEVER be able to access Admin simply by changing a URL.
+
+A customer must NEVER be able to view another customer’s private order/receipt by changing an order ID.
+
+30. Accessibility
+
+Check:
+
+* Text contrast
+* Button labels
+* Form labels
+* Keyboard navigation
+* Focus states
+* Touch target sizes
+* Image alt text where appropriate
+* Reduced motion
+* Liquid Glass readability
+
+31. Browser Check
+
+Test the major flows in current versions of:
+
+* Safari
+* Chrome
+* Edge
+* Firefox
+* iOS Safari
+* Android Chrome
+* Installed PWA mode where applicable
+
+Pay extra attention to iOS Safari/PWA because FirstPick uses mobile-specific UI and web push.
+
+32. Console + Network Audit
+
+Go through the website while monitoring:
+
+* Browser console
+* Network requests
+* Backend logs
+
+Fix:
+
+* Console errors
+* Unhandled promise rejections
+* 404 requests
+* 500 errors
+* Failed API calls
+* Duplicate requests
+* Broken assets
+* React warnings if applicable
+* Database errors
+
+Do not hide errors just to make the console look clean. Fix their cause.
+
+33. Multiple Test Orders
+
+Run several SAFE test orders.
+
+At minimum test:
+
+Order 1
+Standard Delivery — AED 20 — No Tip
+
+Order 2
+Express Delivery — AED 30 — AED 5 Tip
+
+Order 3
+FirstPick Priority — AED 40 — AED 10 Tip
+
+Order 4
+Multiple products/sizes
+
+Order 5
+Failed/cancelled payment
+
+Verify the entire chain for each successful order.
+
+Do NOT make real charges while performing automated/testing QA unless explicitly configured and authorized for that purpose.
+
+34. Final Visual Inspection
+
+After functionality is tested, visually inspect EVERYTHING one final time.
+
+Check:
+
+* Alignment
+* Padding
+* Margins
+* Typography
+* Icons
+* Buttons
+* Cards
+* Product grids
+* Modals
+* Navigation
+* Checkout
+* Admin
+* Receipts
+* Liquid Glass
+* Orange glow
+* Safe areas
+* Mobile keyboard states
+* Landscape layouts
+
+Nothing should feel unfinished.
+
+35. DO NOT LIE ABOUT TESTING
+
+This is important.
+
+If something cannot actually be tested because it requires:
+
+* Production credentials
+* A real iPhone
+* Ziina activation
+* Push-provider configuration
+* Apple Pay availability
+* Google Pay availability
+* External service access
+
+DO NOT say:
+
+Everything works perfectly.
+
+Instead, clearly report:
+
+Verified
+
+Fixed
+
+Unable to verify externally
+
+Requires configuration
+
+Tell me exactly what remains.
+
+FINAL REQUIREMENT
+
+Do not add more features.
+
+This is a FINAL QA, bug-fixing, performance, security, responsive-design, and production-readiness pass.
+
+Go through the entire FirstPick website systematically.
+
+Actually fix problems you discover.
+
+Retest after every important fix.
+
+Then perform one final end-to-end test:
+
+Open FirstPick → Browse → Search → Product → Select Size → Add to Cart → Checkout → Delivery → Tip → Ziina Test Payment → Order Created → Admin Notification → Admin Opens Order → Status Updated → Customer Tracking Updated → Receipt Generated
+
+The goal is no longer to add features.
+
+The goal is to make everything already built feel finished, reliable, smooth, secure, responsive, premium, and ready to launch.

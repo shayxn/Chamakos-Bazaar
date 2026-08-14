@@ -89,10 +89,19 @@ async function deliver(subs: { endpoint: string; p256dh: string; auth: string }[
 }
 
 // ── Order push (called after confirmed order) ────────────────────────────────
+const DELIVERY_LABEL_MAP: Record<string, string> = {
+  standard: "Standard",
+  express: "Express",
+  priority: "⚡ Priority",
+};
+
 export async function sendOrderPush(order: {
   orderNumber: string;
   customerName: string;
   total: number;
+  deliveryMethod?: string;
+  deliveryCharge?: number;
+  tip?: number;
   items: { productName: string; quantity: number }[];
   createdAt: string;
 }) {
@@ -102,9 +111,11 @@ export async function sendOrderPush(order: {
     if (!subs.length) return;
 
     const itemsSummary = order.items.slice(0, 3).map((i) => `${i.quantity}× ${i.productName}`).join(", ");
+    const deliveryLabel = DELIVERY_LABEL_MAP[order.deliveryMethod ?? "standard"] ?? "Standard";
+    const tipLine = (order.tip ?? 0) > 0 ? ` · Tip AED ${(order.tip ?? 0).toFixed(2)}` : "";
     const payload = JSON.stringify({
       title: `🛒 FirstPick — New Order`,
-      body: `${order.customerName} · AED ${order.total.toFixed(2)}\n${itemsSummary}`,
+      body: `${order.customerName} · AED ${order.total.toFixed(2)} · ${deliveryLabel}${tipLine}\n${itemsSummary}`,
       type: "NEW_ORDER",
       data: {
         orderNumber: order.orderNumber,

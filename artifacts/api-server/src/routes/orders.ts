@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable } from "@workspace/db";
+import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable, customerAccountsTable } from "@workspace/db";
 import { eq, inArray, asc } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache } from "../lib/response-cache";
 import { sendOrderPush } from "../lib/push";
+import { getDeliveryCharges, DELIVERY_METHODS } from "../lib/delivery";
 
 const router = Router();
 
@@ -14,10 +15,18 @@ function generateOrderNumber(): string {
   return `CHM-${num}`;
 }
 
+const DELIVERY_LABELS: Record<string, string> = {
+  standard: "Standard Delivery",
+  express: "Express Delivery",
+  priority: "FirstPick Priority",
+};
+
 function serializeOrder(order: typeof ordersTable.$inferSelect, items: Array<typeof orderItemsTable.$inferSelect>) {
   return {
     ...order,
     total: Number(order.total),
+    deliveryCharge: Number(order.deliveryCharge ?? 20),
+    tip: Number(order.tip ?? 0),
     createdAt: order.createdAt.toISOString(),
     items: items.map((i) => ({ ...i, price: Number(i.price) })),
   };
@@ -93,11 +102,19 @@ router.post("/orders", async (req, res) => {
     customerPhone: string;
     customerAddress: string;
     paymentMethod?: string;
+    deliveryMethod?: string;
+    tip?: number;
   };
   if (!body.customerName || !body.customerPhone || !body.customerAddress) {
     res.status(400).json({ error: "customerName, customerPhone and customerAddress required" });
     return;
   }
+  const charges = await getDeliveryCharges();
+  const deliveryMethod = (body.deliveryMethod && (DELIVERY_METHODS as readonly string[]).includes(body.deliveryMethod))
+    ? body.deliveryMethod : "standard";
+  const deliveryCharge = charges[deliveryMethod] ?? 20;
+  const rawTip = Number(body.tip ?? 0);
+  const tip = isNaN(rawTip) || rawTip < 0 ? 0 : Math.min(rawTip, 500);
 
   const session = req.session as Record<string, unknown>;
   const sessionId = session.cartId as string | undefined;
@@ -128,8 +145,13 @@ router.post("/orders", async (req, res) => {
     }));
   }
 
-  const SHIPPING_FEE = 25;
-  const total = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0) + SHIPPING_FEE;
+  if (cartItems.length === 0) {
+    res.status(400).json({ error: "Cart is empty" });
+    return;
+  }
+
+  const itemsSubtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const total = itemsSubtotal + deliveryCharge + tip;
   const hasPreOrder = cartItems.some((i) => i.isPreOrder);
 
   let orderNumber = generateOrderNumber();
@@ -148,6 +170,9 @@ router.post("/orders", async (req, res) => {
     customerPhone: body.customerPhone,
     customerAddress: body.customerAddress,
     paymentMethod: body.paymentMethod ?? "cod",
+    deliveryMethod,
+    deliveryCharge: String(deliveryCharge),
+    tip: String(tip),
     total: String(total || 0),
     status: "pending",
     hasPreOrder,
@@ -186,6 +211,9 @@ router.post("/orders", async (req, res) => {
       orderNumber: fullOrder.orderNumber ?? `#${fullOrder.id}`,
       customerName: fullOrder.customerName,
       total: fullOrder.total,
+      deliveryMethod: fullOrder.deliveryMethod ?? "standard",
+      deliveryCharge: fullOrder.deliveryCharge ?? 20,
+      tip: fullOrder.tip ?? 0,
       items: fullOrder.items.map((i) => ({ productName: i.productName, quantity: i.quantity })),
       createdAt: fullOrder.createdAt,
     }).catch(() => {});
@@ -199,16 +227,37 @@ router.get("/orders/:id", async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
 
   const session = req.session as Record<string, unknown>;
-  const userId = session.userId as number | undefined;
-  const lastOrderId = session.lastOrderId as number | undefined;
+  const userId = session.userId as number | undefined;        // admin session
+  const customerId = session.customerId as number | undefined; // customer account session
+  const lastOrderId = session.lastOrderId as number | undefined; // guest last order
 
-  if (!userId && lastOrderId !== id) {
+  // Must have at least one form of identity
+  if (!userId && !customerId && lastOrderId !== id) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
   const order = await buildOrder(id);
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
+
+  // Customer account session (not admin): verify they own this order
+  if (customerId && !userId) {
+    const [customer] = await db
+      .select({ phone: customerAccountsTable.phone, email: customerAccountsTable.email })
+      .from(customerAccountsTable)
+      .where(eq(customerAccountsTable.id, customerId));
+    const ownsOrder =
+      customer && (
+        (customer.phone && customer.phone === order.customerPhone) ||
+        (customer.email && customer.email === order.customerEmail)
+      );
+    const isLastOrder = lastOrderId === id;
+    if (!ownsOrder && !isLastOrder) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+  }
+
   res.json(order);
 });
 

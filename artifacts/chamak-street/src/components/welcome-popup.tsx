@@ -91,7 +91,7 @@ export function WelcomePopup() {
                 marginTop: 2,
                 letterSpacing: "0.01em",
               }}>
-                Free shipping across UAE · Authentic products only
+                Dubai streetwear · Premium reps · Fast UAE delivery
               </p>
             </div>
 

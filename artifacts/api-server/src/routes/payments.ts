@@ -2,6 +2,7 @@ import { Router, type Request } from "express";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
+import { getDeliveryCharges, DELIVERY_METHODS } from "../lib/delivery";
 
 function generateOrderNumber(): string {
   const num = 100000 + Math.floor(Math.random() * 900000);
@@ -20,10 +21,13 @@ type ZiinaPaymentIntentResponse = {
   };
 };
 
+
 type CheckoutBody = {
   customerName?: unknown;
   customerPhone?: unknown;
   customerAddress?: unknown;
+  deliveryMethod?: unknown;
+  tip?: unknown;
 };
 
 type OrderForPayment = {
@@ -50,16 +54,22 @@ function getSiteBaseUrl(req: Request): string {
   return `${req.protocol}://${req.get("host")}`;
 }
 
-function getCheckoutBody(body: unknown): { customerName: string; customerPhone: string; customerAddress: string } | null {
+function getCheckoutBody(body: unknown): { customerName: string; customerPhone: string; customerAddress: string; deliveryMethod: string; tip: number } | null {
   if (!body || typeof body !== "object") return null;
   const value = body as CheckoutBody;
   if (typeof value.customerName !== "string" || value.customerName.trim().length < 2) return null;
   if (typeof value.customerPhone !== "string" || value.customerPhone.trim().length < 7) return null;
   if (typeof value.customerAddress !== "string" || value.customerAddress.trim().length < 5) return null;
+  const deliveryMethod = typeof value.deliveryMethod === "string" && (DELIVERY_METHODS as readonly string[]).includes(value.deliveryMethod)
+    ? value.deliveryMethod : "standard";
+  const rawTip = Number(value.tip ?? 0);
+  const tip = isNaN(rawTip) || rawTip < 0 ? 0 : Math.min(rawTip, 500);
   return {
     customerName: value.customerName.trim(),
     customerPhone: value.customerPhone.trim(),
     customerAddress: value.customerAddress.trim(),
+    deliveryMethod,
+    tip,
   };
 }
 
@@ -103,7 +113,7 @@ async function createZiinaIntent(req: Request, order: OrderForPayment): Promise<
   const body = {
     amount,
     currency_code: process.env.ZIINA_CURRENCY_CODE ?? "AED",
-    message: `Chamak Street order #${order.id.toString().padStart(6, "0")}`,
+    message: `FirstPick order #${order.id.toString().padStart(6, "0")}`,
     success_url: `${orderUrl}?payment=ziina-success&payment_intent_id={PAYMENT_INTENT_ID}`,
     cancel_url: `${orderUrl}?payment=ziina-cancelled&payment_intent_id={PAYMENT_INTENT_ID}`,
     failure_url: `${orderUrl}?payment=ziina-failed&payment_intent_id={PAYMENT_INTENT_ID}`,
@@ -154,8 +164,11 @@ router.post("/payments/ziina-checkout", async (req, res) => {
     return;
   }
 
-  const shippingFee = 25;
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) + shippingFee;
+  const charges = await getDeliveryCharges();
+  const deliveryCharge = charges[parsed.deliveryMethod] ?? 20;
+  const tip = parsed.tip;
+  const itemsSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = itemsSubtotal + deliveryCharge + tip;
 
   const hasPreOrder = cartItems.some((item) => item.isPreOrder);
 
@@ -175,6 +188,9 @@ router.post("/payments/ziina-checkout", async (req, res) => {
     customerPhone: parsed.customerPhone,
     customerAddress: parsed.customerAddress,
     paymentMethod: "ziina",
+    deliveryMethod: parsed.deliveryMethod,
+    deliveryCharge: String(deliveryCharge),
+    tip: String(tip),
     total: String(total),
     status: "pending",
     hasPreOrder,
@@ -219,6 +235,15 @@ router.post("/payments/ziina-intent", async (req, res) => {
   const orderId = getOrderId(req.body);
   if (!orderId) {
     res.status(400).json({ error: "Invalid input" });
+    return;
+  }
+
+  // Must be admin OR the session owner of this order
+  const session = req.session as Record<string, unknown>;
+  const userId = session.userId as number | undefined;
+  const lastOrderId = session.lastOrderId as number | undefined;
+  if (!userId && lastOrderId !== orderId) {
+    res.status(401).json({ error: "Unauthorized" });
     return;
   }
 

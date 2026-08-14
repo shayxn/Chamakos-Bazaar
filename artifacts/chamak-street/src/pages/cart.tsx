@@ -8,7 +8,6 @@ import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
-const FREE_SHIPPING_THRESHOLD = 300;
 
 export default function Cart() {
   const { data: cart, isLoading } = useGetCart({ query: { queryKey: getGetCartQueryKey() } });
@@ -89,10 +88,6 @@ export default function Cart() {
   }
 
   const subtotal = cart.total;
-  const shipping = 25;
-  const total = subtotal + shipping;
-  const freeShippingGap = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
-  const freeShippingProgress = Math.min(1, subtotal / FREE_SHIPPING_THRESHOLD);
 
   return (
     <PageTransition>
@@ -120,45 +115,18 @@ export default function Cart() {
           </Link>
         </motion.div>
 
-        {/* Free shipping progress */}
-        {freeShippingGap > 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, ease: EASE }}
-            className="mb-6 p-4 rounded-xl border border-white/8 bg-white/3"
-          >
-            <div className="flex items-center justify-between mb-2.5">
-              <div className="flex items-center gap-2">
-                <Truck className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-bold text-white/70">
-                  Add <span className="text-primary font-black">AED {freeShippingGap.toFixed(0)}</span> more for free shipping
-                </span>
-              </div>
-              <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
-                AED {subtotal.toFixed(0)} / {FREE_SHIPPING_THRESHOLD}
-              </span>
-            </div>
-            <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${freeShippingProgress * 100}%` }}
-                transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
-                className="h-full rounded-full"
-                style={{ background: "linear-gradient(90deg, #ff6600, #ffaa00)" }}
-              />
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-6 p-3 rounded-xl border border-green-500/30 bg-green-500/8 flex items-center gap-2.5"
-          >
-            <Truck className="h-4 w-4 text-green-400 shrink-0" />
-            <span className="text-xs font-bold text-green-400">You've unlocked free shipping! 🎉</span>
-          </motion.div>
-        )}
+        {/* Delivery notice */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, ease: EASE }}
+          className="mb-6 p-4 rounded-xl border border-white/8 bg-white/3 flex items-center gap-3"
+        >
+          <Truck className="h-4 w-4 text-primary shrink-0" />
+          <span className="text-xs font-bold text-white/70">
+            Delivery from <span className="text-primary font-black">AED 20</span> · Choose your speed at checkout
+          </span>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Items */}
@@ -174,7 +142,7 @@ export default function Cart() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, x: -72, scale: 0.93, transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] } }}
                     transition={{ duration: 0.45, delay: i * 0.05, ease: EASE }}
-                    className="flex gap-4 p-4 bg-card border border-border rounded-xl relative group hover:border-primary/25 transition-colors duration-300"
+                    className="flex gap-4 p-4 glass-sm rounded-xl relative group hover:border-primary/25 transition-colors duration-300"
                     data-testid={`cart-item-${item.id}`}
                   >
                     {/* Thumbnail */}
@@ -303,28 +271,24 @@ export default function Cart() {
                   <span className="font-mono font-bold">AED {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Shipping</span>
-                  {freeShippingGap > 0 ? (
-                    <span className="font-mono font-bold text-primary">AED {shipping.toFixed(2)}</span>
-                  ) : (
-                    <span className="font-bold text-green-400">Free 🎉</span>
-                  )}
+                  <span className="text-muted-foreground">Delivery</span>
+                  <span className="font-bold text-white/50">At checkout</span>
                 </div>
               </div>
 
               <div className="border-t border-border/60 pt-4 mb-6">
                 <div className="flex justify-between items-end">
-                  <span className="font-black uppercase tracking-wider text-sm">Total</span>
+                  <span className="font-black uppercase tracking-wider text-sm">Subtotal</span>
                   <AnimatePresence mode="wait">
                     <motion.span
-                      key={total}
+                      key={subtotal}
                       initial={{ opacity: 0, y: -8, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8 }}
                       transition={{ duration: 0.26, ease: EASE }}
                       className="font-mono text-2xl font-black text-primary"
                     >
-                      AED {(freeShippingGap > 0 ? total : subtotal).toFixed(2)}
+                      AED {subtotal.toFixed(2)}
                     </motion.span>
                   </AnimatePresence>
                 </div>

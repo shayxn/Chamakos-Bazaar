@@ -1,0 +1,188 @@
+Add an OPTIONAL tipping feature to the EXISTING FirstPick checkout.
+
+Place it near the end of checkout, before the customer places their order.
+
+Do NOT rebuild checkout and do NOT remove or break the existing delivery, payment, cart, order, or notification systems.
+
+Add a Tip
+
+Add a premium section called:
+
+Add a tip
+
+Below it, display:
+
+Want to show some extra support to the FirstPick team? Tips are completely optional.
+
+Provide these choices:
+
+No Tip
+AED 5
+AED 10
+Custom
+
+Default to No Tip.
+
+A customer should NEVER be automatically charged a tip.
+
+Custom Tip
+
+When the customer selects:
+
+Custom
+
+smoothly reveal an input:
+
+Enter custom tip
+
+Allow the customer to enter their own AED amount.
+
+Validate the amount properly.
+
+Do not accept:
+
+* Negative numbers
+* Invalid characters
+* Empty custom amounts
+* Unreasonably large accidental amounts
+
+Design
+
+Make the tip selector match the existing FirstPick black/orange/yellow Liquid Glass checkout.
+
+Each option should be a rounded Liquid Glass button/card.
+
+When selected:
+
+* Orange glowing outline
+* Subtle orange illumination
+* Smooth scale animation
+* Smooth Liquid Glass transition
+
+Do NOT use green.
+
+When Custom is pressed, make the input smoothly fade and expand into view instead of suddenly appearing.
+
+Order Total
+
+The checkout total must update immediately when a tip is selected.
+
+Example:
+
+Subtotal — AED 749
+Express Delivery — AED 30
+Tip — AED 10
+Total — AED 789
+
+If the customer changes from AED 10 to AED 5, immediately recalculate the total.
+
+If they choose No Tip, remove the tip from the total.
+
+The backend must independently validate and calculate the final amount. Never trust a tip or total supplied only by the frontend.
+
+Order Database
+
+When an order is successfully placed, store the tip amount with the real order.
+
+Example:
+
+Tip: AED 10
+
+If no tip was given, store the appropriate zero/no-tip value.
+
+Do not modify the tip after an order has already been completed.
+
+Admin Orders
+
+Inside:
+
+Admin → Orders → Select Order
+
+show:
+
+Tip: AED 10
+
+Make tips easy for admins to see without making them more important than the actual order information.
+
+Also show the complete breakdown:
+
+Subtotal
+Delivery
+Tip
+Total
+
+Admin Notifications
+
+If the customer leaves a tip, optionally include it in the REAL new-order admin push notification.
+
+Example:
+
+FirstPick — New Order
+
+Order #FP1042 • AED 789
+Express Delivery • Tip AED 10
+
+If there is no tip, don’t unnecessarily add “Tip AED 0” to the notification.
+
+Order Confirmation
+
+On the customer order confirmation/receipt, show the tip in the payment breakdown.
+
+Example:
+
+Subtotal — AED 749
+Delivery — AED 30
+Tip — AED 10
+Total — AED 789
+
+Refunds / Cancellations
+
+Make sure the tip is correctly accounted for by the existing payment/refund system.
+
+Do not accidentally charge the tip separately or twice.
+
+The customer should make ONE final payment containing:
+
+Products + Delivery + Optional Tip
+
+Mobile
+
+Make this especially polished on mobile.
+
+The tip buttons should fit correctly on small iPhones.
+
+If four buttons do not fit comfortably in one row, use an appropriate responsive layout instead of shrinking everything.
+
+Nothing should be cropped or overflow.
+
+Final Testing
+
+Create test orders for:
+
+* No Tip
+* AED 5
+* AED 10
+* Custom tip
+* Standard + tip
+* Express + tip
+* FirstPick Priority + tip
+
+Verify that:
+
+* No Tip is selected by default
+* Tips are always optional
+* AED 5 calculates correctly
+* AED 10 calculates correctly
+* Custom tips calculate correctly
+* Invalid custom values are rejected
+* The backend validates the amount
+* The final payment amount is correct
+* Tip is stored with the order
+* Admin sees the correct tip
+* Customer receipt shows the correct tip
+* Admin notification shows the tip when applicable
+* Refund/cancellation calculations remain correct
+* Mobile layout isn’t cropped
+* Existing checkout functionality still works
+
+This must be connected to the REAL FirstPick checkout, payment, order, database, admin, and notification systems. Do not create a visual-only tipping feature.

@@ -35,12 +35,21 @@ type Order = {
   status: string;
   total: number;
   paymentMethod?: string | null;
+  deliveryMethod?: string | null;
+  deliveryCharge?: number | null;
+  tip?: number | null;
   courierName?: string | null;
   estimatedDelivery?: string | null;
   trackingNote?: string | null;
   hasPreOrder?: boolean | null;
   createdAt: string;
   items: { id: number; productName: string; quantity: number; price: number; size?: string | null; isPreOrder?: boolean | null }[];
+};
+
+const DELIVERY_LABEL: Record<string, string> = {
+  standard: "Standard",
+  express: "Express",
+  priority: "⚡ Priority",
 };
 
 /* ─── Receipt Generator ─── */
@@ -493,6 +502,12 @@ export default function AdminOrders() {
                   {order.hasPreOrder && (
                     <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded font-black uppercase tracking-wider">Pre-Order</span>
                   )}
+                  {order.deliveryMethod === "priority" && (
+                    <span className="text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider" style={{ background: "rgba(255,102,0,0.15)", color: "#ff6600", border: "1px solid rgba(255,102,0,0.3)" }}>⚡ Priority</span>
+                  )}
+                  {order.deliveryMethod === "express" && (
+                    <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded font-black uppercase tracking-wider">Express</span>
+                  )}
                   <button onClick={() => navigator.clipboard.writeText(order.orderNumber ?? `#${order.id}`).then(() => toast({ title: "Copied!" }))}
                     className="text-muted-foreground hover:text-primary transition-colors">
                     <Copy className="h-3.5 w-3.5" />
@@ -578,6 +593,33 @@ export default function AdminOrders() {
                       </div>
                     </div>
 
+                    {/* ─── Price Breakdown ─── */}
+                    <div className="rounded-xl p-4 space-y-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Price Breakdown</p>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Items Subtotal</span>
+                        <span className="font-mono font-bold">AED {order.items.reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {DELIVERY_LABEL[order.deliveryMethod ?? "standard"] ?? "Delivery"}
+                        </span>
+                        <span className="font-mono font-bold text-primary">
+                          AED {(order.deliveryCharge ?? 20).toFixed(2)}
+                        </span>
+                      </div>
+                      {(order.tip ?? 0) > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">⭐ Tip</span>
+                          <span className="font-mono font-bold text-yellow-400">AED {(order.tip ?? 0).toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="border-t border-border/30 pt-2 flex justify-between">
+                        <span className="font-black uppercase tracking-wide text-sm">Grand Total</span>
+                        <span className="font-mono font-black text-primary text-lg">AED {order.total.toFixed(2)}</span>
+                      </div>
+                    </div>
+
                     {/* ─── WhatsApp + Receipt ─── */}
                     <div
                       className="rounded-xl p-4 space-y-3"
@@ -599,7 +641,21 @@ export default function AdminOrders() {
                           Confirm Order via WhatsApp
                         </button>
 
-                        {/* Receipt Button */}
+                        {/* Receipt Page Button */}
+                        <button
+                          onClick={() => window.open(`/receipt/${order.id}`, "_blank")}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide transition-all hover:scale-105 active:scale-95"
+                          style={{
+                            background: "linear-gradient(135deg, #ff6600, #ffcc00)",
+                            color: "#000000",
+                            boxShadow: "0 4px 16px rgba(255,102,0,0.35)",
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                          View Receipt
+                        </button>
+
+                        {/* Canvas Receipt Button */}
                         <button
                           onClick={() => {
                             const existing = receiptState[order.id];
@@ -611,32 +667,23 @@ export default function AdminOrders() {
                           }}
                           disabled={receiptState[order.id]?.loading}
                           className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide transition-all hover:scale-105 active:scale-95 disabled:opacity-60 disabled:scale-100"
-                          style={{
-                            background: "linear-gradient(135deg, #ff6600, #ffcc00)",
-                            color: "#000000",
-                            boxShadow: "0 4px 16px rgba(255,102,0,0.35)",
-                          }}
+                          style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)" }}
                         >
                           {receiptState[order.id]?.loading ? (
                             <>
-                              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                               Generating…
-                            </>
-                          ) : receiptState[order.id]?.dataUrl ? (
-                            <>
-                              <Eye className="h-4 w-4" />
-                              View Receipt
                             </>
                           ) : (
                             <>
                               <Download className="h-4 w-4" />
-                              Generate Receipt
+                              {receiptState[order.id]?.dataUrl ? "Download PNG" : "Generate PNG"}
                             </>
                           )}
                         </button>
                       </div>
                       <p className="text-[10px] text-muted-foreground">
-                        WhatsApp will open with a pre-filled confirmation message. Download the receipt to attach to your message.
+                        WhatsApp opens with a pre-filled confirmation. "View Receipt" opens the shareable receipt page.
                       </p>
                     </div>
 

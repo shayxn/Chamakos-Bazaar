@@ -1,0 +1,197 @@
+Update the EXISTING FirstPick delivery system with these exact delivery prices.
+
+Do NOT change the delivery names or pricing unless an admin changes them later through Admin Settings.
+
+Delivery Options
+
+Standard Delivery — AED 20
+
+2–4 business days
+
+This is the normal delivery option.
+
+Display:
+
+Standard Delivery
+2–4 business days
+AED 20
+
+Express Delivery — AED 30
+
+1–2 business days
+
+Display:
+
+Express Delivery
+1–2 business days
+AED 30
+
+Give this option slightly more emphasis than Standard, but keep it below FirstPick Priority.
+
+⚡ FirstPick Priority — AED 40
+
+Same Day / Next Day where available
+
+Display:
+
+FirstPick Priority
+Same Day / Next Day
+AED 40
+
+Add a small:
+
+FASTEST
+
+badge.
+
+Make FirstPick Priority the most premium-looking delivery option with:
+
+* Orange Liquid Glass glow
+* Premium orange border
+* Subtle animated reflection
+* Lightning icon
+* Smooth selection animation
+* Slightly stronger visual depth
+
+Do NOT use green.
+
+Checkout
+
+Add these three options to the existing checkout under:
+
+Choose your delivery
+
+Use premium Liquid Glass cards that match FirstPick’s black, orange, and yellow design.
+
+Selecting a delivery option must immediately update the REAL checkout total.
+
+Example:
+
+Subtotal — AED 749
+Standard Delivery — AED 20
+Total — AED 769
+
+If Express is selected:
+
+Subtotal — AED 749
+Express Delivery — AED 30
+Total — AED 779
+
+If FirstPick Priority is selected:
+
+Subtotal — AED 749
+FirstPick Priority — AED 40
+Total — AED 789
+
+Animate the price change smoothly.
+
+Store the Delivery Method
+
+When the order is placed, save the selected delivery method and delivery charge to the actual order in the database.
+
+Do NOT only store it in the frontend.
+
+The selected option must remain attached to that order permanently.
+
+Admin
+
+Inside:
+
+Admin → Orders
+
+show the delivery method for every order.
+
+For FirstPick Priority orders, show a premium orange:
+
+⚡ PRIORITY
+
+badge so admins immediately know it needs faster handling.
+
+Opening an order should show:
+
+* Delivery method
+* Delivery charge
+* Estimated arrival
+* Customer shipping address
+* Order status
+* Order timeline
+
+Admins must still be able to change:
+
+Order Placed → Confirmed → Preparing → Shipped → Out for Delivery → Delivered
+
+Notifications
+
+When an order is placed, include the delivery type in the REAL admin push notification.
+
+Example:
+
+FirstPick — New Order
+
+Order #FP1042 • AED 769
+Standard Delivery • AED 20
+
+For Priority:
+
+FirstPick — ⚡ New Priority Order
+
+Order #FP1043 • AED 789
+FirstPick Priority • AED 40
+
+Tapping the notification should open the exact order in Admin → Orders.
+
+Order Confirmation
+
+After checkout, show the selected delivery option on the customer’s order confirmation page.
+
+Example:
+
+Delivery
+⚡ FirstPick Priority
+
+Estimated arrival
+Tomorrow
+
+Also show it in:
+
+Account → My Orders → Order Details
+
+Admin Delivery Settings
+
+Keep these as the DEFAULT prices:
+
+* Standard Delivery: AED 20
+* Express Delivery: AED 30
+* FirstPick Priority: AED 40
+
+However, admins should still be able to change these prices later through:
+
+Admin → Settings → Delivery
+
+Changes should apply to NEW orders only.
+
+Never change the delivery price stored on an existing order.
+
+Final Testing
+
+After implementing it, create test orders using all three delivery methods.
+
+Verify:
+
+* Standard adds exactly AED 20
+* Express adds exactly AED 30
+* FirstPick Priority adds exactly AED 40
+* Checkout total updates correctly
+* Correct delivery method is stored in the database
+* Correct delivery price is stored
+* Admin sees the selected method
+* Priority orders receive the Priority badge
+* Order confirmation shows the correct method
+* My Orders shows the correct method
+* Admin push notification shows the correct method
+* Estimated delivery dates work
+* Mobile checkout isn’t cropped
+* Liquid Glass effects remain smooth
+* No existing checkout functionality is broken
+
+Do not simulate these features visually. Connect them to the REAL FirstPick checkout, database, order management, and notification systems.

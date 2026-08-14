@@ -96,6 +96,10 @@ import AdminRefundRequests from "@/pages/admin/refund-requests";
 import AdminProductRequests from "@/pages/admin/product-requests";
 import AdminVisitors from "@/pages/admin/visitors";
 import AdminNotificationSettings from "@/pages/admin/notification-settings";
+import AdminAbandonedCarts from "@/pages/admin/abandoned-carts";
+import AdminStockAlerts from "@/pages/admin/stock-alerts";
+import AdminSalesReports from "@/pages/admin/sales-reports";
+import AdminImport from "@/pages/admin/import";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
 import Terms from "@/pages/terms";
@@ -109,6 +113,7 @@ import Basics from "@/pages/basics";
 import RequestProduct from "@/pages/request-product";
 import Games from "@/pages/games";
 import GameDetail from "@/pages/game-detail";
+import Receipt from "@/pages/receipt";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -140,6 +145,10 @@ function AdminRouter() {
         <Route path="/admin/product-requests" component={AdminProductRequests} />
         <Route path="/admin/visitors" component={AdminVisitors} />
         <Route path="/admin/notifications" component={AdminNotificationSettings} />
+        <Route path="/admin/abandoned-carts" component={AdminAbandonedCarts} />
+        <Route path="/admin/stock-alerts" component={AdminStockAlerts} />
+        <Route path="/admin/sales-reports" component={AdminSalesReports} />
+        <Route path="/admin/import" component={AdminImport} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>
@@ -178,6 +187,7 @@ function MainRouter() {
             <Route path="/request-product" component={RequestProduct} />
             <Route path="/games" component={Games} />
             <Route path="/games/:id" component={GameDetail} />
+            <Route path="/receipt/:id" component={Receipt} />
 
             <Route component={NotFound} />
           </Switch>

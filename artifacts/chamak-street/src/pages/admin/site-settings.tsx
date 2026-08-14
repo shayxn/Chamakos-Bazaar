@@ -780,10 +780,21 @@ export default function AdminSiteSettings() {
         )}
 
         {activeTab === "shipping" && (
-          <div className="space-y-5">
-            <h2 className="font-black uppercase tracking-wider text-primary mb-6">Shipping Info</h2>
-            <SettingInput label="Shipping Info Text" settingKey="shipping_text" settings={settings} onChange={onChange} multiline />
-            <SettingInput label="About Us Text" settingKey="about_text" settings={settings} onChange={onChange} multiline />
+          <div className="space-y-8">
+            <div className="space-y-5">
+              <h2 className="font-black uppercase tracking-wider text-primary">Delivery Pricing</h2>
+              <p className="text-sm text-muted-foreground -mt-3">Set the delivery prices customers see at checkout. Leave blank to use defaults (Standard 20, Express 30, Priority 40).</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <SettingInput label="Standard Delivery (AED)" settingKey="delivery_standard_price" settings={settings} onChange={onChange} placeholder="20" />
+                <SettingInput label="Express Delivery (AED)" settingKey="delivery_express_price" settings={settings} onChange={onChange} placeholder="30" />
+                <SettingInput label="Priority Delivery (AED)" settingKey="delivery_priority_price" settings={settings} onChange={onChange} placeholder="40" />
+              </div>
+            </div>
+            <div className="border-t border-border/40 pt-6 space-y-5">
+              <h2 className="font-black uppercase tracking-wider text-primary">Info Pages</h2>
+              <SettingInput label="Shipping Info Text" settingKey="shipping_text" settings={settings} onChange={onChange} multiline />
+              <SettingInput label="About Us Text" settingKey="about_text" settings={settings} onChange={onChange} multiline />
+            </div>
           </div>
         )}
 

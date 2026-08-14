@@ -267,8 +267,10 @@ export default function OrderConfirmation() {
   const trackingEvents = (order as any).trackingEvents as { status: string; createdAt: string }[] | undefined;
   const isPreOrder = order.hasPreOrder || order.items?.some((i) => i.isPreOrder);
   const subtotal = order.items?.reduce((s, i) => s + i.price * i.quantity, 0) ?? 0;
-  const shipping = order.total - subtotal > 0.1 ? order.total - subtotal : (subtotal >= 300 ? 0 : 25);
-  const shippingFree = shipping === 0;
+  const deliveryCharge = Number((order as any).deliveryCharge ?? 0);
+  const tipAmount = Number((order as any).tip ?? 0);
+  const deliveryMethod = (order as any).deliveryMethod as string ?? "standard";
+  const DELIVERY_LABEL: Record<string, string> = { standard: "Standard Delivery", express: "Express Delivery", priority: "FirstPick Priority" };
 
   return (
     <PageTransition>
@@ -509,28 +511,23 @@ export default function OrderConfirmation() {
               <span className="font-bold">AED {subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Shipping</span>
-              <span className={`font-bold ${shippingFree ? "text-green-400" : ""}`}>
-                {shippingFree ? "FREE 🎉" : `AED ${shipping.toFixed(2)}`}
+              <span className="text-muted-foreground flex items-center gap-1">
+                {deliveryMethod === "priority" ? "⚡" : "🚚"} {DELIVERY_LABEL[deliveryMethod] ?? "Delivery"}
+              </span>
+              <span className="font-bold text-primary">
+                {deliveryCharge === 0 ? "FREE 🎉" : `AED ${deliveryCharge.toFixed(2)}`}
               </span>
             </div>
+            {tipAmount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">⭐ Tip</span>
+                <span className="font-bold text-yellow-400">AED {tipAmount.toFixed(2)}</span>
+              </div>
+            )}
             <div className="border-t border-white/8 pt-2.5 flex justify-between">
               <span className="font-black uppercase tracking-wide">Total</span>
               <span className="font-mono font-black text-xl text-primary">AED {order.total.toFixed(2)}</span>
             </div>
-            {shippingFree && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.5 }}
-                className="flex items-center gap-2 p-2.5 rounded-lg"
-                style={{ background: "rgba(255,102,0,0.08)", border: "1px solid rgba(255,102,0,0.18)" }}
-              >
-                <span className="text-primary text-sm">✓</span>
-                <p className="text-xs text-primary font-bold">
-                  You saved AED 25 with Free Shipping!
-                </p>
-              </motion.div>
-            )}
           </div>
         </motion.div>
 
