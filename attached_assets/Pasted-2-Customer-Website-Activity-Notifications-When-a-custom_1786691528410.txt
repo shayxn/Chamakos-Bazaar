@@ -1,0 +1,94 @@
+2. Customer Website Activity Notifications
+
+When a customer performs important actions on the FirstPick website, allow admins to receive notifications.
+
+For example:
+
+FirstPick — Customer Search
+A customer searched for “Nike Tech”.
+
+or:
+
+FirstPick — Customer Active
+A customer is currently browsing FirstPick Basics.
+
+Do NOT send a push notification for every tiny action because that could spam admins.
+
+Create notification rules/settings inside the admin dashboard where admins can choose notifications for:
+
+* New orders
+* Customer searches
+* Customer starts a new browsing session
+* Customer adds something to cart
+* Customer begins checkout
+* Customer account created
+
+Admins must be able to turn each notification type ON or OFF.
+
+3. Make Admin → Customers Actually Live
+
+There is already an Admin section called:
+
+Customers
+
+It currently shows things such as the customer’s device and live activity.
+
+Make this section ACTUALLY functional using real first-party website session data.
+
+Do not display fake/random/demo activity.
+
+When someone is actively using the FirstPick website, show their session in Admin → Customers.
+
+Show useful information such as:
+
+* Online / Offline status
+* Last active time
+* Current FirstPick page
+* Device category: iPhone, iPad, Android, Windows, Mac, etc.
+* Browser
+* Whether they are logged in or a guest
+* Customer account/email if they are logged in
+* Current cart item count
+* Current cart value
+* Search terms they entered into the FirstPick website’s own search bar
+* Products they viewed
+* Whether they started checkout
+* Whether they completed an order
+* Session start time
+* Approximate country/city only when legitimately available and permitted
+
+Do NOT attempt to access private information outside FirstPick.
+
+Do NOT claim to know someone’s exact device model, exact location, browsing history outside FirstPick, messages, other apps, or searches on Google/Safari.
+
+4. Real-Time Updates
+
+Make Admin → Customers update in real time without needing to refresh the page.
+
+Use WebSockets, Server-Sent Events, Supabase Realtime, Firebase realtime features, or another appropriate real-time architecture.
+
+Example:
+
+If a visitor opens:
+
+/products/nike-air-max
+
+the admin dashboard should quickly update their Current Page to that product.
+
+If they search:
+
+black hoodie
+
+show:
+
+Searched: black hoodie
+
+If they add something to cart, update the cart information.
+
+If they leave or stop interacting for a reasonable timeout period, change them from:
+
+Online
+
+to:
+
+Offline / Last active X minutes ago

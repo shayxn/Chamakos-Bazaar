@@ -46,7 +46,7 @@ export async function initPush(): Promise<string> {
   }
   await ensureTable();
   const keys = await getOrCreateVapidKeys();
-  webpush.setVapidDetails("mailto:admin@chamakstreet.com", keys.publicKey, keys.privateKey);
+  webpush.setVapidDetails("mailto:admin@firstpick.ae", keys.publicKey, keys.privateKey);
   _initialized = true;
   return keys.publicKey;
 }
@@ -65,6 +65,30 @@ export async function removeSubscription(endpoint: string) {
   await db.execute(sql`DELETE FROM push_subscriptions WHERE endpoint = ${endpoint}`);
 }
 
+async function getAllSubscriptions(): Promise<{ endpoint: string; p256dh: string; auth: string }[]> {
+  await ensureTable();
+  const result = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
+    sql`SELECT endpoint, p256dh, auth FROM push_subscriptions`
+  );
+  return Array.isArray(result) ? result : (result as any).rows ?? [];
+}
+
+async function deliver(subs: { endpoint: string; p256dh: string; auth: string }[], payload: string) {
+  if (!subs.length) return;
+  await Promise.allSettled(
+    subs.map((sub) =>
+      webpush
+        .sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload)
+        .catch(async (err: any) => {
+          if (err?.statusCode === 410 || err?.statusCode === 404) {
+            await removeSubscription(sub.endpoint).catch(() => {});
+          }
+        })
+    )
+  );
+}
+
+// ── Order push (called after confirmed order) ────────────────────────────────
 export async function sendOrderPush(order: {
   orderNumber: string;
   customerName: string;
@@ -74,23 +98,12 @@ export async function sendOrderPush(order: {
 }) {
   try {
     if (!_initialized) await initPush();
-    await ensureTable();
+    const subs = await getAllSubscriptions();
+    if (!subs.length) return;
 
-    const result = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
-      sql`SELECT endpoint, p256dh, auth FROM push_subscriptions`
-    );
-    const subs: { endpoint: string; p256dh: string; auth: string }[] =
-      Array.isArray(result) ? result : (result as any).rows ?? [];
-
-    if (subs.length === 0) return;
-
-    const itemsSummary = order.items
-      .slice(0, 3)
-      .map((i) => `${i.quantity}× ${i.productName}`)
-      .join(", ");
-
+    const itemsSummary = order.items.slice(0, 3).map((i) => `${i.quantity}× ${i.productName}`).join(", ");
     const payload = JSON.stringify({
-      title: `🛒 New Order — ${order.orderNumber}`,
+      title: `🛒 FirstPick — New Order`,
       body: `${order.customerName} · AED ${order.total.toFixed(2)}\n${itemsSummary}`,
       type: "NEW_ORDER",
       data: {
@@ -101,19 +114,55 @@ export async function sendOrderPush(order: {
         url: "/admin/orders",
       },
     });
-
-    await Promise.allSettled(
-      subs.map((sub) =>
-        webpush
-          .sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload)
-          .catch(async (err: any) => {
-            if (err?.statusCode === 410 || err?.statusCode === 404) {
-              await removeSubscription(sub.endpoint).catch(() => {});
-            }
-          })
-      )
-    );
+    await deliver(subs, payload);
   } catch (err) {
     console.error("[Push] sendOrderPush failed:", err);
+  }
+}
+
+// ── Activity push (customer events) ─────────────────────────────────────────
+export async function sendActivityPush(type: string, data: Record<string, unknown>) {
+  try {
+    if (!_initialized) await initPush();
+    const subs = await getAllSubscriptions();
+    if (!subs.length) return;
+
+    let title = "FirstPick";
+    let body = "";
+    let url = "/admin/visitors";
+
+    switch (type) {
+      case "NEW_VISITOR":
+        title = "FirstPick — New Visitor";
+        body = `A ${data.label ?? "visitor"} just opened FirstPick`;
+        break;
+      case "CUSTOMER_SEARCH":
+        title = "FirstPick — Customer Search";
+        body = `A customer searched for "${data.query}"`;
+        break;
+      case "CART_ADD":
+        title = "FirstPick — Added to Cart";
+        body = data.count
+          ? `A customer has ${data.count} item${Number(data.count) !== 1 ? "s" : ""} in cart (AED ${Number(data.value ?? 0).toFixed(0)})`
+          : "A customer added an item to their cart";
+        break;
+      case "CHECKOUT_STARTED":
+        title = "FirstPick — Checkout Started";
+        body = "A customer just started checkout";
+        url = "/admin/orders";
+        break;
+      case "NEW_ACCOUNT":
+        title = "FirstPick — New Account";
+        body = `New customer account created${data.email ? `: ${data.email}` : ""}`;
+        break;
+      default:
+        title = "FirstPick";
+        body = String(data.body ?? "");
+    }
+
+    const payload = JSON.stringify({ title, body, type, data: { ...data, url } });
+    await deliver(subs, payload);
+  } catch (err) {
+    console.error("[Push] sendActivityPush failed:", err);
   }
 }

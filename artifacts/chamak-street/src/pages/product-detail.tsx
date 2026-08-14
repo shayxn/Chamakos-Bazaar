@@ -9,6 +9,7 @@ import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, Chevron
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
+import { trackCartUpdate } from "@/lib/use-visitor-tracking";
 import { parseProductMedia, getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
 import { useSettings } from "@/lib/use-settings";
@@ -438,6 +439,8 @@ export default function ProductDetail() {
           if (imgContainerRef.current && selectedMedia?.url) {
             triggerFly(selectedMedia.url, imgContainerRef.current);
           }
+          // Track cart activity
+          trackCartUpdate(quantity, Number(product.price) * quantity);
         },
         onError: () => {
           toast({ title: "Error", description: "Failed to add item to cart.", variant: "destructive" });

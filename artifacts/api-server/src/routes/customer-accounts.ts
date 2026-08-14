@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { db, customerAccountsTable, customerAddressesTable, ordersTable } from "@workspace/db";
+import { db, customerAccountsTable, customerAddressesTable, ordersTable, siteSettingsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import type { Request } from "express";
+import { sendActivityPush, initPush } from "../lib/push";
 
 const router = Router();
 
@@ -33,6 +34,18 @@ router.post("/customers/register", async (req, res) => {
   }).returning({ id: customerAccountsTable.id, name: customerAccountsTable.name, email: customerAccountsTable.email, phone: customerAccountsTable.phone, createdAt: customerAccountsTable.createdAt });
   const s = (req as any).session;
   if (s) s.customerId = customer.id;
+
+  // Push notification for new account (async, don't block response)
+  (async () => {
+    try {
+      const setting = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, "notif_new_accounts"));
+      if (setting.length > 0 && setting[0].value === "true") {
+        await initPush();
+        await sendActivityPush("NEW_ACCOUNT", { email: customer.email });
+      }
+    } catch {}
+  })();
+
   res.status(201).json(customer);
 });
 

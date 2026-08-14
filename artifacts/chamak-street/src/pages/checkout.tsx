@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGetCart, useCreateOrder, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, Redirect } from "wouter";
@@ -15,6 +15,7 @@ import { Lock, ArrowRight, MessageCircle, Truck, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
+import { trackCheckout, trackOrder } from "@/lib/use-visitor-tracking";
 
 const SHIPPING_FEE = 25;
 const FREE_SHIPPING_THRESHOLD = 300;
@@ -60,9 +61,19 @@ export default function Checkout() {
   const [isRedirectingToZiina, setIsRedirectingToZiina] = useState(false);
   const [cartTracked, setCartTracked] = useState(false);
 
+  const checkoutTracked = useRef(false);
+
   useEffect(() => {
     const t = setTimeout(() => setShowBanner(false), 5000);
     return () => clearTimeout(t);
+  }, []);
+
+  // Track checkout visit once
+  useEffect(() => {
+    if (!checkoutTracked.current) {
+      checkoutTracked.current = true;
+      trackCheckout();
+    }
   }, []);
 
   const form = useForm<CheckoutValues>({
@@ -95,6 +106,9 @@ export default function Checkout() {
       {
         onSuccess: (order) => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
+          // Track completed order
+          const orderNum = `FP${String(order.id).padStart(4, "0")}`;
+          trackOrder(orderNum);
           setLocation(`/order/${order.id}`);
         }
       }

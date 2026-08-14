@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Loader2, Sparkles, ArrowRight, Clock, TrendingUp, Tag, Package } from "lucide-react";
 import { Link } from "wouter";
 import { getPrimaryProductMedia } from "@/lib/product-media";
+import { trackSearch } from "@/lib/use-visitor-tracking";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -124,6 +125,13 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
     }, 100);
     return () => clearTimeout(t);
   }, [query, allProducts]);
+
+  // Track search after user pauses typing (1.5s debounce)
+  useEffect(() => {
+    if (query.trim().length < 3) return;
+    const t = setTimeout(() => trackSearch(query.trim()), 1500);
+    return () => clearTimeout(t);
+  }, [query]);
 
   const handleSelect = useCallback((productId: number) => {
     addRecent(query);

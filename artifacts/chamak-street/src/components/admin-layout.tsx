@@ -300,7 +300,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     {
       label: "Analytics",
       links: [
-        { href: "/admin/visitors",      label: "Visitors",      icon: Users },
+        { href: "/admin/visitors",       label: "Live Customers", icon: Users },
+        { href: "/admin/notifications",  label: "Notifications",  icon: BellRing },
       ],
     },
     {

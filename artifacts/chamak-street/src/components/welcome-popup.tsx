@@ -33,7 +33,7 @@ export function WelcomePopup() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 60 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed bottom-6 left-1/2 z-[200]"
+          className="fixed bottom-24 sm:bottom-6 left-1/2 z-[200]"
           style={{
             transform: "translateX(-50%)",
             width: "min(460px, calc(100vw - 32px))",

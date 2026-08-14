@@ -1,0 +1,367 @@
+Now perform a COMPLETE quality check of the entire FirstPick website and admin dashboard.
+
+Do not only check the most recent features. Review the WHOLE website, every page, every section, every component, every modal, every menu, every form, every product card, every admin screen, and every responsive layout.
+
+The goal is to make the entire website feel polished, premium, consistent, responsive, and production-ready.
+
+1. Check Everything Works
+
+Test the entire website from beginning to end.
+
+Make sure all existing functionality actually works correctly, including:
+
+* Navigation
+* Header
+* Footer
+* Product pages
+* Product images
+* Product galleries
+* Search
+* Filters
+* Categories
+* Cart
+* Quantity controls
+* Checkout
+* Orders
+* Customer accounts
+* Login
+* Sign up
+* Admin login
+* Admin dashboard
+* Admin product management
+* FirstPick Basics
+* Customers live activity
+* Push notifications
+* Order notifications
+* Customer search/activity tracking
+* Notification settings
+* Forms
+* Buttons
+* Links
+* Dropdowns
+* Modals
+* Sidebars
+* Uploads
+* Editing
+* Deleting
+* Saving
+* Stock
+* Pricing
+* Sale pricing
+* Product status
+* Mobile navigation
+
+Do not leave buttons that look functional but do nothing.
+
+Fix broken links, console errors, failed requests, layout bugs, database issues, duplicate actions, incorrect loading states, or anything else that is not working properly.
+
+2. Full Responsive Check
+
+Check the ENTIRE website at many different screen sizes.
+
+Do not only test desktop and one mobile size.
+
+Test layouts representative of:
+
+* Small iPhones
+* Standard iPhones
+* Large iPhones
+* iPhone Pro Max sizes
+* Android phones
+* Small tablets
+* iPad
+* iPad Pro
+* Foldable/narrow layouts where applicable
+* Small laptops
+* Normal laptops
+* Large desktop monitors
+* Ultra-wide screens
+
+Use responsive breakpoints properly.
+
+Make sure the website adapts naturally instead of simply shrinking desktop elements.
+
+3. Nothing Should Be Cropped
+
+Go through every page and make sure:
+
+* No text is cut off
+* No buttons are partially hidden
+* No images are unintentionally cropped
+* No product names overflow
+* No prices overflow
+* No cards go outside the screen
+* No menus go off-screen
+* No dropdowns are clipped
+* No popups are cut off
+* No admin tables overflow incorrectly
+* No sidebars cover important content
+* No headers overlap page content
+* No footer content is cut off
+* No horizontal scrolling appears unless intentionally required
+* No content is hidden behind the iPhone Home Indicator
+* No content is hidden behind the Dynamic Island/notch area
+
+Use proper safe-area handling where necessary.
+
+4. Fix Spacing Everywhere
+
+Review spacing throughout the full site.
+
+Make sure padding, margins, gaps, alignment, and section spacing are consistent.
+
+Fix areas where elements are:
+
+* Too close together
+* Too far apart
+* Misaligned
+* Uneven
+* Touching screen edges
+* Floating awkwardly
+* Not vertically centered
+* Not horizontally centered
+* Using inconsistent card spacing
+
+Maintain a consistent design system throughout FirstPick.
+
+Buttons should have comfortable touch targets, especially on mobile.
+
+Product grids should automatically adjust to available screen width.
+
+5. Typography
+
+Check all typography.
+
+Make sure:
+
+* Text sizes are readable
+* Headings scale properly
+* Text does not overflow
+* Mobile headings are not ridiculously large
+* Paragraph widths remain comfortable
+* Buttons do not wrap awkwardly
+* Prices and badges remain aligned
+* Font weights are consistent
+* Admin dashboard typography matches the rest of the design language
+
+6. Images and Media
+
+Check every image.
+
+Make sure:
+
+* Images load correctly
+* Product photos maintain good aspect ratios
+* Images do not stretch
+* Logos remain sharp
+* Hero images resize correctly
+* Mobile images do not become excessively tall
+* Images use appropriate object-fit behavior
+* Important parts of product images are not accidentally cropped
+
+Optimize images where appropriate without visibly reducing quality.
+
+7. Improve iOS 26 Liquid Glass Design
+
+Add MORE of the iOS 26-style Liquid Glass aesthetic throughout FirstPick, while keeping the website premium and clean.
+
+Do not overdo it.
+
+Improve elements such as:
+
+* Header/navigation
+* Floating navigation controls
+* Search
+* Product filters
+* Modals
+* Bottom sheets
+* Admin panels
+* Sidebar
+* Dropdown menus
+* Notification settings
+* Floating buttons
+* Cart panels
+* Account menus
+
+Use effects inspired by modern Apple Liquid Glass design:
+
+* Translucent glass surfaces
+* Background blur
+* Subtle refraction-like highlights
+* Thin translucent borders
+* Soft layered shadows
+* Smooth rounded corners
+* Depth between foreground and background
+* Subtle light reflections
+* Glass panels that react naturally to the content behind them
+
+The glass should still have enough contrast for text to remain readable.
+
+Do NOT make everything extremely transparent.
+
+Do NOT sacrifice usability for the glass effect.
+
+8. Animations
+
+Improve animations where they make the site feel more premium.
+
+Use smooth animations for:
+
+* Opening menus
+* Closing menus
+* Modal transitions
+* Product hover
+* Button interactions
+* Page transitions
+* Adding to cart
+* Search opening
+* Admin sidebar
+* Notification settings
+* Loading states
+
+Animations should feel fluid and modern, not excessive.
+
+Respect reduced-motion accessibility settings.
+
+9. Mobile Experience
+
+Treat mobile as a first-class experience.
+
+Make sure:
+
+* Navigation is easy with one hand
+* Buttons are large enough
+* Forms fit properly
+* Checkout is easy
+* Product pages feel natural
+* Cart works perfectly
+* Search works perfectly
+* Admin dashboard can still be used properly on mobile
+* Tables become mobile-friendly cards or horizontally scroll safely where appropriate
+* Bottom sheets and menus respect iPhone safe areas
+
+10. Admin Dashboard
+
+Perform the same quality check on the ENTIRE admin dashboard.
+
+Make sure every admin section works and looks good at all sizes.
+
+Check:
+
+* Dashboard overview
+* Orders
+* Products
+* FirstPick Basics
+* Customers
+* Live customer sessions
+* Notification settings
+* Product editor
+* Image uploads
+* Stock
+* Categories
+* Pricing
+* Accounts
+* Sidebar
+* Mobile admin navigation
+
+Make sure long data, email addresses, product names, IDs, prices, and activity timelines do not break the layout.
+
+11. Loading and Error States
+
+Add proper loading and error states wherever required.
+
+Do not leave blank screens.
+
+Use:
+
+* Skeleton loaders
+* Loading indicators
+* Helpful empty states
+* Clear error messages
+* Retry options where appropriate
+
+Make sure slow internet does not completely break the UI.
+
+12. Browser Testing
+
+Make sure FirstPick behaves correctly in modern:
+
+* Safari
+* Chrome
+* Edge
+* Firefox
+* iOS Safari
+* Android Chrome
+* Installed iPhone PWA mode
+
+Pay special attention to Safari and iPhone because FirstPick uses web push notifications and PWA functionality.
+
+13. Performance
+
+Check performance.
+
+Avoid:
+
+* Huge unnecessary JavaScript
+* Repeated database requests
+* Images loading at unnecessarily massive resolutions
+* Layout shifts
+* Slow animations
+* Re-render loops
+* Duplicate API calls
+
+Lazy-load content where appropriate.
+
+Do not break existing functionality while optimizing.
+
+14. Accessibility
+
+Check basic accessibility.
+
+Make sure:
+
+* Buttons have proper labels
+* Forms have labels
+* Keyboard navigation works
+* Focus states are visible
+* Text has sufficient contrast
+* Glass effects do not make text unreadable
+* Images have meaningful alt text where necessary
+* Interactive elements are actually interactive elements
+
+15. Final QA Pass
+
+After fixing everything, run another COMPLETE pass.
+
+Check the website again at all major screen sizes.
+
+Do not consider the task complete until:
+
+* Nothing important is cropped
+* Nothing overlaps
+* Spacing is consistent
+* Every page is responsive
+* Navigation works
+* Cart works
+* Checkout works
+* Orders work
+* Admin works
+* Live Customers works
+* Notifications work
+* Product management works
+* FirstPick Basics works
+* Images display correctly
+* No major console errors remain
+* Mobile feels polished
+* Desktop feels polished
+* iPad/tablet feels polished
+* Liquid Glass design is consistent
+* The website feels like one complete premium product
+
+Do NOT replace working functionality with mockups.
+
+Do NOT create fake data to make the site look functional.
+
+Do NOT redesign FirstPick into a completely different brand.
+
+Improve and polish the EXISTING FirstPick website until it feels finished, consistent, responsive, premium, and production-ready.

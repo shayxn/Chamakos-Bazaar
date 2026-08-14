@@ -19,3 +19,4 @@
 - [Vite Fast Refresh mixed exports](vite-fast-refresh-mixed.md) — files exporting both a React component AND a hook (useXxx) crash React on HMR; fix with `/* @refresh reset */` at top of file or split into two files.
 - [FirstPick rebrand](firstpick-rebrand.md) — brand renamed from Chamak Street to FirstPick; logos, session keys, admin labels, all visible text updated.
 - [Basics collection](basics-collection.md) — `collection` text col on products table; null=main store, 'basics'=Basics; API always filters by it; admin/basics.tsx + /basics route.
+- [Notification & real-time tracking](notification-realtime-tracking.md) — web-push VAPID, SSE stream, per-event toggles in site_settings, module-level tracker functions (trackSearch/trackCartUpdate/trackCheckout/trackOrder), admin /notifications page.

@@ -95,6 +95,7 @@ import AdminGames from "@/pages/admin/games";
 import AdminRefundRequests from "@/pages/admin/refund-requests";
 import AdminProductRequests from "@/pages/admin/product-requests";
 import AdminVisitors from "@/pages/admin/visitors";
+import AdminNotificationSettings from "@/pages/admin/notification-settings";
 import AdminLayout from "@/components/admin-layout";
 import NotFound from "@/pages/not-found";
 import Terms from "@/pages/terms";
@@ -138,6 +139,7 @@ function AdminRouter() {
         <Route path="/admin/refund-requests" component={AdminRefundRequests} />
         <Route path="/admin/product-requests" component={AdminProductRequests} />
         <Route path="/admin/visitors" component={AdminVisitors} />
+        <Route path="/admin/notifications" component={AdminNotificationSettings} />
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>
