@@ -408,7 +408,6 @@ export default function ProductDetail() {
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string>("");
-  const [justSelectedSize, setJustSelectedSize] = useState<string | null>(null);
   const [addedPulse, setAddedPulse] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
@@ -631,50 +630,53 @@ export default function ProductDetail() {
               {/* Sizes */}
               {sizes.length > 0 && (
                 <div>
-                  <h3 className="font-black uppercase tracking-wider text-sm mb-3">Size</h3>
+                  <div className="flex items-baseline justify-between mb-3">
+                    <h3 className="font-black uppercase tracking-wider text-sm">Size</h3>
+                    {selectedSize && (
+                      <motion.span
+                        key={selectedSize}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                        className="text-xs font-bold text-primary uppercase tracking-widest"
+                      >
+                        {selectedSize}
+                      </motion.span>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {sizes.map((size, i) => (
                       <motion.button
                         key={size}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={
-                          justSelectedSize === size
-                            ? { opacity: 1, scale: [1, 1.32, 0.88, 1.1, 1] }
-                            : { opacity: 1, scale: 1 }
-                        }
-                        transition={
-                          justSelectedSize === size
-                            ? { duration: 0.42, ease: "easeOut", times: [0, 0.25, 0.5, 0.75, 1] }
-                            : { delay: 0.48 + i * 0.05, ease: EASE }
-                        }
-                        onClick={() => {
-                          setSelectedSize(size);
-                          setJustSelectedSize(size);
-                          setTimeout(() => setJustSelectedSize(null), 600);
-                        }}
-                        whileHover={justSelectedSize === size ? undefined : { scale: 1.08, y: -2 }}
-                        whileTap={{ scale: 0.88 }}
-                        className={`relative overflow-hidden h-10 sm:h-12 min-w-[2.5rem] sm:min-w-[3rem] px-3 sm:px-4 font-bold border rounded-sm transition-all duration-200 ${
-                          selectedSize === size
-                            ? "size-swatch-selected"
-                            : "border-white/12 glass-sm text-muted-foreground hover:border-primary/60 hover:text-foreground"
-                        }`}
+                        initial={{ opacity: 0, scale: 0.85 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.32 + i * 0.04, type: "spring", stiffness: 420, damping: 28 }}
+                        onClick={() => setSelectedSize(size)}
+                        whileTap={{ scale: 0.91 }}
+                        className="relative h-11 sm:h-12 min-w-[2.75rem] sm:min-w-[3.25rem] px-3 sm:px-4 font-bold text-sm focus:outline-none"
                         data-testid={`size-${size}`}
+                        style={{ WebkitTapHighlightColor: "transparent" }}
                       >
-                        <AnimatePresence>
-                          {justSelectedSize === size && (
-                            <motion.span
-                              key="flash"
-                              className="absolute inset-0 rounded-sm bg-primary"
-                              initial={{ opacity: 0.55, scale: 0.5 }}
-                              animate={{ opacity: 0, scale: 2.2 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.38, ease: "easeOut" }}
-                              style={{ pointerEvents: "none" }}
-                            />
-                          )}
-                        </AnimatePresence>
-                        {size}
+                        {/* Sliding selection background */}
+                        {selectedSize === size && (
+                          <motion.span
+                            layoutId="size-pill"
+                            className="absolute inset-0 rounded-xl bg-primary"
+                            transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                            style={{ borderRadius: 12 }}
+                          />
+                        )}
+                        {/* Idle border */}
+                        {selectedSize !== size && (
+                          <span className="absolute inset-0 rounded-xl border border-white/[0.13] transition-colors duration-150 hover:border-primary/50" />
+                        )}
+                        <span
+                          className={`relative z-10 transition-colors duration-150 ${
+                            selectedSize === size ? "text-black" : "text-white/55 hover:text-white"
+                          }`}
+                        >
+                          {size}
+                        </span>
                       </motion.button>
                     ))}
                   </div>

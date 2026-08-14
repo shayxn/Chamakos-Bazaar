@@ -486,12 +486,12 @@ export default function AdminProducts() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-end gap-4">
-        <div>
+      <div className="flex flex-wrap gap-3 items-start">
+        <div className="flex-1 min-w-0">
           <h1 className="text-3xl font-black uppercase tracking-tighter mb-1">Inventory</h1>
           <p className="text-muted-foreground text-sm">{products?.length ?? 0} products · Manage stock, media, and drops</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap ml-auto">
           {deleteAllConfirm ? (
             <>
               <Button

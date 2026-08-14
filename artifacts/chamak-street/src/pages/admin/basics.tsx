@@ -514,9 +514,9 @@ export default function AdminBasics() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-end gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
+      <div className="flex flex-wrap gap-3 items-start">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-1 flex-wrap">
             <h1 className="text-3xl font-black uppercase tracking-tighter">FirstPick Basics</h1>
             <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border"
               style={{ background: "rgba(255,102,0,0.1)", borderColor: "rgba(255,102,0,0.3)", color: "#ff6600" }}>
@@ -525,7 +525,7 @@ export default function AdminBasics() {
           </div>
           <p className="text-muted-foreground text-sm">{products?.length ?? 0} products · Manage the Basics collection separately from main inventory</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap ml-auto">
           {deleteAllConfirm ? (
             <>
               <Button variant="ghost" onClick={() => setDeleteAllConfirm(false)} className="text-xs font-bold h-9 text-muted-foreground" disabled={deleteAllLoading}>Cancel</Button>
