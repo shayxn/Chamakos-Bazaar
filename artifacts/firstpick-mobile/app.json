@@ -21,11 +21,15 @@
       "infoPlist": {
         "NSSupportsLiveActivities": true,
         "NSSupportsLiveActivitiesFrequentUpdates": true,
-        "UIBackgroundModes": ["remote-notification"],
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
         "NSUserTrackingUsageDescription": "We use this to show you personalised product recommendations."
       },
       "entitlements": {
-        "com.apple.security.application-groups": ["group.com.firstpick.mobile"]
+        "com.apple.security.application-groups": [
+          "group.com.firstpick.mobile"
+        ]
       },
       "config": {
         "usesNonExemptEncryption": false
@@ -38,7 +42,7 @@
       }
     },
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       [
