@@ -152,35 +152,7 @@ router.post("/orders", async (req, res) => {
 
   const itemsSubtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  // ── FirstPick+ membership benefits ────────────────────────────────────────
-  const customerId = session.customerId as number | undefined;
-  let effectiveDeliveryCharge = deliveryCharge;
-  let fpPlusDiscount = 0;
-  if (customerId) {
-    try {
-      // Run membership check + benefit settings in parallel
-      const [fpMember, fpConfig] = await Promise.all([
-        db.execute(
-          sql`SELECT 1 FROM firstpick_plus_memberships WHERE customer_id = ${customerId} AND status = 'active' LIMIT 1`
-        ),
-        db.execute(
-          sql`SELECT key, value FROM site_settings WHERE key IN ('fp_plus_free_delivery', 'fp_plus_order_discount')`
-        ),
-      ]);
-      const memberRows = Array.isArray(fpMember) ? fpMember : (fpMember as any).rows ?? [];
-      if (memberRows.length > 0) {
-        const cfgRows: Array<{key: string; value: string}> = Array.isArray(fpConfig) ? fpConfig : (fpConfig as any).rows ?? [];
-        const cfg: Record<string, string> = {};
-        for (const r of cfgRows) cfg[r.key] = r.value;
-        const freeDelivery   = cfg.fp_plus_free_delivery !== "false";  // default true
-        const discountAmount = Math.max(0, parseFloat(cfg.fp_plus_order_discount ?? "5") || 0);
-        if (freeDelivery && deliveryMethod === "standard") effectiveDeliveryCharge = 0;
-        if (discountAmount > 0) fpPlusDiscount = Math.min(discountAmount, itemsSubtotal);
-      }
-    } catch { /* never block order creation on FP+ check failure */ }
-  }
-
-  const total = itemsSubtotal + effectiveDeliveryCharge + tip - fpPlusDiscount;
+  const total = itemsSubtotal + deliveryCharge + tip;
   const hasPreOrder = cartItems.some((i) => i.isPreOrder);
 
   let orderNumber = generateOrderNumber();
@@ -200,7 +172,7 @@ router.post("/orders", async (req, res) => {
     customerAddress: body.customerAddress,
     paymentMethod: body.paymentMethod ?? "cod",
     deliveryMethod,
-    deliveryCharge: String(effectiveDeliveryCharge),
+    deliveryCharge: String(deliveryCharge),
     tip: String(tip),
     total: String(total || 0),
     status: "pending",

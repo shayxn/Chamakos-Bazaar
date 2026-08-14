@@ -113,14 +113,14 @@ function Section({ title, icon: Icon, children, accent = "rgba(255,255,255,0.08)
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border overflow-hidden"
-      style={{ borderColor: "rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}
+      className="rounded-xl overflow-hidden glass-surface"
+      style={{ border: "1px solid rgba(255,255,255,0.10)" }}
     >
       <button
         type="button"
         onClick={() => collapsible && setOpen(o => !o)}
-        className={`w-full flex items-center gap-2.5 px-4 py-3 text-left ${collapsible ? "cursor-pointer hover:bg-white/3" : "cursor-default"}`}
-        style={{ borderBottom: open ? "1px solid rgba(255,255,255,0.06)" : undefined }}
+        className={`w-full flex items-center gap-2.5 px-4 py-3 text-left ${collapsible ? "cursor-pointer hover:bg-white/5 transition-colors" : "cursor-default"}`}
+        style={{ borderBottom: open ? "1px solid rgba(255,255,255,0.08)" : undefined, backdropFilter: "blur(8px)" }}
       >
         <span className="flex items-center justify-center w-6 h-6 rounded-md shrink-0" style={{ background: accent }}>
           <Icon className="h-3.5 w-3.5 text-white/70" />
@@ -805,7 +805,7 @@ export default function AdminProducts() {
                   onChange={e => set({ name: e.target.value })}
                   placeholder="e.g. Chrome Hearts Hoodie"
                   required
-                  className="bg-white/5 border-white/10 text-white font-bold placeholder-white/25"
+                  className="glass-input text-white font-bold placeholder-white/25"
                 />
               </Field>
               <div className="grid grid-cols-2 gap-3">
@@ -826,7 +826,7 @@ export default function AdminProducts() {
                   onChange={e => set({ description: e.target.value })}
                   maxLength={500}
                   placeholder="Describe the product — material, fit, style…"
-                  className="bg-white/5 border-white/10 text-white placeholder-white/25 min-h-[80px] resize-none"
+                  className="glass-input text-white placeholder-white/25 min-h-[80px] resize-none"
                 />
               </Field>
             </Section>
@@ -842,7 +842,7 @@ export default function AdminProducts() {
                       value={formData.price || ""}
                       onChange={e => set({ price: parseFloat(e.target.value) || 0 })}
                       required
-                      className="bg-white/5 border-white/10 text-white font-mono pl-12"
+                      className="glass-input text-white font-mono pl-12"
                     />
                   </div>
                 </Field>
@@ -892,16 +892,16 @@ export default function AdminProducts() {
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="Badge Label">
                           <Input value={formData.preOrderLabel ?? ""} onChange={e => set({ preOrderLabel: e.target.value })}
-                            placeholder="Pre-Order" className="bg-white/5 border-white/10 text-white h-9 text-sm" />
+                            placeholder="Pre-Order" className="glass-input text-white h-9 text-sm" />
                         </Field>
                         <Field label="Expected Ship Date">
                           <Input value={formData.preOrderDate ?? ""} onChange={e => set({ preOrderDate: e.target.value })}
-                            placeholder="e.g. August 2025" className="bg-white/5 border-white/10 text-white h-9 text-sm" />
+                            placeholder="e.g. August 2025" className="glass-input text-white h-9 text-sm" />
                         </Field>
                       </div>
                       <Field label="Pre-Order Note">
                         <Input value={formData.preOrderNote ?? ""} onChange={e => set({ preOrderNote: e.target.value })}
-                          placeholder="Ships when available. No charge until shipped." className="bg-white/5 border-white/10 text-white h-9 text-sm" />
+                          placeholder="Ships when available. No charge until shipped." className="glass-input text-white h-9 text-sm" />
                       </Field>
                     </div>
                   </motion.div>
@@ -911,18 +911,18 @@ export default function AdminProducts() {
 
             {/* Scheduling — collapsible */}
             <Section title="Scheduling" icon={Layers} accent="rgba(139,92,246,0.18)" collapsible>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Publish At (optional)" hint="Auto-publish at this date">
                   <Input type="datetime-local"
                     value={formData.publishAt ? formData.publishAt.slice(0, 16) : ""}
                     onChange={e => set({ publishAt: e.target.value || null })}
-                    className="bg-white/5 border-white/10 text-white h-9 text-xs" />
+                    className="bg-white/5 border-white/10 text-white h-10 text-xs w-full" />
                 </Field>
                 <Field label="Unpublish At (optional)" hint="Auto-hide at this date">
                   <Input type="datetime-local"
                     value={formData.unpublishAt ? formData.unpublishAt.slice(0, 16) : ""}
                     onChange={e => set({ unpublishAt: e.target.value || null })}
-                    className="bg-white/5 border-white/10 text-white h-9 text-xs" />
+                    className="bg-white/5 border-white/10 text-white h-10 text-xs w-full" />
                 </Field>
               </div>
             </Section>

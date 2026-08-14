@@ -121,8 +121,6 @@ const AdminAbandonedCarts = lazy(() => import("@/pages/admin/abandoned-carts"));
 const AdminStockAlerts = lazy(() => import("@/pages/admin/stock-alerts"));
 const AdminSalesReports = lazy(() => import("@/pages/admin/sales-reports"));
 const AdminImport = lazy(() => import("@/pages/admin/import"));
-const AdminFirstPickPlus = lazy(() => import("@/pages/admin/firstpick-plus"));
-const FirstPickPlus = lazy(() => import("@/pages/firstpick-plus"));
 
 // ── Suspense fallback ──
 function PageSkeleton() {
@@ -167,7 +165,7 @@ function AdminRouter() {
         <Route path="/admin/stock-alerts" component={AdminStockAlerts} />
         <Route path="/admin/sales-reports" component={AdminSalesReports} />
         <Route path="/admin/import" component={AdminImport} />
-        <Route path="/admin/firstpick-plus" component={AdminFirstPickPlus} />
+
         <Route component={NotFound} />
       </Switch>
     </AdminLayout>
@@ -207,7 +205,6 @@ function MainRouter() {
             <Route path="/games" component={Games} />
             <Route path="/games/:id" component={GameDetail} />
             <Route path="/receipt/:id" component={Receipt} />
-            <Route path="/firstpick-plus" component={FirstPickPlus} />
 
             <Route component={NotFound} />
           </Switch>

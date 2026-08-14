@@ -94,26 +94,7 @@ export default function Checkout() {
   const [isRedirectingToZiina, setIsRedirectingToZiina] = useState(false);
   const [cartTracked, setCartTracked] = useState(false);
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptionDef[]>(BASE_DELIVERY_OPTIONS);
-  const [fpPlusActive, setFpPlusActive] = useState(false);
-  const [fpDiscountAmount, setFpDiscountAmount] = useState(5);
-  const [fpFreeDelivery, setFpFreeDelivery] = useState(true);
   const checkoutTracked = useRef(false);
-
-  // Fetch FP+ status + settings in parallel (silent — never blocks checkout)
-  useEffect(() => {
-    Promise.all([
-      fetch(`${BASE}/api/firstpick-plus/my-status`, { credentials: "include" }).then((r) => r.json()).catch(() => ({})),
-      fetch(`${BASE}/api/firstpick-plus/settings`, { credentials: "include" }).then((r) => r.json()).catch(() => ({})),
-    ]).then(([status, settings]) => {
-      if ((status as { status?: string })?.status === "active") setFpPlusActive(true);
-      if (settings) {
-        const disc = parseFloat((settings as Record<string, string>).fp_plus_order_discount ?? "5") || 0;
-        const freeDel = (settings as Record<string, string>).fp_plus_free_delivery !== "false";
-        setFpDiscountAmount(Math.max(0, disc));
-        setFpFreeDelivery(freeDel);
-      }
-    }).catch(() => {});
-  }, []);
 
   // Fetch admin-configured delivery prices with fallback to defaults
   useEffect(() => {
@@ -152,14 +133,12 @@ export default function Checkout() {
   // ── Totals ────────────────────────────────────────────────────────────────
   const subtotal = cart.total;
   const selectedDelivery = deliveryOptions.find((o) => o.id === deliveryMethod) ?? deliveryOptions[0]!;
-  const baseDeliveryCharge = selectedDelivery.price;
-  const deliveryCharge = (fpPlusActive && fpFreeDelivery && deliveryMethod === "standard") ? 0 : baseDeliveryCharge;
-  const fpDiscount = fpPlusActive && fpDiscountAmount > 0 ? Math.min(fpDiscountAmount, subtotal) : 0;
+  const deliveryCharge = selectedDelivery.price;
   const tipAmount =
     tipOption === "none" ? 0
     : tipOption === "custom" ? Math.max(0, parseFloat(customTipRaw) || 0)
     : parseInt(tipOption, 10);
-  const grandTotal = subtotal + deliveryCharge + tipAmount - fpDiscount;
+  const grandTotal = subtotal + deliveryCharge + tipAmount;
 
   const trackAbandonedCart = (name: string, phone: string) => {
     if (cartTracked || !cart || cart.items.length === 0) return;
@@ -340,12 +319,7 @@ export default function Checkout() {
                             <p className="text-xs text-muted-foreground">{opt.detail}</p>
                           </div>
                           <div className={`relative font-mono font-black text-sm ${selected ? "text-primary" : "text-muted-foreground"}`}>
-                            {(fpPlusActive && fpFreeDelivery && opt.id === "standard") ? (
-                              <span className="flex flex-col items-end">
-                                <span className="text-[10px] line-through opacity-40">AED {opt.price}</span>
-                                <span className="text-green-400">FREE</span>
-                              </span>
-                            ) : `AED ${opt.price}`}
+                            AED {opt.price}
                           </div>
                         </button>
                       );
@@ -516,30 +490,8 @@ export default function Checkout() {
                     {deliveryMethod === "priority" ? <Zap className="h-3 w-3 text-primary" /> : <Truck className="h-3 w-3" />}
                     {selectedDelivery.label}
                   </span>
-                  {(fpPlusActive && fpFreeDelivery && deliveryMethod === "standard") ? (
-                    <span className="flex items-center gap-1.5">
-                      <span className="font-mono text-xs line-through text-muted-foreground">AED {baseDeliveryCharge.toFixed(2)}</span>
-                      <span className="font-mono font-bold text-green-400">FREE</span>
-                    </span>
-                  ) : (
-                    <span className="font-mono font-bold text-primary">AED {deliveryCharge.toFixed(2)}</span>
-                  )}
+                  <span className="font-mono font-bold text-primary">AED {deliveryCharge.toFixed(2)}</span>
                 </div>
-
-                <AnimatePresence>
-                  {fpDiscount > 0 && (
-                    <motion.div
-                      key="fp-discount"
-                      initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-                      className="flex justify-between text-sm"
-                    >
-                      <span className="text-green-400 flex items-center gap-1 font-bold">
-                        ✦ FirstPick+ Discount
-                      </span>
-                      <span className="font-mono font-bold text-green-400">−AED {fpDiscount.toFixed(2)}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
                 <AnimatePresence>
                   {tipAmount > 0 && (

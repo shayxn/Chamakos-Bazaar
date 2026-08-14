@@ -479,7 +479,7 @@ export function SmartSearchModal() {
               transition={{ duration: 0.18 }}
               onClick={() => setOpen(false)}
               className="fixed inset-0 z-[100]"
-              style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(8px)" }}
+              style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(20px) saturate(160%)", WebkitBackdropFilter: "blur(20px) saturate(160%)" }}
             />
 
             {/* Modal */}
@@ -492,12 +492,12 @@ export function SmartSearchModal() {
               style={{
                 top: "max(calc(env(safe-area-inset-top, 0px) + 0.5rem), 8vh)",
                 maxWidth: "min(680px, 94vw)",
-                background: "rgba(6,6,6,0.82)",
-                backdropFilter: "blur(40px) saturate(180%)",
-                WebkitBackdropFilter: "blur(40px) saturate(180%)",
-                border: "1px solid rgba(255,255,255,0.11)",
+                background: "rgba(6,6,6,0.78)",
+                backdropFilter: "blur(72px) saturate(240%) brightness(1.08)",
+                WebkitBackdropFilter: "blur(72px) saturate(240%) brightness(1.08)",
+                border: "1px solid rgba(255,255,255,0.14)",
                 borderRadius: 24,
-                boxShadow: "0 32px 80px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 0.5px rgba(255,102,0,0.10)",
+                boxShadow: "0 40px 100px rgba(0,0,0,0.80), inset 0 2px 0 rgba(255,255,255,0.16), inset 0 -1.5px 0 rgba(0,0,0,0.28), 0 0 0 0.5px rgba(255,102,0,0.12)",
               }}
             >
               {/* Top accent line */}

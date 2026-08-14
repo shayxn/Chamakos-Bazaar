@@ -314,11 +314,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <li><Link href="/terms" className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-block">Terms of Service</Link></li>
               <li><Link href="/privacy" className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-block">Privacy Policy</Link></li>
               <li><Link href="/shipping" className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-block">Shipping Info</Link></li>
-              <li>
-                <Link href="/firstpick-plus" className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-flex items-center gap-1.5">
-                  <span className="text-primary font-black">✦</span> FirstPick+
-                </Link>
-              </li>
             </ul>
           </motion.div>
         </div>
