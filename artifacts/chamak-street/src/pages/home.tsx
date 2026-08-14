@@ -8,6 +8,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
+import { useMobile } from "@/lib/use-mobile";
 import { TrustSection } from "@/components/trust-section";
 import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
@@ -181,6 +182,7 @@ function SectionDivider({ accent = true }: { accent?: boolean }) {
 
 export default function Home() {
   const settings = useSettings();
+  const isMobile = useMobile();
   const { data: featuredProducts } = useListProducts(
     { featured: true },
     { query: { queryKey: getListProductsQueryKey({ featured: true }), staleTime: 30_000 } }
@@ -197,14 +199,18 @@ export default function Home() {
       const parsed = JSON.parse(settings.hero_images || "[]");
       if (Array.isArray(parsed) && parsed.filter(Boolean).length > 0) return parsed.filter(Boolean);
     } catch {}
-    return [settings.hero_image || "/chamako-hero.png"];
-  }, [settings.hero_images, settings.hero_image]);
+    // Use admin-configured single image if set, else use brand default
+    if (settings.hero_image) return [settings.hero_image];
+    // Default: portrait on mobile, landscape on desktop
+    return [isMobile ? "/firstpick-hero-portrait.png" : "/firstpick-hero.png"];
+  }, [settings.hero_images, settings.hero_image, isMobile]);
 
   // Track which hero image indices have failed to load → swap in fallback
   const [heroImgFailed, setHeroImgFailed] = useState<Record<number, boolean>>({});
+  const defaultFallback = isMobile ? "/firstpick-hero-portrait.png" : "/firstpick-hero.png";
   const heroSrc = useCallback((i: number) =>
-    heroImgFailed[i] ? "/chamako-hero.png" : heroImages[i],
-  [heroImages, heroImgFailed]);
+    heroImgFailed[i] ? defaultFallback : heroImages[i],
+  [heroImages, heroImgFailed, defaultFallback]);
 
   const slideInterval = Math.max(2000, Number(settings.hero_slide_interval || 5000));
   const [slideIdx, setSlideIdx] = useState(0);
@@ -241,7 +247,15 @@ export default function Home() {
             alt=""
             aria-hidden="true"
             onError={() => setHeroImgFailed(prev => ({ ...prev, [slideIdx]: true }))}
-            style={{ width: "100%", height: "auto", display: "block", visibility: "hidden", minHeight: "60vh", maxHeight: "90vh", objectFit: "contain" }}
+            style={{
+              width: "100%",
+              height: isMobile ? "78vh" : "auto",
+              display: "block",
+              visibility: "hidden",
+              minHeight: isMobile ? "70vh" : "60vh",
+              maxHeight: isMobile ? "82vh" : "90vh",
+              objectFit: isMobile ? "cover" : "contain",
+            }}
           />
 
           {/* Actual crossfade slides — absolutely positioned over the ghost */}
@@ -251,7 +265,8 @@ export default function Home() {
             const isVideo = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(src);
             const style: React.CSSProperties = {
               position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "contain", objectPosition: "center",
+              objectFit: isMobile ? "cover" : "contain",
+              objectPosition: isMobile ? "center top" : "center",
               opacity: isActive ? 1 : 0,
               transition: "opacity 1s cubic-bezier(0.22,1,0.36,1)",
               pointerEvents: isActive ? "auto" : "none",

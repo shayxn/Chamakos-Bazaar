@@ -78,7 +78,7 @@ export default function Cart() {
                 </Button>
               </motion.div>
             </Link>
-            <Link href="/" className="block text-xs text-white/30 hover:text-white/60 transition-colors font-bold uppercase tracking-widest">
+            <Link href="/" className="block text-xs text-white/30 hover:text-white/60 transition-colors font-bold uppercase tracking-widest mt-6">
               ← Back to Home
             </Link>
           </motion.div>

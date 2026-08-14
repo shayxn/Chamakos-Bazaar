@@ -832,8 +832,8 @@ export default function ProductDetail() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            className="fixed bottom-0 inset-x-0 z-40 md:hidden"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.85) 100%)", backdropFilter: "blur(12px)", borderTop: "1px solid rgba(255,102,0,0.2)" }}
+            className="fixed inset-x-0 z-[49] md:hidden"
+            style={{ bottom: "56px", background: "linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.85) 100%)", backdropFilter: "blur(12px)", borderTop: "1px solid rgba(255,102,0,0.2)" }}
           >
             <div className="px-4 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">

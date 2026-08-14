@@ -216,6 +216,17 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
             )}
           </AnimatePresence>
           <kbd className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-white/20 px-1.5 py-0.5 rounded border border-white/10 font-mono">ESC</kbd>
+          {onClose && (
+            <motion.button
+              whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.08)" }}
+              whileTap={{ scale: 0.92 }}
+              onClick={onClose}
+              className="flex items-center justify-center w-7 h-7 rounded-full text-white/40 hover:text-white transition-colors"
+              aria-label="Close search"
+            >
+              <X className="h-4 w-4" />
+            </motion.button>
+          )}
         </div>
       </div>
 
@@ -477,8 +488,9 @@ export function SmartSearchModal() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: -16 }}
               transition={{ duration: 0.25, ease: EASE }}
-              className="fixed top-[8vh] left-1/2 -translate-x-1/2 z-[101] w-full overflow-hidden"
+              className="fixed left-1/2 -translate-x-1/2 z-[101] w-full overflow-hidden"
               style={{
+                top: "max(calc(env(safe-area-inset-top, 0px) + 0.5rem), 8vh)",
                 maxWidth: "min(680px, 94vw)",
                 background: "rgba(6,6,6,0.82)",
                 backdropFilter: "blur(40px) saturate(180%)",

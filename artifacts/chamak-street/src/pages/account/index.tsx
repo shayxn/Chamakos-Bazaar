@@ -223,10 +223,10 @@ export default function AccountPage() {
                 ))}
                 <div className="bg-card border border-border rounded-xl p-5 space-y-3">
                   <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Add New Address</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <input value={addrForm.label} onChange={e => setAddrForm(f => ({ ...f, label: e.target.value }))} placeholder="Label (Home, Work...)"
-                      className="px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary/60" />
-                    <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
+                      className="flex-1 min-w-[140px] px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary/60" />
+                    <label className="flex items-center gap-2 text-sm font-bold cursor-pointer shrink-0">
                       <input type="checkbox" checked={addrForm.isDefault} onChange={e => setAddrForm(f => ({ ...f, isDefault: e.target.checked }))} />
                       Set as default
                     </label>
