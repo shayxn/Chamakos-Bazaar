@@ -7,6 +7,8 @@ import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache
 const router = Router();
 const reviewsCache = createTtlCache<unknown>(60_000);
 
+function clearReviewsCache() { reviewsCache.clear(); }
+
 function serializeReview(r: typeof reviewsTable.$inferSelect) {
   return { ...r, createdAt: r.createdAt.toISOString() };
 }
@@ -50,12 +52,14 @@ router.post("/reviews/submit", async (req, res) => {
   const reviewBody = body.productName?.trim()
     ? `[${body.productName.trim()}] ${body.body.trim()}`
     : body.body.trim();
+  const rawRating = Number(body.rating ?? 5);
+  const safeRating = Number.isFinite(rawRating) ? Math.min(5, Math.max(1, rawRating)) : 5;
   const [review] = await db
     .insert(reviewsTable)
     .values({
       customerName: body.customerName.trim(),
       customerAvatar: null,
-      rating: Math.min(5, Math.max(1, Number(body.rating ?? 5))),
+      rating: safeRating,
       body: reviewBody,
       imageUrls: body.imageUrls ?? null,
       isVerified: false,
@@ -64,6 +68,7 @@ router.post("/reviews/submit", async (req, res) => {
       displayOrder: 0,
     })
     .returning();
+  clearReviewsCache();
   res.status(201).json({ message: "Review submitted for approval", id: review.id });
 });
 
@@ -83,12 +88,13 @@ router.post("/reviews", requireAdmin, async (req, res) => {
     res.status(400).json({ error: "customerName and body required" });
     return;
   }
+  const adminRating = Number(body.rating ?? 5);
   const [review] = await db
     .insert(reviewsTable)
     .values({
       customerName: body.customerName,
       customerAvatar: body.customerAvatar ?? null,
-      rating: body.rating ?? 5,
+      rating: Number.isFinite(adminRating) ? Math.min(5, Math.max(1, adminRating)) : 5,
       body: body.body,
       imageUrls: body.imageUrls ?? null,
       isVerified: body.isVerified ?? false,
@@ -97,13 +103,24 @@ router.post("/reviews", requireAdmin, async (req, res) => {
       displayOrder: body.displayOrder ?? 0,
     })
     .returning();
+  clearReviewsCache();
   res.status(201).json(serializeReview(review));
 });
 
 router.patch("/reviews/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const [review] = await db.update(reviewsTable).set(req.body).where(eq(reviewsTable.id, id)).returning();
+  const body = req.body as Partial<typeof reviewsTable.$inferInsert>;
+  // Allowlist writable fields to prevent mass-assignment
+  const allowed: Partial<typeof reviewsTable.$inferInsert> = {};
+  const fields = ["customerName","customerAvatar","rating","body","imageUrls","isVerified","isPinned","isVisible","displayOrder"] as const;
+  for (const f of fields) { if (body[f] !== undefined) (allowed as Record<string, unknown>)[f] = body[f]; }
+  if (allowed.rating !== undefined) {
+    const r = Number(allowed.rating);
+    allowed.rating = Number.isFinite(r) ? Math.min(5, Math.max(1, r)) : 5;
+  }
+  clearReviewsCache();
+  const [review] = await db.update(reviewsTable).set(allowed).where(eq(reviewsTable.id, id)).returning();
   if (!review) { res.status(404).json({ error: "Not found" }); return; }
   res.json(serializeReview(review));
 });
@@ -111,6 +128,7 @@ router.patch("/reviews/:id", requireAdmin, async (req, res) => {
 router.delete("/reviews/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  clearReviewsCache();
   await db.delete(reviewsTable).where(eq(reviewsTable.id, id));
   res.json({ message: "Deleted" });
 });

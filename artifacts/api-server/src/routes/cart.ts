@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, cartItemsTable, productsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { AddToCartBody, UpdateCartItemParams, UpdateCartItemBody, RemoveCartItemParams } from "@workspace/api-zod";
 
 const router = Router();
@@ -63,7 +63,7 @@ router.post("/cart/items", async (req, res) => {
     .where(and(
       eq(cartItemsTable.sessionId, sessionId),
       eq(cartItemsTable.productId, productId),
-      ...(size ? [eq(cartItemsTable.size, size)] : []),
+      ...(size ? [eq(cartItemsTable.size, size)] : [isNull(cartItemsTable.size)]),
     ));
 
   if (existing) {

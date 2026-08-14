@@ -24,7 +24,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
   const { cartBounceKey } = useCartFly();
 
-  const cartCount = cart?.items.reduce((a, i) => a + i.quantity, 0) || 0;
+  const cartCount = (cart?.items ?? []).reduce((a, i) => a + i.quantity, 0) || 0;
 
   const rawLogoUrl = settings.logo_url || "";
   const logoUrl = (!rawLogoUrl || rawLogoUrl === "/chamak-logo.png" || rawLogoUrl === "/chamak-logo-transparent.png") ? "/firstpick-logo.svg" : rawLogoUrl;

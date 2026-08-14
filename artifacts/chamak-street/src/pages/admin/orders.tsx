@@ -508,7 +508,7 @@ export default function AdminOrders() {
                   {order.deliveryMethod === "express" && (
                     <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded font-black uppercase tracking-wider">Express</span>
                   )}
-                  <button onClick={() => navigator.clipboard.writeText(order.orderNumber ?? `#${order.id}`).then(() => toast({ title: "Copied!" }))}
+                  <button onClick={() => navigator.clipboard.writeText(order.orderNumber ?? `#${order.id}`).then(() => toast({ title: "Copied!" })).catch(() => {})}
                     className="text-muted-foreground hover:text-primary transition-colors">
                     <Copy className="h-3.5 w-3.5" />
                   </button>
@@ -529,7 +529,7 @@ export default function AdminOrders() {
 
               <div className="flex-1 flex items-start gap-4 flex-wrap justify-end">
                 <div className="text-right">
-                  <p className="font-mono font-black text-xl text-primary">AED {order.total.toFixed(2)}</p>
+                  <p className="font-mono font-black text-xl text-primary">AED {Number(order.total ?? 0).toFixed(2)}</p>
                   <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleDateString("en-AE")}</p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
                     <WalletCards className="h-3 w-3" /> {order.paymentMethod === "cod" ? "Cash on Delivery" : (order.paymentMethod ?? "Unknown")}
@@ -581,7 +581,7 @@ export default function AdminOrders() {
                     <div>
                       <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Order Items</p>
                       <div className="space-y-2">
-                        {order.items.map((item) => (
+                        {(order.items ?? []).map((item) => (
                           <div key={item.id} className="flex items-center gap-3 text-sm py-2 border-b border-border/30 last:border-0">
                             <Package className="h-4 w-4 text-primary shrink-0" />
                             <span className="font-bold">{item.quantity}×</span>

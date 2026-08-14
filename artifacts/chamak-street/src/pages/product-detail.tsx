@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRoute } from "wouter";
 import { useGetProduct, useAddToCart, useListProducts, getGetProductQueryKey, getGetCartQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
 import { useCartFly } from "@/components/cart-fly-context";
@@ -415,7 +415,7 @@ export default function ProductDetail() {
   const [stickyVisible, setStickyVisible] = useState(false);
 
   const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()) : [];
-  const mediaItems = parseProductMedia(product?.imageUrl ?? null);
+  const mediaItems = useMemo(() => parseProductMedia(product?.imageUrl ?? null), [product?.imageUrl]);
 
   // Show sticky ATC bar after scrolling past the main ATC button
   useEffect(() => {

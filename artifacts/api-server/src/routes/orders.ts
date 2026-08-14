@@ -10,9 +10,17 @@ const router = Router();
 
 const ordersListCache = createTtlCache<ReturnType<typeof serializeOrder>[]>(15_000);
 
-function generateOrderNumber(): string {
-  const num = 100000 + Math.floor(Math.random() * 900000);
-  return `CHM-${num}`;
+async function generateOrderNumber(): Promise<string> {
+  const { ordersTable: ot } = await import("@workspace/db");
+  const { eq: deq } = await import("drizzle-orm");
+  for (let i = 0; i < 10; i++) {
+    const num = 100000 + Math.floor(Math.random() * 900000);
+    const candidate = `CHM-${num}`;
+    const [existing] = await db.select({ id: ot.id }).from(ot).where(deq(ot.orderNumber, candidate));
+    if (!existing) return candidate;
+  }
+  // Fallback: timestamp-based
+  return `CHM-${Date.now().toString(36).toUpperCase()}`;
 }
 
 const DELIVERY_LABELS: Record<string, string> = {
@@ -201,14 +209,7 @@ router.post("/orders", async (req, res) => {
   const total = itemsSubtotal + deliveryCharge + tip;
   const hasPreOrder = cartItems.some((i) => i.isPreOrder);
 
-  let orderNumber = generateOrderNumber();
-  let attempts = 0;
-  while (attempts < 5) {
-    const existing = await db.select({ id: ordersTable.id }).from(ordersTable).where(eq(ordersTable.orderNumber, orderNumber));
-    if (existing.length === 0) break;
-    orderNumber = generateOrderNumber();
-    attempts++;
-  }
+  const orderNumber = await generateOrderNumber();
 
   const [order] = await db.insert(ordersTable).values({
     orderNumber,

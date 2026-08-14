@@ -74,6 +74,7 @@ router.post("/events", requireAdmin, async (req, res) => {
 router.patch("/events/:id", requireAdmin, async (req, res) => {
   clearEventsCache();
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const body = req.body as Partial<typeof eventsTable.$inferInsert>;
   const allowed: Partial<typeof eventsTable.$inferInsert> = {};
   const fields = [
@@ -94,6 +95,7 @@ router.patch("/events/:id", requireAdmin, async (req, res) => {
 // Admin: duplicate event
 router.post("/events/:id/duplicate", requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const [original] = await db.select().from(eventsTable).where(eq(eventsTable.id, id));
   if (!original) { res.status(404).json({ error: "Event not found" }); return; }
   const { id: _id, createdAt: _c, ...rest } = original;
@@ -109,6 +111,7 @@ router.post("/events/:id/duplicate", requireAdmin, async (req, res) => {
 router.delete("/events/:id", requireAdmin, async (req, res) => {
   clearEventsCache();
   const id = parseInt(req.params.id as string);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(eventsTable).where(eq(eventsTable.id, id));
   res.json({ ok: true });
 });

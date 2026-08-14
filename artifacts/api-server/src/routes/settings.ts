@@ -43,7 +43,7 @@ router.put("/settings/:key", requireAdmin, async (req, res) => {
 
 router.post("/settings/bulk", requireAdmin, async (req, res) => {
   const map = req.body as Record<string, string>;
-  if (typeof map !== "object" || Array.isArray(map)) {
+  if (typeof map !== "object" || map === null || Array.isArray(map)) {
     res.status(400).json({ error: "Expected object" });
     return;
   }

@@ -23,7 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { data: categories } = useListCategories({ query: { queryKey: getListCategoriesQueryKey(), staleTime: 60_000 } });
   const logout = useLogout();
 
-  const cartCount = cart?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
+  const cartCount = (cart?.items ?? []).reduce((acc, item) => acc + item.quantity, 0) || 0;
   const { cartBounceKey } = useCartFly();
 
   useEffect(() => {
