@@ -14,7 +14,6 @@ import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
 import { EventHomepageBanner } from "@/components/event-homepage-banner";
 import { SpotlightBanner } from "@/components/spotlight-banner";
-import { WidgetZone } from "@/components/widget-zone";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -408,14 +407,6 @@ export default function Home() {
 
         {/* ── SPOTLIGHT BANNER ── */}
         <SpotlightBanner />
-
-        {/* ── PWA WIDGETS ── */}
-        <WidgetZone
-          placement="home"
-          showOrderWidget
-          compactPrompt
-          className="container mx-auto px-4 mb-2"
-        />
 
         {/* ══════════════ FEATURED PRODUCTS ══════════════ */}
         <section className="py-12 md:py-20 overflow-hidden relative">

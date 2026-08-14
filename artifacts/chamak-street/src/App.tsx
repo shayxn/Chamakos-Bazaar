@@ -121,7 +121,6 @@ const AdminAbandonedCarts = lazy(() => import("@/pages/admin/abandoned-carts"));
 const AdminStockAlerts = lazy(() => import("@/pages/admin/stock-alerts"));
 const AdminSalesReports = lazy(() => import("@/pages/admin/sales-reports"));
 const AdminImport = lazy(() => import("@/pages/admin/import"));
-const AdminWidgets = lazy(() => import("@/pages/admin/widgets"));
 
 // ── Suspense fallback ──
 function PageSkeleton() {
@@ -166,7 +165,6 @@ function AdminRouter() {
         <Route path="/admin/stock-alerts" component={AdminStockAlerts} />
         <Route path="/admin/sales-reports" component={AdminSalesReports} />
         <Route path="/admin/import" component={AdminImport} />
-        <Route path="/admin/widgets" component={AdminWidgets} />
 
         <Route component={NotFound} />
       </Switch>
