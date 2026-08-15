@@ -34,13 +34,21 @@ export async function refreshActiveEvents(force = false) {
   if (_fetching) return;
   if (!force && Date.now() - _lastFetch < CACHE_MS) return;
   _fetching = true;
+  const now = Date.now();
   try {
     const r = await fetch(`${BASE}/api/events/active`);
-    if (!r.ok) return;
+    if (!r.ok) {
+      // Back off 10s on error so we don't hammer a failing endpoint
+      _lastFetch = now - CACHE_MS + 10_000;
+      return;
+    }
     _events = await r.json() as ActiveEvent[];
-    _lastFetch = Date.now();
+    _lastFetch = now;
     notifyListeners();
-  } catch {} finally {
+  } catch {
+    // Back off 10s on network error
+    _lastFetch = now - CACHE_MS + 10_000;
+  } finally {
     _fetching = false;
   }
 }
@@ -60,8 +68,10 @@ function useCountdown(endAt: string | null, enabled: boolean) {
   const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
   useEffect(() => {
     if (!endAt || !enabled) return;
+    const end = new Date(endAt).getTime();
+    if (isNaN(end)) return; // guard malformed date strings
     const tick = () => {
-      const diff = new Date(endAt).getTime() - Date.now();
+      const diff = end - Date.now();
       if (diff <= 0) { setTimeLeft(null); return; }
       setTimeLeft({
         d: Math.floor(diff / 86400000),

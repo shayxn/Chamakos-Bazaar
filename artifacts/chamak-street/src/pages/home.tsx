@@ -17,14 +17,20 @@ import { SpotlightBanner } from "@/components/spotlight-banner";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-/* ── 3D Tilt Card ── */
+/* ── 3D Tilt Card — desktop only, disabled on touch ── */
 function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useMobile();
 
   const rafRef = useRef<number | null>(null);
+
+  // Cancel any pending RAF on unmount so we never call setState after teardown
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (isMobile) return;
     const { clientX, clientY } = e;
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(() => {
@@ -35,7 +41,7 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
       const y = ((clientY - rect.top) / rect.height - 0.5) * -16;
       setTilt({ x, y });
     });
-  }, []);
+  }, [isMobile]);
 
   const handleMouseLeave = useCallback(() => { setTilt({ x: 0, y: 0 }); setIsHovered(false); }, []);
 
@@ -43,11 +49,11 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
     <motion.div
       ref={ref}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      animate={{ rotateY: tilt.x, rotateX: tilt.y }}
+      onMouseEnter={isMobile ? undefined : () => setIsHovered(true)}
+      onMouseLeave={isMobile ? undefined : handleMouseLeave}
+      animate={isMobile ? {} : { rotateY: tilt.x, rotateX: tilt.y }}
       transition={{ type: "spring", stiffness: 280, damping: 26 }}
-      style={{ transformStyle: "preserve-3d", perspective: 1100 }}
+      style={isMobile ? undefined : { transformStyle: "preserve-3d", perspective: 1100 }}
       className={className}
       data-hovered={isHovered}
     >
@@ -161,7 +167,7 @@ function ViewportVideo({ src }: { src: string }) {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
         disablePictureInPicture
         className="w-full block"
         style={{ maxHeight: "85vh", objectFit: "cover", display: "block" }}
@@ -301,7 +307,11 @@ export default function Home() {
               zIndex: isActive ? 1 : 0,
             };
             return isVideo ? (
-              <video key={i} src={src} style={style} autoPlay loop playsInline muted />
+              // Only autoplay the active slide; inactive slides stay paused and don't load
+              <video key={i} src={src} style={style}
+                autoPlay={isActive} loop playsInline muted
+                preload={isActive ? "auto" : "none"}
+              />
             ) : (
               <img
                 key={i}

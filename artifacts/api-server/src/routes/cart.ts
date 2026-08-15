@@ -87,10 +87,11 @@ router.patch("/cart/items/:id", async (req, res) => {
     return;
   }
   const sessionId = getSessionId(req);
-  await db
+  const result = await db
     .update(cartItemsTable)
     .set({ quantity: bodyParsed.data.quantity })
     .where(and(eq(cartItemsTable.id, paramsParsed.data.id), eq(cartItemsTable.sessionId, sessionId)));
+  if (!result.rowCount) { res.status(404).json({ error: "Item not found" }); return; }
   const cart = await buildCart(sessionId);
   res.json(cart);
 });
@@ -102,10 +103,11 @@ router.delete("/cart/items/:id", async (req, res) => {
     return;
   }
   const sessionId = getSessionId(req);
-  await db.delete(cartItemsTable).where(and(
+  const result = await db.delete(cartItemsTable).where(and(
     eq(cartItemsTable.id, parsed.data.id),
     eq(cartItemsTable.sessionId, sessionId),
   ));
+  if (!result.rowCount) { res.status(404).json({ error: "Item not found" }); return; }
   const cart = await buildCart(sessionId);
   res.json(cart);
 });

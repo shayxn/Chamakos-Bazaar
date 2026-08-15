@@ -107,10 +107,10 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location}
-            initial={{ opacity: 0, y: yIn, scale: 0.984 }}
+            initial={{ opacity: 0, y: yIn, scale: 0.987 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.992, transition: { duration: 0.14, ease: "easeIn" } }}
-            transition={{ type: "spring", stiffness: 400, damping: 36, mass: 0.65 }}
+            exit={{ opacity: 0, transition: { duration: 0 } }}
+            transition={{ type: "spring", stiffness: 440, damping: 38, mass: 0.6 }}
             style={{ willChange: "transform, opacity" }}
           >
             {children}
