@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAdmin } from "../lib/auth-middleware";
-import { initPush, saveSubscription, removeSubscription, sendOrderPush } from "../lib/push";
+import { initPush, saveSubscription, removeSubscription, sendOrderPush, saveCustomerSubscription, ensureCustomerSubTable } from "../lib/push";
 
 const router = Router();
 
@@ -58,6 +58,19 @@ router.post("/push/test", requireAdmin, async (_req, res) => {
   } catch {
     res.status(500).json({ error: "Test notification failed" });
   }
+});
+
+// Customer self-subscription
+router.post("/push/customer-subscribe", async (req, res) => {
+  const { endpoint, p256dh, auth, customerPhone, customerEmail } = req.body as Record<string, string>;
+  if (!endpoint || !p256dh || !auth) { res.status(400).json({ error: "Missing fields" }); return; }
+  await saveCustomerSubscription(endpoint, p256dh, auth, customerPhone, customerEmail);
+  res.json({ ok: true });
+});
+
+router.get("/push/vapid-public-key", async (_req, res) => {
+  const key = await initPush();
+  res.json({ publicKey: key });
 });
 
 export default router;

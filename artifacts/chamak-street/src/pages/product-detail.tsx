@@ -5,7 +5,7 @@ import { useCartFly } from "@/components/cart-fly-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Bell, Eye, Heart, TrendingUp, Check, Sparkles, Truck, Shield, RotateCcw } from "lucide-react";
+import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Bell, Eye, Heart, TrendingUp, Check, Sparkles, Truck, Shield, RotateCcw, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
@@ -13,6 +13,7 @@ import { trackCartUpdate } from "@/lib/use-visitor-tracking";
 import { parseProductMedia, getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
 import { useSettings } from "@/lib/use-settings";
+import { trackRecentlyViewed } from "@/components/recently-viewed";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -413,6 +414,27 @@ export default function ProductDetail() {
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
   const [scrolledPast, setScrolledPast] = useState(false);
 
+  // Track recently viewed
+  useEffect(() => {
+    if (!product) return;
+    trackRecentlyViewed({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl ?? null,
+    });
+  }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      await navigator.share({ title: product?.name ?? "", text: `Check out ${product?.name ?? ""} on FirstPick`, url }).catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {});
+      toast({ title: "Link copied!" });
+    }
+  };
+
   const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()) : [];
   const mediaItems = useMemo(() => parseProductMedia(product?.imageUrl ?? null), [product?.imageUrl]);
 
@@ -614,9 +636,14 @@ export default function ProductDetail() {
             </MotionItem>
 
             <MotionItem delay={0.22} className="mt-4">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
-                {product.name}
-              </h1>
+              <div className="flex items-start gap-3">
+                <h1 className="flex-1 text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+                  {product.name}
+                </h1>
+                <button onClick={handleShare} className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors shrink-0 mt-1">
+                  <Share2 className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
             </MotionItem>
 
             <MotionItem delay={0.29} className="mt-5">

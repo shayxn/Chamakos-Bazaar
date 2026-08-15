@@ -9,6 +9,7 @@ import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
 import { EventProductBadge } from "@/components/event-product-badge";
+import { RecentlyViewedSection } from "@/components/recently-viewed";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -424,6 +425,7 @@ export default function Shop() {
           )}
         </div>
       </div>
+      <RecentlyViewedSection />
       <QuickViewModal productId={quickViewId} onClose={() => setQuickViewId(null)} />
     </PageTransition>
   );

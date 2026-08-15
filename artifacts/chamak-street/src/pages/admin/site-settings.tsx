@@ -867,6 +867,19 @@ export default function AdminSiteSettings() {
               <SettingInput label="Instagram Handle" settingKey="contact_instagram" settings={settings} onChange={onChange} placeholder="@chamakstreet" />
               <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@firstpick" />
             </div>
+
+            {/* Maintenance Mode */}
+            <div className="mt-6 p-4 rounded-xl border border-red-500/30 bg-red-500/5 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-red-400 text-lg">⚠️</span>
+                <h3 className="font-black uppercase tracking-wide text-sm text-red-400">Maintenance Mode</h3>
+              </div>
+              <p className="text-xs text-muted-foreground">When enabled, the shop and checkout are hidden from customers and replaced with a maintenance page. Admins can still access the site normally.</p>
+              <ToggleInput label="Enable Maintenance Mode" settingKey="maintenance_mode" settings={settings} onChange={onChange} />
+              {settings.maintenance_mode === "true" && (
+                <p className="text-xs font-black text-red-400 uppercase tracking-wider">⚠ Maintenance mode is ON — customers cannot make purchases</p>
+              )}
+            </div>
           </div>
         )}
 

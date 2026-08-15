@@ -1,14 +1,29 @@
 import { Router } from "express";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable, customerAccountsTable } from "@workspace/db";
-import { eq, inArray, asc, desc, or } from "drizzle-orm";
+import { eq, inArray, asc, desc, or, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache } from "../lib/response-cache";
-import { sendOrderPush } from "../lib/push";
+import { sendOrderPush, sendCustomerStatusPush } from "../lib/push";
+import { logAdminActivity } from "./admin-activity";
 import { getDeliveryCharges, DELIVERY_METHODS } from "../lib/delivery";
 
 const router = Router();
 
 const ordersListCache = createTtlCache<ReturnType<typeof serializeOrder>[]>(15_000);
+
+let _ordersMigrated = false;
+async function ensureOrderColumns() {
+  if (_ordersMigrated) return; _ordersMigrated = true;
+  await db.execute(sql`
+    ALTER TABLE orders
+      ADD COLUMN IF NOT EXISTS delay_reason TEXT,
+      ADD COLUMN IF NOT EXISTS delayed_until TEXT,
+      ADD COLUMN IF NOT EXISTS cancel_reason TEXT,
+      ADD COLUMN IF NOT EXISTS refund_initiated BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS customer_push_log TEXT DEFAULT '[]'
+  `);
+}
+ensureOrderColumns().catch(console.error);
 
 async function generateOrderNumber(): Promise<string> {
   const { ordersTable: ot } = await import("@workspace/db");
@@ -334,14 +349,39 @@ router.patch("/orders/:id", requireAdmin, async (req, res) => {
 router.patch("/orders/:id/status", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const { status } = req.body as { status: string };
+  const { status, delayReason, delayedUntil, cancelReason, refundInitiated, adminName } = 
+    req.body as { status: string; delayReason?: string; delayedUntil?: string; cancelReason?: string; refundInitiated?: boolean; adminName?: string };
   if (!status) { res.status(400).json({ error: "status required" }); return; }
-  await db.update(ordersTable).set({ status }).where(eq(ordersTable.id, id));
-  // Auto-record tracking event for every status change
-  await db.insert(orderTrackingEventsTable).values({ orderId: id, status, note: null });
+  
+  const setData: Record<string, unknown> = { status };
+  if (status === "delayed") { 
+    setData.delayReason = delayReason ?? null; 
+    setData.delayedUntil = delayedUntil ?? null; 
+  }
+  if (status === "cancelled") {
+    setData.cancelReason = cancelReason ?? null;
+    if (refundInitiated !== undefined) setData.refundInitiated = refundInitiated;
+  }
+  if (delayedUntil !== undefined && status !== "delayed") setData.delayedUntil = delayedUntil;
+  
+  await db.update(ordersTable).set(setData as any).where(eq(ordersTable.id, id));
+  
+  // Log tracking event
+  const trackingNote = 
+    status === "delayed" ? (delayReason ? `Delayed: ${delayReason}${delayedUntil ? ` until ${delayedUntil}` : ""}` : "Order delayed") :
+    status === "cancelled" ? (cancelReason ?? "Order cancelled") : null;
+  await db.insert(orderTrackingEventsTable).values({ orderId: id, status, note: trackingNote });
+  
   ordersListCache.clear();
   const order = await buildOrder(id);
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
+  
+  // Log admin activity
+  logAdminActivity(adminName ?? "Admin", status, order.orderNumber ?? `#${order.id}`).catch(() => {});
+  
+  // Send customer push notification
+  sendCustomerStatusPush(order, status, { delayReason, delayedUntil, cancelReason, refundInitiated }).catch(() => {});
+  
   res.json(order);
 });
 

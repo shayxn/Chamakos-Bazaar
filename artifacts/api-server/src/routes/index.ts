@@ -25,6 +25,8 @@ import visitorSessionsRouter from "./visitor-sessions";
 import logosRouter from "./logos";
 import pushRouter from "./push-notifications";
 import widgetsRouter from "./widgets";
+import adminChatRouter from "./admin-chat";
+import adminActivityRouter from "./admin-activity";
 
 
 const router: IRouter = Router();
@@ -55,6 +57,8 @@ router.use(visitorSessionsRouter);
 router.use(logosRouter);
 router.use(pushRouter);
 router.use(widgetsRouter);
+router.use(adminChatRouter);
+router.use(adminActivityRouter);
 
 
 export default router;

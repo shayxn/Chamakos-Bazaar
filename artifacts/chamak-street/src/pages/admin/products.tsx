@@ -920,19 +920,23 @@ export default function AdminProducts() {
 
             {/* Scheduling — collapsible */}
             <Section title="Scheduling" icon={Layers} accent="rgba(139,92,246,0.18)" collapsible>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Publish At (optional)" hint="Auto-publish at this date">
+              <div className="grid grid-cols-2 gap-4 p-1">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Publish At (optional)</label>
                   <Input type="datetime-local"
                     value={formData.publishAt ? formData.publishAt.slice(0, 16) : ""}
                     onChange={e => set({ publishAt: e.target.value || null })}
                     className="bg-white/5 border-white/10 text-white h-10 text-xs w-full" />
-                </Field>
-                <Field label="Unpublish At (optional)" hint="Auto-hide at this date">
+                  <p className="text-[10px] text-white/25">Auto-publish at this date</p>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Unpublish At (optional)</label>
                   <Input type="datetime-local"
                     value={formData.unpublishAt ? formData.unpublishAt.slice(0, 16) : ""}
                     onChange={e => set({ unpublishAt: e.target.value || null })}
                     className="bg-white/5 border-white/10 text-white h-10 text-xs w-full" />
-                </Field>
+                  <p className="text-[10px] text-white/25">Auto-hide at this date</p>
+                </div>
               </div>
             </Section>
 

@@ -1,7 +1,7 @@
 /* @refresh reset */
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Package, MapPin, Lock, LogOut, CheckCircle, Plus, Trash2, ChevronDown, Truck, Zap, Clock, ShoppingBag, ArrowRight } from "lucide-react";
+import { User, Package, MapPin, Lock, LogOut, CheckCircle, Plus, Trash2, ChevronDown, Truck, Zap, Clock, ShoppingBag, ArrowRight, Bell, BellOff, Smartphone, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
@@ -12,6 +12,137 @@ type Order = { id: number; orderNumber: string; status: string; total: number; c
 type Address = { id: number; label: string; address: string; isDefault: boolean };
 
 export const AccountContext = createContext<{ customer: Customer | null; reload: () => void }>({ customer: null, reload: () => {} });
+
+// ── Notification onboarding card ──────────────────────────────────────────────
+function NotificationOnboarding({ customer }: { customer: Customer }) {
+  const [permission, setPermission] = useState<NotificationPermission>(
+    typeof Notification !== "undefined" ? Notification.permission : "default"
+  );
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem("fp_notif_dismissed") === "1");
+  const [subscribing, setSubscribing] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [step, setStep] = useState<"home-screen" | "notify">("home-screen");
+
+  useEffect(() => {
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(ios);
+    const installed = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone;
+    setIsInstalled(!!installed);
+    if (installed || !ios) setStep("notify");
+  }, []);
+
+  const subscribe = useCallback(async () => {
+    setSubscribing(true);
+    try {
+      const perm = await Notification.requestPermission();
+      setPermission(perm);
+      if (perm !== "granted") return;
+
+      // Get VAPID key
+      const vapidRes = await fetch(`${BASE}/api/push/vapid-public-key`, { credentials: "include" });
+      if (!vapidRes.ok) return;
+      const { publicKey } = await vapidRes.json() as { publicKey: string };
+
+      // Subscribe via service worker
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
+      });
+      const { endpoint, keys } = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } };
+
+      // Save subscription with customer identity
+      await fetch(`${BASE}/api/push/customer-subscribe`, {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint, p256dh: keys.p256dh, auth: keys.auth, customerPhone: customer.phone ?? undefined, customerEmail: customer.email }),
+      });
+
+      // Send welcome notification via service worker
+      const reg2 = await navigator.serviceWorker.ready;
+      reg2.showNotification("FirstPick 🔔", {
+        body: "Notifications are on!\nWe'll keep you updated on your orders, deliveries, exclusive drops, and important FirstPick updates.",
+        icon: "/icon-192.png",
+        badge: "/icon-192.png",
+      });
+    } catch { } finally { setSubscribing(false); }
+  }, [customer]);
+
+  if (dismissed || permission === "denied") return null;
+  if (permission === "granted") return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+        className="mb-5 rounded-2xl border border-primary/20 overflow-hidden relative"
+        style={{ background: "rgba(255,102,0,0.05)", backdropFilter: "blur(20px)" }}>
+        <button onClick={() => { setDismissed(true); localStorage.setItem("fp_notif_dismissed", "1"); }}
+          className="absolute top-3 right-3 text-muted-foreground hover:text-white transition-colors z-10">
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* Step 1: Add to Home Screen (iOS only, not installed) */}
+        {isIOS && !isInstalled && step === "home-screen" && (
+          <div className="p-5">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                <Smartphone className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-black text-sm">Add FirstPick to your Home Screen</p>
+                <p className="text-xs text-muted-foreground mt-0.5">For the best experience and order notifications, add us to your home screen first.</p>
+              </div>
+            </div>
+            <div className="space-y-2 mb-4">
+              {[
+                { n: "1", t: 'Tap the Share button (⬆️) at the bottom of Safari' },
+                { n: "2", t: 'Scroll down and tap "Add to Home Screen"' },
+                { n: "3", t: 'Tap "Add" in the top right corner' },
+                { n: "4", t: 'Open FirstPick from your Home Screen' },
+              ].map(s => (
+                <div key={s.n} className="flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">{s.n}</span>
+                  <p className="text-xs text-muted-foreground">{s.t}</p>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setStep("notify")}
+              className="text-xs font-bold text-primary hover:opacity-70 transition-opacity">
+              I've already added it →
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: Enable notifications */}
+        {(step === "notify" || !isIOS || isInstalled) && step !== "home-screen" && (
+          <div className="p-5 flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+              <Bell className="h-5 w-5 text-primary animate-bounce" />
+            </div>
+            <div className="flex-1">
+              <p className="font-black text-sm mb-0.5">Enable Order Notifications</p>
+              <p className="text-xs text-muted-foreground mb-3">Get notified when your order is shipped, out for delivery, and more.</p>
+              <button onClick={subscribe} disabled={subscribing}
+                className="px-4 py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center gap-2">
+                <Bell className="h-3.5 w-3.5" />
+                {subscribing ? "Setting up…" : "Enable Notifications"}
+              </button>
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// ── Helper: VAPID base64 → Uint8Array ──────────────────────────────────────────
+function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 const STATUS_STYLE: Record<string, { cls: string; label: string; dot: string }> = {
@@ -329,6 +460,7 @@ export default function AccountPage() {
           </aside>
 
           <div className="md:col-span-3">
+            <NotificationOnboarding customer={customer} />
             {msg && <div className="mb-4 px-4 py-3 bg-primary/10 border border-primary/20 rounded-xl text-sm font-bold text-primary flex items-center gap-2"><CheckCircle className="h-4 w-4" />{msg}</div>}
 
             {tab === "profile" && (

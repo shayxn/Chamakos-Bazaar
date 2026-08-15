@@ -1,9 +1,10 @@
+import AdminNamePrompt from "@/components/admin-name-prompt";
 import { useGetMe, useListProducts, useListCategories } from "@workspace/api-client-react";
 import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
-  Zap, Users, BellRing
+  Zap, Users, BellRing, MessageCircle, Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -303,6 +304,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       links: [
         { href: "/admin/visitors",       label: "Live Customers", icon: Users },
         { href: "/admin/notifications",  label: "Notifications",  icon: BellRing },
+        { href: "/admin/activity",       label: "Activity Log",   icon: Activity },
+        { href: "/admin/chat",           label: "Chat",           icon: MessageCircle },
       ],
     },
     {
@@ -504,6 +507,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </AnimatePresence>
         </motion.div>
       </aside>
+
+      <AdminNamePrompt />
 
       {/* ── Main content — animated on route change ── */}
       <main className="flex-1 overflow-auto" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)" }}>

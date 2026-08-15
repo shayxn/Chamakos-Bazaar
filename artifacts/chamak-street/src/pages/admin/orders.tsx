@@ -21,10 +21,11 @@ const STATUS_COLORS: Record<string, string> = {
   shipped:          "bg-primary/10 text-primary border-primary/30",
   out_for_delivery: "bg-orange-500/10 text-orange-400 border-orange-500/30",
   delivered:        "bg-green-500/10 text-green-400 border-green-500/30",
-  cancelled:        "bg-destructive/10 text-destructive border-destructive/30",
+  delayed:          "text-orange-400 bg-orange-500/15 border-orange-500/40",
+  cancelled:        "text-red-400 bg-red-500/15 border-red-500/40",
 };
 
-const ALL_STATUSES = ["pending", "confirmed", "preparing", "shipped", "out_for_delivery", "delivered", "cancelled"] as const;
+const ALL_STATUSES = ["pending", "confirmed", "preparing", "shipped", "out_for_delivery", "delivered", "delayed", "cancelled"] as const;
 
 type Order = {
   id: number;
@@ -44,6 +45,10 @@ type Order = {
   hasPreOrder?: boolean | null;
   createdAt: string;
   items: { id: number; productName: string; quantity: number; price: number; size?: string | null; isPreOrder?: boolean | null }[];
+  delayReason?: string | null;
+  delayedUntil?: string | null;
+  cancelReason?: string | null;
+  refundInitiated?: boolean;
 };
 
 const DELIVERY_LABEL: Record<string, string> = {
@@ -357,6 +362,12 @@ export default function AdminOrders() {
   const [searchText, setSearchText] = useState("");
   const [receiptState, setReceiptState] = useState<Record<number, { loading?: boolean; dataUrl?: string }>>({});
   const [receiptModal, setReceiptModal] = useState<{ orderId: number; orderNumber: string; dataUrl: string } | null>(null);
+  const [delayModal, setDelayModal] = useState<{ orderId: number; orderNumber: string } | null>(null);
+  const [cancelModal, setCancelModal] = useState<{ orderId: number; orderNumber: string; paymentMethod: string } | null>(null);
+  const [delayReason, setDelayReason] = useState("");
+  const [delayedUntil, setDelayedUntil] = useState("");
+  const [cancelReason, setCancelReason] = useState("");
+  const [refundInitiated, setRefundInitiated] = useState(false);
 
   // Polling new order detection — plays cash sound when new orders arrive
   const lastCountRef = useRef<number | null>(null);
@@ -376,12 +387,44 @@ export default function AdminOrders() {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() });
 
-  const handleStatusChange = (id: number, status: OrderStatusUpdateStatus) => {
+  const handleStatusChange = (order: Order, status: OrderStatusUpdateStatus) => {
+    if ((status as string) === "delayed") {
+      setDelayReason(""); setDelayedUntil("");
+      setDelayModal({ orderId: order.id, orderNumber: order.orderNumber ?? `#${order.id}` });
+      return;
+    }
+    if ((status as string) === "cancelled") {
+      setCancelReason(""); setRefundInitiated(false);
+      setCancelModal({ orderId: order.id, orderNumber: order.orderNumber ?? `#${order.id}`, paymentMethod: order.paymentMethod ?? "cod" });
+      return;
+    }
     updateStatus.mutate(
-      { id, data: { status } },
+      { id: order.id, data: { status } },
       {
         onSuccess: () => { invalidate(); toast({ title: `Order updated to ${status}` }); },
         onError: () => toast({ title: "Error updating status", variant: "destructive" }),
+      }
+    );
+  };
+
+  const handleConfirmDelay = () => {
+    if (!delayModal) return;
+    updateStatus.mutate(
+      { id: delayModal.orderId, data: { status: "delayed" as any, delayReason, delayedUntil } as any },
+      {
+        onSuccess: () => { invalidate(); toast({ title: "Order marked as delayed" }); setDelayModal(null); },
+        onError: () => toast({ title: "Error", variant: "destructive" }),
+      }
+    );
+  };
+
+  const handleConfirmCancel = () => {
+    if (!cancelModal) return;
+    updateStatus.mutate(
+      { id: cancelModal.orderId, data: { status: "cancelled" as any, cancelReason, refundInitiated } as any },
+      {
+        onSuccess: () => { invalidate(); toast({ title: "Order cancelled" }); setCancelModal(null); },
+        onError: () => toast({ title: "Error", variant: "destructive" }),
       }
     );
   };
@@ -539,7 +582,7 @@ export default function AdminOrders() {
                 <div className="flex flex-col items-end gap-2">
                   <Select
                     defaultValue={order.status}
-                    onValueChange={(val) => handleStatusChange(order.id, val as OrderStatusUpdateStatus)}
+                    onValueChange={(val) => handleStatusChange(order, val as OrderStatusUpdateStatus)}
                     disabled={updateStatus.isPending}
                   >
                     <SelectTrigger className={`h-8 w-44 text-xs font-bold uppercase tracking-wide border ${STATUS_COLORS[order.status] ?? "bg-muted"}`}>
@@ -619,6 +662,22 @@ export default function AdminOrders() {
                         <span className="font-mono font-black text-primary text-lg">AED {order.total.toFixed(2)}</span>
                       </div>
                     </div>
+
+                    {/* ─── Delay / Cancel Info ─── */}
+                    {order.delayReason && (
+                      <div className="rounded-xl p-4 border border-orange-500/20 bg-orange-500/5">
+                        <p className="text-xs font-black uppercase tracking-widest text-orange-400 mb-1">⚠️ Order Delayed</p>
+                        <p className="text-sm text-muted-foreground">{order.delayReason}</p>
+                        {order.delayedUntil && <p className="text-xs text-orange-400 mt-1 font-bold">New estimate: {order.delayedUntil}</p>}
+                      </div>
+                    )}
+                    {order.cancelReason && (
+                      <div className="rounded-xl p-4 border border-red-500/20 bg-red-500/5">
+                        <p className="text-xs font-black uppercase tracking-widest text-red-400 mb-1">❌ Cancellation Reason</p>
+                        <p className="text-sm text-muted-foreground">{order.cancelReason}</p>
+                        {order.refundInitiated && <p className="text-xs text-green-400 mt-1 font-bold">✓ Refund initiated</p>}
+                      </div>
+                    )}
 
                     {/* ─── WhatsApp + Receipt ─── */}
                     <div
@@ -758,6 +817,76 @@ export default function AdminOrders() {
             orderNumber={receiptModal.orderNumber}
             onClose={() => setReceiptModal(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Delay Modal */}
+      <AnimatePresence>
+        {delayModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="w-full max-w-md rounded-2xl border border-orange-500/20 p-6 space-y-4"
+              style={{ background: "rgba(20,20,20,0.95)", backdropFilter: "blur(20px)" }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">⚠️</span>
+                <div><p className="font-black text-lg">Delay Order</p><p className="text-xs text-muted-foreground">{delayModal.orderNumber}</p></div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-1.5">Reason for delay</label>
+                  <textarea value={delayReason} onChange={e => setDelayReason(e.target.value)} rows={3} placeholder="e.g. Supplier delay, high demand..."
+                    className="w-full px-3 py-2.5 bg-background border border-orange-500/20 rounded-xl text-sm focus:outline-none focus:border-orange-500/50 resize-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-1.5">New estimated delivery</label>
+                  <input type="date" value={delayedUntil} onChange={e => setDelayedUntil(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-background border border-orange-500/20 rounded-xl text-sm focus:outline-none focus:border-orange-500/50" />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setDelayModal(null)} className="flex-1 py-2.5 rounded-xl border border-border font-bold text-sm hover:bg-muted transition-colors">Cancel</button>
+                <button onClick={handleConfirmDelay} className="flex-1 py-2.5 rounded-xl bg-orange-500 text-white font-black text-sm hover:opacity-90 transition-opacity">Confirm Delay</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cancel Modal */}
+      <AnimatePresence>
+        {cancelModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="w-full max-w-md rounded-2xl border border-red-500/20 p-6 space-y-4"
+              style={{ background: "rgba(20,20,20,0.95)", backdropFilter: "blur(20px)" }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">❌</span>
+                <div><p className="font-black text-lg">Cancel Order</p><p className="text-xs text-muted-foreground">{cancelModal.orderNumber}</p></div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-1.5">Reason for cancellation</label>
+                  <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} rows={3} placeholder="e.g. Customer requested, out of stock..."
+                    className="w-full px-3 py-2.5 bg-background border border-red-500/20 rounded-xl text-sm focus:outline-none focus:border-red-500/50 resize-none" />
+                </div>
+                {cancelModal.paymentMethod !== "cod" && (
+                  <label className="flex items-center gap-3 p-3 rounded-xl border border-border cursor-pointer hover:border-red-500/30 transition-colors">
+                    <input type="checkbox" checked={refundInitiated} onChange={e => setRefundInitiated(e.target.checked)} className="w-4 h-4" />
+                    <div>
+                      <p className="text-sm font-bold">Refund initiated</p>
+                      <p className="text-xs text-muted-foreground">Customer will be notified that a refund is on the way</p>
+                    </div>
+                  </label>
+                )}
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setCancelModal(null)} className="flex-1 py-2.5 rounded-xl border border-border font-bold text-sm hover:bg-muted transition-colors">Back</button>
+                <button onClick={handleConfirmCancel} className="flex-1 py-2.5 rounded-xl bg-destructive text-white font-black text-sm hover:opacity-90 transition-opacity">Cancel Order</button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
