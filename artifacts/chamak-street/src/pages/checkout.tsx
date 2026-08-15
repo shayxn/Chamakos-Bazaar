@@ -98,8 +98,9 @@ export default function Checkout() {
 
   // Fetch admin-configured delivery prices with fallback to defaults
   useEffect(() => {
-    fetch(`${BASE}/api/settings`, { credentials: "include" })
-      .then((r) => r.json())
+    const ctrl = new AbortController();
+    fetch(`${BASE}/api/settings`, { credentials: "include", signal: ctrl.signal })
+      .then((r) => { if (!r.ok) throw new Error("settings fetch failed"); return r.json(); })
       .then((s: Record<string, string>) => {
         setDeliveryOptions(BASE_DELIVERY_OPTIONS.map((opt) => {
           const key = `delivery_${opt.id}_price`;
@@ -108,6 +109,7 @@ export default function Checkout() {
         }));
       })
       .catch(() => {});
+    return () => ctrl.abort();
   }, []);
 
   useEffect(() => {

@@ -57,7 +57,7 @@ router.get("/orders", requireAdmin, async (_req, res) => {
   const cached = ordersListCache.get("all");
   if (cached) { res.json(cached); return; }
 
-  const orders = await db.select().from(ordersTable).orderBy(ordersTable.createdAt);
+  const orders = await db.select().from(ordersTable).orderBy(desc(ordersTable.createdAt));
   if (orders.length === 0) { ordersListCache.set("all", []); res.json([]); return; }
 
   const items = await db
@@ -312,11 +312,23 @@ router.get("/orders/:id", async (req, res) => {
 router.patch("/orders/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const [order] = await db.update(ordersTable).set(req.body).where(eq(ordersTable.id, id)).returning();
-  if (!order) { res.status(404).json({ error: "Not found" }); return; }
-  ordersListCache.clear();
-  const fullOrder = await buildOrder(id);
-  res.json(fullOrder);
+  // Allowlist only admin-editable fields — never let clients mutate totals, ids, or session data
+  const { status, customerName, customerPhone, customerEmail, customerAddress, notes } = req.body as Record<string, string | undefined>;
+  const patch: Record<string, unknown> = {};
+  if (status !== undefined) patch.status = status;
+  if (customerName !== undefined) patch.customerName = customerName;
+  if (customerPhone !== undefined) patch.customerPhone = customerPhone;
+  if (customerEmail !== undefined) patch.customerEmail = customerEmail;
+  if (customerAddress !== undefined) patch.customerAddress = customerAddress;
+  if (notes !== undefined) patch.notes = notes;
+  if (Object.keys(patch).length === 0) { res.status(400).json({ error: "No valid fields to update" }); return; }
+  try {
+    const [order] = await db.update(ordersTable).set(patch).where(eq(ordersTable.id, id)).returning();
+    if (!order) { res.status(404).json({ error: "Not found" }); return; }
+    ordersListCache.clear();
+    const fullOrder = await buildOrder(id);
+    res.json(fullOrder);
+  } catch (err) { res.status(500).json({ error: "Update failed" }); }
 });
 
 router.patch("/orders/:id/status", requireAdmin, async (req, res) => {

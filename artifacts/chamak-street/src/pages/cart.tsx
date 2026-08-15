@@ -1,7 +1,9 @@
 import { useGetCart, useUpdateCartItem, useRemoveCartItem, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, ArrowLeft, Truck, Shield, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
@@ -16,17 +18,24 @@ export default function Cart() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
+  const [pendingItemId, setPendingItemId] = useState<number | null>(null);
+  const [removingItemId, setRemovingItemId] = useState<number | null>(null);
+
   const handleUpdateQuantity = (id: number, current: number, delta: number) => {
     const next = current + delta;
     if (next < 1) return;
+    setPendingItemId(id);
     updateItem.mutate({ id, data: { quantity: next } }, {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() })
+      onSuccess: () => { queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() }); setPendingItemId(null); },
+      onError: () => { setPendingItemId(null); toast({ title: "Could not update quantity", description: "Please try again.", variant: "destructive" }); },
     });
   };
 
   const handleRemove = (id: number) => {
+    setRemovingItemId(id);
     removeItem.mutate({ id }, {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() })
+      onSuccess: () => { queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() }); setRemovingItemId(null); },
+      onError: () => { setRemovingItemId(null); toast({ title: "Could not remove item", description: "Please try again.", variant: "destructive" }); },
     });
   };
 
@@ -46,7 +55,7 @@ export default function Cart() {
     );
   }
 
-  if (!cart || cart.items.length === 0) {
+  if (!cart || (cart?.items ?? []).length === 0) {
     return (
       <PageTransition>
         <div className="container mx-auto px-4 py-36 text-center max-w-sm">
@@ -69,7 +78,7 @@ export default function Cart() {
             </div>
             <Link href="/shop">
               <motion.div
-                whileHover={{ scale: 1.04, filter: "brightness(1.1)" }}
+                whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 380, damping: 22 }}
               >
@@ -137,11 +146,10 @@ export default function Cart() {
                 return (
                   <motion.div
                     key={item.id}
-                    layout
                     initial={{ opacity: 0, y: 24, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -72, scale: 0.93, transition: { duration: 0.26, ease: [0.4, 0, 0.2, 1] } }}
-                    transition={{ duration: 0.45, delay: i * 0.05, ease: EASE }}
+                    exit={{ opacity: 0, x: -60, scale: 0.94, transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1] } }}
+                    transition={{ duration: 0.4, delay: i * 0.04, ease: EASE }}
                     className="flex gap-4 p-4 glass rounded-2xl relative group hover:border-primary/25 transition-all duration-300 glass-shimmer"
                     data-testid={`cart-item-${item.id}`}
                   >
@@ -185,8 +193,8 @@ export default function Cart() {
                             whileTap={{ scale: 0.75 }}
                             whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
-                            className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-                            disabled={updateItem.isPending}
+                            className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
+                            disabled={pendingItemId === item.id}
                           >
                             <Minus className="h-3.5 w-3.5" />
                           </motion.button>
@@ -206,18 +214,18 @@ export default function Cart() {
                             whileTap={{ scale: 0.75 }}
                             whileHover={{ backgroundColor: "rgba(255,102,0,0.1)" }}
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
-                            className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-                            disabled={updateItem.isPending}
+                            className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
+                            disabled={pendingItemId === item.id}
                           >
                             <Plus className="h-3.5 w-3.5" />
                           </motion.button>
                         </div>
 
                         <motion.div
-                          key={item.price * item.quantity}
-                          initial={{ scale: 1.2, color: "#ffcc00" }}
+                          key={`${item.id}-${item.quantity}`}
+                          initial={{ scale: 1.18, color: "#ffcc00" }}
                           animate={{ scale: 1, color: "#ff6600" }}
-                          transition={{ duration: 0.32, ease: EASE }}
+                          transition={{ duration: 0.28, ease: EASE }}
                           className="font-mono font-black text-base text-primary"
                         >
                           AED {(item.price * item.quantity).toFixed(2)}
@@ -231,7 +239,7 @@ export default function Cart() {
                       whileTap={{ scale: 0.85 }}
                       transition={{ type: "spring", stiffness: 420, damping: 20 }}
                       onClick={() => handleRemove(item.id)}
-                      disabled={removeItem.isPending}
+                      disabled={removingItemId === item.id}
                       className="absolute top-0 right-0 w-11 h-11 flex items-center justify-center text-muted-foreground/60 rounded-lg hover:bg-red-500/10 hover:text-red-400 transition-colors"
                       aria-label="Remove item"
                       data-testid={`button-remove-${item.id}`}

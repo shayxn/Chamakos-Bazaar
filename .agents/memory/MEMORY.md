@@ -25,3 +25,8 @@
 - [AnimatedInput component](animated-input.md) — animated-input.tsx wraps a real input with transparent text; overlay shows per-char framer motion. Now includes all shadcn Input base classes; it's a drop-in for Input. Pass wrapperClass for wrapper overrides. BASE_URL: inline `const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || ""`; no @/lib/api-base module.
 - [Vite API proxy requirement](vite-api-proxy.md) — chamak-street vite.config.ts must proxy /api → port 8080 or SPA fallback breaks all API calls.
 - [Cart items null guard](cart-items-null-guard.md) — use (cart?.items ?? []) not cart?.items — optional chain stops at cart, not items.
+- [Tab bar tap blocking](tab-bar-tap-blocking.md) — layoutId motion elements absorb pointer events during animation; always add pointerEvents:"none" OR use CSS transitions for tab indicators to guarantee instant tap response.
+- [AnimatePresence navigation blocking](animatepresence-nav-block.md) — mode="wait" exit must use duration:0 so navigation responds on first tap; any non-zero exit duration blocks the next route from rendering.
+- [Cart per-item pending state](cart-per-item-pending.md) — use per-item pendingItemId/removingItemId state for cart mutations; global isPending blocks all rows simultaneously which feels broken.
+- [Orders PATCH field allowlist](orders-patch-allowlist.md) — PATCH /orders/:id must extract only allowed fields (status, customerName, etc.) from req.body before passing to Drizzle; never pass req.body directly.
+- [Backend TS pre-existing errors](backend-ts-preexisting.md) — orders.ts deliveryCharge/tip and products.ts collection TS errors are pre-existing schema mismatches; server still runs. calendar.tsx/spinner.tsx UI lib errors also pre-existing.
