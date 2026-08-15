@@ -30,3 +30,7 @@
 - [Cart per-item pending state](cart-per-item-pending.md) — use per-item pendingItemId/removingItemId state for cart mutations; global isPending blocks all rows simultaneously which feels broken.
 - [Orders PATCH field allowlist](orders-patch-allowlist.md) — PATCH /orders/:id must extract only allowed fields (status, customerName, etc.) from req.body before passing to Drizzle; never pass req.body directly.
 - [Backend TS pre-existing errors](backend-ts-preexisting.md) — orders.ts deliveryCharge/tip and products.ts collection TS errors are pre-existing schema mismatches; server still runs. calendar.tsx/spinner.tsx UI lib errors also pre-existing.
+- [order_items schema columns](order-items-schema.md) — orderItemsTable has: id, orderId, productId, productName, price, quantity, size, isPreOrder — NO productImageUrl column.
+- [iOS tap delay fix](ios-tap-delay.md) — add touchAction:"manipulation" to all Link/button elements in tab bars to eliminate 300ms iOS double-tap delay; this is the root cause of "press multiple times" complaints.
+- [Priority truck animation](priority-truck-anim.md) — src/components/priority-order-animation.tsx; shows on COD priority orders only; 5.2s then navigates; SVG truck with conic-gradient spinning wheels + ⚡ exhaust smoke.
+- [Customer orders API](customer-orders-api.md) — GET /api/customers/orders now joins orderItemsTable and returns items[] per order; matched by email OR phone.

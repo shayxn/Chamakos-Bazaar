@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { trackCheckout, trackOrder } from "@/lib/use-visitor-tracking";
+import { PriorityOrderAnimation } from "@/components/priority-order-animation";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
@@ -93,6 +94,8 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRedirectingToZiina, setIsRedirectingToZiina] = useState(false);
   const [cartTracked, setCartTracked] = useState(false);
+  const [showPriorityAnim, setShowPriorityAnim] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptionDef[]>(BASE_DELIVERY_OPTIONS);
   const checkoutTracked = useRef(false);
 
@@ -165,7 +168,13 @@ export default function Checkout() {
       });
       queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
       trackOrder(`FP${String(order.id).padStart(4, "0")}`);
-      setLocation(`/order/${order.id}`);
+      if (deliveryMethod === "priority") {
+        setPendingOrderId(order.id);
+        setShowPriorityAnim(true);
+        setIsSubmitting(false);
+      } else {
+        setLocation(`/order/${order.id}`);
+      }
     } catch (err) {
       setPaymentError(err instanceof Error ? err.message : "Order failed");
       setIsSubmitting(false);
@@ -193,6 +202,17 @@ export default function Checkout() {
   const busy = isSubmitting || isRedirectingToZiina;
 
   return (
+    <>
+    <AnimatePresence>
+      {showPriorityAnim && pendingOrderId && (
+        <PriorityOrderAnimation
+          onComplete={() => {
+            setShowPriorityAnim(false);
+            setLocation(`/order/${pendingOrderId}`);
+          }}
+        />
+      )}
+    </AnimatePresence>
     <PageTransition>
       {/* WhatsApp Banner */}
       <AnimatePresence>
@@ -288,42 +308,73 @@ export default function Checkout() {
                     {deliveryOptions.map((opt) => {
                       const Icon = opt.icon;
                       const selected = deliveryMethod === opt.id;
+                      const isPriority = opt.id === "priority";
+                      const showGlow = selected && isPriority;
+
                       return (
-                        <button
-                          key={opt.id} type="button"
-                          onClick={() => setDeliveryMethod(opt.id)}
-                          className={`relative w-full flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all overflow-hidden ${
-                            selected
-                              ? opt.id === "priority"
-                                ? "border-primary glass-orange"
-                                : "border-primary glass"
-                              : "border-border/40 glass-sm hover:border-primary/40"
-                          }`}
-                        >
-                          {/* Shine on selected */}
-                          {selected && (
-                            <div className="absolute inset-0 pointer-events-none glass-shine" />
-                          )}
-                          <div className={`relative w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-primary" : "border-muted-foreground"}`}>
-                            {selected && <div className="w-2 h-2 rounded-full bg-primary" />}
-                          </div>
-                          <Icon className={`relative h-5 w-5 shrink-0 ${selected ? (opt.id === "priority" ? "text-primary" : "text-primary") : "text-muted-foreground"}`} />
-                          <div className="relative flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-black uppercase tracking-wide text-sm">{opt.label}</p>
-                              {opt.badge && (
-                                <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full"
-                                  style={{ background: "rgba(255,102,0,0.2)", color: "#ff6600", border: "1px solid rgba(255,102,0,0.4)" }}>
-                                  ⚡ {opt.badge}
-                                </span>
-                              )}
+                        <div key={opt.id} className="relative">
+                          {/* Rotating orange→yellow conic border for Priority */}
+                          {showGlow && (
+                            <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                                style={{
+                                  position: "absolute",
+                                  top: "-50%", left: "-50%",
+                                  width: "200%", height: "200%",
+                                  background: "conic-gradient(from 0deg, #ff6600 0deg, #ffcc00 80deg, #ff9900 140deg, #ffee44 200deg, #ff6600 260deg, #ffcc00 320deg, #ff6600 360deg)",
+                                }}
+                              />
                             </div>
-                            <p className="text-xs text-muted-foreground">{opt.detail}</p>
-                          </div>
-                          <div className={`relative font-mono font-black text-sm ${selected ? "text-primary" : "text-muted-foreground"}`}>
-                            AED {opt.price}
-                          </div>
-                        </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setDeliveryMethod(opt.id)}
+                            className={`relative w-full flex items-center gap-3 p-4 text-left transition-all overflow-hidden ${
+                              showGlow
+                                ? "rounded-[10px] m-[2px] border-0 glass-orange"
+                                : selected
+                                ? "rounded-xl border-2 border-primary glass"
+                                : "rounded-xl border-2 border-border/40 glass-sm hover:border-primary/40"
+                            }`}
+                          >
+                            {/* Shine on selected */}
+                            {selected && (
+                              <div className="absolute inset-0 pointer-events-none glass-shine" />
+                            )}
+                            {/* Priority pulsing inner glow */}
+                            {showGlow && (
+                              <motion.div
+                                className="absolute inset-0 pointer-events-none"
+                                animate={{ opacity: [0.4, 0.75, 0.4] }}
+                                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                                style={{
+                                  background: "radial-gradient(ellipse at 15% 50%, rgba(255,102,0,0.2), transparent 55%), radial-gradient(ellipse at 85% 50%, rgba(255,220,0,0.18), transparent 55%)",
+                                }}
+                              />
+                            )}
+                            <div className={`relative w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-primary" : "border-muted-foreground"}`}>
+                              {selected && <div className="w-2 h-2 rounded-full bg-primary" />}
+                            </div>
+                            <Icon className={`relative h-5 w-5 shrink-0 ${selected ? "text-primary" : "text-muted-foreground"}`} />
+                            <div className="relative flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-black uppercase tracking-wide text-sm">{opt.label}</p>
+                                {opt.badge && (
+                                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full"
+                                    style={{ background: "rgba(255,102,0,0.2)", color: "#ff6600", border: "1px solid rgba(255,102,0,0.4)" }}>
+                                    ⚡ {opt.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground">{opt.detail}</p>
+                            </div>
+                            <div className={`relative font-mono font-black text-sm shrink-0 ${selected ? "text-primary" : "text-muted-foreground"}`}>
+                              AED {opt.price}
+                            </div>
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -536,5 +587,6 @@ export default function Checkout() {
         </div>
       </div>
     </PageTransition>
+    </>
   );
 }

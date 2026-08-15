@@ -1,15 +1,200 @@
+/* @refresh reset */
 import { useState, useEffect, createContext, useContext } from "react";
-import { motion } from "framer-motion";
-import { User, Package, MapPin, Lock, LogOut, ArrowLeft, CheckCircle, Plus, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { User, Package, MapPin, Lock, LogOut, CheckCircle, Plus, Trash2, ChevronDown, Truck, Zap, Clock, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
+type OrderItem = { productName: string; quantity: number; price: number; size?: string | null };
 type Customer = { id: number; name: string; email: string; phone: string | null; createdAt: string };
-type Order = { id: number; orderNumber: string; status: string; total: number; createdAt: string; customerAddress?: string };
+type Order = { id: number; orderNumber: string; status: string; total: number; createdAt: string; customerAddress?: string; deliveryMethod?: string | null; items?: OrderItem[] };
 type Address = { id: number; label: string; address: string; isDefault: boolean };
 
 export const AccountContext = createContext<{ customer: Customer | null; reload: () => void }>({ customer: null, reload: () => {} });
+
+// ── Status helpers ────────────────────────────────────────────────────────────
+const STATUS_STYLE: Record<string, { cls: string; label: string; dot: string }> = {
+  pending:          { cls: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",  label: "Pending",          dot: "#facc15" },
+  confirmed:        { cls: "text-blue-400 bg-blue-500/10 border-blue-500/30",        label: "Confirmed",        dot: "#60a5fa" },
+  preparing:        { cls: "text-purple-400 bg-purple-500/10 border-purple-500/30",  label: "Preparing",        dot: "#c084fc" },
+  packed:           { cls: "text-purple-400 bg-purple-500/10 border-purple-500/30",  label: "Packed",           dot: "#c084fc" },
+  shipped:          { cls: "text-primary bg-primary/10 border-primary/30",           label: "Shipped",          dot: "#ff6600" },
+  out_for_delivery: { cls: "text-orange-400 bg-orange-500/10 border-orange-500/30",  label: "Out for Delivery", dot: "#fb923c" },
+  delivered:        { cls: "text-green-400 bg-green-500/10 border-green-500/30",     label: "Delivered",        dot: "#4ade80" },
+  cancelled:        { cls: "text-red-400 bg-red-500/10 border-red-500/30",           label: "Cancelled",        dot: "#f87171" },
+};
+const getStatus = (s: string) => STATUS_STYLE[s] ?? { cls: "text-muted-foreground bg-muted border-border", label: s, dot: "#888" };
+
+const DELIVERY_ICON: Record<string, React.ElementType> = {
+  priority: Zap,
+  express: Clock,
+  standard: Truck,
+};
+
+// ── Single order card ─────────────────────────────────────────────────────────
+function OrderCard({ o, i }: { o: Order; i: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const st = getStatus(o.status);
+  const DelivIcon = DELIVERY_ICON[o.deliveryMethod ?? ""] ?? Truck;
+  const items = o.items ?? [];
+  const itemCount = items.reduce((sum, it) => sum + it.quantity, 0);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: i * 0.06, type: "spring", stiffness: 380, damping: 32 }}
+      className="rounded-2xl overflow-hidden border border-white/10"
+      style={{
+        background: "rgba(255,255,255,0.03)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)",
+      }}
+    >
+      {/* ── Order header ── */}
+      <div className="px-4 pt-4 pb-3 border-b border-white/6 flex flex-wrap items-start gap-x-4 gap-y-2 justify-between">
+        <div>
+          <p className="font-mono font-black text-primary text-base tracking-wide">#{o.orderNumber ?? o.id}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {new Date(o.createdAt).toLocaleDateString("en-AE", { day: "numeric", month: "short", year: "numeric" })}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {o.deliveryMethod && (
+            <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground border border-white/10 rounded-full px-2 py-0.5">
+              <DelivIcon className="h-2.5 w-2.5" />
+              {o.deliveryMethod === "priority" ? "Priority" : o.deliveryMethod === "express" ? "Express" : "Standard"}
+            </span>
+          )}
+          <span className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${st.cls}`}>
+            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: st.dot }} />
+            {st.label}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Item previews ── */}
+      {items.length > 0 && (
+        <div className="px-4 py-3 flex items-center gap-3">
+          {/* Thumbnails */}
+          <div className="flex -space-x-2">
+            {items.slice(0, 4).map((item, idx) => (
+              <div key={idx} className="w-12 h-12 rounded-lg border border-white/12 bg-white/5 overflow-hidden shrink-0 flex items-center justify-center"
+                style={{ zIndex: items.length - idx }}>
+                <ShoppingBag className="h-5 w-5 text-muted-foreground" />
+              </div>
+            ))}
+            {items.length > 4 && (
+              <div className="w-12 h-12 rounded-lg border border-white/12 bg-white/5 flex items-center justify-center text-[10px] font-black text-muted-foreground">
+                +{items.length - 4}
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-white truncate">{items[0]?.productName}</p>
+            {itemCount > 1 && <p className="text-xs text-muted-foreground">+{itemCount - 1} more item{itemCount - 1 !== 1 ? "s" : ""}</p>}
+          </div>
+          <p className="font-mono font-black text-primary shrink-0">AED {o.total.toFixed(2)}</p>
+        </div>
+      )}
+
+      {/* No items fallback */}
+      {items.length === 0 && (
+        <div className="px-4 py-3 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">Order total</p>
+          <p className="font-mono font-black text-primary">AED {o.total.toFixed(2)}</p>
+        </div>
+      )}
+
+      {/* ── Expand: full item list ── */}
+      <AnimatePresence>
+        {expanded && items.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden border-t border-white/6"
+          >
+            <div className="px-4 py-3 space-y-2.5">
+              {items.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg border border-white/10 bg-white/5 overflow-hidden shrink-0">
+                    <ShoppingBag className="h-4 w-4 text-muted-foreground m-3" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white truncate">{item.productName}</p>
+                    {item.size && <p className="text-[10px] text-muted-foreground">Size: {item.size}</p>}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-xs font-mono font-black text-primary">AED {(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-[10px] text-muted-foreground">x{item.quantity}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Actions ── */}
+      <div className="px-4 pb-4 pt-2 flex items-center gap-3 flex-wrap border-t border-white/6">
+        {items.length > 0 && (
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="flex items-center gap-1 text-xs font-bold text-muted-foreground hover:text-white transition-colors"
+          >
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
+            {expanded ? "Hide items" : `See ${items.length} item${items.length !== 1 ? "s" : ""}`}
+          </button>
+        )}
+        <div className="ml-auto flex gap-3">
+          <Link href={`/order/${o.id}`}>
+            <button className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-primary hover:opacity-80 transition-opacity">
+              <Truck className="h-3.5 w-3.5" /> Track Order
+            </button>
+          </Link>
+          <Link href={`/receipt/${o.id}`}>
+            <button className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-white transition-colors">
+              Receipt <ArrowRight className="h-3 w-3" />
+            </button>
+          </Link>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Orders list ───────────────────────────────────────────────────────────────
+function OrdersList({ orders }: { orders: Order[] }) {
+  return (
+    <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+      <div className="flex items-center justify-between mb-2">
+        <p className="font-black uppercase tracking-widest text-xs text-muted-foreground">Order History</p>
+        {orders.length > 0 && (
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{orders.length} order{orders.length !== 1 ? "s" : ""}</span>
+        )}
+      </div>
+      {orders.length === 0 ? (
+        <div className="rounded-2xl border border-white/10 p-12 text-center"
+          style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)" }}>
+          <Package className="h-14 w-14 text-muted-foreground mx-auto mb-5 opacity-20" />
+          <p className="text-muted-foreground font-black uppercase tracking-wider text-sm mb-1">No orders yet</p>
+          <p className="text-muted-foreground/60 text-xs mb-6">Your orders will appear here after your first purchase.</p>
+          <Link href="/shop">
+            <button className="px-6 py-2.5 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs rounded-xl hover:opacity-90 transition-opacity">
+              Shop Now
+            </button>
+          </Link>
+        </div>
+      ) : (
+        orders.map((o, i) => <OrderCard key={o.id} o={o} i={i} />)
+      )}
+    </motion.div>
+  );
+}
 export const useAccount = () => useContext(AccountContext);
 
 export function AccountProvider({ children }: { children: React.ReactNode }) {
@@ -171,37 +356,7 @@ export default function AccountPage() {
             )}
 
             {tab === "orders" && (
-              <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-3">
-                <h2 className="font-black uppercase tracking-wider text-sm text-muted-foreground mb-4">Order History</h2>
-                {orders.length === 0 ? (
-                  <div className="bg-card border border-border rounded-xl p-12 text-center">
-                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-30" />
-                    <p className="text-muted-foreground font-bold">No orders yet</p>
-                    <Link href="/shop"><button className="mt-4 px-6 py-2 bg-primary text-primary-foreground font-black uppercase tracking-wider text-xs rounded-lg">Shop Now</button></Link>
-                  </div>
-                ) : orders.map(o => (
-                  <div key={o.id} className="bg-card border border-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="font-mono font-black text-primary">#{o.orderNumber}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{new Date(o.createdAt).toLocaleDateString()}</p>
-                    </div>
-                    <div className="text-center">
-                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded border ${o.status === "delivered" ? "text-green-400 bg-green-500/10 border-green-500/30" : o.status === "cancelled" ? "text-red-400 bg-red-500/10 border-red-500/30" : "text-yellow-400 bg-yellow-500/10 border-yellow-500/30"}`}>
-                        {o.status}
-                      </span>
-                    </div>
-                    <p className="font-mono font-black">AED {o.total.toFixed(2)}</p>
-                    <div className="flex gap-2">
-                      <Link href={`/order/${o.id}`}>
-                        <button className="text-xs font-bold text-primary hover:underline uppercase tracking-wider">Track →</button>
-                      </Link>
-                      <Link href={`/receipt/${o.id}`}>
-                        <button className="text-xs font-bold text-muted-foreground hover:text-primary hover:underline uppercase tracking-wider transition-colors">Receipt</button>
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
+              <OrdersList orders={orders} />
             )}
 
             {tab === "addresses" && (

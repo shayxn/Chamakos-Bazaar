@@ -30,7 +30,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
 
   const cartCount = (cart?.items ?? []).reduce((a, i) => a + i.quantity, 0) || 0;
 
-  // Direction tracking for page slide animations
+  // Direction tracking for iOS-style lateral slide animations
   const prevLocRef = useRef(location);
   const dirRef = useRef(0);
   if (prevLocRef.current !== location) {
@@ -39,7 +39,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
     dirRef.current = p >= 0 && c >= 0 ? Math.sign(c - p) : c < 0 ? 1 : -1;
     prevLocRef.current = location;
   }
-  const yIn = dirRef.current >= 0 ? 14 : -10;
+  const xIn = dirRef.current >= 0 ? 32 : -32;
 
   const rawLogoUrl = settings.logo_url || "";
   const logoUrl = (!rawLogoUrl || rawLogoUrl === "/chamak-logo.png" || rawLogoUrl === "/chamak-logo-transparent.png") ? "/firstpick-logo.svg" : rawLogoUrl;
@@ -102,15 +102,15 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         <AnnouncementBanner />
       </header>
 
-      {/* ── Page Content — direction-aware spring transition ── */}
+      {/* ── Page Content — iOS-style lateral spring transition ── */}
       <main className="flex-1 pb-24 overflow-x-hidden">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location}
-            initial={{ opacity: 0, y: yIn, scale: 0.987 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0 } }}
-            transition={{ type: "spring", stiffness: 440, damping: 38, mass: 0.6 }}
+            initial={{ opacity: 0, x: xIn, scale: 0.984 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: xIn * -0.25, scale: 0.992, transition: { duration: 0.14, ease: [0.4, 0, 1, 1] } }}
+            transition={{ type: "spring", stiffness: 500, damping: 40, mass: 0.55 }}
             style={{ willChange: "transform, opacity" }}
           >
             {children}
@@ -152,7 +152,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
               key={href}
               href={href}
               className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 relative"
-              style={{ WebkitTapHighlightColor: "transparent" }}
+              style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
             >
               {/* Active glow — CSS transition only, no Framer layout animations */}
               <span
@@ -199,7 +199,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
           <Link
             href="/admin"
             className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 relative"
-            style={{ WebkitTapHighlightColor: "transparent" }}
+            style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
           >
             <span
               className="absolute inset-x-1 inset-y-0.5 rounded-xl pointer-events-none transition-opacity duration-150"

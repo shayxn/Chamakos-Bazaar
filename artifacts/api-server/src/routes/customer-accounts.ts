@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, customerAccountsTable, customerAddressesTable, ordersTable, siteSettingsTable } from "@workspace/db";
-import { eq, desc, or } from "drizzle-orm";
+import { db, customerAccountsTable, customerAddressesTable, ordersTable, orderItemsTable, siteSettingsTable } from "@workspace/db";
+import { eq, desc, or, inArray } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import type { Request } from "express";
 import { sendActivityPush, initPush } from "../lib/push";
@@ -118,7 +118,27 @@ router.get("/customers/orders", async (req, res) => {
   const orders = await db.select().from(ordersTable)
     .where(or(...conditions))
     .orderBy(desc(ordersTable.createdAt));
-  res.json(orders.map(o => ({ ...o, total: Number(o.total), createdAt: o.createdAt.toISOString() })));
+
+  // Fetch all items for these orders in one query
+  const orderIds = orders.map(o => o.id);
+  const allItems = orderIds.length > 0
+    ? await db.select({
+        orderId: orderItemsTable.orderId,
+        productName: orderItemsTable.productName,
+        quantity: orderItemsTable.quantity,
+        price: orderItemsTable.price,
+        size: orderItemsTable.size,
+      }).from(orderItemsTable).where(inArray(orderItemsTable.orderId, orderIds))
+    : [];
+
+  res.json(orders.map(o => ({
+    ...o,
+    total: Number(o.total),
+    createdAt: o.createdAt.toISOString(),
+    items: allItems
+      .filter(i => i.orderId === o.id)
+      .map(i => ({ ...i, price: Number(i.price) })),
+  })));
 });
 
 router.get("/customers/addresses", async (req, res) => {
