@@ -219,6 +219,72 @@ export async function sendCustomerStatusPush(
   }
 }
 
+// ── Admin push subscriptions ─────────────────────────────────────────────────
+let _adminSubsMigrated = false;
+async function ensureAdminPushTable() {
+  if (_adminSubsMigrated) return; _adminSubsMigrated = true;
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS admin_push_subscriptions (
+      id SERIAL PRIMARY KEY,
+      endpoint TEXT UNIQUE NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      admin_id TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+}
+
+export async function saveAdminSubscription(endpoint: string, p256dh: string, auth: string, adminId?: string) {
+  await ensureAdminPushTable();
+  await db.execute(sql`
+    INSERT INTO admin_push_subscriptions (endpoint, p256dh, auth, admin_id)
+    VALUES (${endpoint}, ${p256dh}, ${auth}, ${adminId ?? null})
+    ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth,
+      admin_id = COALESCE(EXCLUDED.admin_id, admin_push_subscriptions.admin_id)
+  `);
+}
+
+async function getAdminSubscriptions(skipAdminId?: string): Promise<{ endpoint: string; p256dh: string; auth: string }[]> {
+  await ensureAdminPushTable();
+  const result = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
+    skipAdminId
+      ? sql`SELECT endpoint, p256dh, auth FROM admin_push_subscriptions WHERE (admin_id != ${skipAdminId} OR admin_id IS NULL)`
+      : sql`SELECT endpoint, p256dh, auth FROM admin_push_subscriptions`
+  );
+  return Array.isArray(result) ? result : (result as any).rows ?? [];
+}
+
+export async function sendAdminChatPush(senderName: string, message: string, senderId: string) {
+  try {
+    if (!_initialized) await initPush();
+    const subs = await getAdminSubscriptions(senderId);
+    if (!subs.length) return;
+    const payload = JSON.stringify({
+      title: `💬 ${senderName}`,
+      body: message.length > 100 ? message.slice(0, 97) + "…" : message,
+      type: "ADMIN_CHAT",
+      data: { url: "/admin/chat" }
+    });
+    await deliver(subs, payload);
+  } catch {}
+}
+
+export async function sendAdminActivityPush(adminName: string, action: string, orderRef?: string) {
+  try {
+    if (!_initialized) await initPush();
+    const subs = await getAdminSubscriptions();
+    if (!subs.length) return;
+    const payload = JSON.stringify({
+      title: `🔔 ${adminName}`,
+      body: `${action}${orderRef ? ` · ${orderRef}` : ""}`,
+      type: "ADMIN_ACTIVITY",
+      data: { url: "/admin/activity" }
+    });
+    await deliver(subs, payload);
+  } catch {}
+}
+
 // ── Activity push (customer events) ─────────────────────────────────────────
 export async function sendActivityPush(type: string, data: Record<string, unknown>) {
   try {

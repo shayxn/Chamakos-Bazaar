@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { requireAdmin } from "../lib/auth-middleware";
 import { sql, desc } from "drizzle-orm";
+import { sendAdminActivityPush } from "../lib/push";
 
 const router = Router();
 
@@ -30,6 +31,8 @@ export async function logAdminActivity(adminName: string, action: string, orderR
     `);
     // Notify all admin SSE clients of new activity
     broadcastActivity({ adminName, action, orderRef, details, createdAt: new Date().toISOString() });
+    // Push to admin devices (non-SSE)
+    sendAdminActivityPush(adminName, action, orderRef).catch(() => {});
   } catch {}
 }
 

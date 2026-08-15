@@ -34,7 +34,9 @@
 - [iOS tap delay fix](ios-tap-delay.md) — add touchAction:"manipulation" to all Link/button elements in tab bars to eliminate 300ms iOS double-tap delay; this is the root cause of "press multiple times" complaints.
 - [Priority truck animation](priority-truck-anim.md) — src/components/priority-order-animation.tsx; shows on COD priority orders only; 5.2s then navigates; SVG truck with conic-gradient spinning wheels + ⚡ exhaust smoke.
 - [Customer orders API](customer-orders-api.md) — GET /api/customers/orders now joins orderItemsTable and returns items[] per order; matched by email OR phone.
-- [Admin chat + calling](admin-chat-calling.md) — SSE at /admin/chat/stream; WebRTC signaling at /admin/chat/signal; messages at /admin/chat/messages; admin identity in localStorage fp_admin_id/fp_admin_name; 7-day name cooldown via admin_profiles table.
+- [Admin chat + calling](admin-chat-calling.md) — SSE at /admin/chat/stream; WebRTC signaling at /admin/chat/signal (broadcast:true rings all); sound effects via Web Audio API (no files); group call button in header rings all online admins.
+- [Admin push subscriptions](admin-push-subs.md) — admin_push_subscriptions table; POST /admin/chat/push-subscribe; sendAdminChatPush() + sendAdminActivityPush() in push.ts; both fire after save/log.
+- [Support page](support-page.md) — /support is a full FAQ + agent hero + WhatsApp CTA; headphones icon in mobile header; Support link in account sidebar; phone loaded from support_whatsapp setting via ref to avoid closure bug.
 - [Order delay/cancel flow](order-delay-cancel.md) — status "delayed"/"cancelled" open modal (reason + date); sends customer push via sendCustomerStatusPush(); logs to admin_activity_log; customer_push_log col prevents duplicates.
 - [Customer push subscriptions](customer-push-subs.md) — separate customer_push_subscriptions table (endpoint+phone+email); POST /api/push/customer-subscribe; GET /api/push/vapid-public-key; account page has onboarding banner.
 - [Maintenance mode key](maintenance-mode-key.md) — site_settings key: maintenance_mode="true"/"false"; MaintenanceGate component reads /api/settings; admin toggle in site-settings.tsx.

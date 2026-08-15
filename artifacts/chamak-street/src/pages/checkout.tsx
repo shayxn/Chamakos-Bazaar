@@ -313,46 +313,57 @@ export default function Checkout() {
 
                       return (
                         <div key={opt.id} className="relative">
-                          {/* Rotating orange→yellow conic border for Priority */}
-                          {showGlow && (
-                            <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                                style={{
-                                  position: "absolute",
-                                  top: "-50%", left: "-50%",
-                                  width: "200%", height: "200%",
-                                  background: "conic-gradient(from 0deg, #ff6600 0deg, #ffcc00 80deg, #ff9900 140deg, #ffee44 200deg, #ff6600 260deg, #ffcc00 320deg, #ff6600 360deg)",
-                                }}
-                              />
-                            </div>
-                          )}
                           <button
                             type="button"
                             onClick={() => setDeliveryMethod(opt.id)}
                             className={`relative w-full flex items-center gap-3 p-4 text-left transition-all overflow-hidden ${
                               showGlow
-                                ? "rounded-[10px] m-[2px] border-0 glass-orange"
+                                ? "rounded-xl border-2 border-orange-500/50"
                                 : selected
                                 ? "rounded-xl border-2 border-primary glass"
                                 : "rounded-xl border-2 border-border/40 glass-sm hover:border-primary/40"
                             }`}
                           >
-                            {/* Shine on selected */}
-                            {selected && (
+                            {/* Shine on selected (non-priority) */}
+                            {selected && !showGlow && (
                               <div className="absolute inset-0 pointer-events-none glass-shine" />
                             )}
-                            {/* Priority pulsing inner glow */}
+                            {/* Priority — slow-drifting orange & yellow aurora inside the button */}
                             {showGlow && (
-                              <motion.div
-                                className="absolute inset-0 pointer-events-none"
-                                animate={{ opacity: [0.4, 0.75, 0.4] }}
-                                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                                style={{
-                                  background: "radial-gradient(ellipse at 15% 50%, rgba(255,102,0,0.2), transparent 55%), radial-gradient(ellipse at 85% 50%, rgba(255,220,0,0.18), transparent 55%)",
-                                }}
-                              />
+                              <>
+                                {/* Dark base */}
+                                <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(10,6,2,0.82)" }} />
+                                {/* Orange blob — drifts left to right */}
+                                <motion.div
+                                  className="absolute inset-0 pointer-events-none"
+                                  animate={{ x: ["0%", "35%", "5%", "0%"], y: ["0%", "20%", "-15%", "0%"] }}
+                                  transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                                  style={{
+                                    background: "radial-gradient(ellipse 90px 65px at 15% 55%, rgba(255,100,0,0.6), transparent 70%)",
+                                    filter: "blur(6px)",
+                                  }}
+                                />
+                                {/* Yellow blob — drifts right to left */}
+                                <motion.div
+                                  className="absolute inset-0 pointer-events-none"
+                                  animate={{ x: ["0%", "-30%", "15%", "0%"], y: ["0%", "-20%", "30%", "0%"] }}
+                                  transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                                  style={{
+                                    background: "radial-gradient(ellipse 80px 55px at 78% 45%, rgba(255,205,0,0.55), transparent 70%)",
+                                    filter: "blur(8px)",
+                                  }}
+                                />
+                                {/* Amber centre — slow drift */}
+                                <motion.div
+                                  className="absolute inset-0 pointer-events-none"
+                                  animate={{ x: ["0%", "12%", "-8%", "0%"], y: ["0%", "-12%", "18%", "0%"], opacity: [0.3, 0.6, 0.3] }}
+                                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+                                  style={{
+                                    background: "radial-gradient(ellipse 65px 45px at 50% 50%, rgba(255,155,0,0.5), transparent 70%)",
+                                    filter: "blur(10px)",
+                                  }}
+                                />
+                              </>
                             )}
                             <div className={`relative w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-primary" : "border-muted-foreground"}`}>
                               {selected && <div className="w-2 h-2 rounded-full bg-primary" />}

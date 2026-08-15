@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { requireAdmin } from "../lib/auth-middleware";
 import { sql } from "drizzle-orm";
+import { initPush, saveAdminSubscription, sendAdminChatPush } from "../lib/push";
 
 const router = Router();
 
@@ -90,7 +91,18 @@ router.post("/admin/chat/messages", requireAdmin, async (req, res) => {
   
   const newMsg = { id: row?.id, senderId, senderName, message, type: type ?? "text", metadata, reactions: {}, readBy: [senderId], createdAt: row?.created_at ?? new Date().toISOString() };
   broadcastChat({ type: "MESSAGE", message: newMsg });
+  // Push to admins who are not currently in the SSE stream (app closed / home screen)
+  sendAdminChatPush(senderName, message, senderId).catch(() => {});
   res.status(201).json(newMsg);
+});
+
+// Admin push subscribe
+router.post("/admin/chat/push-subscribe", requireAdmin, async (req, res) => {
+  const { endpoint, p256dh, auth, adminId } = req.body as Record<string, string>;
+  if (!endpoint || !p256dh || !auth) { res.status(400).json({ error: "Missing fields" }); return; }
+  await initPush();
+  await saveAdminSubscription(endpoint, p256dh, auth, adminId);
+  res.json({ ok: true });
 });
 
 // Get messages
@@ -129,10 +141,17 @@ router.post("/admin/chat/messages/:id/react", requireAdmin, async (req, res) => 
   res.json({ reactions });
 });
 
-// WebRTC signaling
+// WebRTC signaling (supports broadcast=true to ring all online admins)
 router.post("/admin/chat/signal", requireAdmin, (req, res) => {
-  const { to, from, fromName, signal } = req.body as { to: string; from: string; fromName: string; signal: object };
-  sendToAdmin(to, { type: "WEBRTC_SIGNAL", from, fromName, signal });
+  const { to, from, fromName, signal, broadcast } = req.body as { to?: string; from: string; fromName: string; signal: object; broadcast?: boolean };
+  if (broadcast) {
+    // Ring all other online admins
+    for (const [adminId] of chatClients) {
+      if (adminId !== from) sendToAdmin(adminId, { type: "WEBRTC_SIGNAL", from, fromName, signal });
+    }
+  } else if (to) {
+    sendToAdmin(to, { type: "WEBRTC_SIGNAL", from, fromName, signal });
+  }
   res.json({ ok: true });
 });
 

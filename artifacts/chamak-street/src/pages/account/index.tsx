@@ -1,7 +1,7 @@
 /* @refresh reset */
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Package, MapPin, Lock, LogOut, CheckCircle, Plus, Trash2, ChevronDown, Truck, Zap, Clock, ShoppingBag, ArrowRight, Bell, BellOff, Smartphone, X } from "lucide-react";
+import { User, Package, MapPin, Lock, LogOut, CheckCircle, Plus, Trash2, ChevronDown, Truck, Zap, Clock, ShoppingBag, ArrowRight, Bell, BellOff, Smartphone, X, Headphones } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
@@ -457,6 +457,11 @@ export default function AccountPage() {
                 <Icon className="h-4 w-4 shrink-0" /> {label}
               </button>
             ))}
+            <Link href="/support">
+              <div className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl font-bold text-sm transition-all text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer">
+                <Headphones className="h-4 w-4 shrink-0" /> Support
+              </div>
+            </Link>
           </aside>
 
           <div className="md:col-span-3">
