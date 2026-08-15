@@ -1,12 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { Home, Grid3X3, ShoppingBag, User, MessageCircle, Layers, Shield } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe } from "@workspace/api-client-react";
 import { useSettings } from "@/lib/use-settings";
 import { AnnouncementBanner } from "./announcement-banner";
 import { SmartSearchModal } from "./smart-search";
 import { useCartFly } from "./cart-fly-context";
-import { motion, AnimatePresence } from "@/lib/motion-noop";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChamakLogo } from "./chamak-logo";
 
 const TAB_ITEMS = [
@@ -17,6 +17,10 @@ const TAB_ITEMS = [
   { href: "/account", label: "Account", Icon: User },
 ];
 
+const TAB_PATHS = ["/", "/shop", "/basics", "/cart", "/account"];
+const tabIdx = (loc: string) =>
+  TAB_PATHS.findIndex(p => p === "/" ? loc === "/" : loc.startsWith(p));
+
 export function MobileLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const settings = useSettings();
@@ -25,6 +29,17 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   const { cartBounceKey } = useCartFly();
 
   const cartCount = (cart?.items ?? []).reduce((a, i) => a + i.quantity, 0) || 0;
+
+  // Direction tracking for page slide animations
+  const prevLocRef = useRef(location);
+  const dirRef = useRef(0);
+  if (prevLocRef.current !== location) {
+    const p = tabIdx(prevLocRef.current);
+    const c = tabIdx(location);
+    dirRef.current = p >= 0 && c >= 0 ? Math.sign(c - p) : c < 0 ? 1 : -1;
+    prevLocRef.current = location;
+  }
+  const yIn = dirRef.current >= 0 ? 14 : -10;
 
   const rawLogoUrl = settings.logo_url || "";
   const logoUrl = (!rawLogoUrl || rawLogoUrl === "/chamak-logo.png" || rawLogoUrl === "/chamak-logo-transparent.png") ? "/firstpick-logo.svg" : rawLogoUrl;
@@ -38,7 +53,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-between px-4 h-14">
           <SmartSearchModal />
 
-          {/* Logo — centered but constrained so it never overlaps controls */}
+          {/* Logo — centered */}
           <Link href="/" className="absolute left-1/2 -translate-x-1/2 max-w-[140px] flex items-center justify-center pointer-events-auto">
             {logoUrl === "/firstpick-logo.svg" ? (
               <ChamakLogo size="sm" />
@@ -53,10 +68,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-1">
             <Link href="/admin">
-              <motion.div
-                whileTap={{ scale: 0.88 }}
-                className="p-2"
-              >
+              <motion.div whileTap={{ scale: 0.82 }} transition={{ type: "spring", stiffness: 600, damping: 28 }} className="p-2">
                 <Shield className={`h-5 w-5 transition-colors ${user ? "text-primary/70" : "text-white/30"}`} />
               </motion.div>
             </Link>
@@ -75,6 +87,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 28 }}
                       className="absolute top-0 right-0 h-4 w-4 rounded-full bg-primary text-[10px] font-bold flex items-center justify-center text-white border border-black"
                     >
                       {cartCount}
@@ -89,9 +102,20 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         <AnnouncementBanner />
       </header>
 
-      {/* ── Page Content ── */}
-      <main className="flex-1 pb-24">
-        {children}
+      {/* ── Page Content — direction-aware spring transition ── */}
+      <main className="flex-1 pb-24 overflow-x-hidden">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location}
+            initial={{ opacity: 0, y: yIn, scale: 0.984 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.992, transition: { duration: 0.14, ease: "easeIn" } }}
+            transition={{ type: "spring", stiffness: 400, damping: 36, mass: 0.65 }}
+            style={{ willChange: "transform, opacity" }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* ── WhatsApp floating button ── */}
@@ -107,37 +131,71 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         </a>
       )}
 
-      {/* ── Bottom Tab Bar ── */}
+      {/* ── Bottom Tab Bar — liquid glass + spring animations ── */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch glass-nav-float border-t border-white/10"
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch"
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          background: "rgba(4,4,4,0.78)",
+          backdropFilter: "blur(72px) saturate(260%) brightness(1.04)",
+          WebkitBackdropFilter: "blur(72px) saturate(260%) brightness(1.04)",
+          borderTop: "1px solid rgba(255,255,255,0.09)",
+          boxShadow: "0 -1px 0 rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.07), 0 -8px 32px rgba(0,0,0,0.55)",
+        }}
       >
         {TAB_ITEMS.map(({ href, label, Icon }) => {
           const isCart = href === "/cart";
           const isActive = href === "/" ? location === "/" : location.startsWith(href);
 
           return (
-            <Link key={href} href={href} className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 relative group">
-              <span
-                className="relative flex items-center justify-center"
-                style={{ color: isActive ? "#ff6600" : "rgba(255,255,255,0.40)" }}
-              >
-                <Icon className="h-5 w-5 transition-colors duration-200" />
-                {isCart && cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 h-4 w-4 rounded-full bg-primary text-[9px] font-bold flex items-center justify-center text-white border border-black">
-                    {cartCount > 9 ? "9+" : cartCount}
-                  </span>
-                )}
-              </span>
-              <span
-                className="text-[10px] font-black uppercase tracking-[0.08em] transition-colors duration-200"
-                style={{ color: isActive ? "#ff6600" : "rgba(255,255,255,0.30)" }}
-              >
-                {label}
-              </span>
+            <Link
+              key={href}
+              href={href}
+              className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 relative"
+              style={{ WebkitTapHighlightColor: "transparent" }}
+            >
+              {/* Sliding glow background */}
               {isActive && (
+                <motion.span
+                  layoutId="tab-glow"
+                  className="absolute inset-x-1 inset-y-0.5 rounded-xl"
+                  style={{ background: "rgba(255,102,0,0.09)" }}
+                  transition={{ type: "spring", stiffness: 500, damping: 42 }}
+                />
+              )}
+
+              <motion.div
+                className="relative flex flex-col items-center gap-0.5"
+                whileTap={{ scale: 0.72 }}
+                transition={{ type: "spring", stiffness: 700, damping: 28 }}
+              >
+                <span className="relative" style={{ color: isActive ? "#ff6600" : "rgba(255,255,255,0.35)" }}>
+                  <Icon className="h-5 w-5" />
+                  {isCart && cartCount > 0 && (
+                    <motion.span
+                      key={cartCount}
+                      initial={{ scale: 0 }} animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 600, damping: 26 }}
+                      className="absolute -top-1.5 -right-2 h-4 w-4 rounded-full bg-primary text-[9px] font-bold flex items-center justify-center text-white border border-black"
+                    >
+                      {cartCount > 9 ? "9+" : cartCount}
+                    </motion.span>
+                  )}
+                </span>
                 <span
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary"
+                  className="text-[10px] font-black uppercase tracking-[0.08em]"
+                  style={{ color: isActive ? "#ff6600" : "rgba(255,255,255,0.25)" }}
+                >
+                  {label}
+                </span>
+              </motion.div>
+
+              {/* Sliding top indicator */}
+              {isActive && (
+                <motion.span
+                  layoutId="tab-indicator"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2.5px] rounded-full bg-primary"
+                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
                 />
               )}
             </Link>
@@ -145,20 +203,42 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         })}
 
         {user?.isAdmin && (
-          <Link href="/admin" className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 relative group">
-            <span style={{ color: location.startsWith("/admin") ? "#ff6600" : "rgba(255,255,255,0.40)" }}>
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-              </svg>
-            </span>
-            <span
-              className="text-[10px] font-black uppercase tracking-[0.08em]"
-              style={{ color: location.startsWith("/admin") ? "#ff6600" : "rgba(255,255,255,0.30)" }}
-            >
-              Admin
-            </span>
+          <Link
+            href="/admin"
+            className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 relative"
+            style={{ WebkitTapHighlightColor: "transparent" }}
+          >
             {location.startsWith("/admin") && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />
+              <motion.span
+                layoutId="tab-glow"
+                className="absolute inset-x-1 inset-y-0.5 rounded-xl"
+                style={{ background: "rgba(255,102,0,0.09)" }}
+                transition={{ type: "spring", stiffness: 500, damping: 42 }}
+              />
+            )}
+            <motion.div
+              className="relative flex flex-col items-center gap-0.5"
+              whileTap={{ scale: 0.72 }}
+              transition={{ type: "spring", stiffness: 700, damping: 28 }}
+            >
+              <span style={{ color: location.startsWith("/admin") ? "#ff6600" : "rgba(255,255,255,0.35)" }}>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+              </span>
+              <span
+                className="text-[10px] font-black uppercase tracking-[0.08em]"
+                style={{ color: location.startsWith("/admin") ? "#ff6600" : "rgba(255,255,255,0.25)" }}
+              >
+                Admin
+              </span>
+            </motion.div>
+            {location.startsWith("/admin") && (
+              <motion.span
+                layoutId="tab-indicator"
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2.5px] rounded-full bg-primary"
+                transition={{ type: "spring", stiffness: 500, damping: 40 }}
+              />
             )}
           </Link>
         )}

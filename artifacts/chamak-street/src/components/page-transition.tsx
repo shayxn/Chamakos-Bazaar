@@ -1,3 +1,4 @@
+/* @refresh reset */
 import { type ReactNode, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useLocation } from "wouter";
@@ -6,18 +7,16 @@ import { useLocation } from "wouter";
 export const EASE_CURVE: any = [0.16, 1, 0.3, 1];
 
 export function PageTransition({ children }: { children: ReactNode }) {
-  const [location] = useLocation();
+  // On mobile, MobileLayout handles route-level transitions.
+  // PageTransition adds a lightweight content-reveal on desktop only.
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={location}
-        initial={{ opacity: 0, y: 22, filter: "blur(6px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.48, ease: EASE_CURVE } }}
-        exit={{ opacity: 0, y: -12, filter: "blur(4px)", transition: { duration: 0.22, ease: "easeIn" } }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0, transition: { duration: 0.32, ease: EASE_CURVE } }}
+      style={{ willChange: "transform, opacity" }}
+    >
+      {children}
+    </motion.div>
   );
 }
 

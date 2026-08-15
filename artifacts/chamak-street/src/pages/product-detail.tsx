@@ -411,14 +411,19 @@ export default function ProductDetail() {
   const [addedPulse, setAddedPulse] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
-  const [stickyVisible, setStickyVisible] = useState(false);
+  const [scrolledPast, setScrolledPast] = useState(false);
 
   const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()) : [];
   const mediaItems = useMemo(() => parseProductMedia(product?.imageUrl ?? null), [product?.imageUrl]);
 
-  // Show sticky ATC bar after scrolling past the main ATC button
+  // Show sticky ATC bar once scrolled past the main button — RAF-throttled
   useEffect(() => {
-    const onScroll = () => setStickyVisible(window.scrollY > 520);
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { setScrolledPast(window.scrollY > 480); ticking = false; });
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -499,6 +504,8 @@ export default function ProductDetail() {
   }
 
   const isOutOfStock = product.stock === 0;
+  // Sticky bar: only after scroll AND (no sizes OR size already chosen)
+  const stickyVisible = scrolledPast && !isOutOfStock && (sizes.length === 0 || !!selectedSize);
   const selectedMedia = mediaItems[selectedMediaIndex] ?? mediaItems[0] ?? null;
 
   return (
@@ -734,15 +741,20 @@ export default function ProductDetail() {
               {/* Trending meter */}
               <TrendingMeter productId={id} />
 
-              {/* Add to cart */}
+              {/* Add to cart — slides down when sticky bar takes over */}
               <motion.div
-                animate={addedPulse ? { scale: [1, 1.04, 1], filter: ["blur(0px)", "blur(0px)", "blur(0px)"] } : {}}
-                transition={{ duration: 0.4 }}
+                animate={{ y: stickyVisible ? 18 : 0, opacity: stickyVisible ? 0 : 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 36 }}
+                style={{ pointerEvents: stickyVisible ? "none" : "auto" }}
+              >
+              <motion.div
+                animate={addedPulse ? { scale: [1, 1.04, 1] } : {}}
+                transition={{ duration: 0.35 }}
               >
                 <motion.div
-                  whileHover={!isOutOfStock ? { scale: 1.02, filter: "brightness(1.08)" } : {}}
-                  whileTap={!isOutOfStock ? { scale: 0.97 } : {}}
-                  transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                  whileHover={!isOutOfStock ? { scale: 1.02 } : {}}
+                  whileTap={!isOutOfStock ? { scale: 0.96 } : {}}
+                  transition={{ type: "spring", stiffness: 400, damping: 24 }}
                 >
                   <Button
                     size="lg"
@@ -770,6 +782,7 @@ export default function ProductDetail() {
                 </motion.div>
               </motion.div>
 
+              </motion.div>
               {/* Back in stock WhatsApp alert */}
               {isOutOfStock && <BackInStockAlert productId={id} productName={product.name} />}
             </MotionItem>
@@ -876,34 +889,48 @@ export default function ProductDetail() {
       </div>
       <QuickViewModal productId={quickViewId} onClose={() => setQuickViewId(null)} />
 
-      {/* Sticky mobile ATC bar */}
+      {/* Sticky mobile ATC bar — appears only after size is chosen + scrolled past main button */}
       <AnimatePresence>
-        {stickyVisible && !isOutOfStock && (
+        {stickyVisible && (
           <motion.div
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            className="fixed inset-x-0 z-[49] md:hidden glass-nav"
-            style={{ bottom: "56px", borderTop: "1px solid rgba(255,102,0,0.28)", boxShadow: "0 -8px 40px rgba(0,0,0,0.70), inset 0 1px 0 rgba(255,255,255,0.08)" }}
+            initial={{ y: 100, opacity: 0, scale: 0.96 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 100, opacity: 0, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 420, damping: 36, mass: 0.7 }}
+            className="fixed inset-x-3 z-[49] md:hidden rounded-2xl overflow-hidden"
+            style={{
+              bottom: "72px",
+              background: "rgba(8,8,8,0.82)",
+              backdropFilter: "blur(56px) saturate(240%) brightness(1.05)",
+              WebkitBackdropFilter: "blur(56px) saturate(240%) brightness(1.05)",
+              border: "1px solid rgba(255,102,0,0.30)",
+              boxShadow: "0 -2px 0 rgba(255,255,255,0.06) inset, 0 8px 48px rgba(0,0,0,0.72), 0 0 0 0.5px rgba(255,102,0,0.15)",
+            }}
           >
             <div className="px-4 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-white/50 font-bold uppercase tracking-wider truncate">{product.name}</p>
-                <p className="text-primary font-mono font-black text-lg">AED {product.price.toFixed(2)}</p>
+                <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest truncate">{product.name}</p>
+                <p className="text-primary font-mono font-black text-base leading-tight">AED {product.price.toFixed(2)}</p>
+                {selectedSize && (
+                  <p className="text-[10px] text-white/35 font-bold mt-0.5">Size: {selectedSize}</p>
+                )}
               </div>
-              {sizes.length > 0 && !selectedSize && (
-                <div className="text-[10px] font-bold text-orange-400 uppercase tracking-wider shrink-0">↑ Pick size first</div>
-              )}
               <motion.button
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.93 }}
+                whileHover={{ scale: 1.03 }}
                 onClick={handleAddToCart}
                 disabled={addToCart.isPending}
-                className="shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-black uppercase tracking-widest text-sm text-black disabled:opacity-60"
-                style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", boxShadow: "0 0 20px rgba(255,102,0,0.45)" }}
+                className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-sm text-black disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", boxShadow: "0 0 24px rgba(255,102,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)" }}
               >
                 <ShoppingCart className="h-4 w-4" />
-                {addToCart.isPending ? "Adding…" : "Add to Cart"}
+                <AnimatePresence mode="wait">
+                  <motion.span key={addToCart.isPending ? "adding" : "add"}
+                    initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15 }}>
+                    {addToCart.isPending ? "Adding…" : "Add to Cart"}
+                  </motion.span>
+                </AnimatePresence>
               </motion.button>
             </div>
           </motion.div>
