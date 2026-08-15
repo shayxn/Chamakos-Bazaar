@@ -406,6 +406,15 @@ export default function AdminProducts() {
         setSheetOpen(false);
         toast({ title: editingId ? "Product updated ✓" : "Product created ✓" });
       },
+      onError: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : "Something went wrong";
+        const isAuth = msg.includes("401") || msg.toLowerCase().includes("authenticated");
+        toast({
+          title: isAuth ? "Session expired — please log in again" : "Failed to save product",
+          description: isAuth ? undefined : msg,
+          variant: "destructive",
+        });
+      },
     };
     if (editingId) updateProduct.mutate({ id: editingId, data: data as ProductInput }, opts);
     else createProduct.mutate({ data: data as ProductInput }, opts);
