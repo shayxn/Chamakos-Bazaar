@@ -154,22 +154,18 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
               className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 relative"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* Sliding glow background */}
-              {isActive && (
-                <motion.span
-                  layoutId="tab-glow"
-                  className="absolute inset-x-1 inset-y-0.5 rounded-xl"
-                  style={{ background: "rgba(255,102,0,0.09)" }}
-                  transition={{ type: "spring", stiffness: 500, damping: 42 }}
-                />
-              )}
+              {/* Active glow — CSS transition only, no Framer layout animations */}
+              <span
+                className="absolute inset-x-1 inset-y-0.5 rounded-xl pointer-events-none transition-opacity duration-150"
+                style={{ background: "rgba(255,102,0,0.09)", opacity: isActive ? 1 : 0 }}
+              />
 
               <motion.div
                 className="relative flex flex-col items-center gap-0.5"
-                whileTap={{ scale: 0.72 }}
-                transition={{ type: "spring", stiffness: 700, damping: 28 }}
+                whileTap={{ scale: 0.78 }}
+                transition={{ type: "spring", stiffness: 800, damping: 32 }}
               >
-                <span className="relative" style={{ color: isActive ? "#ff6600" : "rgba(255,255,255,0.35)" }}>
+                <span className="relative transition-colors duration-150" style={{ color: isActive ? "#ff6600" : "rgba(255,255,255,0.35)" }}>
                   <Icon className="h-5 w-5" />
                   {isCart && cartCount > 0 && (
                     <motion.span
@@ -183,21 +179,18 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                   )}
                 </span>
                 <span
-                  className="text-[10px] font-black uppercase tracking-[0.08em]"
+                  className="text-[10px] font-black uppercase tracking-[0.08em] transition-colors duration-150"
                   style={{ color: isActive ? "#ff6600" : "rgba(255,255,255,0.25)" }}
                 >
                   {label}
                 </span>
               </motion.div>
 
-              {/* Sliding top indicator */}
-              {isActive && (
-                <motion.span
-                  layoutId="tab-indicator"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2.5px] rounded-full bg-primary"
-                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                />
-              )}
+              {/* Active indicator dot — CSS transition only */}
+              <span
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2.5px] rounded-full bg-primary pointer-events-none transition-opacity duration-150"
+                style={{ opacity: isActive ? 1 : 0 }}
+              />
             </Link>
           );
         })}
@@ -208,38 +201,31 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
             className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5 relative"
             style={{ WebkitTapHighlightColor: "transparent" }}
           >
-            {location.startsWith("/admin") && (
-              <motion.span
-                layoutId="tab-glow"
-                className="absolute inset-x-1 inset-y-0.5 rounded-xl"
-                style={{ background: "rgba(255,102,0,0.09)" }}
-                transition={{ type: "spring", stiffness: 500, damping: 42 }}
-              />
-            )}
+            <span
+              className="absolute inset-x-1 inset-y-0.5 rounded-xl pointer-events-none transition-opacity duration-150"
+              style={{ background: "rgba(255,102,0,0.09)", opacity: location.startsWith("/admin") ? 1 : 0 }}
+            />
             <motion.div
               className="relative flex flex-col items-center gap-0.5"
-              whileTap={{ scale: 0.72 }}
-              transition={{ type: "spring", stiffness: 700, damping: 28 }}
+              whileTap={{ scale: 0.78 }}
+              transition={{ type: "spring", stiffness: 800, damping: 32 }}
             >
-              <span style={{ color: location.startsWith("/admin") ? "#ff6600" : "rgba(255,255,255,0.35)" }}>
+              <span className="transition-colors duration-150" style={{ color: location.startsWith("/admin") ? "#ff6600" : "rgba(255,255,255,0.35)" }}>
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
                 </svg>
               </span>
               <span
-                className="text-[10px] font-black uppercase tracking-[0.08em]"
+                className="text-[10px] font-black uppercase tracking-[0.08em] transition-colors duration-150"
                 style={{ color: location.startsWith("/admin") ? "#ff6600" : "rgba(255,255,255,0.25)" }}
               >
                 Admin
               </span>
             </motion.div>
-            {location.startsWith("/admin") && (
-              <motion.span
-                layoutId="tab-indicator"
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2.5px] rounded-full bg-primary"
-                transition={{ type: "spring", stiffness: 500, damping: 40 }}
-              />
-            )}
+            <span
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2.5px] rounded-full bg-primary pointer-events-none transition-opacity duration-150"
+              style={{ opacity: location.startsWith("/admin") ? 1 : 0 }}
+            />
           </Link>
         )}
       </nav>
