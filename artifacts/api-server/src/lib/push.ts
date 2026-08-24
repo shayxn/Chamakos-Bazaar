@@ -263,6 +263,11 @@ export async function saveAdminSubscription(endpoint: string, p256dh: string, au
   `);
 }
 
+export async function removeAdminSubscription(endpoint: string) {
+  await ensureAdminPushTable();
+  await db.execute(sql`DELETE FROM admin_push_subscriptions WHERE endpoint = ${endpoint}`);
+}
+
 async function getAdminSubscriptions(skipAdminId?: string): Promise<{ endpoint: string; p256dh: string; auth: string; admin_id?: string | null }[]> {
   await ensureAdminPushTable();
   const result = await db.execute<{ endpoint: string; p256dh: string; auth: string; admin_id?: string | null }>(

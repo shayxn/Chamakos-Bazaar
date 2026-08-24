@@ -55,3 +55,4 @@
 - [iOS Notification guards](ios-notification-guard.md) — always wrap Notification.permission and Notification.requestPermission() with `typeof Notification !== "undefined"` check; iOS Safari crashes without it. Same for navigator.serviceWorker availability check.
 - [Admin group calls](admin-group-calls.md) — small authenticated admin teams use a WebRTC mesh room with SSE signaling and web-push invites; move to an SFU before scaling beyond that.
 - [Push delivery truth](push-delivery-truth.md) — admin push-test success means the current browser subscription was actually accepted by the provider.
+- [Admin chat media](admin-chat-media.md) — photos and voice messages are private direct uploads that must be verified before a chat record can reference them.

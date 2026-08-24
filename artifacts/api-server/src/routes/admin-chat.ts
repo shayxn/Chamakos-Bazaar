@@ -2,7 +2,8 @@ import { Router } from "express";
 import { db, usersTable } from "@workspace/db";
 import { requireAdmin } from "../lib/auth-middleware";
 import { eq, sql } from "drizzle-orm";
-import { initPush, saveAdminSubscription, sendAdminChatPush, sendAdminCallPush } from "../lib/push";
+import { initPush, removeAdminSubscription, saveAdminSubscription, sendAdminChatPush, sendAdminCallPush } from "../lib/push";
+import { createChatMediaDownload, createChatMediaUpload, inspectChatMedia, isValidChatMediaPath } from "../lib/chat-media-storage";
 
 const router = Router();
 type Admin = { id: string; name: string };
@@ -12,6 +13,7 @@ type Room = { initiator: string; members: Map<string, Set<string>>; createdAt: n
 const clients = new Map<string, Client>(); // admin/device; an admin may have several browsers.
 const disconnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const rooms = new Map<string, Room>();
+const pendingSignals = new Map<string, { event: object; expiresAt: number }[]>();
 let migrated = false;
 
 async function me(req: any): Promise<Admin> {
@@ -40,6 +42,15 @@ async function tables() {
     ALTER TABLE admin_chat_messages ADD COLUMN IF NOT EXISTS client_message_id TEXT;
     CREATE UNIQUE INDEX IF NOT EXISTS admin_chat_messages_sender_client_message_key
       ON admin_chat_messages(sender_id, client_message_id) WHERE client_message_id IS NOT NULL;
+    CREATE TABLE IF NOT EXISTS admin_chat_uploads (
+      object_path TEXT PRIMARY KEY,
+      uploader_id TEXT NOT NULL,
+      media_kind TEXT NOT NULL,
+      content_type TEXT NOT NULL,
+      max_size INTEGER NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      consumed_at TIMESTAMPTZ
+    );
   `);
 }
 function online() {
@@ -50,6 +61,17 @@ function write(client: Client, value: object) {
     const key = `${client.admin.id}:${client.deviceId}`;
     if (clients.get(key) === client) clients.delete(key);
   }
+}
+function queueSignal(key: string, event: object) {
+  const pending = pendingSignals.get(key) ?? [];
+  pending.push({ event, expiresAt: Date.now() + 15_000 });
+  pendingSignals.set(key, pending);
+}
+function flushSignals(key: string, client: Client) {
+  const pending = pendingSignals.get(key);
+  if (!pending) return;
+  pendingSignals.delete(key);
+  for (const item of pending) if (item.expiresAt > Date.now()) write(client, item.event);
 }
 function emit(value: object, allowed?: Set<string>) {
   for (const client of clients.values()) if (!allowed || allowed.has(client.admin.id)) write(client, value);
@@ -108,6 +130,19 @@ async function validAdmin(id: string) {
   const [u] = await db.select().from(usersTable).where(eq(usersTable.id, Number(id)));
   return !!u?.isAdmin;
 }
+function safeMetadata(raw: unknown) {
+  if (typeof raw !== "string" || !raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+function chatMessage(row: any) {
+  return { id:row.id,senderId:row.sender_id,senderName:row.sender_name,message:row.message,type:row.type,conversationId:row.conversation_id,clientMessageId:row.client_message_id,metadata:safeMetadata(row.metadata),reactions:JSON.parse(row.reactions||"{}"),readBy:JSON.parse(row.read_by||"[]"),createdAt:row.created_at };
+}
+function supportedChatMedia(contentType: string) {
+  const normalized = contentType.split(";")[0].trim().toLowerCase();
+  if (/^image\/(jpeg|png|webp|gif)$/.test(normalized)) return "image" as const;
+  if (/^audio\/(webm|ogg|mpeg|mp4|x-m4a|wav)$/.test(normalized)) return "audio" as const;
+  return null;
+}
 
 router.get("/admin/chat/stream", requireAdmin, async (req, res) => {
   const admin = await me(req); const deviceId = typeof req.query.deviceId === "string" ? req.query.deviceId.slice(0, 100) : crypto.randomUUID();
@@ -118,7 +153,7 @@ router.get("/admin/chat/stream", requireAdmin, async (req, res) => {
     clearTimeout(pendingDeparture);
     disconnectTimers.delete(key);
   }
-  const client = { res, admin, deviceId }; clients.set(key, client);
+  const client = { res, admin, deviceId }; clients.set(key, client); flushSignals(key, client);
   emit({ type: "PRESENCE", onlineAdmins: online() });
   const heartbeat = setInterval(() => { try { res.write(":\n\n"); } catch {} }, 25000);
   req.on("close", () => {
@@ -144,19 +179,85 @@ router.get("/admin/chat/messages", requireAdmin, async (req, res) => {
   const admin = await me(req); await tables(); const c = conversationFor(admin.id, req.query.conversationId);
   if (!c) return void res.status(403).json({ error: "Conversation is not available to this admin" });
   const rows = await db.execute<any>(sql`SELECT * FROM admin_chat_messages WHERE conversation_id=${c.id} ORDER BY created_at ASC LIMIT 200`).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
-  res.json(rows.map((r: any) => ({ id:r.id,senderId:r.sender_id,senderName:r.sender_name,message:r.message,type:r.type,conversationId:r.conversation_id,clientMessageId:r.client_message_id,metadata:r.metadata,reactions:JSON.parse(r.reactions||"{}"),readBy:JSON.parse(r.read_by||"[]"),createdAt:r.created_at })));
+  res.json(rows.map(chatMessage));
+});
+
+router.post("/admin/chat/uploads/request-url", requireAdmin, async (req, res) => {
+  const admin = await me(req); await tables();
+  const contentType = typeof req.body?.contentType === "string" ? req.body.contentType.split(";")[0].trim().toLowerCase() : "";
+  const size = Number(req.body?.size);
+  const kind = supportedChatMedia(contentType);
+  const maxSize = kind === "image" ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
+  if (!kind || !Number.isFinite(size) || size <= 0 || size > maxSize) {
+    return void res.status(400).json({ error: "Use an image up to 10 MB or a voice message up to 25 MB." });
+  }
+  try {
+    const upload = await createChatMediaUpload();
+    await db.execute(sql`INSERT INTO admin_chat_uploads(object_path,uploader_id,media_kind,content_type,max_size) VALUES(${upload.objectPath},${admin.id},${kind},${contentType},${maxSize})`);
+    res.status(201).json({ ...upload, kind, contentType, uploadedBy: admin.id });
+  } catch (error) {
+    req.log.error({ err: error }, "Admin chat media upload URL failed");
+    res.status(503).json({ error: "Chat media storage is unavailable. Please try again." });
+  }
+});
+
+router.get("/admin/chat/media/*objectPath", requireAdmin, async (req, res) => {
+  const raw = req.params.objectPath;
+  const objectPath = Array.isArray(raw) ? raw.join("/") : raw;
+  if (!isValidChatMediaPath(objectPath)) return void res.status(404).json({ error: "Media not found" });
+  try {
+    res.redirect(302, await createChatMediaDownload(objectPath));
+  } catch (error) {
+    req.log.warn({ err: error }, "Admin chat media lookup failed");
+    res.status(404).json({ error: "Media not found" });
+  }
 });
 
 router.post("/admin/chat/messages", requireAdmin, async (req, res) => {
-  const admin = await me(req); await tables(); const message = String(req.body?.message ?? "").trim(); const c = conversationFor(admin.id, req.body?.conversationId);
-  if (!message) return void res.status(400).json({ error: "Empty message" }); if (!c) return void res.status(403).json({ error: "Conversation is not available to this admin" });
+  const admin = await me(req); await tables(); let message = String(req.body?.message ?? "").trim(); const c = conversationFor(admin.id, req.body?.conversationId);
+  const type = req.body?.type === "image" || req.body?.type === "audio" ? req.body.type : "text";
+  const metadata = req.body?.metadata && typeof req.body.metadata === "object" ? req.body.metadata : null;
+  const media = metadata?.media;
+  if (type === "text" && !message) return void res.status(400).json({ error: "Empty message" });
+  if (type !== "text" && (!media || media.kind !== type || !isValidChatMediaPath(media.objectPath))) {
+    return void res.status(400).json({ error: "Invalid chat media" });
+  }
+  if (type === "image" && !message) message = "📷 Photo";
+  if (type === "audio" && !message) message = "🎤 Voice message";
+  if (!c) return void res.status(403).json({ error: "Conversation is not available to this admin" });
   if (c.members && !(await Promise.all([...c.members].map(validAdmin))).every(Boolean)) return void res.status(404).json({ error: "Admin not found" });
   const cmid = typeof req.body?.clientMessageId === "string" ? req.body.clientMessageId : null;
   const old = cmid ? await db.execute<any>(sql`SELECT * FROM admin_chat_messages WHERE sender_id=${admin.id} AND client_message_id=${cmid} LIMIT 1`).then(r => (Array.isArray(r)?r:(r as any).rows??[])[0]) : null;
-  const row = old ?? (await db.execute<any>(sql`INSERT INTO admin_chat_messages(sender_id,sender_name,message,conversation_id,client_message_id) VALUES(${admin.id},${admin.name},${message},${c.id},${cmid}) RETURNING *`).then(r => (Array.isArray(r)?r:(r as any).rows??[])[0]));
-  const output = { id:row.id,senderId:row.sender_id,senderName:row.sender_name,message:row.message,type:row.type,conversationId:row.conversation_id,clientMessageId:row.client_message_id,metadata:row.metadata,reactions:JSON.parse(row.reactions||"{}"),readBy:JSON.parse(row.read_by||"[]"),createdAt:row.created_at };
-  emit({ type:"MESSAGE", message:output }, c.members); if (!old) sendAdminChatPush(admin.name, message, admin.id, c.members ? [...c.members].filter(id => id !== admin.id) : undefined).catch(() => {});
-  res.status(old ? 200 : 201).json(output);
+  if (old) {
+    const output = chatMessage(old);
+    emit({ type:"MESSAGE", message:output }, c.members);
+    return void res.status(200).json(output);
+  }
+  let persistedMetadata = metadata;
+  if (type !== "text") {
+    const [issued] = await db.execute<any>(sql`
+      SELECT object_path, media_kind, content_type, max_size FROM admin_chat_uploads
+      WHERE object_path=${media.objectPath} AND uploader_id=${admin.id}
+        AND consumed_at IS NULL AND created_at > NOW() - INTERVAL '20 minutes'
+      LIMIT 1
+    `).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
+    if (!issued) return void res.status(400).json({ error: "This media upload has expired or was already sent." });
+    try {
+      const uploaded = await inspectChatMedia(media.objectPath);
+      const actualKind = supportedChatMedia(uploaded.contentType);
+      if (!uploaded.size || uploaded.size > Number(issued.max_size) || actualKind !== type || issued.media_kind !== type || uploaded.contentType !== issued.content_type) {
+        return void res.status(400).json({ error: "Uploaded media did not match the approved file type or size." });
+      }
+      persistedMetadata = { ...metadata, media: { ...media, contentType: uploaded.contentType } };
+    } catch {
+      return void res.status(400).json({ error: "Uploaded media could not be verified. Please send it again." });
+    }
+  }
+  const row = await db.execute<any>(sql`INSERT INTO admin_chat_messages(sender_id,sender_name,message,type,conversation_id,client_message_id,metadata) VALUES(${admin.id},${admin.name},${message},${type},${c.id},${cmid},${persistedMetadata ? JSON.stringify(persistedMetadata) : null}) RETURNING *`).then(r => (Array.isArray(r)?r:(r as any).rows??[])[0]);
+  if (type !== "text") await db.execute(sql`UPDATE admin_chat_uploads SET consumed_at=NOW() WHERE object_path=${media.objectPath} AND uploader_id=${admin.id} AND consumed_at IS NULL`);
+  const output = chatMessage(row);
+  emit({ type:"MESSAGE", message:output }, c.members); sendAdminChatPush(admin.name, type === "image" ? "📷 Photo" : type === "audio" ? "🎤 Voice message" : message, admin.id, c.members ? [...c.members].filter(id => id !== admin.id) : undefined).catch(() => {});
+  res.status(201).json(output);
 });
 
 router.post("/admin/chat/typing", requireAdmin, async (req,res) => { const admin=await me(req); const c=conversationFor(admin.id,req.body?.conversationId); if(!c || typeof req.body?.typing!=="boolean") return void res.status(400).json({error:"Invalid typing payload"}); emit({type:"TYPING",adminId:admin.id,adminName:admin.name,typing:req.body.typing,conversationId:c.id},c.members); res.status(204).end(); });
@@ -207,6 +308,7 @@ router.post("/admin/profile/pfp", requireAdmin, async (req, res) => {
 });
 
 router.post("/admin/chat/push-subscribe", requireAdmin, async (req,res) => { const admin=await me(req); const {endpoint,p256dh,auth}=req.body??{}; if(!endpoint||!p256dh||!auth)return void res.status(400).json({error:"Missing fields"}); await initPush(); await saveAdminSubscription(endpoint,p256dh,auth,admin.id); res.json({ok:true}); });
+router.delete("/admin/chat/push-subscribe", requireAdmin, async (req,res) => { const endpoint=typeof req.body?.endpoint==="string"?req.body.endpoint:""; if(!endpoint)return void res.status(400).json({error:"Missing endpoint"}); await removeAdminSubscription(endpoint); res.status(204).end(); });
 router.get("/admin/chat/online", requireAdmin, (_req,res)=>res.json(online()));
 router.get("/admin/chat/ice-config", requireAdmin, (_req,res) => { const iceServers:any[]=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}]; if(process.env.TURN_URL&&process.env.TURN_USERNAME&&process.env.TURN_CREDENTIAL)iceServers.push({urls:process.env.TURN_URL,username:process.env.TURN_USERNAME,credential:process.env.TURN_CREDENTIAL}); res.json({iceServers}); });
 
@@ -214,6 +316,6 @@ router.get("/admin/chat/ice-config", requireAdmin, (_req,res) => { const iceServ
 router.post("/admin/chat/rooms", requireAdmin, async(req,res)=>{const admin=await me(req);const deviceId=deviceIdFrom(req.body?.deviceId);if(!deviceId)return void res.status(400).json({error:"Missing device"});const id=crypto.randomUUID();const room:Room={initiator:admin.id,members:new Map(),createdAt:Date.now()};addRoomDevice(room,admin.id,deviceId);rooms.set(id,room);emit({type:"ROOM_INVITE",roomId:id,from:admin},new Set(online().map(a=>a.id).filter(id=>id!==admin.id)));sendAdminCallPush(admin.name,admin.id,`/admin/chat?room=${encodeURIComponent(id)}`).catch(()=>{});res.status(201).json({roomId:id});});
 router.post("/admin/chat/rooms/:roomId/join", requireAdmin, async(req,res)=>{const admin=await me(req);const deviceId=deviceIdFrom(req.body?.deviceId);const roomId=String(req.params.roomId);const room=rooms.get(roomId);if(!deviceId)return void res.status(400).json({error:"Missing device"});if(!room)return void res.status(404).json({error:"Room ended"});addRoomDevice(room,admin.id,deviceId);const event=roomMembersEvent(roomId,room);emit(event);res.json({members:event.members,devices:event.devices});});
 router.post("/admin/chat/rooms/:roomId/leave", requireAdmin, async(req,res)=>{const admin=await me(req);const deviceId=deviceIdFrom(req.query.deviceId??req.body?.deviceId);const roomId=String(req.params.roomId);const room=rooms.get(roomId);if(!deviceId)return void res.status(400).json({error:"Missing device"});if(room){const devices=room.members.get(admin.id);if(devices?.delete(deviceId)&&!devices.size)room.members.delete(admin.id);if(!room.members.size)rooms.delete(roomId);else emit(roomMembersEvent(roomId,room));}res.status(204).end();});
-router.post("/admin/chat/rooms/:roomId/signal", requireAdmin, async(req,res)=>{const admin=await me(req);const deviceId=deviceIdFrom(req.body?.deviceId);const roomId=String(req.params.roomId);const room=rooms.get(roomId);const to=String(req.body?.to??"");const toDeviceId=deviceIdFrom(req.body?.toDeviceId);if(!room||!deviceId||!toDeviceId||!roomHasDevice(room,admin.id,deviceId)||!roomHasDevice(room,to,toDeviceId))return void res.status(403).json({error:"Room signal denied"});const recipient=clients.get(`${to}:${toDeviceId}`);if(recipient)write(recipient,{type:"ROOM_SIGNAL",roomId,from:admin.id,fromDeviceId:deviceId,fromName:admin.name,signal:req.body.signal});res.status(204).end();});
-setInterval(()=>{const now=Date.now();for(const [id,room] of rooms)if(!room.members.size||now-room.createdAt>8*60*60_000)rooms.delete(id);},60_000).unref();
+router.post("/admin/chat/rooms/:roomId/signal", requireAdmin, async(req,res)=>{const admin=await me(req);const deviceId=deviceIdFrom(req.body?.deviceId);const roomId=String(req.params.roomId);const room=rooms.get(roomId);const to=String(req.body?.to??"");const toDeviceId=deviceIdFrom(req.body?.toDeviceId);if(!room||!deviceId||!toDeviceId||!roomHasDevice(room,admin.id,deviceId)||!roomHasDevice(room,to,toDeviceId))return void res.status(403).json({error:"Room signal denied"});const event={type:"ROOM_SIGNAL",roomId,from:admin.id,fromDeviceId:deviceId,fromName:admin.name,signal:req.body.signal};const key=`${to}:${toDeviceId}`;const recipient=clients.get(key);if(recipient)write(recipient,event);else queueSignal(key,event);res.status(204).end();});
+setInterval(()=>{const now=Date.now();for(const [id,room] of rooms)if(!room.members.size||now-room.createdAt>8*60*60_000)rooms.delete(id);for(const [key,signals] of pendingSignals){const active=signals.filter(item=>item.expiresAt>now);if(active.length)pendingSignals.set(key,active);else pendingSignals.delete(key);}},60_000).unref();
 export default router;

@@ -2,6 +2,21 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
+async function syncAdminChatSubscription(subscription: PushSubscription) {
+  const json = subscription.toJSON();
+  const response = await fetch(`${BASE}/api/admin/chat/push-subscribe`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      endpoint: subscription.endpoint,
+      p256dh: json.keys?.p256dh,
+      auth: json.keys?.auth,
+    }),
+  });
+  if (!response.ok) throw new Error("Failed to enable chat notifications for this browser.");
+}
+
 export function playCashSound() {
   try {
     const AudioContextClass =
@@ -147,10 +162,15 @@ export function useAdminPushNotifications() {
         if (!reg) return;
         const sub = await reg.pushManager.getSubscription();
         if (sub) {
+          await syncAdminChatSubscription(sub);
           setSubscribed(true);
+          setSubscribeError(null);
           swRegRef.current = reg;
         }
-      } catch { /* ignore */ }
+      } catch (error) {
+        setSubscribed(false);
+        setSubscribeError(error instanceof Error ? error.message : "Chat notifications need to be enabled again.");
+      }
     };
     quickCheck();
   }, []);
@@ -187,6 +207,7 @@ export function useAdminPushNotifications() {
         }),
       });
       if (!saveRes.ok) throw new Error("Failed to save subscription on the server.");
+      await syncAdminChatSubscription(sub);
 
       setSubscribed(true);
       setSubscribeError(null);
@@ -251,6 +272,16 @@ export function useAdminPushNotifications() {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ endpoint: sub.endpoint }),
+      }).then(async response => {
+        if (!response.ok) throw new Error("Could not remove this browser's notification subscription.");
+      });
+      await fetch(`${BASE}/api/admin/chat/push-subscribe`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: sub.endpoint }),
+      }).then(async response => {
+        if (!response.ok) throw new Error("Could not remove this browser's chat notification subscription.");
       });
       await sub.unsubscribe();
       setSubscribed(false);

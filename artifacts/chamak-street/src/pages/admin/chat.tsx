@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Camera, CameraOff, Mic, MicOff, Phone, PhoneOff, Send, Users,
   Minimize2, Maximize2, Search, Video, Info, Paperclip, Smile, Lock,
-  UserPlus, Monitor, SquarePen, ArrowLeft, PhoneCall, PhoneOutgoing
+  UserPlus, Monitor, SquarePen, ArrowLeft, PhoneCall, PhoneOutgoing,
+  ImageIcon, Loader2, Square, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -10,10 +11,12 @@ import { useToast } from "@/hooks/use-toast";
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 type Admin={adminId:string;adminName:string}; 
 type RoomDevice={adminId:string;deviceId:string};
-type Message={id?:number;senderId:string;senderName:string;message:string;conversationId:string;createdAt:string;reactions:Record<string,string[]>;clientMessageId?:string};
+type ChatMedia={kind:"image"|"audio";objectPath:string;contentType?:string;name?:string;durationSeconds?:number};
+type Message={id?:number;senderId:string;senderName:string;message:string;type?:"text"|"image"|"audio";metadata?:{media?:ChatMedia}|null;conversationId:string;createdAt:string;reactions:Record<string,string[]>;clientMessageId?:string};
 
 const initials = (s:string) => s.slice(0,2).toUpperCase();
 const dm = (a:string,b:string) => `dm:${[a,b].sort((x,y) => Number(x)-Number(y)).join(":")}`;
+const EMOJIS = ["😀","😂","🔥","❤️","👍","👏","🎉","🙏","💯","👀","😎","🤝"];
 
 export default function AdminChatPage() {
   const search = typeof window !== "undefined" ? window.location.search : "";
@@ -35,6 +38,10 @@ export default function AdminChatPage() {
   const [muted,setMuted]=useState(false); 
   const [camera,setCamera]=useState(false);
   const [sharing,setSharing]=useState(false);
+  const [emojiOpen,setEmojiOpen]=useState(false);
+  const [uploadingMedia,setUploadingMedia]=useState(false);
+  const [recording,setRecording]=useState(false);
+  const [recordSeconds,setRecordSeconds]=useState(0);
   const device=useRef(crypto.randomUUID());
   const es=useRef<EventSource|null>(null); 
   const stream=useRef<MediaStream|null>(null); 
@@ -56,6 +63,12 @@ export default function AdminChatPage() {
   const loadVersion = useRef(0);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingActive = useRef(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const recorder = useRef<MediaRecorder|null>(null);
+  const recorderStream = useRef<MediaStream|null>(null);
+  const recordingChunks = useRef<Blob[]>([]);
+  const recordingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cancelRecording = useRef(false);
 
   const load=useCallback(async(id:string)=>{const version=++loadVersion.current;const r=await fetch(`${BASE}/api/admin/chat/messages?conversationId=${encodeURIComponent(id)}`,{credentials:"include"});const data=r.ok?await r.json():null;if(data&&version===loadVersion.current)setMessages(data);},[]);
   useEffect(()=>{fetch(`${BASE}/api/admin/chat/conversations`,{credentials:"include"}).then(r=>r.ok?r.json():null).then(d=>{if(d){setMe({adminId:d.me.id,adminName:d.me.name});setAdmins(d.admins);}});fetch(`${BASE}/api/admin/chat/ice-config`,{credentials:"include"}).then(r=>r.json()).then(d=>{if(d.iceServers)ice.current=d.iceServers}).catch(()=>{});},[]);
@@ -64,7 +77,7 @@ export default function AdminChatPage() {
   useEffect(() => { const frame=requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "auto" })); return () => cancelAnimationFrame(frame); }, [messages.length]);
 
   const closeRoom=useCallback(async()=>{const id=roomRef.current;const wasJoined=joinedRoomRef.current===id;roomRef.current=null;joinedRoomRef.current=null;for(const pc of pcs.current.values())pc.close();pcs.current.clear();pendingIce.current.clear();videos.current.clear();cameraTrack.current?.stop();screenTrack.current?.stop();cameraTrack.current=null;screenTrack.current=null;stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;cameraState.current=false;sharingState.current=false;setRemote({});setRoom(null);setMembers([]);setCamera(false);setSharing(false);if(id&&wasJoined)fetch(`${BASE}/api/admin/chat/rooms/${id}/leave?deviceId=${encodeURIComponent(device.current)}`,{method:"POST",credentials:"include"}).catch(()=>{});},[]);
-  const sendSignal=useCallback((id:string,to:string,toDeviceId:string,signal:any)=>fetch(`${BASE}/api/admin/chat/rooms/${id}/signal`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({to,toDeviceId,signal,deviceId:device.current})}),[]);
+  const sendSignal=useCallback(async(id:string,to:string,toDeviceId:string,signal:any)=>{const response=await fetch(`${BASE}/api/admin/chat/rooms/${id}/signal`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({to,toDeviceId,signal,deviceId:device.current})});if(!response.ok)throw new Error("Call signaling failed");},[]);
   const replaceVideoTrack=useCallback(async(track:MediaStreamTrack|null)=>{await Promise.all([...pcs.current.values()].map(async pc=>{const sender=pc.getSenders().find(item=>item.track?.kind==="video");if(sender)await sender.replaceTrack(track);else if(track&&stream.current)pc.addTrack(track,stream.current);}));},[]);
   const stopScreenShare=useCallback(async()=>{const track=screenTrack.current;if(!track)return;screenTrack.current=null;track.onended=null;track.stop();if(stream.current)stream.current.removeTrack(track);const shouldRestore=restoreCameraAfterShare.current;restoreCameraAfterShare.current=false;const next=shouldRestore?cameraTrack.current:null;if(next){next.enabled=true;if(stream.current&&!stream.current.getVideoTracks().includes(next))stream.current.addTrack(next);}await replaceVideoTrack(next);if(localVideo.current&&stream.current)localVideo.current.srcObject=stream.current;cameraState.current=shouldRestore;sharingState.current=false;setCamera(shouldRestore);setSharing(false);},[replaceVideoTrack]);
   const toggleCamera=useCallback(async()=>{if(!stream.current||!joinedRoomRef.current){toast({title:"Join the call first",description:"Camera controls become available once you are connected."});return;}if(sharingState.current)await stopScreenShare();if(cameraState.current){if(cameraTrack.current)cameraTrack.current.enabled=false;await replaceVideoTrack(null);cameraState.current=false;setCamera(false);return;}let track=cameraTrack.current;if(!track||track.readyState==="ended"){const next=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:24,max:30}},audio:false});track=next.getVideoTracks()[0]??null;cameraTrack.current=track;if(track&&stream.current&&!stream.current.getVideoTracks().includes(track))stream.current.addTrack(track);}if(!track){toast({title:"Camera unavailable",description:"Allow camera access in your browser to turn video on.",variant:"destructive"});return;}track.enabled=true;await replaceVideoTrack(track);if(localVideo.current&&stream.current)localVideo.current.srcObject=stream.current;cameraState.current=true;setCamera(true);},[replaceVideoTrack,stopScreenShare,toast]);
@@ -97,10 +110,82 @@ export default function AdminChatPage() {
   },[me,peer,sendSignal,connectToMembers,flushPendingIce,toast]);
   useEffect(()=>()=>{closeRoom();},[closeRoom]);
   useEffect(()=>()=>{if(typingTimer.current)clearTimeout(typingTimer.current);},[]);
+  useEffect(()=>()=>{cancelRecording.current=true;recorder.current?.state==="recording"&&recorder.current.stop();recorderStream.current?.getTracks().forEach(track=>track.stop());if(recordingTimer.current)clearInterval(recordingTimer.current);},[]);
   useEffect(()=>{const leaveOnPageHide=()=>{const id=roomRef.current;if(id&&joinedRoomRef.current===id){roomRef.current=null;joinedRoomRef.current=null;fetch(`${BASE}/api/admin/chat/rooms/${id}/leave?deviceId=${encodeURIComponent(device.current)}`,{method:"POST",credentials:"include",keepalive:true}).catch(()=>{});}};window.addEventListener("pagehide",leaveOnPageHide);return()=>window.removeEventListener("pagehide",leaveOnPageHide);},[]);
   
   const select=(id:string)=>{setConversation(id);setUnread(p=>{const next={...p};delete next[id];return next});setMobileList(false)};
-  const send=async()=>{if(!text.trim()||!me)return;const body={message:text,conversationId:conversation,clientMessageId:crypto.randomUUID()};setText("");const r=await fetch(`${BASE}/api/admin/chat/messages`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)toast({title:"Message not sent",variant:"destructive"});};
+  const send=async(input?:{message?:string;type?:"text"|"image"|"audio";metadata?:{media:ChatMedia}})=>{
+    if(!me)return;
+    const message=input?.message??text;
+    const type=input?.type??"text";
+    if(type==="text"&&!message.trim())return;
+    const body={message,type,metadata:input?.metadata,conversationId:conversation,clientMessageId:crypto.randomUUID()};
+    if(!input)setText("");
+    const r=await fetch(`${BASE}/api/admin/chat/messages`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(!r.ok){
+      if(!input)setText(message);
+      const data=await r.json().catch(()=>null) as {error?:string}|null;
+      toast({title:"Message not sent",description:data?.error,variant:"destructive"});
+      throw new Error(data?.error||"Message not sent");
+    }
+  };
+  const uploadAndSend=useCallback(async(file:File,kind:"image"|"audio")=>{
+    setUploadingMedia(true);
+    try{
+      const request=await fetch(`${BASE}/api/admin/chat/uploads/request-url`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:file.name,size:file.size,contentType:file.type})});
+      const upload=await request.json().catch(()=>null) as {uploadURL?:string;objectPath?:string;error?:string}|null;
+      if(!request.ok||!upload?.uploadURL||!upload.objectPath)throw new Error(upload?.error||"Could not prepare media upload");
+      const put=await fetch(upload.uploadURL,{method:"PUT",headers:{"Content-Type":file.type},body:file});
+      if(!put.ok)throw new Error("Media upload did not complete");
+      await send({type:kind,message:"",metadata:{media:{kind,objectPath:upload.objectPath,contentType:file.type,name:file.name}}});
+    }catch(error){
+      toast({title:kind==="image"?"Photo not sent":"Voice message not sent",description:error instanceof Error?error.message:undefined,variant:"destructive"});
+    }finally{setUploadingMedia(false);}
+  },[toast]);
+  const selectPhoto=(file?:File)=>{
+    if(!file)return;
+    if(!file.type.startsWith("image/")){
+      toast({title:"Choose a photo",description:"Only image files can be sent here.",variant:"destructive"});
+      return;
+    }
+    void uploadAndSend(file,"image");
+  };
+  const stopRecording=()=>{if(recorder.current?.state==="recording")recorder.current.stop();};
+  const startRecording=async()=>{
+    if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==="undefined"){
+      toast({title:"Voice messages unavailable",description:"This browser does not support audio recording.",variant:"destructive"});
+      return;
+    }
+    try{
+      const source=await navigator.mediaDevices.getUserMedia({audio:true});
+      const mimeType=MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus":"";
+      const active=new MediaRecorder(source,mimeType?{mimeType}:undefined);
+      recorderStream.current=source;
+      recordingChunks.current=[];
+      cancelRecording.current=false;
+      active.ondataavailable=e=>{if(e.data.size)recordingChunks.current.push(e.data);};
+      active.onstop=()=>{
+        const shouldCancel=cancelRecording.current;
+        const type=active.mimeType||"audio/webm";
+        const blob=new Blob(recordingChunks.current,{type});
+        source.getTracks().forEach(track=>track.stop());
+        recorder.current=null;
+        recorderStream.current=null;
+        if(recordingTimer.current)clearInterval(recordingTimer.current);
+        setRecording(false);
+        setRecordSeconds(0);
+        if(!shouldCancel&&blob.size)void uploadAndSend(new File([blob],`voice-message-${Date.now()}.webm`,{type}),"audio");
+      };
+      recorder.current=active;
+      setRecordSeconds(0);
+      setRecording(true);
+      recordingTimer.current=setInterval(()=>setRecordSeconds(value=>value+1),1000);
+      active.start();
+    }catch{
+      toast({title:"Microphone access needed",description:"Allow microphone access to record a voice message.",variant:"destructive"});
+    }
+  };
+  const cancelVoice=()=>{cancelRecording.current=true;stopRecording();};
   const typingPost=(active:boolean)=>{if(typingTimer.current)clearTimeout(typingTimer.current);if(active&&typingActive.current){typingTimer.current=setTimeout(()=>typingPost(false),1400);return;}if(typingActive.current===active)return;typingActive.current=active;fetch(`${BASE}/api/admin/chat/typing`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({typing:active,conversationId:conversationRef.current})}).catch(()=>{});if(active)typingTimer.current=setTimeout(()=>typingPost(false),1400);};
   const react=async(id:number,emoji:string)=>{const r=await fetch(`${BASE}/api/admin/chat/messages/${id}/react`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({emoji})});if(!r.ok)toast({title:"Reaction could not be saved",variant:"destructive"});};
   
@@ -494,6 +579,8 @@ export default function AdminChatPage() {
 
               {messages.map(m => {
                 const isMe = m.senderId === me?.adminId;
+                const media = m.metadata?.media;
+                const mediaUrl = media ? `${BASE}/api/admin/chat/media/${media.objectPath}` : null;
                 return (
                   <motion.div key={m.id || m.clientMessageId} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 420, damping: 30 }} className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
                     <div className={`px-3 sm:px-4 py-2.5 rounded-2xl max-w-[85%] sm:max-w-md text-[13px] relative group ${
@@ -504,7 +591,16 @@ export default function AdminChatPage() {
                       {!isMe && conversation === "group" && (
                         <div className="text-[10px] font-bold text-orange-500 mb-1">{m.senderName}</div>
                       )}
-                      <div className="whitespace-pre-wrap">{m.message}</div>
+                      {m.type === "image" && mediaUrl ? (
+                        <img src={mediaUrl} alt={m.message === "📷 Photo" ? "Shared photo" : m.message} className="max-h-80 w-auto max-w-full rounded-xl object-cover" loading="lazy" />
+                      ) : m.type === "audio" && mediaUrl ? (
+                        <div className="min-w-[220px]">
+                          <div className={`mb-1 flex items-center gap-1.5 text-[10px] font-bold ${isMe ? "text-black/65" : "text-orange-400"}`}><Mic className="h-3.5 w-3.5" /> Voice message</div>
+                          <audio controls preload="metadata" className="h-9 w-full max-w-[260px]" src={mediaUrl}>Your browser cannot play this voice message.</audio>
+                        </div>
+                      ) : (
+                        <div className="whitespace-pre-wrap">{m.message}</div>
+                      )}
                       <div className={`text-[9px] mt-1 flex justify-end items-center gap-1 ${isMe ? "text-black/60" : "text-gray-500"}`}>
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                         {isMe && <span className="text-[9px]">✓✓</span>}
@@ -544,28 +640,40 @@ export default function AdminChatPage() {
             </div>
 
             <div className="p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] sm:p-4 bg-[#0A0A0A] border-t border-[#1a1a1a]">
-              <form onSubmit={e => { e.preventDefault(); send() }} className="flex items-center gap-3 bg-[#111111] rounded-full px-4 py-2 border border-[#222]">
-                <button type="button" className="text-gray-400 hover:text-white transition-colors">
-                  <Paperclip className="w-5 h-5" />
+              <form onSubmit={e => { e.preventDefault(); void send().catch(()=>{}); }} className="relative flex items-center gap-3 bg-[#111111] rounded-full px-4 py-2 border border-[#222]">
+                <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={event => { selectPhoto(event.target.files?.[0]); event.target.value=""; }} />
+                <button type="button" onClick={() => fileInput.current?.click()} disabled={uploadingMedia || recording} className="text-gray-400 hover:text-white transition-colors disabled:opacity-40" aria-label="Send a photo">
+                  {uploadingMedia ? <Loader2 className="w-5 h-5 animate-spin text-orange-500" /> : <ImageIcon className="w-5 h-5" />}
                 </button>
                 <input 
                   value={text} 
                   onChange={e => { setText(e.target.value); typingPost(true) }} 
                   onBlur={() => typingPost(false)} 
-                  className="flex-1 bg-transparent border-none outline-none text-sm text-white placeholder:text-gray-600" 
-                  placeholder="Type a message..." 
+                  disabled={recording || uploadingMedia}
+                  className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-white placeholder:text-gray-600 disabled:opacity-50" 
+                  placeholder={recording ? `Recording ${String(Math.floor(recordSeconds / 60)).padStart(2,"0")}:${String(recordSeconds % 60).padStart(2,"0")}` : uploadingMedia ? "Sending media…" : "Type a message…"} 
                 />
-                <button type="button" className="text-gray-400 hover:text-white transition-colors">
+                <button type="button" onClick={() => setEmojiOpen(value=>!value)} disabled={recording || uploadingMedia} className="text-gray-400 hover:text-white transition-colors disabled:opacity-40" aria-label="Choose an emoji">
                   <Smile className="w-5 h-5" />
                 </button>
+                <AnimatePresence>
+                  {emojiOpen && (
+                    <motion.div initial={{opacity:0,scale:.94,y:8}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.94,y:8}} className="absolute bottom-[calc(100%+0.5rem)] right-12 z-30 grid grid-cols-6 gap-1 rounded-2xl border border-[#333] bg-[#171717] p-2 shadow-2xl">
+                      {EMOJIS.map(emoji => <button key={emoji} type="button" onClick={() => { setText(value=>value+emoji); setEmojiOpen(false); }} className="h-8 w-8 rounded-lg text-lg transition-colors hover:bg-white/10" aria-label={`Add ${emoji}`}>{emoji}</button>)}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 {text.trim() ? (
                   <motion.button whileHover={{ scale: 1.1, rotate: -8 }} whileTap={{ scale: 0.9 }} type="submit" className="w-8 h-8 rounded-full bg-[#ff6600] flex items-center justify-center text-black ml-1 hover:bg-[#ff8833] transition-colors shadow-lg">
                     <Send className="w-4 h-4 ml-0.5" />
                   </motion.button>
                 ) : (
-                  <button type="button" className="text-[#ff6600] hover:text-[#ff8833] transition-colors ml-1">
-                    <Mic className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {recording && <button type="button" onClick={cancelVoice} className="text-gray-400 hover:text-white transition-colors" aria-label="Discard voice message"><X className="w-4 h-4" /></button>}
+                    <button type="button" onClick={recording ? stopRecording : () => void startRecording()} disabled={uploadingMedia} className={`${recording ? "bg-red-500 text-white animate-pulse" : "text-[#ff6600] hover:text-[#ff8833]"} flex h-8 w-8 items-center justify-center rounded-full transition-colors disabled:opacity-40`} aria-label={recording ? "Stop and send voice message" : "Record a voice message"}>
+                      {recording ? <Square className="w-3.5 h-3.5 fill-current" /> : <Mic className="w-5 h-5" />}
+                    </button>
+                  </div>
                 )}
               </form>
             </div>

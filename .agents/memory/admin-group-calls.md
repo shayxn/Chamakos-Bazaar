@@ -26,3 +26,9 @@ Admin group calls are implemented as authenticated, in-memory WebRTC mesh rooms 
 **Why:** WebRTC signaling travels over independent HTTP requests, so ICE can reach the recipient before the offer or while its remote description is not ready. Dropping that candidate can make a call fail on networks with very few viable paths.
 
 **How to apply:** Clear the per-peer candidate buffer with room teardown. Do not assume request ordering; queue early candidates and preserve device-level keys through the entire signaling path.
+
+**Reconnect signaling rule:** A server-authorized signal for a room device can be queued briefly while that exact device's SSE stream reconnects, then flushed only to that device.
+
+**Why:** A normal transient SSE disconnect should not discard a WebRTC offer, answer, or candidate and strand an otherwise valid call.
+
+**How to apply:** Keep the queue short-lived and device-keyed, clear expired entries, and retain the existing room-membership grace period as the authorization boundary.
