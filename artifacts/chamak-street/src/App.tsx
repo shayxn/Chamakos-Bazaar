@@ -105,6 +105,7 @@ const GameDetail = lazy(() => import("@/pages/game-detail"));
 const Receipt = lazy(() => import("@/pages/receipt"));
 const WishlistPage = lazy(() => import("@/pages/wishlist"));
 const MaintenancePage = lazy(() => import("@/pages/maintenance"));
+const BackToSchool = lazy(() => import("@/pages/back-to-school"));
 
 // ── Admin pages (lazy — customers never load these) ──
 import AdminLayout from "@/components/admin-layout";
@@ -233,6 +234,7 @@ function MainRouter() {
             <Route path="/account/register" component={AccountRegister} />
             <Route path="/returns" component={Returns} />
             <Route path="/basics" component={Basics} />
+            <Route path="/back-to-school" component={BackToSchool} />
             <Route path="/request-product" component={RequestProduct} />
             <Route path="/games" component={Games} />
             <Route path="/games/:id" component={GameDetail} />

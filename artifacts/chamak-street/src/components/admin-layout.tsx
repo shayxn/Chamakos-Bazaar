@@ -5,7 +5,7 @@ import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
   Zap, Users, BellRing, MessageCircle, Activity, Ticket, Smartphone,
-  Phone, Menu, Shield
+  Phone, Menu, Shield, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -361,6 +361,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
     { href: "/admin/products", label: "Products", icon: Package },
+    { href: "/admin/import", label: "Product Importer", icon: Download },
     { href: "/admin/basics", label: "FP Basics", icon: Layers },
     { href: "/admin/categories", label: "Categories", icon: Tag },
     { href: "/admin/visitors", label: "Live Customers", icon: Users },

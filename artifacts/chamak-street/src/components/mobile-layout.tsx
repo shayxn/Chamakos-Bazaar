@@ -107,6 +107,11 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <AnnouncementBanner />
+        <div className="border-t border-white/[0.05] px-4 py-1.5">
+          <Link href="/back-to-school" className="block rounded-md px-2 py-1 text-center text-[9px] font-black uppercase tracking-[0.2em] text-yellow-200/80 transition-colors hover:bg-yellow-300/[0.08] hover:text-yellow-100">
+            Back To School essentials
+          </Link>
+        </div>
       </header>
 
       {/* ── Page Content — iOS-style lateral spring transition ── */}

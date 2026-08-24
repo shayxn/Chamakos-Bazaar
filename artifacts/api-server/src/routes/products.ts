@@ -9,7 +9,7 @@ const router = Router();
 const productListCache = createTtlCache<unknown>(30_000);
 const productDetailCache = createTtlCache<unknown>(30_000);
 
-function clearProductCaches() {
+export function clearProductCaches() {
   productListCache.clear();
   productDetailCache.clear();
 }
