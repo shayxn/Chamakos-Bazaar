@@ -12,6 +12,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAdminPushNotifications } from "@/hooks/use-admin-notifications";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { SystemStudioLayer } from "@/components/system-studio-layer";
 
 const NOTIF_KEY = "firstpick_notif_asked";
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
@@ -706,6 +707,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className={isChat ? "flex-1 flex flex-col min-h-0 overflow-hidden p-2 md:p-4" : "p-6 md:p-8 flex-1 overflow-auto"}
           >
             {children}
+              <SystemStudioLayer route={location} admin />
           </motion.div>
         </AnimatePresence>
       </main>

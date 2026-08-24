@@ -19,6 +19,15 @@ const PAGE_TYPES = new Set(["store", "admin"]);
 const PROTECTED_SLUGS = new Set(["", "home", "shop", "cart", "checkout", "account", "login", "order-tracking"]);
 const SAFE_EVENT_TRIGGERS = new Set(["page-open", "button-click", "product-click", "product-added", "scroll-to-section", "element-enters", "admin-page-open"]);
 const SAFE_EVENT_ACTIONS = new Set(["show-notification", "navigate", "open-product", "play-sound", "trigger-animation"]);
+const SYSTEM_PAGE_ROUTES = new Set([
+  "/", "/shop", "/basics", "/back-to-school", "/cart", "/order-tracking", "/terms", "/privacy", "/shipping",
+  "/account", "/account/login", "/account/register", "/returns", "/request-product", "/games", "/support", "/wishlist", "/maintenance",
+  "/checkout", "/product/:id", "/order/:id", "/receipt/:id", "/games/:id",
+  "/admin", "/admin/products", "/admin/basics", "/admin/orders", "/admin/categories", "/admin/site-settings", "/admin/reviews",
+  "/admin/tiktok", "/admin/terms", "/admin/events", "/admin/games", "/admin/refund-requests", "/admin/product-requests",
+  "/admin/visitors", "/admin/notifications", "/admin/abandoned-carts", "/admin/stock-alerts", "/admin/sales-reports",
+  "/admin/activity", "/admin/chat", "/admin/coupons",
+]);
 const SOUND_KEYS = [
   "messageSent", "messageReceived", "typing", "newGroupMessage", "newPrivateMessage",
   "incomingCall", "outgoingRingback", "callConnected", "callEnded", "missedCall",
@@ -363,6 +372,47 @@ router.get("/owner-studio/pages", requireOwnerStudio, async (_req, res): Promise
   res.json(pages.filter((page) => canAccessPage(page, access)).map(asPagePayload));
 });
 
+router.get("/owner-studio/system-page", async (req, res): Promise<void> => {
+  const route = String(req.query.route ?? "").trim().slice(0, 180);
+  if (!SYSTEM_PAGE_ROUTES.has(route)) {
+    res.status(404).json({ error: "FirstPick page layer not found" });
+    return;
+  }
+  const published = await db.select().from(ownerStudioPagesTable)
+    .where(eq(ownerStudioPagesTable.status, "published"))
+    .orderBy(desc(ownerStudioPagesTable.updatedAt));
+  const page = published.find((candidate) => {
+    const content = candidate.publishedContent as Record<string, unknown> | null;
+    return content?.systemRoute === route && candidate.pageType === "store";
+  });
+  if (!page) {
+    res.status(204).end();
+    return;
+  }
+  res.json({ title: page.title, content: page.publishedContent });
+});
+
+router.get("/owner-studio/admin-system-page", requireOwnerStudio, async (req, res): Promise<void> => {
+  const route = String(req.query.route ?? "").trim().slice(0, 180);
+  if (!SYSTEM_PAGE_ROUTES.has(route) || !route.startsWith("/admin")) {
+    res.status(404).json({ error: "Admin page layer not found" });
+    return;
+  }
+  const published = await db.select().from(ownerStudioPagesTable)
+    .where(eq(ownerStudioPagesTable.status, "published"))
+    .orderBy(desc(ownerStudioPagesTable.updatedAt));
+  const access = await getAccess(req);
+  const page = published.find((candidate) => {
+    const content = candidate.publishedContent as Record<string, unknown> | null;
+    return content?.systemRoute === route && candidate.pageType === "admin" && canAccessPage(candidate, access);
+  });
+  if (!page) {
+    res.status(204).end();
+    return;
+  }
+  res.json({ title: page.title, content: page.publishedContent });
+});
+
 router.post("/owner-studio/pages", requireOwnerStudio, async (req, res): Promise<void> => {
   const userId = sessionUserId(req);
   const title = String(req.body?.title ?? "").trim().slice(0, 120);
@@ -559,6 +609,7 @@ router.get("/owner-studio/pages/:id/versions", requireOwnerStudio, async (req, r
     slug: ownerStudioVersionsTable.slug,
     pageType: ownerStudioVersionsTable.pageType,
     status: ownerStudioVersionsTable.status,
+    content: ownerStudioVersionsTable.content,
     createdAt: ownerStudioVersionsTable.createdAt,
   }).from(ownerStudioVersionsTable)
     .where(eq(ownerStudioVersionsTable.pageId, id))

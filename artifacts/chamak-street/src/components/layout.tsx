@@ -12,6 +12,7 @@ import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
 import { BackToTop } from "./back-to-top";
 import { ChamakLogo } from "./chamak-logo";
+import { SystemStudioLayer } from "./system-studio-layer";
 
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -194,6 +195,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       <main className="flex-1">
         {children}
+        <SystemStudioLayer route={location} />
       </main>
 
       {/* Footer */}

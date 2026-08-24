@@ -62,7 +62,8 @@ export function PropertiesPanel({
   };
 
   const deleteItem = () => {
-    const newContent = { ...content };
+    if (!window.confirm(`Delete this ${selectedType}? This can be restored from the page history after it is saved.`)) return;
+    const newContent = JSON.parse(JSON.stringify(content));
     if (selectedType === "section") {
       newContent.sections.splice(parentSectionIndex, 1);
     } else {

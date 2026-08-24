@@ -57,3 +57,4 @@
 - [Push delivery truth](push-delivery-truth.md) — admin push-test success means the current browser subscription was actually accepted by the provider.
 - [Admin chat media](admin-chat-media.md) — photos and voice messages are private direct uploads that must be verified before a chat record can reference them.
 - [Owner Studio security](owner-studio-security.md) — Studio access, publishing, per-page sharing, versions, and public links have strict server-side boundaries.
+- [Built-in Studio page layers](built-in-studio-page-layers.md) — additions to core Store/Admin routes render as published layers, keeping existing transactional screens untouched.

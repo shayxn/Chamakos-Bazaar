@@ -13,6 +13,7 @@ export type StudioElement = {
     delay?: number;
     strength?: number;
     direction?: "up" | "down" | "left" | "right";
+    phase?: "in" | "out" | "loop" | "scroll";
     textMode?: "none" | "word" | "line" | "character" | "type";
   };
   scrollAnimation?: {

@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Monitor, Smartphone, Tablet, Trash2, Copy, Play, Settings2, Settings, Box, Code, RotateCcw, Undo2, Redo2, Plus, Laptop } from "lucide-react";
+import { Monitor, Smartphone, Tablet, Trash2, Copy, Play, Settings2, Settings, Box, Code, RotateCcw, Undo2, Redo2, Plus, Laptop, Clapperboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { fetchApi } from "./api";
@@ -9,6 +9,7 @@ import { CanvasPreview } from "./canvas-preview";
 import { PropertiesPanel } from "./properties-panel";
 import { Toolbox } from "./toolbox";
 import { VersionsPanel } from "./versions-panel";
+import { AnimationsPanel } from "./animations-panel";
 
 export function PageEditor({ 
   page, 
@@ -26,12 +27,15 @@ export function PageEditor({
   const [landscape, setLandscape] = useState(false);
   const [saving, setSaving] = useState(false);
   const [content, setContent] = useState<PageContent>(page.content || { sections: [] });
+  const [savedContent, setSavedContent] = useState<PageContent>(() => JSON.parse(JSON.stringify(page.content || { sections: [] })));
   const [undoStack, setUndoStack] = useState<PageContent[]>([]);
   const [redoStack, setRedoStack] = useState<PageContent[]>([]);
   const [title, setTitle] = useState(page.title);
   const [slug, setSlug] = useState(page.slug);
+  const [savedTitle, setSavedTitle] = useState(page.title);
+  const [savedSlug, setSavedSlug] = useState(page.slug);
   
-  const [rightPanel, setRightPanel] = useState<"toolbox" | "properties" | "json" | "history" | "closed">("toolbox");
+  const [rightPanel, setRightPanel] = useState<"toolbox" | "properties" | "animations" | "json" | "history" | "closed">("toolbox");
   
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<"section" | "element" | null>(null);
@@ -40,11 +44,14 @@ export function PageEditor({
   useEffect(() => {
     setTitle(page.title);
     setSlug(page.slug);
+    setSavedTitle(page.title);
+    setSavedSlug(page.slug);
   }, [page.id, page.title, page.slug]);
 
   // To handle auto-save debounce
   const timeoutRef = useRef<NodeJS.Timeout>();
 
+  const cloneContent = (value: PageContent) => JSON.parse(JSON.stringify(value)) as PageContent;
   const saveUpdates = useCallback(async (updates: Partial<Page>) => {
     try {
       setSaving(true);
@@ -53,6 +60,9 @@ export function PageEditor({
         body: JSON.stringify({ ...updates, version: page.version })
       });
       onChange(res);
+      if (res.content) setSavedContent(cloneContent(res.content));
+      setSavedTitle(res.title);
+      setSavedSlug(res.slug);
     } catch (err: any) {
       toast({ title: "Failed to save", description: err.message, variant: "destructive" });
     } finally {
@@ -61,7 +71,6 @@ export function PageEditor({
   }, [page.id, page.version, onChange, toast]);
 
   // Content change handler with debounce
-  const cloneContent = (value: PageContent) => JSON.parse(JSON.stringify(value)) as PageContent;
   const queueSave = (newContent: PageContent) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
@@ -92,6 +101,33 @@ export function PageEditor({
     setRedoStack((items) => items.slice(1));
     setUndoStack((items) => [...items.slice(-29), cloneContent(content)]);
     handleContentChange(cloneContent(next), false);
+  };
+  const hasUnsavedChanges = JSON.stringify(content) !== JSON.stringify(savedContent) || title !== savedTitle || slug !== savedSlug;
+  const handleRevertChanges = async () => {
+    if (!hasUnsavedChanges) {
+      toast({ title: "Nothing to revert", description: "The editor already matches the last saved version." });
+      return;
+    }
+    if (!window.confirm("Revert unsaved changes on this page? Your last saved version will stay intact.")) return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    try {
+      const fresh = await fetchApi(`/api/owner-studio/pages/${page.id}`) as Page;
+      const restored = cloneContent(fresh.content || { sections: [] });
+      setContent(restored);
+      setSavedContent(cloneContent(restored));
+      setTitle(fresh.title);
+      setSlug(fresh.slug);
+      setSavedTitle(fresh.title);
+      setSavedSlug(fresh.slug);
+      setUndoStack([]);
+      setRedoStack([]);
+      setSelectedId(null);
+      setSelectedType(null);
+      onChange(fresh);
+      toast({ title: "Changes reverted", description: "Back to the last saved version." });
+    } catch (error: any) {
+      toast({ title: "Could not revert", description: error.message, variant: "destructive" });
+    }
   };
   const handlePublish = async () => {
     try {
@@ -126,6 +162,21 @@ export function PageEditor({
     } catch (err: any) {
       toast({ title: "Delete failed", description: err.message, variant: "destructive" });
     }
+  };
+  const handleVersionRestored = (restoredPage: Page) => {
+    const restored = cloneContent(restoredPage.content || { sections: [] });
+    setContent(restored);
+    setSavedContent(cloneContent(restored));
+    setTitle(restoredPage.title);
+    setSlug(restoredPage.slug);
+    setSavedTitle(restoredPage.title);
+    setSavedSlug(restoredPage.slug);
+    setUndoStack([]);
+    setRedoStack([]);
+    setSelectedId(null);
+    setSelectedType(null);
+    onChange(restoredPage);
+    setRightPanel("history");
   };
 
   const handleSelect = (id: string, type: "section" | "element") => {
@@ -258,7 +309,9 @@ export function PageEditor({
           {saving && <span className="text-[10px] font-bold text-primary animate-pulse mr-1 sm:mr-2 hidden sm:inline">SAVING...</span>}
           <Button variant="ghost" size="icon" onClick={handleUndo} disabled={!undoStack.length} title="Undo" className="text-gray-400 hover:text-white disabled:opacity-30 shrink-0"><Undo2 className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" onClick={handleRedo} disabled={!redoStack.length} title="Redo" className="text-gray-400 hover:text-white disabled:opacity-30 shrink-0"><Redo2 className="h-4 w-4" /></Button>
+           <Button variant="ghost" size="icon" onClick={handleRevertChanges} disabled={!hasUnsavedChanges} title="Revert unsaved changes" className="text-gray-400 hover:text-white disabled:opacity-30 shrink-0"><RotateCcw className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" onClick={() => setRightPanel("toolbox")} title="Open FirstPick Toolbox" className="text-primary hover:text-primary shrink-0"><Plus className="h-4 w-4" /></Button>
+           <Button variant="ghost" size="icon" onClick={() => setRightPanel("animations")} title="Open Animations" className="text-primary hover:text-primary shrink-0"><Clapperboard className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" onClick={handleDuplicate} className="text-gray-400 hover:text-white shrink-0"><Copy className="h-4 w-4" /></Button>
           {isOwner && <Button variant="ghost" size="icon" onClick={handleDelete} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 shrink-0"><Trash2 className="h-4 w-4" /></Button>}
           {isOwner && <Button 
@@ -315,6 +368,7 @@ export function PageEditor({
             {[
               { id: "toolbox", icon: Box, label: "Add" },
               { id: "properties", icon: Settings, label: "Edit" },
+               { id: "animations", icon: Clapperboard, label: "Animate" },
               { id: "json", icon: Code, label: "Code" },
               { id: "history", icon: RotateCcw, label: "Hist" }
             ].map(tab => (
@@ -350,6 +404,15 @@ export function PageEditor({
                 isOwner={isOwner}
               />
             )}
+
+             {rightPanel === "animations" && (
+               <AnimationsPanel
+                 content={content}
+                 selectedId={selectedId}
+                 selectedType={selectedType}
+                 onChange={handleContentChange}
+               />
+             )}
             
             {rightPanel === "json" && (
               <div className="flex-1 flex flex-col p-4 relative min-h-0 bg-[#0a0a0a]">
@@ -377,7 +440,7 @@ export function PageEditor({
             )}
 
             {rightPanel === "history" && (
-              <VersionsPanel pageId={page.id} canRestore={isOwner} />
+               <VersionsPanel pageId={page.id} canRestore={isOwner} onRestored={handleVersionRestored} />
             )}
           </div>
         </div>
