@@ -2,7 +2,8 @@
 - [Announcement banner](announcement-banner.md) — uses site_settings keys: announcement_active/text/color/url; editable under Admin → Site Settings → Announcement tab.
 - [Import logic](import-logic.md) — all imported products are rep:true; featured alternates half/half by import index (even=featured).
 - [Splash popup](splash-popup.md) — mini card modal using IMG_0054 (box art) + IMG_0055 (packaging), sessionStorage gate, 6s auto-dismiss with progress bar.
-- [Loading screen gate](loading-screen-gate.md) — sessionStorage key "chamak_loaded" gates the 5s cinematic intro; hero HD delay = 5.1 on first visit, 0.1 on revisit. Boot sequence phases: boot → scan → reveal → loading → ready.
+- [Loading screen gate](loading-screen-gate.md) — first-visit boot uses `firstpick_loaded`; visual follow-ups should wait for its completion event, not guess a delay.
+- [Back to School animation](back-to-school-animation.md) — the automatic backpack reveal starts after boot; reduced-motion visitors see a static visible card instead.
 - [Missing routes pattern](missing-routes.md) — several API routers (events, games, abandoned-carts, refund-requests, product-requests) and frontend pages (returns, request-product, games, game-detail) existed but were never registered; always check routes/index.ts and App.tsx when adding new pages.
 - [Hero floating product](hero-floating-product.md) — xl-screen only; uses featuredProducts[0] from the DB query already in home.tsx. Shows levitating product image with shine, shadow glow, and a product tag chip.
 - [Event badge flood fix](event-badge-flood.md) — event-banner.tsx module-level state resets on HMR; added _fetching guard + 30s _lastFetch cache to prevent concurrent fetch storms from many mounted EventProductBadge cards.
@@ -13,7 +14,7 @@
 - [Brand logos CDN](brand-logos-cdn.md) — Clearbit CDN (logo.clearbit.com/{domain}) unreachable from sandbox; falls back to SVG via onError; apply filter:brightness(0)invert(1) for white-on-dark. All brand card links use /shop?search= (not ?q=).
 - [Layout style](layout-style.md) — Fashioncage.me-inspired: pure black bg, centered logo header, category nav row below, announcement bar with social icons left. Shop page has top filter bar (category pills + search + count) and 5-column grid. No light mode.
 - [Framer-motion ease types](framer-motion-ease-types.md) — ease: number[] fails TS inside Variants objects; use `const EASE_CURVE: any = [...]` or cast `as any` on ease. Move transitions out of variants into direct motion props when possible.
-- [Delivery price config](delivery-price-config.md) — Delivery always paid (no free shipping). Prices in site_settings (delivery_standard/express/priority_price keys), read by shared lib/delivery.ts with fallback 20/30/40. Cart shows "from AED 20" notice; checkout fetches prices from /api/settings on mount.
+- [Delivery price config](delivery-price-config.md) — Delivery is always paid; standard UAE checkout delivery is AED 25 and must stay aligned in settings, frontend, and backend fallbacks.
 - [GitHub push setup](github-push-setup.md) — Remote is HTTPS github.com/shayxn/Chamakos-Bazaar; no SSH keys; no token in env. push-to-github.sh in repo root handles token-based push with force-with-lease. User needs GITHUB_TOKEN secret.
 - [Uploads lost on git push](uploads-git-warning.md) — uploads/ folder is not git-tracked; hero images and product images uploaded via admin are wiped on fresh clone/push. Always reset DB hero_image to static /chamako-hero.png as fallback.
 - [Vite Fast Refresh mixed exports](vite-fast-refresh-mixed.md) — files exporting both a React component AND a hook (useXxx) crash React on HMR; fix with `/* @refresh reset */` at top of file or split into two files.

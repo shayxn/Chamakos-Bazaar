@@ -36,6 +36,7 @@ export function LoadingScreen() {
     const t2 = setTimeout(() => { setPhase("exit"); setExiting(true); }, TOTAL_DURATION);
     const t3 = setTimeout(() => {
       try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
+      window.dispatchEvent(new Event("firstpick:boot-complete"));
       setVisible(false);
     }, TOTAL_DURATION + 800);
 

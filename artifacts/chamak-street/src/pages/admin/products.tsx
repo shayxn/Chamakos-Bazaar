@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useListProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useListCategories, getListProductsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,7 @@ type ProductFormData = ProductInput & {
   bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
   comingSoon?: boolean;
   videoUrl?: string | null; shipsToUaeVerified?: boolean;
+  collection?: string | null;
 };
 
 const BULK_ACTIONS = [
@@ -332,6 +333,18 @@ export default function AdminProducts() {
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const [deleteAllConfirm, setDeleteAllConfirm] = useState(false);
   const [deleteAllLoading, setDeleteAllLoading] = useState(false);
+  const [inventoryView, setInventoryView] = useState<"all" | "back_to_school">("all");
+  const [backToSchoolEnabled, setBackToSchoolEnabled] = useState(true);
+  const [sectionSaving, setSectionSaving] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`${BASE}/api/settings`, { credentials: "include", signal: controller.signal })
+      .then((response) => response.ok ? response.json() as Promise<Record<string, string>> : {})
+      .then((settings) => setBackToSchoolEnabled(settings.back_to_school_enabled !== "false"))
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
 
   const [formData, setFormData] = useState<ProductFormData>({
     name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "",
@@ -369,7 +382,7 @@ export default function AdminProducts() {
     });
   };
 
-  const openNew = () => {
+  const openNew = (collection?: string) => {
     setEditingId(null); setInStock(true); setMediaItems([]);
     setFormData({
       name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
@@ -378,7 +391,7 @@ export default function AdminProducts() {
       sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
       bestSeller: false, trending: false, newArrival: false, limitedEdition: false,
       comingSoon: false,
-       videoUrl: null, shipsToUaeVerified: false,
+       videoUrl: null, shipsToUaeVerified: false, collection: collection ?? null,
     });
     setSheetOpen(true);
   };
@@ -409,6 +422,7 @@ export default function AdminProducts() {
       comingSoon: (product as ProductFormData).comingSoon ?? false,
        videoUrl: (product as ProductFormData).videoUrl ?? null,
        shipsToUaeVerified: (product as ProductFormData).shipsToUaeVerified ?? false,
+       collection: (product as ProductFormData).collection ?? null,
     });
     setSheetOpen(true);
   };
@@ -417,7 +431,7 @@ export default function AdminProducts() {
     e.preventDefault();
     if (!formData.name.trim()) { toast({ title: "Name is required", variant: "destructive" }); return; }
     if (!formData.price || formData.price <= 0) { toast({ title: "Enter a valid price", variant: "destructive" }); return; }
-    const data = { ...formData, imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "", stock: inStock ? Math.max(0, Number(formData.stock) || 0) : 0 };
+    const data = { ...formData, collection: formData.collection || null, imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "", stock: inStock ? Math.max(0, Number(formData.stock) || 0) : 0 };
     const opts = {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
@@ -459,6 +473,42 @@ export default function AdminProducts() {
     if (product.spotlight) return;
     updateProduct.mutate({ id: product.id, data: { ...product, spotlight: true } as ProductInput }, {
       onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() }); toast({ title: "⭐ Spotlight updated" }); }
+    });
+  };
+
+  const updateBackToSchoolEnabled = async (enabled: boolean) => {
+    const previous = backToSchoolEnabled;
+    setBackToSchoolEnabled(enabled);
+    setSectionSaving(true);
+    try {
+      const response = await fetch(`${BASE}/api/settings/back_to_school_enabled`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: String(enabled) }),
+      });
+      if (!response.ok) throw new Error("Could not update Back to School visibility");
+      toast({ title: enabled ? "Back to School restored" : "Back to School hidden" });
+    } catch (error) {
+      setBackToSchoolEnabled(previous);
+      toast({ title: "Section update failed", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+    } finally {
+      setSectionSaving(false);
+    }
+  };
+
+  const deleteBackToSchoolSection = () => {
+    if (!window.confirm("Remove Back to School from the storefront? Products will remain in inventory and can be restored later.")) return;
+    updateBackToSchoolEnabled(false);
+  };
+
+  const removeFromBackToSchool = (id: number) => {
+    updateProduct.mutate({ id, data: { collection: null } as ProductInput }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+        toast({ title: "Removed from Back to School", description: "The product remains in your main inventory." });
+      },
+      onError: (error) => toast({ title: "Could not remove product", description: error instanceof Error ? error.message : undefined, variant: "destructive" }),
     });
   };
 
@@ -508,8 +558,10 @@ export default function AdminProducts() {
     } finally { setBulkLoading(false); }
   };
 
+  const schoolProducts = (products ?? []).filter((product) => (product as ProductFormData).collection === "back_to_school");
   const filteredProducts = (products ?? []).filter(p =>
-    !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (inventoryView === "all" || (p as ProductFormData).collection === "back_to_school") &&
+    (!searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
   const isPending = createProduct.isPending || updateProduct.isPending;
 
@@ -558,10 +610,47 @@ export default function AdminProducts() {
               Delete All
             </Button>
           )}
-          <Button onClick={openNew} className="font-bold uppercase tracking-wider fire-gradient border-none">
+          <Button onClick={() => openNew(inventoryView === "back_to_school" ? "back_to_school" : undefined)} className="font-bold uppercase tracking-wider fire-gradient border-none">
             <Plus className="mr-2 h-4 w-4" /> Add Product
           </Button>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-orange-400/25 bg-gradient-to-br from-orange-500/[0.10] via-yellow-400/[0.04] to-transparent p-4 shadow-[0_0_32px_rgba(255,102,0,0.08)]">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-yellow-300/25 bg-yellow-300/10 text-xl">🎒</div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-sm font-black uppercase tracking-widest text-white">Back to School</h2>
+                <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${backToSchoolEnabled ? "bg-green-400/15 text-green-300" : "bg-white/10 text-white/40"}`}>
+                  {backToSchoolEnabled ? "Live" : "Hidden"}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-white/45">{schoolProducts.length} products in the collection · UAE shipping · safely restorable</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setInventoryView(inventoryView === "back_to_school" ? "all" : "back_to_school")} className="border-orange-300/25 text-orange-200 hover:bg-orange-400/10">
+              {inventoryView === "back_to_school" ? "View all inventory" : "Manage products"}
+            </Button>
+            <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-white/50">Show section</span>
+              <Toggle checked={backToSchoolEnabled} onChange={updateBackToSchoolEnabled} color="#f59e0b" />
+            </div>
+            <Button size="sm" variant="outline" onClick={deleteBackToSchoolSection} disabled={!backToSchoolEnabled || sectionSaving} className="border-red-400/25 text-red-300 hover:bg-red-400/10">
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Delete section
+            </Button>
+          </div>
+        </div>
+        {inventoryView === "back_to_school" && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-orange-200/70">Only Back to School products are shown below.</p>
+            <Button size="sm" onClick={() => openNew("back_to_school")} className="h-8 bg-yellow-300 text-black hover:bg-yellow-200">
+              <Plus className="mr-1.5 h-3.5 w-3.5" /> Add to Back to School
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Search + Bulk */}
@@ -686,6 +775,17 @@ export default function AdminProducts() {
                       {(product as ProductFormData).spotlight ? "Spotlight" : "Set"}
                     </button>
                     <div className="ml-auto flex gap-1">
+                      {inventoryView === "back_to_school" && (product as ProductFormData).collection === "back_to_school" && (
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={e => { e.stopPropagation(); removeFromBackToSchool(product.id); }}
+                          className="flex h-8 items-center gap-1 rounded-lg px-2 text-[9px] font-black uppercase tracking-wider text-orange-300 hover:bg-orange-400/10"
+                          title="Remove from Back to School and keep in inventory"
+                        >
+                          Remove
+                        </motion.button>
+                      )}
                       <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
                         onClick={e => { e.stopPropagation(); openEdit(product); }}
                         className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
@@ -860,6 +960,16 @@ export default function AdminProducts() {
                     {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </Field>
+                 <Field label="Collection">
+                   <select
+                     value={formData.collection || ""}
+                     onChange={e => set({ collection: e.target.value || null })}
+                     className="w-full h-10 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white focus:outline-none focus:border-primary/50"
+                   >
+                     <option value="">Main Store</option>
+                     <option value="back_to_school">Back to School</option>
+                   </select>
+                 </Field>
               </div>
               <Field label="Description" hint={`${(formData.description || "").length}/500 characters`}>
                 <Textarea

@@ -71,6 +71,7 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   site_meta_description: "Premium authentic streetwear for those who walk their own path. Shop online, UAE delivery.",
   site_og_image: "",
   maintenance_mode: "false",
+  back_to_school_enabled: "true",
 };
 
 export function useSetting(key: string): string {
