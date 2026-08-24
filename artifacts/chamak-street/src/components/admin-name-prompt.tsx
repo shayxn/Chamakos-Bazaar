@@ -66,6 +66,7 @@ export default function AdminNamePrompt() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminId, pfpData }),
       }).catch(() => {});
+      window.dispatchEvent(new Event("firstpick-admin-pfp-updated"));
       setShow(false);
     } finally { setSavingPfp(false); }
   };
@@ -208,7 +209,7 @@ export default function AdminNamePrompt() {
                   </div>
                 )}
 
-                <button onClick={() => { localStorage.setItem("fp_admin_pfp", "fp_logo"); setShow(false); }}
+                <button onClick={() => { localStorage.setItem("fp_admin_pfp", "fp_logo"); window.dispatchEvent(new Event("firstpick-admin-pfp-updated")); setShow(false); }}
                   className="text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors flex items-center gap-1 mx-auto">
                   <X size={11} /> Skip for now
                 </button>

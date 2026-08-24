@@ -5,7 +5,7 @@ import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
   Zap, Users, BellRing, MessageCircle, Activity, Ticket, Smartphone,
-  Phone, Menu, Shield
+  Phone, Menu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -74,6 +74,18 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
         ) : part
       )}
     </>
+  );
+}
+
+function AdminAvatar({ value, size = "sm" }: { value: string | null; size?: "sm" | "md" }) {
+  const dimension = size === "md" ? "h-11 w-11 text-sm" : "h-8 w-8 text-[10px]";
+  if (value && value !== "fp_logo" && /^(data:image\/|https?:\/\/|\/)/i.test(value)) {
+    return <img src={value} alt="Admin profile" className={`${dimension} rounded-full border border-primary/40 object-cover`} />;
+  }
+  return (
+    <span className={`${dimension} flex items-center justify-center rounded-full border border-primary/30 bg-primary/15 font-black tracking-tight text-primary`}>
+      FP
+    </span>
   );
 }
 
@@ -252,6 +264,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sessions, setSessions] = useState<AdminDeviceSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [adminPfp, setAdminPfp] = useState<string | null>(() => (
+    typeof window !== "undefined" ? localStorage.getItem("fp_admin_pfp") : null
+  ));
   const [ownerStudioAccess, setOwnerStudioAccess] = useState(false);
   const isChat = location.split("?")[0] === "/admin/chat";
 
@@ -269,6 +284,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       });
     return () => controller.abort();
   }, [user?.id, user?.isAdmin]);
+
+  useEffect(() => {
+    const refreshAdminPfp = () => setAdminPfp(localStorage.getItem("fp_admin_pfp"));
+    window.addEventListener("firstpick-admin-pfp-updated", refreshAdminPfp);
+    window.addEventListener("storage", refreshAdminPfp);
+    refreshAdminPfp();
+    return () => {
+      window.removeEventListener("firstpick-admin-pfp-updated", refreshAdminPfp);
+      window.removeEventListener("storage", refreshAdminPfp);
+    };
+  }, []);
 
   const loadSessions = async () => {
     setSessionsLoading(true);
@@ -589,10 +615,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <button
         type="button"
         onClick={() => setShowSessions(true)}
-        className="fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[80] flex h-10 w-10 items-center justify-center rounded-xl border border-primary/30 bg-primary/15 text-primary shadow-xl backdrop-blur md:hidden"
+        className="fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[80] flex h-11 w-11 items-center justify-center rounded-xl border border-primary/30 bg-[#0f0f0f]/95 shadow-xl backdrop-blur md:hidden"
         aria-label="Open admin account"
+        style={{ touchAction: "manipulation" }}
       >
-        <Shield className="h-5 w-5" />
+        <AdminAvatar value={adminPfp} />
       </button>
 
       {/* ── Sidebar ── */}
