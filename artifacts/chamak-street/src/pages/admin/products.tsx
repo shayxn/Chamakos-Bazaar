@@ -389,9 +389,9 @@ export default function AdminProducts() {
     setMediaItems(parseProductMedia(product.imageUrl));
     setFormData({
       name: product.name, price: product.price,
-      stock: product.stock > 0 ? 100 : 0,
+      stock: product.stock ?? 0,
       imageUrl: product.imageUrl || "", description: product.description || "",
-      sizes: product.sizes || "", featured: product.featured, rep: false,
+      sizes: product.sizes || "", featured: product.featured, rep: (product as any).rep ?? false,
       categoryId: product.categoryId || undefined,
       isPreOrder: (product as ProductFormData).isPreOrder ?? false,
       preOrderLabel: (product as ProductFormData).preOrderLabel ?? "",
@@ -417,7 +417,7 @@ export default function AdminProducts() {
     e.preventDefault();
     if (!formData.name.trim()) { toast({ title: "Name is required", variant: "destructive" }); return; }
     if (!formData.price || formData.price <= 0) { toast({ title: "Enter a valid price", variant: "destructive" }); return; }
-    const data = { ...formData, imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "", stock: inStock ? 100 : 0 };
+    const data = { ...formData, imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "", stock: inStock ? Math.max(0, Number(formData.stock) || 0) : 0 };
     const opts = {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
@@ -465,10 +465,13 @@ export default function AdminProducts() {
   const deleteAllProducts = async () => {
     setDeleteAllLoading(true);
     try {
-      await fetch(`${BASE}/api/products/all`, { method: "DELETE", credentials: "include" });
+      const res = await fetch(`${BASE}/api/products/all`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`);
       queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
       toast({ title: "All products deleted" });
       setSelectedIds(new Set());
+    } catch (error) {
+      toast({ title: "Could not delete all products", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
     } finally {
       setDeleteAllLoading(false);
       setDeleteAllConfirm(false);
@@ -476,7 +479,14 @@ export default function AdminProducts() {
   };
 
   const toggleSelect = (id: number) => setSelectedIds(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const toggleAll = () => setSelectedIds(selectedIds.size === products?.length ? new Set() : new Set(products?.map(p => p.id) ?? []));
+  const toggleAll = () => setSelectedIds(current => {
+    const visibleIds = filteredProducts.map(product => product.id);
+    const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => current.has(id));
+    const next = new Set(current);
+    if (allVisibleSelected) visibleIds.forEach(id => next.delete(id));
+    else visibleIds.forEach(id => next.add(id));
+    return next;
+  });
 
   const executeBulkAction = async () => {
     if (!bulkAction || selectedIds.size === 0) return;
@@ -488,12 +498,13 @@ export default function AdminProducts() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: Array.from(selectedIds), action: bulkAction }),
       });
-      if (res.ok) {
-        const d = await res.json() as { affected: number };
-        toast({ title: `${d.affected} products updated` });
-        setSelectedIds(new Set()); setBulkAction("");
-        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
-      }
+      if (!res.ok) throw new Error(`Bulk action failed (${res.status})`);
+      const d = await res.json() as { affected: number };
+      toast({ title: `${d.affected} products updated` });
+      setSelectedIds(new Set()); setBulkAction("");
+      queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+    } catch (error) {
+      toast({ title: "Bulk action could not be completed", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
     } finally { setBulkLoading(false); }
   };
 
@@ -562,7 +573,7 @@ export default function AdminProducts() {
         />
         <label className="flex items-center gap-2 text-sm font-bold cursor-pointer ml-auto">
           <input type="checkbox" className="h-4 w-4 rounded"
-            checked={selectedIds.size > 0 && selectedIds.size === filteredProducts.length}
+            checked={filteredProducts.length > 0 && filteredProducts.every(product => selectedIds.has(product.id))}
             onChange={toggleAll} />
           {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
         </label>
@@ -747,12 +758,13 @@ export default function AdminProducts() {
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ ids: Array.from(selectedIds), action: "delete" }),
                         });
-                        if (res.ok) {
-                          const d = await res.json() as { affected: number };
-                          toast({ title: `${d.affected} products deleted` });
-                          setSelectedIds(new Set()); setBulkAction("");
-                          queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
-                        }
+                        if (!res.ok) throw new Error(`Bulk delete failed (${res.status})`);
+                        const d = await res.json() as { affected: number };
+                        toast({ title: `${d.affected} products deleted` });
+                        setSelectedIds(new Set()); setBulkAction("");
+                        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+                      } catch (error) {
+                        toast({ title: "Could not delete selected products", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
                       } finally { setBulkLoading(false); setBulkDeleteConfirm(false); }
                     } else {
                       confirmDelete();

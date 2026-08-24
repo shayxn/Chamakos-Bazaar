@@ -74,18 +74,36 @@ async function getAllSubscriptions(): Promise<{ endpoint: string; p256dh: string
 }
 
 async function deliver(subs: { endpoint: string; p256dh: string; auth: string }[], payload: string) {
-  if (!subs.length) return;
-  await Promise.allSettled(
-    subs.map((sub) =>
-      webpush
-        .sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload)
-        .catch(async (err: any) => {
-          if (err?.statusCode === 410 || err?.statusCode === 404) {
-            await removeSubscription(sub.endpoint).catch(() => {});
-          }
-        })
-    )
+  if (!subs.length) return 0;
+  const results = await Promise.all(subs.map(async (sub) => {
+    try {
+      await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload);
+      return true;
+    } catch (err: any) {
+      if (err?.statusCode === 410 || err?.statusCode === 404) {
+        await removeSubscription(sub.endpoint).catch(() => {});
+      }
+      return false;
+    }
+  }));
+  return results.filter(Boolean).length;
+}
+
+export async function sendTestPush(endpoint: string) {
+  if (!_initialized) await initPush();
+  const result = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
+    sql`SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE endpoint = ${endpoint} LIMIT 1`
   );
+  const subs = Array.isArray(result) ? result : (result as any).rows ?? [];
+  if (!subs.length) throw new Error("This browser does not have an active push subscription.");
+  const delivered = await deliver(subs, JSON.stringify({
+    title: "FirstPick Admin",
+    body: "This is a test notification from your admin dashboard.",
+    type: "TEST_NOTIFICATION",
+    data: { url: "/admin/notifications" },
+  }));
+  if (!delivered) throw new Error("Your push provider did not accept the test notification.");
+  return delivered;
 }
 
 // ── Order push (called after confirmed order) ────────────────────────────────

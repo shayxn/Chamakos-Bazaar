@@ -94,6 +94,7 @@ export default function AdminNotificationSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
   const [testSent, setTestSent] = useState(false);
   const [subbing, setSubbing] = useState(false);
@@ -113,17 +114,22 @@ export default function AdminNotificationSettings() {
 
   const save = async () => {
     setSaving(true);
+    setActionError(null);
     try {
-      await fetch(`${BASE}/api/visitor-sessions/notif-settings`, {
+      const response = await fetch(`${BASE}/api/visitor-sessions/notif-settings`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       });
+      if (!response.ok) throw new Error(`Could not save settings (${response.status})`);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch {}
-    setSaving(false);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Could not save settings.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSubscribe = async () => {
@@ -140,10 +146,16 @@ export default function AdminNotificationSettings() {
 
   const handleTest = async () => {
     setTesting(true);
-    await sendTest();
-    setTestSent(true);
-    setTimeout(() => setTestSent(false), 4000);
-    setTesting(false);
+    setActionError(null);
+    try {
+      await sendTest();
+      setTestSent(true);
+      setTimeout(() => setTestSent(false), 4000);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Could not send test notification.");
+    } finally {
+      setTesting(false);
+    }
   };
 
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -348,6 +360,13 @@ export default function AdminNotificationSettings() {
               className="text-xs text-green-400 font-bold"
             >
               Settings saved successfully.
+            </motion.p>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {actionError && (
+            <motion.p initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="text-xs text-red-400 font-bold">
+              {actionError}
             </motion.p>
           )}
         </AnimatePresence>

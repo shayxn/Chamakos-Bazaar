@@ -4,10 +4,12 @@ import {
   Minimize2, Maximize2, Search, Video, Info, Paperclip, Smile, Lock,
   UserPlus, Monitor, SquarePen, ArrowLeft, PhoneCall, PhoneOutgoing
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 type Admin={adminId:string;adminName:string}; 
+type RoomDevice={adminId:string;deviceId:string};
 type Message={id?:number;senderId:string;senderName:string;message:string;conversationId:string;createdAt:string;reactions:Record<string,string[]>;clientMessageId?:string};
 
 const initials = (s:string) => s.slice(0,2).toUpperCase();
@@ -32,32 +34,50 @@ export default function AdminChatPage() {
   const [minimized,setMinimized]=useState(false); 
   const [muted,setMuted]=useState(false); 
   const [camera,setCamera]=useState(false);
+  const [sharing,setSharing]=useState(false);
   const device=useRef(crypto.randomUUID());
   const es=useRef<EventSource|null>(null); 
   const stream=useRef<MediaStream|null>(null); 
+  const cameraTrack=useRef<MediaStreamTrack|null>(null);
+  const screenTrack=useRef<MediaStreamTrack|null>(null);
+  const cameraState=useRef(false);
+  const sharingState=useRef(false);
+  const restoreCameraAfterShare=useRef(false);
   const roomRef=useRef<string|null>(null);
+  const joinedRoomRef=useRef<string|null>(null);
   const pcs=useRef(new Map<string,RTCPeerConnection>());
+  const pendingIce=useRef(new Map<string, RTCIceCandidateInit[]>());
   const videos=useRef(new Map<string,MediaStream>());
   const [remote,setRemote]=useState<Record<string,MediaStream>>({});
   const localVideo=useRef<HTMLVideoElement>(null); 
   const ice=useRef<RTCIceServer[]>([{urls:"stun:stun.l.google.com:19302"}]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const conversationRef = useRef("group");
+  const loadVersion = useRef(0);
+  const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingActive = useRef(false);
 
-  const load=useCallback(async(id:string)=>{const r=await fetch(`${BASE}/api/admin/chat/messages?conversationId=${encodeURIComponent(id)}`,{credentials:"include"});if(r.ok)setMessages(await r.json());},[]);
+  const load=useCallback(async(id:string)=>{const version=++loadVersion.current;const r=await fetch(`${BASE}/api/admin/chat/messages?conversationId=${encodeURIComponent(id)}`,{credentials:"include"});const data=r.ok?await r.json():null;if(data&&version===loadVersion.current)setMessages(data);},[]);
   useEffect(()=>{fetch(`${BASE}/api/admin/chat/conversations`,{credentials:"include"}).then(r=>r.ok?r.json():null).then(d=>{if(d){setMe({adminId:d.me.id,adminName:d.me.name});setAdmins(d.admins);}});fetch(`${BASE}/api/admin/chat/ice-config`,{credentials:"include"}).then(r=>r.json()).then(d=>{if(d.iceServers)ice.current=d.iceServers}).catch(()=>{});},[]);
   useEffect(()=>{const invited=new URLSearchParams(window.location.search).get("room");if(invited){roomRef.current=invited;setRoom(invited);}},[]);
-  useEffect(()=>{load(conversation);setTyping([]);},[conversation,load]);
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(()=>{const activeConversation=conversation;conversationRef.current=conversation;load(conversation);setTyping([]);return()=>{if(typingTimer.current)clearTimeout(typingTimer.current);if(typingActive.current){typingActive.current=false;fetch(`${BASE}/api/admin/chat/typing`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({typing:false,conversationId:activeConversation})}).catch(()=>{});}};},[conversation,load]);
+  useEffect(() => { const frame=requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "auto" })); return () => cancelAnimationFrame(frame); }, [messages.length]);
 
-  const closeRoom=useCallback(async()=>{const id=roomRef.current;roomRef.current=null;for(const pc of pcs.current.values())pc.close();pcs.current.clear();stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;setRemote({});setRoom(null);setMembers([]);setCamera(false);if(id)fetch(`${BASE}/api/admin/chat/rooms/${id}/leave`,{method:"POST",credentials:"include"}).catch(()=>{});},[]);
-  const sendSignal=useCallback((id:string,to:string,signal:any)=>fetch(`${BASE}/api/admin/chat/rooms/${id}/signal`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({to,signal})}),[]);
-  const peer=useCallback(async(peerId:string,id:string,offer:boolean)=>{
-    if(!stream.current)return; const pc=new RTCPeerConnection({iceServers:ice.current});pcs.current.set(peerId,pc);stream.current.getTracks().forEach(t=>pc.addTrack(t,stream.current!));
-    pc.onicecandidate=e=>{if(e.candidate)sendSignal(id,peerId,{type:"ice",candidate:e.candidate}).catch(()=>{})};
+  const closeRoom=useCallback(async()=>{const id=roomRef.current;const wasJoined=joinedRoomRef.current===id;roomRef.current=null;joinedRoomRef.current=null;for(const pc of pcs.current.values())pc.close();pcs.current.clear();pendingIce.current.clear();videos.current.clear();cameraTrack.current?.stop();screenTrack.current?.stop();cameraTrack.current=null;screenTrack.current=null;stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;cameraState.current=false;sharingState.current=false;setRemote({});setRoom(null);setMembers([]);setCamera(false);setSharing(false);if(id&&wasJoined)fetch(`${BASE}/api/admin/chat/rooms/${id}/leave?deviceId=${encodeURIComponent(device.current)}`,{method:"POST",credentials:"include"}).catch(()=>{});},[]);
+  const sendSignal=useCallback((id:string,to:string,toDeviceId:string,signal:any)=>fetch(`${BASE}/api/admin/chat/rooms/${id}/signal`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({to,toDeviceId,signal,deviceId:device.current})}),[]);
+  const replaceVideoTrack=useCallback(async(track:MediaStreamTrack|null)=>{await Promise.all([...pcs.current.values()].map(async pc=>{const sender=pc.getSenders().find(item=>item.track?.kind==="video");if(sender)await sender.replaceTrack(track);else if(track&&stream.current)pc.addTrack(track,stream.current);}));},[]);
+  const stopScreenShare=useCallback(async()=>{const track=screenTrack.current;if(!track)return;screenTrack.current=null;track.onended=null;track.stop();if(stream.current)stream.current.removeTrack(track);const shouldRestore=restoreCameraAfterShare.current;restoreCameraAfterShare.current=false;const next=shouldRestore?cameraTrack.current:null;if(next){next.enabled=true;if(stream.current&&!stream.current.getVideoTracks().includes(next))stream.current.addTrack(next);}await replaceVideoTrack(next);if(localVideo.current&&stream.current)localVideo.current.srcObject=stream.current;cameraState.current=shouldRestore;sharingState.current=false;setCamera(shouldRestore);setSharing(false);},[replaceVideoTrack]);
+  const toggleCamera=useCallback(async()=>{if(!stream.current||!joinedRoomRef.current){toast({title:"Join the call first",description:"Camera controls become available once you are connected."});return;}if(sharingState.current)await stopScreenShare();if(cameraState.current){if(cameraTrack.current)cameraTrack.current.enabled=false;await replaceVideoTrack(null);cameraState.current=false;setCamera(false);return;}let track=cameraTrack.current;if(!track||track.readyState==="ended"){const next=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:24,max:30}},audio:false});track=next.getVideoTracks()[0]??null;cameraTrack.current=track;if(track&&stream.current&&!stream.current.getVideoTracks().includes(track))stream.current.addTrack(track);}if(!track){toast({title:"Camera unavailable",description:"Allow camera access in your browser to turn video on.",variant:"destructive"});return;}track.enabled=true;await replaceVideoTrack(track);if(localVideo.current&&stream.current)localVideo.current.srcObject=stream.current;cameraState.current=true;setCamera(true);},[replaceVideoTrack,stopScreenShare,toast]);
+  const toggleScreenShare=useCallback(async()=>{if(sharingState.current){await stopScreenShare();return;}if(!stream.current){toast({title:"Join the call first",description:"Screen sharing is available after your microphone is connected."});return;}try{const display=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:24,max:30}},audio:false});const track=display.getVideoTracks()[0];if(!track)return;restoreCameraAfterShare.current=cameraState.current;cameraTrack.current&&(cameraTrack.current.enabled=false);const currentCamera=stream.current.getVideoTracks()[0];if(currentCamera)stream.current.removeTrack(currentCamera);stream.current.addTrack(track);screenTrack.current=track;await replaceVideoTrack(track);if(localVideo.current)localVideo.current.srcObject=stream.current;sharingState.current=true;cameraState.current=false;setSharing(true);setCamera(false);track.onended=()=>{void stopScreenShare();};}catch(error){if(error instanceof DOMException&&error.name==="AbortError")return;toast({title:"Screen sharing unavailable",description:"Your browser could not start screen sharing.",variant:"destructive"});}},[replaceVideoTrack,stopScreenShare,toast]);
+  const peer=useCallback(async(remoteDevice:RoomDevice,id:string,offer:boolean)=>{
+    if(!stream.current)return; const peerId=`${remoteDevice.adminId}:${remoteDevice.deviceId}`;const pc=new RTCPeerConnection({iceServers:ice.current});pcs.current.set(peerId,pc);stream.current.getTracks().forEach(t=>pc.addTrack(t,stream.current!));
+    pc.onicecandidate=e=>{if(e.candidate)sendSignal(id,remoteDevice.adminId,remoteDevice.deviceId,{type:"ice",candidate:e.candidate}).catch(()=>{})};
     pc.ontrack=e=>{const s=e.streams[0]||new MediaStream([e.track]);videos.current.set(peerId,s);setRemote(Object.fromEntries(videos.current));};
     pc.onconnectionstatechange=()=>{if(["failed","closed"].includes(pc.connectionState)){pcs.current.delete(peerId);videos.current.delete(peerId);setRemote(Object.fromEntries(videos.current));}};
-    if(offer){const o=await pc.createOffer();await pc.setLocalDescription(o);await sendSignal(id,peerId,{type:"offer",offer:o});} return pc;
+    if(offer){const o=await pc.createOffer();await pc.setLocalDescription(o);await sendSignal(id,remoteDevice.adminId,remoteDevice.deviceId,{type:"offer",offer:o});} return pc;
   },[sendSignal]);
+  const flushPendingIce=useCallback(async(peerId:string,pc:RTCPeerConnection)=>{if(!pc.remoteDescription)return;const queued=pendingIce.current.get(peerId);if(!queued?.length)return;pendingIce.current.delete(peerId);for(const candidate of queued){try{await pc.addIceCandidate(candidate);}catch{}}},[]);
+  const connectToMembers=useCallback(async(id:string,devices:RoomDevice[])=>{if(!me||!stream.current)return;const mine=`${me.adminId}:${device.current}`;for(const remoteDevice of devices){const peerId=`${remoteDevice.adminId}:${remoteDevice.deviceId}`;if(peerId!==mine&&mine.localeCompare(peerId)<0&&!pcs.current.has(peerId))await peer(remoteDevice,id,true);}},[me,peer]);
 
   useEffect(()=>{
     if(!me)return;
@@ -66,24 +86,26 @@ export default function AdminChatPage() {
     source.onmessage=async e=>{
       const d=JSON.parse(e.data);
       if(d.type==="PRESENCE")setOnline(d.onlineAdmins||[]);
-      if(d.type==="MESSAGE"){if(d.message.conversationId===conversation)setMessages(p=>p.some(x=>x.id===d.message.id)?p:[...p,d.message]);else setUnread(p=>({...p,[d.message.conversationId]:(p[d.message.conversationId]||0)+1}));}
-      if(d.type==="REACTION"&&d.conversationId===conversation)setMessages(p=>p.map(x=>x.id===d.messageId?{...x,reactions:d.reactions}:x));
-      if(d.type==="TYPING"&&d.conversationId===conversation&&d.adminId!==me.adminId)setTyping(p=>d.typing?[...new Set([...p,d.adminName])]:p.filter(x=>x!==d.adminName));
-      if(d.type==="ROOM_INVITE"){toast({title:`Call from ${d.from.name}`,description:"Join the team room from the call bar."});roomRef.current=d.roomId;setRoom(d.roomId);setMembers([]);setMinimized(false);}
-      if(d.type==="ROOM_MEMBERS"&&d.roomId===room){setMembers(d.members);for(const member of d.members)if(member!==me.adminId&&Number(me.adminId)<Number(member)&&!pcs.current.has(member)&&stream.current)peer(member,d.roomId,true).catch(()=>{});}
-      if(d.type==="ROOM_SIGNAL"&&d.roomId===room){let pc=pcs.current.get(d.from);if(d.signal.type==="offer"){pc=await peer(d.from,room!,false);await pc!.setRemoteDescription(d.signal.offer);const answer=await pc!.createAnswer();await pc!.setLocalDescription(answer);await sendSignal(room!,d.from,{type:"answer",answer});}else if(pc&&d.signal.type==="answer")await pc.setRemoteDescription(d.signal.answer);else if(pc&&d.signal.type==="ice")await pc.addIceCandidate(d.signal.candidate).catch(()=>{});}
+      if(d.type==="MESSAGE"){if(d.message.conversationId===conversationRef.current)setMessages(p=>p.some(x=>x.id===d.message.id)?p:[...p,d.message]);else setUnread(p=>({...p,[d.message.conversationId]:(p[d.message.conversationId]||0)+1}));}
+      if(d.type==="REACTION"&&d.conversationId===conversationRef.current)setMessages(p=>p.map(x=>x.id===d.messageId?{...x,reactions:d.reactions}:x));
+      if(d.type==="TYPING"&&d.conversationId===conversationRef.current&&d.adminId!==me.adminId)setTyping(p=>d.typing?[...new Set([...p,d.adminName])]:p.filter(x=>x!==d.adminName));
+      if(d.type==="ROOM_INVITE"){if(roomRef.current&&roomRef.current!==d.roomId)await closeRoom();toast({title:`Call from ${d.from.name}`,description:"Join the team room from the call bar."});roomRef.current=d.roomId;setRoom(d.roomId);setMembers([]);setMinimized(false);}
+      if(d.type==="ROOM_MEMBERS"&&d.roomId===roomRef.current){setMembers(d.members);connectToMembers(d.roomId,d.devices||[]).catch(()=>{});}
+       if(d.type==="ROOM_SIGNAL"&&d.roomId===roomRef.current){const remoteDevice={adminId:d.from,deviceId:d.fromDeviceId};const peerId=`${remoteDevice.adminId}:${remoteDevice.deviceId}`;let pc=pcs.current.get(peerId);if(d.signal.type==="offer"){pc=await peer(remoteDevice,d.roomId,false);await pc!.setRemoteDescription(d.signal.offer);await flushPendingIce(peerId,pc!);const answer=await pc!.createAnswer();await pc!.setLocalDescription(answer);await sendSignal(d.roomId,remoteDevice.adminId,remoteDevice.deviceId,{type:"answer",answer});}else if(pc&&d.signal.type==="answer"){await pc.setRemoteDescription(d.signal.answer);await flushPendingIce(peerId,pc);}else if(d.signal.type==="ice"){if(pc?.remoteDescription){try{await pc.addIceCandidate(d.signal.candidate);}catch{pendingIce.current.set(peerId,[...(pendingIce.current.get(peerId)??[]),d.signal.candidate]);}}else pendingIce.current.set(peerId,[...(pendingIce.current.get(peerId)??[]),d.signal.candidate]);}}
     };
     return()=>source.close();
-  },[me,conversation,room,peer,sendSignal,toast]);
+  },[me,peer,sendSignal,connectToMembers,flushPendingIce,toast]);
   useEffect(()=>()=>{closeRoom();},[closeRoom]);
+  useEffect(()=>()=>{if(typingTimer.current)clearTimeout(typingTimer.current);},[]);
+  useEffect(()=>{const leaveOnPageHide=()=>{const id=roomRef.current;if(id&&joinedRoomRef.current===id){roomRef.current=null;joinedRoomRef.current=null;fetch(`${BASE}/api/admin/chat/rooms/${id}/leave?deviceId=${encodeURIComponent(device.current)}`,{method:"POST",credentials:"include",keepalive:true}).catch(()=>{});}};window.addEventListener("pagehide",leaveOnPageHide);return()=>window.removeEventListener("pagehide",leaveOnPageHide);},[]);
   
   const select=(id:string)=>{setConversation(id);setUnread(p=>{const next={...p};delete next[id];return next});setMobileList(false)};
   const send=async()=>{if(!text.trim()||!me)return;const body={message:text,conversationId:conversation,clientMessageId:crypto.randomUUID()};setText("");const r=await fetch(`${BASE}/api/admin/chat/messages`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)toast({title:"Message not sent",variant:"destructive"});};
-  const typingPost=(active:boolean)=>fetch(`${BASE}/api/admin/chat/typing`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({typing:active,conversationId:conversation})}).catch(()=>{});
+  const typingPost=(active:boolean)=>{if(typingTimer.current)clearTimeout(typingTimer.current);if(active&&typingActive.current){typingTimer.current=setTimeout(()=>typingPost(false),1400);return;}if(typingActive.current===active)return;typingActive.current=active;fetch(`${BASE}/api/admin/chat/typing`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({typing:active,conversationId:conversationRef.current})}).catch(()=>{});if(active)typingTimer.current=setTimeout(()=>typingPost(false),1400);};
   const react=async(id:number,emoji:string)=>{const r=await fetch(`${BASE}/api/admin/chat/messages/${id}/react`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({emoji})});if(!r.ok)toast({title:"Reaction could not be saved",variant:"destructive"});};
   
-  const join=async(id:string,withVideo=camera)=>{try{const s=await navigator.mediaDevices.getUserMedia({audio:true,video:withVideo?{width:{ideal:1280}}:false});stream.current=s;setCamera(withVideo);if(localVideo.current)localVideo.current.srcObject=s;roomRef.current=id;setRoom(id);setMinimized(false);const r=await fetch(`${BASE}/api/admin/chat/rooms/${id}/join`,{method:"POST",credentials:"include"});if(!r.ok)throw new Error("The room has ended");const d=await r.json();setMembers(d.members);for(const x of d.members)if(x!==me?.adminId&&Number(me?.adminId)<Number(x))await peer(x,id,true);}catch(e){roomRef.current=null;setCamera(false);toast({title:"Unable to join call",description:e instanceof Error?e.message:"Allow microphone access.",variant:"destructive"});setRoom(null);}};
-  const start=async()=>{const r=await fetch(`${BASE}/api/admin/chat/rooms`,{method:"POST",credentials:"include"});if(!r.ok){toast({title:"Could not start call",variant:"destructive"});return;}const d=await r.json();await join(d.roomId,true);};
+  const join=async(id:string,withVideo=camera)=>{try{const s=await navigator.mediaDevices.getUserMedia({audio:true,video:withVideo?{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:24,max:30}}:false});stream.current=s;cameraTrack.current=s.getVideoTracks()[0]??null;cameraState.current=withVideo;setCamera(withVideo);if(localVideo.current)localVideo.current.srcObject=s;roomRef.current=id;setRoom(id);setMinimized(false);const r=await fetch(`${BASE}/api/admin/chat/rooms/${id}/join`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({deviceId:device.current})});if(!r.ok)throw new Error("The room has ended");joinedRoomRef.current=id;const d=await r.json();setMembers(d.members);await connectToMembers(id,d.devices||[]);}catch(e){await closeRoom();toast({title:"Unable to join call",description:e instanceof Error?e.message:"Allow microphone access.",variant:"destructive"});}};
+  const start=async()=>{const r=await fetch(`${BASE}/api/admin/chat/rooms`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({deviceId:device.current})});if(!r.ok){toast({title:"Could not start call",variant:"destructive"});return;}const d=await r.json();roomRef.current=d.roomId;joinedRoomRef.current=d.roomId;await join(d.roomId,true);};
   const directName=(id:string)=>admins.find(a=>a.adminId!==(me?.adminId) && id.includes(`:${a.adminId}`))?.adminName||"Direct message";
   const getAvatar=(name:string)=>{return <div className="w-10 h-10 rounded-full bg-[#111111] text-gray-300 flex items-center justify-center text-sm font-bold border border-[#222] shrink-0">{initials(name)}</div>};
 
@@ -93,9 +115,9 @@ export default function AdminChatPage() {
   const recentCalls = admins.filter(a => a.adminId !== me?.adminId).slice(0, 5);
 
   return (
-    <div className="h-full w-full flex bg-[#000000] text-white">
+    <div className="h-full min-h-0 w-full flex overflow-hidden bg-[#000000] text-white">
       {/* LEFT COLUMN: CHATS / CALLS LIST */}
-      <aside className={`${mobileList ? "flex" : "hidden"} md:flex w-full md:w-[320px] shrink-0 flex-col border-r border-[#1a1a1a] bg-[#0A0A0A] relative`}>
+      <motion.aside initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.28, ease: "easeOut" }} className={`${mobileList ? "flex" : "hidden"} md:flex w-full max-w-full md:w-[320px] shrink-0 min-h-0 flex-col border-r border-[#1a1a1a] bg-[#0A0A0A] relative`}>
         {/* Header */}
         <div className="p-5 pb-3">
           <div className="flex items-center justify-between mb-4">
@@ -160,7 +182,9 @@ export default function AdminChatPage() {
                 const isOnline = online.some(x => x.adminId === a.adminId);
                 const isActive = conversation === id;
                 return (
-                  <button 
+                  <motion.button 
+                    whileHover={{ x: 3, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
                     key={a.adminId} 
                     onClick={() => select(id)} 
                     className={`w-full text-left p-3 mb-1 rounded-2xl flex gap-3 transition-colors items-center ${isActive ? "bg-[#1a110a] border border-[#ff6600]/30" : "hover:bg-[#111]"}`}
@@ -179,7 +203,7 @@ export default function AdminChatPage() {
                       </div>
                     </div>
                     {unread[id] ? <span className="w-5 h-5 rounded-full bg-[#ff6600] text-black flex items-center justify-center text-[10px] font-bold shrink-0">{unread[id]}</span> : null}
-                  </button>
+                  </motion.button>
                 );
               })}
             </>
@@ -208,7 +232,7 @@ export default function AdminChatPage() {
 
               <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-2 mt-2">Team Members</div>
               {recentCalls.map((a) => (
-                <div key={a.adminId} className="w-full p-3 mb-1 rounded-2xl flex gap-3 items-center hover:bg-[#111] transition-colors cursor-pointer">
+                <motion.div key={a.adminId} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(0.24, Number(a.adminId) * 0.02) }} whileHover={{ x: 3 }} className="w-full p-3 mb-1 rounded-2xl flex gap-3 items-center hover:bg-[#111] transition-colors cursor-pointer">
                   <div className="relative">
                     {getAvatar(a.adminName)}
                   </div>
@@ -227,15 +251,16 @@ export default function AdminChatPage() {
                     <button onClick={start} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center shrink-0" aria-label={`Start a team call with ${a.adminName}`}>
                       <Video className="w-4 h-4 text-gray-400" />
                   </button>
-                </div>
+                </motion.div>
               ))}
             </>
           )}
         </div>
 
         {/* Floating Minimized Call Pill */}
+        <AnimatePresence>
         {room && minimized && (
-          <div className="absolute bottom-4 left-4 right-4 bg-[#1a1a1a] rounded-2xl p-3 flex items-center justify-between border border-[#333] shadow-2xl z-50">
+          <motion.div initial={{ opacity: 0, y: 18, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 14, scale: 0.96 }} transition={{ type: "spring", stiffness: 380, damping: 28 }} className="absolute bottom-4 left-4 right-4 bg-[#1a1a1a] rounded-2xl p-3 flex items-center justify-between border border-[#333] shadow-2xl z-50">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => setMinimized(false)}>
               <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
                 <Video className="w-4 h-4 text-green-500" />
@@ -250,19 +275,21 @@ export default function AdminChatPage() {
             <button onClick={closeRoom} className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors">
               <PhoneOff className="w-3 h-3 text-white" />
             </button>
-          </div>
+          </motion.div>
         )}
-      </aside>
+        </AnimatePresence>
+      </motion.aside>
 
       {/* RIGHT COLUMN: MAIN CONTENT (CHAT OR CALL) */}
-      <section className={`${mobileList ? "hidden" : "flex"} md:flex flex-1 flex-col min-w-0 bg-[#0A0A0A] relative`}>
+      <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className={`${mobileList ? "hidden" : "flex"} md:flex flex-1 flex-col min-h-0 min-w-0 bg-[#0A0A0A] relative`}>
         
         {room && !minimized ? (
           // CALL UI MAXIMIZED
-          <div className="absolute inset-0 z-40 bg-[#050505] flex flex-row">
+          <motion.div initial={{ opacity: 0, scale: 0.985 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.28, ease: "easeOut" }} className="absolute inset-0 z-40 bg-[#050505] flex flex-row">
             
             {/* Main Stage */}
-            <div className="flex-1 flex flex-col relative m-4 rounded-3xl overflow-hidden border border-[#1a1a1a] bg-black">
+            <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.06, duration: 0.32, ease: "easeOut" }} className="flex-1 flex min-h-0 min-w-0 flex-col relative m-2 sm:m-4 rounded-3xl overflow-hidden border border-[#1a1a1a] bg-black">
+              <motion.div aria-hidden className="absolute -top-1/3 left-1/2 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[#ff6600]/10 blur-3xl" animate={{ opacity: [0.18, 0.42, 0.18], scale: [0.92, 1.08, 0.92] }} transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }} />
               <div className="absolute top-4 w-full flex justify-center z-10">
                 <div className="flex items-center gap-1.5 text-green-500/80 text-[10px] font-medium bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">
                   <Lock className="w-3 h-3" /> End-to-end encrypted
@@ -288,64 +315,64 @@ export default function AdminChatPage() {
               </div>
 
               {/* Videos */}
-              <div className="w-full h-full flex flex-col sm:flex-row items-center justify-center p-8 gap-4 bg-gradient-to-b from-[#111] to-[#000]">
+              <div className="w-full h-full min-h-0 flex flex-col sm:flex-row items-center justify-center p-3 sm:p-8 gap-3 sm:gap-4 bg-gradient-to-b from-[#111] to-[#000]">
                 {/* Remote Videos */}
                 {Object.keys(remote).length === 0 && (
-                  <div className="flex flex-col items-center justify-center text-gray-500 animate-pulse">
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="flex flex-col items-center justify-center text-gray-500">
                     <Users className="w-12 h-12 mb-4 opacity-50" />
                     <p className="text-sm">Waiting for others to join...</p>
-                  </div>
+                  </motion.div>
                 )}
                 {Object.entries(remote).map(([id, s]) => (
-                  <div key={id} className="relative w-full max-w-2xl aspect-video bg-[#1a1a1a] rounded-3xl overflow-hidden border border-[#333] shadow-2xl shadow-black">
+                  <motion.div key={id} initial={{ opacity: 0, scale: 0.94, y: 14 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 280, damping: 24 }} className="relative w-full max-w-2xl aspect-video bg-[#1a1a1a] rounded-2xl sm:rounded-3xl overflow-hidden border border-[#333] shadow-2xl shadow-black">
                     <video autoPlay playsInline ref={v => { if (v) v.srcObject = s }} className="w-full h-full object-cover" />
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
               {/* Local PIP */}
-              <div className="absolute bottom-28 right-6 w-48 aspect-video bg-black rounded-2xl overflow-hidden border-2 border-white/10 z-20 shadow-2xl">
+              <motion.div initial={{ opacity: 0, scale: 0.78, x: 20 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ delay: 0.18, type: "spring", stiffness: 320, damping: 24 }} className="absolute bottom-24 sm:bottom-28 right-3 sm:right-6 w-32 sm:w-48 aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden border-2 border-white/10 z-20 shadow-2xl">
                 <video ref={localVideo} autoPlay muted playsInline className="w-full h-full object-cover" />
-                <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[9px] text-white backdrop-blur">You</div>
-              </div>
+                <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[9px] text-white backdrop-blur">{sharing ? "Sharing screen" : "You"}</div>
+              </motion.div>
 
               {/* Controls Dock */}
-              <div className="absolute bottom-6 w-full flex justify-center z-30">
-                <div className="bg-[#111111]/90 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 flex gap-4 items-center shadow-2xl">
-                  <button onClick={() => { stream.current?.getAudioTracks().forEach(t => t.enabled = muted); setMuted(x => !x) }} className={`flex flex-col items-center gap-1.5 w-14 ${muted ? "text-red-500" : "text-gray-300 hover:text-white"}`}>
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${muted ? "bg-red-500/20" : "bg-[#222] hover:bg-[#333]"}`}>
-                      {muted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              <div className="absolute bottom-3 sm:bottom-6 left-2 right-2 sm:left-0 sm:right-0 flex justify-center z-30">
+                <div className="max-w-full bg-[#111111]/90 backdrop-blur-xl border border-white/10 rounded-2xl px-2 sm:px-6 py-2 sm:py-3 flex gap-1 sm:gap-4 items-center shadow-2xl">
+                  <motion.button whileHover={{ y: -2 }} whileTap={{ scale: 0.92 }} onClick={() => { stream.current?.getAudioTracks().forEach(t => t.enabled = muted); setMuted(x => !x) }} className={`flex flex-col items-center gap-1 sm:gap-1.5 w-11 sm:w-14 ${muted ? "text-red-500" : "text-gray-300 hover:text-white"}`}>
+                    <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${muted ? "bg-red-500/20" : "bg-[#222] hover:bg-[#333]"}`}>
+                      {muted ? <MicOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Mic className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </div>
                     <span className="text-[9px] font-medium">Mute</span>
-                  </button>
-                  <button onClick={() => toast({title:"Camera can be chosen before joining"})} className={`flex flex-col items-center gap-1.5 w-14 ${!camera ? "text-red-500" : "text-gray-300 hover:text-white"}`}>
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${!camera ? "bg-red-500/20" : "bg-[#222] hover:bg-[#333]"}`}>
-                      {!camera ? <CameraOff className="w-5 h-5" /> : <Camera className="w-5 h-5" />}
+                  </motion.button>
+                  <motion.button whileHover={{ y: -2 }} whileTap={{ scale: 0.92 }} onClick={() => void toggleCamera()} className={`flex flex-col items-center gap-1 sm:gap-1.5 w-11 sm:w-14 ${!camera ? "text-red-500" : "text-gray-300 hover:text-white"}`}>
+                    <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${!camera ? "bg-red-500/20" : "bg-[#222] hover:bg-[#333]"}`}>
+                      {!camera ? <CameraOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Camera className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </div>
-                    <span className="text-[9px] font-medium">Camera</span>
-                  </button>
-                  <button type="button" onClick={() => toast({ title: "Screen sharing", description: "Screen sharing will be available after a dedicated media-room upgrade." })} className="flex flex-col items-center gap-1.5 w-14 text-gray-300 hover:text-white">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#222] hover:bg-[#333]">
-                      <Monitor className="w-5 h-5" />
+                    <span className="text-[9px] font-medium">{camera ? "Camera" : "Camera off"}</span>
+                  </motion.button>
+                  <motion.button whileHover={{ y: -2 }} whileTap={{ scale: 0.92 }} type="button" onClick={() => void toggleScreenShare()} className={`flex flex-col items-center gap-1 sm:gap-1.5 w-11 sm:w-14 ${sharing ? "text-[#ff6600]" : "text-gray-300 hover:text-white"}`}>
+                    <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${sharing ? "bg-[#ff6600]/20 ring-1 ring-[#ff6600]/50" : "bg-[#222] hover:bg-[#333]"}`}>
+                      <Monitor className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <span className="text-[9px] font-medium">Share</span>
-                  </button>
-                  <button type="button" onClick={() => toast({ title: `${members.length} participant${members.length === 1 ? "" : "s"} in this room` })} className="flex flex-col items-center gap-1.5 w-14 text-gray-300 hover:text-white">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#222] hover:bg-[#333]">
-                      <Users className="w-5 h-5" />
+                    <span className="text-[9px] font-medium">{sharing ? "Stop share" : "Share"}</span>
+                  </motion.button>
+                  <button type="button" onClick={() => toast({ title: `${members.length} participant${members.length === 1 ? "" : "s"} in this room` })} className="flex flex-col items-center gap-1 sm:gap-1.5 w-11 sm:w-14 text-gray-300 hover:text-white">
+                    <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center bg-[#222] hover:bg-[#333]">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <span className="text-[9px] font-medium">People</span>
                   </button>
-                  <div className="w-[1px] h-10 bg-white/10 mx-2" />
-                  <button onClick={closeRoom} className="flex flex-col items-center gap-1.5 w-14">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-red-600 hover:bg-red-500 transition-colors shadow-lg shadow-red-600/20">
-                      <PhoneOff className="w-5 h-5 text-white" />
+                  <div className="w-[1px] h-8 sm:h-10 bg-white/10 mx-0.5 sm:mx-2" />
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }} onClick={closeRoom} className="flex flex-col items-center gap-1 sm:gap-1.5 w-11 sm:w-14">
+                    <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center bg-red-600 hover:bg-red-500 transition-colors shadow-lg shadow-red-600/20">
+                      <PhoneOff className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <span className="text-[9px] font-medium text-red-500">End Call</span>
-                  </button>
+                  </motion.button>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Right Sidebar - In-call info */}
             <div className="w-72 border-l border-[#1a1a1a] bg-[#0A0A0A] flex flex-col p-5 hidden lg:flex relative z-10">
@@ -406,24 +433,25 @@ export default function AdminChatPage() {
                 <button type="submit" className="text-[#ff6600]" aria-label="Send in-call message"><Send className="w-4 h-4" /></button>
               </form>
             </div>
-          </div>
+          </motion.div>
         ) : isCalls ? (
-          <div className="flex-1 flex items-center justify-center bg-[#050505] p-5">
-            <div className="w-full max-w-lg rounded-3xl border border-[#1d1d1d] bg-[#0c0c0c] px-8 py-12 text-center shadow-2xl">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#ff6600]/30 bg-[#ff6600]/10 text-[#ff6600]">
+          <div className="flex-1 flex items-center justify-center bg-[#050505] p-5 overflow-hidden">
+            <motion.div initial={{ opacity: 0, y: 20, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 22 }} className="relative w-full max-w-lg rounded-3xl border border-[#1d1d1d] bg-[#0c0c0c] px-5 sm:px-8 py-10 sm:py-12 text-center shadow-2xl">
+              <motion.div aria-hidden className="absolute -top-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-[#ff6600]/20 blur-3xl" animate={{ scale: [0.85, 1.15, 0.85], opacity: [0.25, 0.55, 0.25] }} transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }} />
+              <motion.div animate={{ rotate: [0, -4, 4, 0], y: [0, -3, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }} className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#ff6600]/30 bg-[#ff6600]/10 text-[#ff6600]">
                 <Video className="h-7 w-7" />
-              </div>
+              </motion.div>
               <p className="mt-6 text-lg font-bold text-white">Ready to call your team?</p>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">Start one secure room for every available FirstPick admin. The live call will open here with its participant panel and in-call chat.</p>
-              <button type="button" onClick={start} className="mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-[#ff6600] px-5 text-sm font-bold text-black transition-colors hover:bg-[#ff8126]">
+              <motion.button whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.96 }} type="button" onClick={start} className="mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-[#ff6600] px-5 text-sm font-bold text-black transition-colors hover:bg-[#ff8126]">
                 <Video className="h-4 w-4" /> Start video call
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
           </div>
         ) : (
           // CHAT UI
-          <div className="flex-1 flex flex-col h-full bg-[#0A0A0A]">
-            <header className="h-16 px-6 flex items-center justify-between border-b border-[#1a1a1a]">
+            <div className="flex-1 flex min-h-0 flex-col h-full bg-[#0A0A0A]">
+              <header className="h-16 shrink-0 pl-16 pr-4 sm:px-6 flex items-center justify-between border-b border-[#1a1a1a]">
               <div className="flex items-center gap-3">
                 <button className="md:hidden text-gray-400 mr-2" onClick={() => setMobileList(true)} aria-label="Back">
                   <ArrowLeft className="w-5 h-5" />
@@ -457,7 +485,7 @@ export default function AdminChatPage() {
               </div>
             </header>
 
-            <div className="flex-1 overflow-auto p-6 space-y-6">
+              <div className="flex-1 min-h-0 overflow-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
               <div className="flex justify-center mb-6">
                 <span className="px-3 py-1 rounded-full bg-[#1a1a1a] text-[10px] font-medium text-gray-400 border border-[#222]">
                   Today
@@ -467,8 +495,8 @@ export default function AdminChatPage() {
               {messages.map(m => {
                 const isMe = m.senderId === me?.adminId;
                 return (
-                  <div key={m.id || m.clientMessageId} className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
-                    <div className={`px-4 py-2.5 rounded-2xl max-w-md text-[13px] relative group ${
+                  <motion.div key={m.id || m.clientMessageId} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 420, damping: 30 }} className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
+                    <div className={`px-3 sm:px-4 py-2.5 rounded-2xl max-w-[85%] sm:max-w-md text-[13px] relative group ${
                       isMe 
                         ? "bg-[#ff6600] text-black rounded-br-sm" 
                         : "bg-[#1a1a1a] text-gray-200 border border-[#222] rounded-bl-sm"
@@ -498,22 +526,24 @@ export default function AdminChatPage() {
                         </button>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
+              <AnimatePresence>
               {typing.length > 0 && (
-                <div className="flex gap-2 justify-start">
+                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="flex gap-2 justify-start">
                   <div className="px-4 py-2.5 rounded-2xl bg-[#1a1a1a] text-gray-400 border border-[#222] rounded-bl-sm text-xs flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" />
                     <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce delay-75" />
                     <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce delay-150" />
                   </div>
-                </div>
+                </motion.div>
               )}
+              </AnimatePresence>
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 bg-[#0A0A0A] border-t border-[#1a1a1a]">
+            <div className="p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] sm:p-4 bg-[#0A0A0A] border-t border-[#1a1a1a]">
               <form onSubmit={e => { e.preventDefault(); send() }} className="flex items-center gap-3 bg-[#111111] rounded-full px-4 py-2 border border-[#222]">
                 <button type="button" className="text-gray-400 hover:text-white transition-colors">
                   <Paperclip className="w-5 h-5" />
@@ -529,9 +559,9 @@ export default function AdminChatPage() {
                   <Smile className="w-5 h-5" />
                 </button>
                 {text.trim() ? (
-                  <button type="submit" className="w-8 h-8 rounded-full bg-[#ff6600] flex items-center justify-center text-black ml-1 hover:bg-[#ff8833] transition-colors shadow-lg">
+                  <motion.button whileHover={{ scale: 1.1, rotate: -8 }} whileTap={{ scale: 0.9 }} type="submit" className="w-8 h-8 rounded-full bg-[#ff6600] flex items-center justify-center text-black ml-1 hover:bg-[#ff8833] transition-colors shadow-lg">
                     <Send className="w-4 h-4 ml-0.5" />
-                  </button>
+                  </motion.button>
                 ) : (
                   <button type="button" className="text-[#ff6600] hover:text-[#ff8833] transition-colors ml-1">
                     <Mic className="w-5 h-5" />
@@ -541,7 +571,7 @@ export default function AdminChatPage() {
             </div>
           </div>
         )}
-      </section>
+      </motion.section>
     </div>
   );
 }

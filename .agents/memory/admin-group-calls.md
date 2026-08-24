@@ -14,3 +14,15 @@ Admin group calls are implemented as authenticated, in-memory WebRTC mesh rooms 
 **Why:** React runs an effect cleanup before a dependency transition. A room-dependent cleanup can therefore interpret a normal join or invite state update as a leave, immediately closing newly acquired media and signaling the server to remove the participant.
 
 **How to apply:** Set the ref before updating room state on every entry path (deep link, invite, and join). Explicit leave and component unmount should be the only paths that stop tracks, close peer connections, and notify the server.
+
+**Multi-device rule:** Treat each browser/device as its own room participant for membership, departure, and WebRTC signaling, while grouping participants by admin only in the visible UI.
+
+**Why:** Admin authentication can be active on multiple devices. Admin-level room keys make one device’s leave remove the other, and broadcasting WebRTC offers to every device causes duplicate answers and negotiation races.
+
+**How to apply:** Carry a stable device ID through create, join, leave, and signal requests; route a signal to one exact connected device. Use immediate page-lifecycle leave for deliberate exits, plus a short device-keyed server grace period for transient SSE reconnects.
+
+**ICE ordering rule:** Buffer remote ICE candidates by remote device until that peer has a remote session description, then drain the buffer after offer/answer application.
+
+**Why:** WebRTC signaling travels over independent HTTP requests, so ICE can reach the recipient before the offer or while its remote description is not ready. Dropping that candidate can make a call fail on networks with very few viable paths.
+
+**How to apply:** Clear the per-peer candidate buffer with room teardown. Do not assume request ordering; queue early candidates and preserve device-level keys through the entire signaling path.

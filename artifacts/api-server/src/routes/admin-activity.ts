@@ -25,12 +25,14 @@ ensureActivityTable().catch(console.error);
 export async function logAdminActivity(adminName: string, action: string, orderRef?: string, details?: string) {
   try {
     await ensureActivityTable();
-    await db.execute(sql`
+    const rows = await db.execute<any>(sql`
       INSERT INTO admin_activity_log (admin_name, action, order_ref, details)
       VALUES (${adminName}, ${action}, ${orderRef ?? null}, ${details ?? null})
+      RETURNING id, admin_name, action, order_ref, details, created_at
     `);
+    const [entry] = Array.isArray(rows) ? rows : (rows as any).rows ?? [];
     // Notify all admin SSE clients of new activity
-    broadcastActivity({ adminName, action, orderRef, details, createdAt: new Date().toISOString() });
+    if (entry) broadcastActivity(entry);
     // Push to admin devices (non-SSE)
     sendAdminActivityPush(adminName, action, orderRef).catch(() => {});
   } catch {}

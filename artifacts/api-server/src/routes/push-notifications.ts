@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAdmin } from "../lib/auth-middleware";
-import { initPush, saveSubscription, removeSubscription, sendOrderPush, saveCustomerSubscription, ensureCustomerSubTable, saveWishlistSubscription } from "../lib/push";
+import { initPush, saveSubscription, removeSubscription, sendTestPush, saveCustomerSubscription, ensureCustomerSubTable, saveWishlistSubscription } from "../lib/push";
 
 const router = Router();
 
@@ -45,18 +45,14 @@ router.delete("/push/subscribe", requireAdmin, async (req, res) => {
   }
 });
 
-router.post("/push/test", requireAdmin, async (_req, res) => {
+router.post("/push/test", requireAdmin, async (req, res) => {
   try {
-    await sendOrderPush({
-      orderNumber: "TEST-001",
-      customerName: "Test Customer",
-      total: 299,
-      items: [{ productName: "Chamak Hoodie", quantity: 1 }],
-      createdAt: new Date().toISOString(),
-    });
-    res.json({ ok: true });
-  } catch {
-    res.status(500).json({ error: "Test notification failed" });
+    const endpoint = typeof req.body?.endpoint === "string" ? req.body.endpoint : "";
+    if (!endpoint) return void res.status(400).json({ error: "Current browser subscription is required" });
+    await sendTestPush(endpoint);
+    res.json({ ok: true, delivered: true });
+  } catch (error) {
+    res.status(422).json({ error: error instanceof Error ? error.message : "Test notification failed" });
   }
 });
 

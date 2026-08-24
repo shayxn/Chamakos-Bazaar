@@ -585,7 +585,7 @@ export default function AdminOrders() {
                     onValueChange={(val) => handleStatusChange(order, val as OrderStatusUpdateStatus)}
                     disabled={updateStatus.isPending}
                   >
-                    <SelectTrigger className={`h-8 w-44 text-xs font-bold uppercase tracking-wide border ${STATUS_COLORS[order.status] ?? "bg-muted"}`}>
+                    <SelectTrigger className={`h-8 w-full sm:w-44 text-xs font-bold uppercase tracking-wide border ${STATUS_COLORS[order.status] ?? "bg-muted"}`}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -625,12 +625,12 @@ export default function AdminOrders() {
                       <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Order Items</p>
                       <div className="space-y-2">
                         {(order.items ?? []).map((item) => (
-                          <div key={item.id} className="flex items-center gap-3 text-sm py-2 border-b border-border/30 last:border-0">
+                          <div key={item.id} className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1 text-sm py-2 border-b border-border/30 last:border-0">
                             <Package className="h-4 w-4 text-primary shrink-0" />
-                            <span className="font-bold">{item.quantity}×</span>
-                            <span className="flex-1">{item.productName}{item.size ? ` (${item.size})` : ""}</span>
+                            <span className="font-bold shrink-0">{item.quantity}×</span>
+                            <span className="min-w-0 flex-1 break-words">{item.productName}{item.size ? ` (${item.size})` : ""}</span>
                             {item.isPreOrder && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded font-black">Pre-Order</span>}
-                            <span className="font-mono font-bold text-primary">AED {(item.price * item.quantity).toFixed(2)}</span>
+                            <span className="ml-auto whitespace-nowrap font-mono font-bold text-primary">AED {(item.price * item.quantity).toFixed(2)}</span>
                           </div>
                         ))}
                       </div>

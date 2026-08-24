@@ -7,8 +7,11 @@ import { initPush, saveAdminSubscription, sendAdminChatPush, sendAdminCallPush }
 const router = Router();
 type Admin = { id: string; name: string };
 type Client = { res: any; admin: Admin; deviceId: string };
+type RoomDevice = { adminId: string; deviceId: string };
+type Room = { initiator: string; members: Map<string, Set<string>>; createdAt: number };
 const clients = new Map<string, Client>(); // admin/device; an admin may have several browsers.
-const rooms = new Map<string, { initiator: string; members: Set<string>; createdAt: number }>();
+const disconnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const rooms = new Map<string, Room>();
 let migrated = false;
 
 async function me(req: any): Promise<Admin> {
@@ -43,10 +46,52 @@ function online() {
   return [...new Map([...clients.values()].map(c => [c.admin.id, c.admin])).values()];
 }
 function write(client: Client, value: object) {
-  try { client.res.write(`data: ${JSON.stringify(value)}\n\n`); client.res.flush?.(); } catch { clients.delete(`${client.admin.id}:${client.deviceId}`); }
+  try { client.res.write(`data: ${JSON.stringify(value)}\n\n`); client.res.flush?.(); } catch {
+    const key = `${client.admin.id}:${client.deviceId}`;
+    if (clients.get(key) === client) clients.delete(key);
+  }
 }
 function emit(value: object, allowed?: Set<string>) {
   for (const client of clients.values()) if (!allowed || allowed.has(client.admin.id)) write(client, value);
+}
+function roomAdminIds(room: Room) {
+  return [...room.members.keys()];
+}
+function roomDevices(room: Room): RoomDevice[] {
+  return [...room.members.entries()].flatMap(([adminId, devices]) => [...devices].map(deviceId => ({ adminId, deviceId })));
+}
+function roomMembersEvent(roomId: string, room: Room) {
+  return { type: "ROOM_MEMBERS", roomId, members: roomAdminIds(room), devices: roomDevices(room) };
+}
+function roomHasDevice(room: Room, adminId: string, deviceId: string) {
+  return room.members.get(adminId)?.has(deviceId) ?? false;
+}
+function addRoomDevice(room: Room, adminId: string, deviceId: string) {
+  const devices = room.members.get(adminId) ?? new Set<string>();
+  devices.add(deviceId);
+  room.members.set(adminId, devices);
+}
+function removeDeviceFromRooms(adminId: string, deviceId: string) {
+  for (const [roomId, room] of rooms) {
+    const devices = room.members.get(adminId);
+    if (!devices?.delete(deviceId)) continue;
+    if (!devices.size) room.members.delete(adminId);
+    if (!room.members.size) rooms.delete(roomId);
+    else emit(roomMembersEvent(roomId, room));
+  }
+}
+function deviceIdFrom(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.slice(0, 100) : null;
+}
+function scheduleRoomDeparture(key: string, adminId: string, deviceId: string) {
+  const existing = disconnectTimers.get(key);
+  if (existing) clearTimeout(existing);
+  disconnectTimers.set(key, setTimeout(() => {
+    disconnectTimers.delete(key);
+    if (clients.has(key)) return;
+    removeDeviceFromRooms(adminId, deviceId);
+    emit({ type: "PRESENCE", onlineAdmins: online() });
+  }, 5000));
 }
 function dmMembers(conversationId: string): string[] | null {
   const m = /^dm:(\d+):(\d+)$/.exec(conversationId);
@@ -67,10 +112,23 @@ async function validAdmin(id: string) {
 router.get("/admin/chat/stream", requireAdmin, async (req, res) => {
   const admin = await me(req); const deviceId = typeof req.query.deviceId === "string" ? req.query.deviceId.slice(0, 100) : crypto.randomUUID();
   res.setHeader("Content-Type", "text/event-stream"); res.setHeader("Cache-Control", "no-cache"); res.setHeader("Connection", "keep-alive"); res.flushHeaders?.();
-  const key = `${admin.id}:${deviceId}`; clients.set(key, { res, admin, deviceId });
+  const key = `${admin.id}:${deviceId}`;
+  const pendingDeparture = disconnectTimers.get(key);
+  if (pendingDeparture) {
+    clearTimeout(pendingDeparture);
+    disconnectTimers.delete(key);
+  }
+  const client = { res, admin, deviceId }; clients.set(key, client);
   emit({ type: "PRESENCE", onlineAdmins: online() });
   const heartbeat = setInterval(() => { try { res.write(":\n\n"); } catch {} }, 25000);
-  req.on("close", () => { clients.delete(key); clearInterval(heartbeat); emit({ type: "PRESENCE", onlineAdmins: online() }); });
+  req.on("close", () => {
+    if (clients.get(key) === client) {
+      clients.delete(key);
+      scheduleRoomDeparture(key, admin.id, deviceId);
+      emit({ type: "PRESENCE", onlineAdmins: online() });
+    }
+    clearInterval(heartbeat);
+  });
 });
 
 router.get("/admin/chat/conversations", requireAdmin, async (req, res) => {
@@ -153,9 +211,9 @@ router.get("/admin/chat/online", requireAdmin, (_req,res)=>res.json(online()));
 router.get("/admin/chat/ice-config", requireAdmin, (_req,res) => { const iceServers:any[]=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}]; if(process.env.TURN_URL&&process.env.TURN_USERNAME&&process.env.TURN_CREDENTIAL)iceServers.push({urls:process.env.TURN_URL,username:process.env.TURN_USERNAME,credential:process.env.TURN_CREDENTIAL}); res.json({iceServers}); });
 
 // WebRTC mesh is deliberately limited to a small internal team, not a large conference.
-router.post("/admin/chat/rooms", requireAdmin, async(req,res)=>{const admin=await me(req); const id=crypto.randomUUID(); rooms.set(id,{initiator:admin.id,members:new Set([admin.id]),createdAt:Date.now()}); emit({type:"ROOM_INVITE",roomId:id,from:admin},new Set(online().map(a=>a.id).filter(id=>id!==admin.id))); sendAdminCallPush(admin.name,admin.id,`/admin/chat?room=${encodeURIComponent(id)}`).catch(()=>{}); res.status(201).json({roomId:id});});
-router.post("/admin/chat/rooms/:roomId/join", requireAdmin, async(req,res)=>{const admin=await me(req);const roomId=String(req.params.roomId);const room=rooms.get(roomId);if(!room)return void res.status(404).json({error:"Room ended"}); room.members.add(admin.id); emit({type:"ROOM_MEMBERS",roomId,members:[...room.members]});res.json({members:[...room.members]});});
-router.post("/admin/chat/rooms/:roomId/leave", requireAdmin, async(req,res)=>{const admin=await me(req);const roomId=String(req.params.roomId);const room=rooms.get(roomId);if(room){room.members.delete(admin.id);if(!room.members.size)rooms.delete(roomId);else emit({type:"ROOM_MEMBERS",roomId,members:[...room.members]});}res.status(204).end();});
-router.post("/admin/chat/rooms/:roomId/signal", requireAdmin, async(req,res)=>{const admin=await me(req);const roomId=String(req.params.roomId);const room=rooms.get(roomId);const to=String(req.body?.to??"");if(!room||!room.members.has(admin.id)||!room.members.has(to))return void res.status(403).json({error:"Room signal denied"});emit({type:"ROOM_SIGNAL",roomId,from:admin.id,fromName:admin.name,signal:req.body.signal},new Set([to]));res.status(204).end();});
+router.post("/admin/chat/rooms", requireAdmin, async(req,res)=>{const admin=await me(req);const deviceId=deviceIdFrom(req.body?.deviceId);if(!deviceId)return void res.status(400).json({error:"Missing device"});const id=crypto.randomUUID();const room:Room={initiator:admin.id,members:new Map(),createdAt:Date.now()};addRoomDevice(room,admin.id,deviceId);rooms.set(id,room);emit({type:"ROOM_INVITE",roomId:id,from:admin},new Set(online().map(a=>a.id).filter(id=>id!==admin.id)));sendAdminCallPush(admin.name,admin.id,`/admin/chat?room=${encodeURIComponent(id)}`).catch(()=>{});res.status(201).json({roomId:id});});
+router.post("/admin/chat/rooms/:roomId/join", requireAdmin, async(req,res)=>{const admin=await me(req);const deviceId=deviceIdFrom(req.body?.deviceId);const roomId=String(req.params.roomId);const room=rooms.get(roomId);if(!deviceId)return void res.status(400).json({error:"Missing device"});if(!room)return void res.status(404).json({error:"Room ended"});addRoomDevice(room,admin.id,deviceId);const event=roomMembersEvent(roomId,room);emit(event);res.json({members:event.members,devices:event.devices});});
+router.post("/admin/chat/rooms/:roomId/leave", requireAdmin, async(req,res)=>{const admin=await me(req);const deviceId=deviceIdFrom(req.query.deviceId??req.body?.deviceId);const roomId=String(req.params.roomId);const room=rooms.get(roomId);if(!deviceId)return void res.status(400).json({error:"Missing device"});if(room){const devices=room.members.get(admin.id);if(devices?.delete(deviceId)&&!devices.size)room.members.delete(admin.id);if(!room.members.size)rooms.delete(roomId);else emit(roomMembersEvent(roomId,room));}res.status(204).end();});
+router.post("/admin/chat/rooms/:roomId/signal", requireAdmin, async(req,res)=>{const admin=await me(req);const deviceId=deviceIdFrom(req.body?.deviceId);const roomId=String(req.params.roomId);const room=rooms.get(roomId);const to=String(req.body?.to??"");const toDeviceId=deviceIdFrom(req.body?.toDeviceId);if(!room||!deviceId||!toDeviceId||!roomHasDevice(room,admin.id,deviceId)||!roomHasDevice(room,to,toDeviceId))return void res.status(403).json({error:"Room signal denied"});const recipient=clients.get(`${to}:${toDeviceId}`);if(recipient)write(recipient,{type:"ROOM_SIGNAL",roomId,from:admin.id,fromDeviceId:deviceId,fromName:admin.name,signal:req.body.signal});res.status(204).end();});
 setInterval(()=>{const now=Date.now();for(const [id,room] of rooms)if(!room.members.size||now-room.createdAt>8*60*60_000)rooms.delete(id);},60_000).unref();
 export default router;

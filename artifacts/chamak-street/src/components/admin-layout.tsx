@@ -69,7 +69,7 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
   return (
     <>
       {parts.map((part, i) =>
-        regex.test(part) ? (
+        part.toLocaleLowerCase().includes(query.toLocaleLowerCase()) ? (
           <mark key={i} className="bg-primary/25 text-primary not-italic rounded-sm">{part}</mark>
         ) : part
       )}
@@ -636,15 +636,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <ArrowLeft className="w-3 h-3 text-gray-500 -rotate-90" />
           </div>
           
-          <div className="mt-4 flex items-center justify-between">
-            <div>
-              <div className="text-xs font-bold text-white">FirstPick Plus</div>
-              <div className="text-[10px] text-green-500">Active</div>
-            </div>
-            <div className="w-8 h-8 rounded-full border border-[#333] flex items-center justify-center">
-              <Star className="w-4 h-4 text-orange-500" />
-            </div>
-          </div>
         </div>
       </aside>
 

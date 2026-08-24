@@ -143,7 +143,7 @@ export function useAdminPushNotifications() {
       if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
       if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
       try {
-        const reg = await navigator.serviceWorker.getRegistration("/sw.js");
+        const reg = await navigator.serviceWorker.getRegistration(`${BASE}/sw.js`);
         if (!reg) return;
         const sub = await reg.pushManager.getSubscription();
         if (sub) {
@@ -242,7 +242,7 @@ export function useAdminPushNotifications() {
     try {
       const reg =
         swRegRef.current ||
-        (await navigator.serviceWorker?.getRegistration("/sw.js"));
+        (await navigator.serviceWorker?.getRegistration(`${BASE}/sw.js`));
       if (!reg) return;
       const sub = await reg.pushManager.getSubscription();
       if (!sub) return;
@@ -260,11 +260,22 @@ export function useAdminPushNotifications() {
     }
   }, []);
 
-  const sendTest = useCallback(async () => {
-    await fetch(`${BASE}/api/push/test`, {
+  const sendTest = useCallback(async (): Promise<void> => {
+    const reg =
+      swRegRef.current ||
+      (await navigator.serviceWorker?.getRegistration(`${BASE}/sw.js`));
+    const sub = await reg?.pushManager.getSubscription();
+    if (!sub) throw new Error("Enable notifications in this browser before sending a test.");
+    const res = await fetch(`${BASE}/api/push/test`, {
       method: "POST",
       credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ endpoint: sub.endpoint }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null) as { error?: string } | null;
+      throw new Error(data?.error || `Test notification failed (${res.status})`);
+    }
   }, []);
 
   // Auto-subscribe silently if permission already granted (returning admins)
