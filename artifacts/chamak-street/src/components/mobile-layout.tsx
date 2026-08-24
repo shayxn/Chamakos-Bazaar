@@ -68,14 +68,14 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-1">
             <Link href="/support">
-              <motion.div whileTap={{ scale: 0.82 }} transition={{ type: "spring", stiffness: 600, damping: 28 }} className="p-2">
-                <Headphones className="h-5 w-5 text-white/40 hover:text-white/70 transition-colors" />
+              <motion.div whileTap={{ scale: 0.82 }} transition={{ type: "spring", stiffness: 600, damping: 28 }} className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 p-2">
+                <Headphones className="h-5 w-5 text-primary transition-colors" />
               </motion.div>
             </Link>
             {user?.isAdmin && (
               <Link href="/admin">
-                <motion.div whileTap={{ scale: 0.82 }} transition={{ type: "spring", stiffness: 600, damping: 28 }} className="p-2">
-                  <Shield className="h-5 w-5 text-primary/70 transition-colors" />
+                <motion.div aria-label="Open Admin" whileTap={{ scale: 0.82 }} transition={{ type: "spring", stiffness: 600, damping: 28 }} className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/30 bg-primary/15 p-2">
+                  <Shield className="h-5 w-5 text-primary transition-colors" />
                 </motion.div>
               </Link>
             )}

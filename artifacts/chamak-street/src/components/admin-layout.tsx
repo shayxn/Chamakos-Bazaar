@@ -5,7 +5,7 @@ import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
   Zap, Users, BellRing, MessageCircle, Activity, Ticket, Smartphone,
-  Phone, Menu
+  Phone, Menu, Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -567,6 +567,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         aria-label="Open admin navigation"
       >
         <Menu className="h-5 w-5" />
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setShowSessions(true)}
+        className="fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[80] flex h-10 w-10 items-center justify-center rounded-xl border border-primary/30 bg-primary/15 text-primary shadow-xl backdrop-blur md:hidden"
+        aria-label="Open admin account"
+      >
+        <Shield className="h-5 w-5" />
       </button>
 
       {/* ── Sidebar ── */}

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout, useListCategories, getListCategoriesQueryKey } from "@workspace/api-client-react";
-import { ShoppingCart, User, Search, LogOut, Settings, MessageCircle } from "lucide-react";
+import { ShoppingCart, User, Search, LogOut, Settings, MessageCircle, Headphones } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
@@ -101,6 +101,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Right: Admin + User + Cart */}
           <div className="flex-1 flex items-center justify-end gap-1 z-50">
+            <Link href="/support" aria-label="Support">
+              <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80 transition-colors h-9 w-9" title="Support">
+                <Headphones className="h-5 w-5" />
+              </Button>
+            </Link>
             {user?.isAdmin && (
               <Link href="/admin" className="hidden md:block">
                 <Button variant="ghost" size="sm" className="text-[11px] font-black uppercase tracking-widest text-white/70 hover:text-primary transition-colors px-3">
