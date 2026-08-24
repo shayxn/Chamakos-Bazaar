@@ -2,7 +2,7 @@ import { db, siteSettingsTable } from "@workspace/db";
 import { inArray } from "drizzle-orm";
 
 const DEFAULT_DELIVERY_CHARGES: Record<string, number> = {
-  standard: 20,
+  standard: 25,
   express: 30,
   priority: 40,
 };

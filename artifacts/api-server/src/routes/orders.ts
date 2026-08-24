@@ -50,7 +50,7 @@ function serializeOrder(order: typeof ordersTable.$inferSelect, items: Array<typ
   return {
     ...order,
     total: Number(order.total),
-    deliveryCharge: Number(order.deliveryCharge ?? 20),
+    deliveryCharge: Number(order.deliveryCharge ?? 25),
     tip: Number(order.tip ?? 0),
     createdAt: order.createdAt.toISOString(),
     items: items.map((i) => ({ ...i, price: Number(i.price) })),
@@ -183,7 +183,7 @@ router.post("/orders", async (req, res) => {
   const charges = await getDeliveryCharges();
   const deliveryMethod = (body.deliveryMethod && (DELIVERY_METHODS as readonly string[]).includes(body.deliveryMethod))
     ? body.deliveryMethod : "standard";
-  const deliveryCharge = charges[deliveryMethod] ?? 20;
+  const deliveryCharge = charges[deliveryMethod] ?? 25;
   const rawTip = Number(body.tip ?? 0);
   const tip = isNaN(rawTip) || rawTip < 0 ? 0 : Math.min(rawTip, 500);
 

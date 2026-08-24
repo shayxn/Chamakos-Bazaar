@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, BookOpen, Grid2X2, LayoutGrid, Search, X } from "lucide-react";
+import { ArrowRight, Backpack, BookOpen, Grid2X2, LayoutGrid, Search, Sparkles, X } from "lucide-react";
 import type { Product } from "@workspace/api-client-react";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
@@ -16,6 +16,13 @@ export default function BackToSchool() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("default");
   const [cols, setCols] = useState<2 | 4>(4);
+  const [animationRun, setAnimationRun] = useState(0);
+
+  useEffect(() => {
+    if (!animationRun) return;
+    const timer = window.setTimeout(() => setAnimationRun(0), 3000);
+    return () => window.clearTimeout(timer);
+  }, [animationRun]);
 
   const { data: rawProducts, isLoading } = useQuery<Product[]>({
     queryKey: ["back-to-school-products"],
@@ -42,6 +49,32 @@ export default function BackToSchool() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-black text-white">
+        <AnimatePresence>
+          {animationRun > 0 && (
+            <motion.div
+              key={animationRun}
+              data-testid="back-to-school-animation"
+              role="status"
+              aria-label="Backpack animation"
+              className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center overflow-hidden"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 260, scale: 0.72, rotate: -8 }}
+                animate={{
+                  opacity: [0, 1, 1, 1, 0],
+                  y: [260, 0, 0, 0, -18],
+                  scale: [0.72, 1, 1.03, 1, 0.92],
+                  rotate: [-8, 0, -5, 5, 0],
+                }}
+                transition={{ duration: 2.8, times: [0, 0.25, 0.42, 0.7, 1], ease: [0.16, 1, 0.3, 1] }}
+                className="relative flex h-36 w-36 flex-col items-center justify-center rounded-[2rem] border border-yellow-200/40 bg-gradient-to-br from-orange-500 via-orange-500 to-yellow-300 text-black shadow-[0_0_90px_rgba(255,145,0,0.55)]"
+              >
+                <Backpack className="h-16 w-16" strokeWidth={1.6} />
+                <span className="mt-1 text-[9px] font-black uppercase tracking-[0.22em]">Ready to learn</span>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <section className="relative overflow-hidden border-b border-white/10">
           <div className="absolute inset-0 opacity-70" style={{ background: "radial-gradient(circle at 14% 10%, rgba(255,193,7,0.24), transparent 28%), radial-gradient(circle at 83% 28%, rgba(255,102,0,0.24), transparent 34%), linear-gradient(115deg, #070707 24%, #17100a 100%)" }} />
           <motion.div
@@ -61,8 +94,20 @@ export default function BackToSchool() {
               <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/55 sm:text-base">
                 School-ready essentials for Dubai. Backpacks, pencil cases, stationery, calculators and the useful things students reach for every day.
               </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.16em] text-yellow-100/70">
+                <span className="rounded-full border border-yellow-200/20 bg-yellow-200/[0.08] px-3 py-1.5">UAE shipping available</span>
+                <span className="rounded-full border border-orange-300/20 bg-orange-300/[0.08] px-3 py-1.5">AED 25 standard delivery at checkout</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAnimationRun((value) => value + 1)}
+                className="mt-6 inline-flex items-center gap-2 rounded-full border border-yellow-200/30 bg-yellow-200/[0.09] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-yellow-100 transition-colors hover:bg-yellow-200/[0.16]"
+                style={{ touchAction: "manipulation" }}
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Play Back to School animation
+              </button>
               <Link href="/basics">
-                <motion.span whileHover={{ x: 4 }} className="mt-6 inline-flex cursor-pointer items-center gap-2 text-xs font-black uppercase tracking-widest text-orange-300">
+                <motion.span whileHover={{ x: 4 }} className="mt-4 inline-flex cursor-pointer items-center gap-2 text-xs font-black uppercase tracking-widest text-orange-300">
                   Shop low-cost Basics <ArrowRight className="h-3.5 w-3.5" />
                 </motion.span>
               </Link>
