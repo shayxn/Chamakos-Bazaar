@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from "react";
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import React, { Suspense, lazy, useEffect } from "react";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -68,7 +68,10 @@ class ErrorBoundary extends React.Component<
 import { Layout } from "@/components/layout";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useMobile } from "@/lib/use-mobile";
+import { useSettings } from "@/lib/use-settings";
+import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useVisitorTracking } from "@/lib/use-visitor-tracking";
+import { useSmoothScroll, ScrollProgressBar } from "@/components/smooth-scroll";
 import { LoadingScreen } from "@/components/loading-screen";
 import { CartFlyProvider } from "@/components/cart-fly-context";
 import { WelcomePopup } from "@/components/welcome-popup";
@@ -100,6 +103,8 @@ const RequestProduct = lazy(() => import("@/pages/request-product"));
 const Games = lazy(() => import("@/pages/games"));
 const GameDetail = lazy(() => import("@/pages/game-detail"));
 const Receipt = lazy(() => import("@/pages/receipt"));
+const WishlistPage = lazy(() => import("@/pages/wishlist"));
+const MaintenancePage = lazy(() => import("@/pages/maintenance"));
 
 // ── Admin pages (lazy — customers never load these) ──
 import AdminLayout from "@/components/admin-layout";
@@ -124,6 +129,7 @@ const AdminSalesReports = lazy(() => import("@/pages/admin/sales-reports"));
 const AdminImport = lazy(() => import("@/pages/admin/import"));
 const AdminChat = lazy(() => import("@/pages/admin/chat"));
 const AdminActivityLog = lazy(() => import("@/pages/admin/activity-log"));
+const AdminCoupons = lazy(() => import("@/pages/admin/coupons"));
 
 // ── Suspense fallback ──
 function PageSkeleton() {
@@ -170,6 +176,7 @@ function AdminRouter() {
         <Route path="/admin/import" component={AdminImport} />
         <Route path="/admin/activity" component={AdminActivityLog} />
         <Route path="/admin/chat" component={AdminChat} />
+        <Route path="/admin/coupons" component={AdminCoupons} />
 
         <Route component={NotFound} />
       </Switch>
@@ -180,6 +187,26 @@ function AdminRouter() {
 function CustomerLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useMobile();
   useVisitorTracking();
+  const settings = useSettings();
+  const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
+  const [location, navigate] = useLocation();
+
+  // Maintenance gate — auto-redirect non-admin visitors when maintenance mode is on
+  useEffect(() => {
+    if (
+      settings.maintenance_mode === "true" &&
+      !user?.isAdmin &&
+      location !== "/maintenance"
+    ) {
+      navigate("/maintenance");
+    }
+  }, [settings.maintenance_mode, user?.isAdmin, location]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Dynamic SEO title from site settings
+  useEffect(() => {
+    if (settings.site_title) document.title = settings.site_title;
+  }, [settings.site_title]);
+
   return isMobile ? <MobileLayout>{children}</MobileLayout> : <Layout>{children}</Layout>;
 }
 
@@ -211,6 +238,8 @@ function MainRouter() {
             <Route path="/games/:id" component={GameDetail} />
             <Route path="/receipt/:id" component={Receipt} />
             <Route path="/support" component={SupportPage} />
+            <Route path="/wishlist" component={WishlistPage} />
+            <Route path="/maintenance" component={MaintenancePage} />
 
             <Route component={NotFound} />
           </Switch>
@@ -218,6 +247,12 @@ function MainRouter() {
       </Route>
     </Switch>
   );
+}
+
+/** Boots Lenis + scroll progress bar — rendered once at app root */
+function SiteEffects() {
+  useSmoothScroll();
+  return <ScrollProgressBar />;
 }
 
 function CustomerOverlays() {
@@ -236,6 +271,7 @@ function App() {
           <TooltipProvider>
             <AccountProvider>
               <CartFlyProvider>
+                <SiteEffects />
                 <CustomerOverlays />
                 <LoadingScreen />
                 <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>

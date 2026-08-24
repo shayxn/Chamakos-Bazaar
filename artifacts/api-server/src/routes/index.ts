@@ -27,6 +27,8 @@ import pushRouter from "./push-notifications";
 import widgetsRouter from "./widgets";
 import adminChatRouter from "./admin-chat";
 import adminActivityRouter from "./admin-activity";
+import couponsRouter from "./coupons";
+import wishlistRouter from "./wishlist";
 
 
 const router: IRouter = Router();
@@ -59,6 +61,8 @@ router.use(pushRouter);
 router.use(widgetsRouter);
 router.use(adminChatRouter);
 router.use(adminActivityRouter);
+router.use(couponsRouter);
+router.use(wishlistRouter);
 
 
 export default router;

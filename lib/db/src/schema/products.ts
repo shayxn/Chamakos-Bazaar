@@ -28,6 +28,11 @@ export const productsTable = pgTable("products", {
   publishAt: timestamp("publish_at", { withTimezone: true }),
   unpublishAt: timestamp("unpublish_at", { withTimezone: true }),
   collection: text("collection"),
+  bestSeller: boolean("best_seller").notNull().default(false),
+  trending: boolean("trending").notNull().default(false),
+  newArrival: boolean("new_arrival").notNull().default(false),
+  limitedEdition: boolean("limited_edition").notNull().default(false),
+  comingSoon: boolean("coming_soon").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

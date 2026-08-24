@@ -13,12 +13,11 @@ import { AnimatedInput } from "@/components/animated-input";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Lock, ArrowRight, MessageCircle, Truck, X, Zap, Clock, Star } from "lucide-react";
+import { Lock, ArrowRight, MessageCircle, Truck, X, Zap, Clock, Star, Tag, CheckCircle2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { trackCheckout, trackOrder } from "@/lib/use-visitor-tracking";
-import { PriorityOrderAnimation } from "@/components/priority-order-animation";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
@@ -94,10 +93,34 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRedirectingToZiina, setIsRedirectingToZiina] = useState(false);
   const [cartTracked, setCartTracked] = useState(false);
-  const [showPriorityAnim, setShowPriorityAnim] = useState(false);
-  const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptionDef[]>(BASE_DELIVERY_OPTIONS);
   const checkoutTracked = useRef(false);
+
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [couponData, setCouponData] = useState<{ code: string; discountAmount: number; discountType: string; discountValue: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  const applyCouponCode = async () => {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true); setCouponError(null);
+    try {
+      const res = await fetch(`${BASE}/api/coupons/validate`, {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponInput.trim(), orderTotal: subtotal }),
+      });
+      const data = await res.json() as any;
+      if (!res.ok) throw new Error(data.error ?? "Invalid coupon");
+      setCouponData(data);
+    } catch (err) {
+      setCouponError(err instanceof Error ? err.message : "Invalid coupon code");
+      setCouponData(null);
+    } finally { setCouponLoading(false); }
+  };
+
+  const removeCoupon = () => { setCouponData(null); setCouponInput(""); setCouponError(null); };
 
   // Fetch admin-configured delivery prices with fallback to defaults
   useEffect(() => {
@@ -143,7 +166,8 @@ export default function Checkout() {
     tipOption === "none" ? 0
     : tipOption === "custom" ? Math.max(0, parseFloat(customTipRaw) || 0)
     : parseInt(tipOption, 10);
-  const grandTotal = subtotal + deliveryCharge + tipAmount;
+  const discountAmount = couponData?.discountAmount ?? 0;
+  const grandTotal = Math.max(0, subtotal + deliveryCharge + tipAmount - discountAmount);
 
   const trackAbandonedCart = (name: string, phone: string) => {
     if (cartTracked || !cart || cart.items.length === 0) return;
@@ -162,19 +186,14 @@ export default function Checkout() {
     try {
       const order = await postOrder({
         ...data,
+        couponCode: couponData?.code ?? undefined,
         paymentMethod: "cod",
         deliveryMethod,
         tip: tipAmount,
       });
       queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
       trackOrder(`FP${String(order.id).padStart(4, "0")}`);
-      if (deliveryMethod === "priority") {
-        setPendingOrderId(order.id);
-        setShowPriorityAnim(true);
-        setIsSubmitting(false);
-      } else {
-        setLocation(`/order/${order.id}`);
-      }
+      setLocation(`/order/${order.id}`);
     } catch (err) {
       setPaymentError(err instanceof Error ? err.message : "Order failed");
       setIsSubmitting(false);
@@ -203,16 +222,6 @@ export default function Checkout() {
 
   return (
     <>
-    <AnimatePresence>
-      {showPriorityAnim && pendingOrderId && (
-        <PriorityOrderAnimation
-          onComplete={() => {
-            setShowPriorityAnim(false);
-            setLocation(`/order/${pendingOrderId}`);
-          }}
-        />
-      )}
-    </AnimatePresence>
     <PageTransition>
       {/* WhatsApp Banner */}
       <AnimatePresence>
@@ -542,6 +551,47 @@ export default function Checkout() {
                 })}
               </div>
 
+              {/* Coupon input */}
+              <div className="border-t border-white/10 pt-4 space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Promo Code</p>
+                {couponData ? (
+                  <div className="flex items-center justify-between glass-sm border border-green-500/30 rounded-xl px-3 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-400 shrink-0" />
+                      <div>
+                        <p className="text-xs font-black text-green-400 tracking-widest">{couponData.code}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {couponData.discountType === "percent" ? `${couponData.discountValue}% off` : `AED ${couponData.discountValue.toFixed(0)} off`}
+                        </p>
+                      </div>
+                    </div>
+                    <button onClick={removeCoupon} className="text-muted-foreground hover:text-destructive transition-colors">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <div className="flex-1 flex items-center gap-2 glass-sm border border-border/40 rounded-xl px-3 h-10">
+                      <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <input
+                        type="text" placeholder="Enter coupon code" value={couponInput}
+                        onChange={e => setCouponInput(e.target.value.toUpperCase())}
+                        onKeyDown={e => e.key === "Enter" && applyCouponCode()}
+                        className="flex-1 bg-transparent outline-none text-xs font-mono font-bold tracking-widest placeholder:text-muted-foreground/50"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={applyCouponCode} disabled={couponLoading || !couponInput.trim()}
+                      className="px-3 h-10 rounded-xl bg-primary/10 border border-primary/30 text-primary text-xs font-black uppercase tracking-wider hover:bg-primary/20 transition-colors disabled:opacity-50 flex items-center justify-center min-w-[60px]"
+                    >
+                      {couponLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Apply"}
+                    </button>
+                  </div>
+                )}
+                {couponError && <p className="text-xs text-destructive font-bold">{couponError}</p>}
+              </div>
+
               {/* Price breakdown */}
               <div className="border-t border-white/10 pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
@@ -556,6 +606,22 @@ export default function Checkout() {
                   </span>
                   <span className="font-mono font-bold text-primary">AED {deliveryCharge.toFixed(2)}</span>
                 </div>
+
+                {/* Coupon discount line */}
+                <AnimatePresence>
+                  {discountAmount > 0 && (
+                    <motion.div
+                      key="coupon-line"
+                      initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                      className="flex justify-between text-sm"
+                    >
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        <Tag className="h-3 w-3 text-green-400" /> Coupon <span className="text-green-400 font-mono font-bold text-xs">{couponData?.code}</span>
+                      </span>
+                      <span className="font-mono font-bold text-green-400">−AED {discountAmount.toFixed(2)}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <AnimatePresence>
                   {tipAmount > 0 && (

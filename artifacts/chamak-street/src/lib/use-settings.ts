@@ -65,6 +65,12 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   recommended_title: "You May Also Like",
   recommended_count: "6",
   recommended_mode: "auto",
+  footer_copyright: "",
+  footer_links: "",
+  site_title: "FirstPick — Premium Streetwear Dubai",
+  site_meta_description: "Premium authentic streetwear for those who walk their own path. Shop online, UAE delivery.",
+  site_og_image: "",
+  maintenance_mode: "false",
 };
 
 export function useSetting(key: string): string {

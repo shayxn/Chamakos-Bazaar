@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Plus, Edit, Trash2, Upload, Image as ImageIcon, CheckCircle, XCircle,
   X, Calendar, Package, EyeOff, Star, Flame, Tag, DollarSign, Layers,
-  GripVertical, ChevronDown, ChevronUp, Sparkles, ShieldCheck, AlertTriangle
+  GripVertical, ChevronDown, ChevronUp, Sparkles, ShieldCheck, AlertTriangle, Zap, Timer
 } from "lucide-react";
 import type { Product, ProductInput } from "@workspace/api-client-react";
 import {
@@ -47,6 +47,8 @@ async function uploadMedia(file: File): Promise<ProductMedia> {
 type ProductFormData = ProductInput & {
   isPreOrder?: boolean; preOrderLabel?: string | null; preOrderDate?: string | null; preOrderNote?: string | null;
   sellingFast?: boolean; spotlight?: boolean; hidden?: boolean; publishAt?: string | null; unpublishAt?: string | null;
+  bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
+  comingSoon?: boolean;
 };
 
 const BULK_ACTIONS = [
@@ -335,6 +337,7 @@ export default function AdminProducts() {
     featured: false, rep: false, categoryId: undefined,
     isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
     sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
+    bestSeller: false, trending: false, newArrival: false, limitedEdition: false,
   });
 
   const set = (partial: Partial<ProductFormData>) => setFormData(f => ({ ...f, ...partial }));
@@ -368,6 +371,8 @@ export default function AdminProducts() {
       featured: false, rep: false, categoryId: categories?.[0]?.id,
       isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
       sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
+      bestSeller: false, trending: false, newArrival: false, limitedEdition: false,
+      comingSoon: false,
     });
     setSheetOpen(true);
   };
@@ -391,6 +396,11 @@ export default function AdminProducts() {
       hidden: (product as ProductFormData).hidden ?? false,
       publishAt: (product as ProductFormData).publishAt ?? null,
       unpublishAt: (product as ProductFormData).unpublishAt ?? null,
+      bestSeller: (product as ProductFormData).bestSeller ?? false,
+      trending: (product as ProductFormData).trending ?? false,
+      newArrival: (product as ProductFormData).newArrival ?? false,
+      limitedEdition: (product as ProductFormData).limitedEdition ?? false,
+      comingSoon: (product as ProductFormData).comingSoon ?? false,
     });
     setSheetOpen(true);
   };
@@ -879,6 +889,16 @@ export default function AdminProducts() {
                   label="Spotlight" icon={Sparkles} color="#facc15" />
                 <PillToggle checked={formData.hidden ?? false} onChange={v => set({ hidden: v })}
                   label="Hidden" icon={EyeOff} color="#94a3b8" />
+                <PillToggle checked={formData.bestSeller ?? false} onChange={v => set({ bestSeller: v })}
+                  label="Best Seller" icon={Star} color="#f59e0b" />
+                <PillToggle checked={formData.trending ?? false} onChange={v => set({ trending: v })}
+                  label="Trending" icon={Zap} color="#06b6d4" />
+                <PillToggle checked={formData.newArrival ?? false} onChange={v => set({ newArrival: v })}
+                  label="New Arrival" icon={Sparkles} color="#10b981" />
+                <PillToggle checked={formData.limitedEdition ?? false} onChange={v => set({ limitedEdition: v })}
+                  label="Limited Edition" icon={Package} color="#8b5cf6" />
+                <PillToggle checked={formData.comingSoon ?? false} onChange={v => set({ comingSoon: v })}
+                  label="Coming Soon" icon={Timer} color="#a855f7" />
               </div>
             </Section>
 

@@ -14,10 +14,10 @@ const FAQS = [
 ];
 
 export default function SupportPage() {
-  const [phone, setPhone] = useState("971501234567");
+  const [phone, setPhone] = useState("971521142341");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [agentPhase, setAgentPhase] = useState<"enter" | "idle" | "wave">("enter");
-  const phoneRef = useRef("971501234567");
+  const phoneRef = useRef("971521142341");
 
   useEffect(() => {
     fetch(`${BASE}/api/settings`, { credentials: "include" })

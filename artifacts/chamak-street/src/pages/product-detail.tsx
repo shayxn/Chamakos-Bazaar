@@ -14,6 +14,7 @@ import { parseProductMedia, getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
 import { useSettings } from "@/lib/use-settings";
 import { trackRecentlyViewed } from "@/components/recently-viewed";
+import { useWishlist } from "@/hooks/use-wishlist";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -413,6 +414,7 @@ export default function ProductDetail() {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
   const [scrolledPast, setScrolledPast] = useState(false);
+  const { ids: wishlistIds, toggle: toggleWishlist } = useWishlist();
 
   // Track recently viewed
   useEffect(() => {
@@ -628,9 +630,19 @@ export default function ProductDetail() {
                   {product.categoryName}
                 </span>
                 {product.featured && (
-                  <span className="text-xs font-black tracking-widest uppercase bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-sm backdrop-blur-sm">
-                    Featured
-                  </span>
+                  <span className="text-xs font-black tracking-widest uppercase bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-sm backdrop-blur-sm">Featured</span>
+                )}
+                {(product as any).bestSeller && (
+                  <span className="text-xs font-black tracking-widest uppercase bg-amber-400/90 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">Best Seller</span>
+                )}
+                {(product as any).trending && (
+                  <span className="text-xs font-black tracking-widest uppercase bg-cyan-400/90 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">Trending</span>
+                )}
+                {(product as any).newArrival && (
+                  <span className="text-xs font-black tracking-widest uppercase bg-emerald-400/90 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">New Arrival</span>
+                )}
+                {(product as any).limitedEdition && (
+                  <span className="text-xs font-black tracking-widest uppercase bg-purple-400/90 text-white px-3 py-1.5 rounded-sm backdrop-blur-sm">Limited Edition</span>
                 )}
               </div>
             </MotionItem>
@@ -640,6 +652,12 @@ export default function ProductDetail() {
                 <h1 className="flex-1 text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
                   {product.name}
                 </h1>
+                <button
+                  onClick={() => toggleWishlist(product.id)}
+                  className={`p-2 rounded-xl border transition-all shrink-0 mt-1 ${wishlistIds.has(product.id) ? "bg-rose-500/15 border-rose-400/40" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
+                >
+                  <Heart className={`h-4 w-4 transition-colors ${wishlistIds.has(product.id) ? "fill-rose-400 text-rose-400" : "text-muted-foreground"}`} />
+                </button>
                 <button onClick={handleShare} className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors shrink-0 mt-1">
                   <Share2 className="h-4 w-4 text-muted-foreground" />
                 </button>

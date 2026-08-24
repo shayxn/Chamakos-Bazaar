@@ -255,6 +255,21 @@ async function getAdminSubscriptions(skipAdminId?: string): Promise<{ endpoint: 
   return Array.isArray(result) ? result : (result as any).rows ?? [];
 }
 
+export async function sendAdminCallPush(callerName: string, callerAdminId: string) {
+  try {
+    if (!_initialized) await initPush();
+    const subs = await getAdminSubscriptions(callerAdminId);
+    if (!subs.length) return;
+    const payload = JSON.stringify({
+      title: `📞 Incoming Call`,
+      body: `${callerName} is calling you on FirstPick Admin`,
+      type: "ADMIN_CALL",
+      data: { url: "/admin/chat" },
+    });
+    await deliver(subs, payload);
+  } catch {}
+}
+
 export async function sendAdminChatPush(senderName: string, message: string, senderId: string) {
   try {
     if (!_initialized) await initPush();
@@ -283,6 +298,54 @@ export async function sendAdminActivityPush(adminName: string, action: string, o
     });
     await deliver(subs, payload);
   } catch {}
+}
+
+// ── Coming-soon wishlist notifications ───────────────────────────────────────
+let _wishlistColMigrated = false;
+async function ensureWishlistSubColumn() {
+  if (_wishlistColMigrated) return; _wishlistColMigrated = true;
+  await ensureCustomerSubTable();
+  await db.execute(sql`
+    ALTER TABLE customer_push_subscriptions
+      ADD COLUMN IF NOT EXISTS session_id TEXT
+  `);
+}
+
+export async function saveWishlistSubscription(endpoint: string, p256dh: string, auth: string, sessionId: string) {
+  await ensureWishlistSubColumn();
+  await db.execute(sql`
+    INSERT INTO customer_push_subscriptions (endpoint, p256dh, auth, session_id)
+    VALUES (${endpoint}, ${p256dh}, ${auth}, ${sessionId})
+    ON CONFLICT (endpoint) DO UPDATE SET
+      p256dh = EXCLUDED.p256dh,
+      auth = EXCLUDED.auth,
+      session_id = COALESCE(EXCLUDED.session_id, customer_push_subscriptions.session_id)
+  `);
+}
+
+export async function sendComingSoonReleasePush(productId: number, productName: string, imageUrl?: string | null) {
+  try {
+    if (!_initialized) await initPush();
+    // Find push subscriptions for all sessions that wishlisted this product (single JOIN query)
+    const subRows = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
+      sql`SELECT DISTINCT cps.endpoint, cps.p256dh, cps.auth
+          FROM customer_push_subscriptions cps
+          INNER JOIN wishlists w ON w.session_id = cps.session_id
+          WHERE w.product_id = ${productId} AND cps.session_id IS NOT NULL`
+    );
+    const subs = (Array.isArray(subRows) ? subRows : (subRows as any).rows ?? []) as { endpoint: string; p256dh: string; auth: string }[];
+    if (!subs.length) return;
+    const payload = JSON.stringify({
+      title: `🔥 ${productName} just dropped!`,
+      body: "The item you wishlisted is now available. Tap to shop before it sells out.",
+      type: "PRODUCT_RELEASE",
+      data: { productId, url: `/product/${productId}` },
+    });
+    await deliver(subs, payload);
+    console.log(`[Push] Sent release push for product ${productId} to ${subs.length} subscriber(s)`);
+  } catch (err) {
+    console.error("[Push] sendComingSoonReleasePush failed:", err);
+  }
 }
 
 // ── Activity push (customer events) ─────────────────────────────────────────

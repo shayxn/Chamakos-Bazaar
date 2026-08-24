@@ -8,6 +8,7 @@ const router = Router();
 const SUPPLIERS: Record<string, string> = {
   fashioncage: "https://fashioncage.me",
   stylescape: "https://stylescape.me",
+  stealstreetwear: "https://stealstreetwear.com",
 };
 
 const CHAMAK_PLACEHOLDER_URL = "/chamak-placeholder.svg";
@@ -332,6 +333,26 @@ router.post("/import/stylescape", requireAdmin, async (_req, res) => {
   else res.json(result);
 });
 
+/* ─── stealstreetwear ─── */
+router.get("/import/stealstreetwear/preview", requireAdmin, async (_req, res) => {
+  try {
+    const products = await fetchShopifyProducts(SUPPLIERS.stealstreetwear);
+    const preview = products.slice(0, 100).map((p) => {
+      const base = parseShopifyProduct(p);
+      return { ...base, imageUrl: sanitizeProductImage(base.name, base.imageUrl, "stealstreetwear") };
+    });
+    res.json({ count: products.length, products: preview });
+  } catch {
+    res.status(502).json({ error: "Failed to fetch from stealstreetwear.com" });
+  }
+});
+
+router.post("/import/stealstreetwear", requireAdmin, async (_req, res) => {
+  const result = await runSupplierImport(SUPPLIERS.stealstreetwear, "stealstreetwear");
+  if (result.error) res.status(502).json({ error: result.error });
+  else res.json(result);
+});
+
 /* ─── delete by source ─── */
 router.delete("/import/delete-by-source/:supplier", requireAdmin, async (req, res) => {
   const supplier = req.params.supplier as string;
@@ -348,23 +369,26 @@ router.delete("/import/delete-by-source/:supplier", requireAdmin, async (req, re
 
 /* ─── sync all ─── */
 router.post("/import/sync-all", requireAdmin, async (_req, res) => {
-  const [fc, ss] = await Promise.allSettled([
+  const [fc, ss, sw] = await Promise.allSettled([
     runSupplierImport(SUPPLIERS.fashioncage, "fashioncage"),
     runSupplierImport(SUPPLIERS.stylescape, "stylescape"),
+    runSupplierImport(SUPPLIERS.stealstreetwear, "stealstreetwear"),
   ]);
   res.json({
     fashioncage: fc.status === "fulfilled" ? fc.value : { error: (fc as PromiseRejectedResult).reason?.message },
     stylescape: ss.status === "fulfilled" ? ss.value : { error: (ss as PromiseRejectedResult).reason?.message },
+    stealstreetwear: sw.status === "fulfilled" ? sw.value : { error: (sw as PromiseRejectedResult).reason?.message },
   });
 });
 
 /* ─── stats ─── */
 router.get("/import/stats", requireAdmin, async (_req, res) => {
-  const [fc, ss] = await Promise.all([
+  const [fc, ss, sw] = await Promise.all([
     getSyncStats("fashioncage"),
     getSyncStats("stylescape"),
+    getSyncStats("stealstreetwear"),
   ]);
-  res.json({ fashioncage: fc, stylescape: ss });
+  res.json({ fashioncage: fc, stylescape: ss, stealstreetwear: sw });
 });
 
 /* ─── toggle autosync ─── */
@@ -389,6 +413,25 @@ router.post("/import/recalculate-prices", requireAdmin, async (_req, res) => {
   const rows = Array.isArray(result) ? result : (result as any).rows ?? [];
   res.json({ updated: rows.length });
 });
+
+// ── Auto-sync scheduler ──────────────────────────────────────────────────────
+// Checks every hour; runs import if 24h have elapsed since last sync and auto-sync is enabled.
+setInterval(async () => {
+  for (const [supplierName, baseUrl] of Object.entries(SUPPLIERS)) {
+    try {
+      const stats = await getSyncStats(supplierName);
+      if (!stats.autoSyncEnabled) continue;
+      const lastSync = stats.lastSyncAt ? new Date(stats.lastSyncAt) : null;
+      const now = new Date();
+      // Skip if synced less than 23 hours ago
+      if (lastSync && (now.getTime() - lastSync.getTime()) < 23 * 60 * 60 * 1000) continue;
+      console.log(`[AutoSync] Running scheduled import for ${supplierName}`);
+      await runSupplierImport(baseUrl, supplierName);
+    } catch (err) {
+      console.error(`[AutoSync] Error for ${supplierName}:`, err);
+    }
+  }
+}, 60 * 60 * 1000); // Run every hour
 
 export { runSupplierImport };
 export default router;

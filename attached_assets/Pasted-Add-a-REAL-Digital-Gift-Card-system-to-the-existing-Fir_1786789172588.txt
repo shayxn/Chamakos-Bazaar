@@ -1,0 +1,314 @@
+Add a REAL Digital Gift Card system to the existing FirstPick website.
+
+Do NOT rebuild the website. Connect it to the existing customer accounts, checkout, payment system, admin dashboard, notifications, and database.
+
+Keep the existing black/orange/yellow FirstPick design with lots of premium Liquid Glass and smooth animations.
+
+Digital Gift Cards
+
+Create a new:
+
+Gift Cards
+
+page.
+
+Allow customers to choose:
+
+* AED 50
+* AED 100
+* AED 200
+* AED 500
+* Custom Amount
+
+Show a premium animated FirstPick digital gift card preview that updates when the amount changes.
+
+Who Is This Gift Card For?
+
+When buying a gift card, ask:
+
+Who is this gift card for?
+
+Options:
+
+For Me
+
+For Someone Else 🎁
+
+For Me
+
+If the customer chooses:
+
+For Me
+
+they purchase the gift card normally.
+
+After successful payment:
+
+* Generate the gift card
+* Add the balance to their FirstPick account
+* Save the gift card under Account → Gift Cards
+* Show the remaining balance
+* Allow it to be used during future FirstPick checkouts
+
+Example:
+
+FIRSTPICK GIFT CARD
+
+AED 100
+
+Balance: AED 100
+
+For Someone Else
+
+If they choose:
+
+For Someone Else
+
+allow them to enter:
+
+* Recipient name
+* Optional personal message
+
+After successful payment, create the gift card and generate a secure shareable gift link.
+
+Example:
+
+FirstPick Gift Link
+
+When the recipient opens the link, show a beautiful FirstPick gift experience:
+
+You’ve got a FirstPick Gift 🎁
+
+Someone just sent you an AED 100 FirstPick Gift Card. Your next pick is on them — enjoy it!
+
+Then show:
+
+Claim Gift Card
+
+If appropriate, require the recipient to sign in/create a FirstPick account before claiming it.
+
+Once legitimately claimed, save the gift card to:
+
+Account → Gift Cards
+
+for that recipient.
+
+The purchaser should also be able to see that they purchased/sent the gift card, but the balance must NOT become spendable by both accounts.
+
+Share Gift Card
+
+After purchasing a gift for someone else, show:
+
+Share Gift 🎁
+
+Use the device’s native share sheet where supported.
+
+Generate a message similar to:
+
+Hey! 🎁 I got you a FirstPick Gift Card! Your next pick is on me — hope you find something you love.
+
+Then include the secure gift link.
+
+Allow sharing through available apps such as WhatsApp, Messages, Mail, etc. through the device’s normal share system.
+
+Also provide:
+
+Copy Gift Link
+
+The gift link must use a secure, unpredictable token.
+
+Do NOT expose sensitive customer/order information in the URL.
+
+IMPORTANT — Gift Cards Are DIGITAL
+
+If the checkout contains ONLY digital FirstPick Gift Cards:
+
+DO NOT show:
+
+* Shipping address
+* Standard Delivery
+* Express Delivery
+* FirstPick Priority
+* Delivery instructions
+* Shipping charges
+* Cash on Delivery
+
+These options make no sense for a digital gift card.
+
+Instead show:
+
+Digital Delivery — FREE
+
+No physical delivery address should be required.
+
+NO CASH ON DELIVERY FOR GIFT CARDS
+
+Cash on Delivery must NEVER be available when purchasing a digital gift card.
+
+A gift card must be successfully PAID FOR before its balance is created/activated.
+
+Do not allow someone to select COD, receive a usable AED 500 gift card, and never pay for it.
+
+Use the existing supported online payment system.
+
+Mixed Carts
+
+Handle this properly.
+
+If the cart contains:
+
+Physical Product + Gift Card
+
+then normal shipping options/address are still required for the PHYSICAL products.
+
+However, the gift card itself must:
+
+* Have no shipping charge
+* Not affect package weight/delivery
+* Not require physical fulfillment
+* Be delivered digitally after successful payment
+
+COD should not be offered for a mixed cart containing a gift card unless the payment architecture can securely prevent the gift-card value from becoming usable before confirmed payment. Prefer requiring online payment for any cart containing a gift card.
+
+Gift Card Codes
+
+After successful payment, generate a secure unique gift card code.
+
+Example:
+
+FP-GIFT-8X4K92
+
+Do NOT use predictable sequential codes.
+
+Store:
+
+* Original amount
+* Remaining balance
+* Status
+* Purchaser
+* Current owner/recipient
+* Purchase date
+* Claim status
+* Usage history
+
+Redeeming Gift Cards
+
+At normal product checkout add:
+
+Gift Card
+
+Customers can use their saved gift-card balance.
+
+Example:
+
+Subtotal — AED 180
+Gift Card — -AED 100
+Remaining to Pay — AED 80
+
+If they have AED 100 and spend AED 70:
+
+Remaining Gift Card Balance — AED 30
+
+Save the remaining AED 30 for later.
+
+Account → Gift Cards
+
+Create:
+
+Account → Gift Cards
+
+Show all gift cards belonging to that customer.
+
+Each card should show:
+
+FIRSTPICK
+
+AED 100
+
+AED 65 remaining
+
+Include appropriate history showing where the balance was used.
+
+Make the cards look premium with black Liquid Glass, orange/yellow lighting, subtle reflections, and smooth animations.
+
+Admin → Gift Cards
+
+Create:
+
+Admin → Gift Cards
+
+Show:
+
+* Gift card
+* Original amount
+* Remaining balance
+* Purchaser
+* Recipient
+* For Me / Gift
+* Claimed / Unclaimed
+* Active / Used / Disabled
+* Purchase date
+* Redemption history
+
+Allow authorized admins to disable compromised/problematic cards.
+
+Keep an audit history of important administrative actions.
+
+Notifications
+
+Connect gift cards to the existing REAL FirstPick notification system.
+
+For a customer buying one for themselves:
+
+Your Gift Card Is Ready 🎁
+
+Your AED 100 FirstPick Gift Card has been added to your account.
+
+For a recipient after claiming:
+
+Welcome to your FirstPick Gift 🎁
+
+Your AED 100 gift card is ready to spend. Time to find your next pick.
+
+Security
+
+Gift-card value is REAL monetary value, so treat this system as sensitive.
+
+The SERVER must control:
+
+* Gift card creation
+* Balance
+* Ownership
+* Claims
+* Redemption
+* Remaining balance
+* Payment verification
+
+Customers must NEVER be able to edit their balance from the frontend.
+
+Prevent:
+
+* Guessing gift codes
+* Guessing gift links
+* Double claiming
+* Double spending
+* Spending more than the balance
+* Creating gift cards without payment
+* Reusing spent value
+* Claiming someone else’s already-claimed card
+
+Use atomic database operations for redemption so two simultaneous checkouts cannot spend the same balance twice.
+
+Final Flow
+
+Test:
+
+Gift Card → AED 100 → For Me → Checkout → NO shipping/address/COD → Online payment succeeds → AED 100 Gift Card created → Saved to customer’s account
+
+Then test:
+
+Gift Card → AED 100 → For Someone Else → Checkout → NO shipping/address/COD → Payment succeeds → Secure gift link created → Purchaser shares link → Recipient opens FirstPick → Claims gift → Gift Card saved to recipient’s account → Recipient spends AED 60 → AED 40 remains
+
+Everything must use REAL database data and REAL payment verification.
+
+Make the entire experience feel like a premium FirstPick digital gift, not a normal physical product.

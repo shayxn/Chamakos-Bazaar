@@ -1,0 +1,1256 @@
+FIRSTPICK — COMPLETE PLATFORM UPGRADE
+
+Continue developing the existing FirstPick website and Admin Dashboard exactly from where development previously stopped.
+
+Do NOT rebuild the website from scratch.
+
+Before changing anything, inspect the current codebase, backend, database, authentication, admin system, payments, notifications, product systems, chats, calls, and existing pages.
+
+Preserve all working systems and data.
+
+Continue unfinished work from the previous development session where relevant.
+
+This upgrade should improve:
+
+* The whole website
+* Admin Dashboard
+* Product Feed
+* Added Products From Feed
+* Saved Products
+* Admin messaging
+* Calling
+* Notifications
+* Admin presence
+* Device login sessions
+* Performance
+* Mobile responsiveness
+* Tablet responsiveness
+* Desktop responsiveness
+* Bugs
+* Loading
+* Animations
+* Overall stability
+
+The final result should feel polished, fast, reliable, and production-ready.
+
+⸻
+
+1. FULL WEBSITE QUALITY PASS
+
+Review the entire FirstPick website.
+
+Find and fix anything that is:
+
+* Buggy
+* Laggy
+* Slow
+* Broken
+* Delayed
+* Misaligned
+* Flickering
+* Not responsive
+* Causing duplicate actions
+* Producing duplicate messages
+* Creating console errors
+* Producing failed requests
+* Loading unnecessarily
+* Freezing
+* Overflowing
+* Causing layout shifts
+* Creating mobile issues
+
+Do not only improve the design.
+
+Actually fix the underlying functionality.
+
+⸻
+
+2. REMEMBER ADMIN LOGIN ON DEVICE
+
+When an admin successfully logs into FirstPick, remember that this device is logged into that admin account.
+
+The admin should NOT constantly need to log in again every time they close and reopen FirstPick.
+
+Use secure persistent authentication.
+
+The session should continue across:
+
+* Refreshes
+* Closing the tab
+* Closing the browser
+* Reopening the website
+* Returning later
+
+Do NOT store passwords in localStorage or insecure frontend storage.
+
+Use secure session/token handling appropriate for the existing authentication system.
+
+There should still be:
+
+Log Out
+
+When the admin logs out, remove the active session from that device.
+
+If security requires session expiration, implement it correctly without constantly logging the admin out unnecessarily.
+
+⸻
+
+3. DEVICE SESSION MANAGEMENT
+
+Create proper admin device/session handling.
+
+In Admin Settings, allow the logged-in admin to see active sessions where technically possible.
+
+Example:
+
+Current Device
+iPhone — Dubai
+Active now
+
+Other Device
+MacBook
+Last active 2 hours ago
+
+Allow:
+
+Log Out This Device
+
+and where appropriate:
+
+Log Out Other Devices
+
+Do not expose sensitive device fingerprints or unnecessary private information.
+
+⸻
+
+4. WELCOME NOTIFICATION WHEN ADMIN ENTERS WEBSITE
+
+Whenever an authenticated admin enters/opens the Admin website, show a small premium notification.
+
+It should slide upward from the bottom of the screen.
+
+Example:
+
+Welcome Ahmed!
+
+The notification should:
+
+* Slide smoothly from the bottom
+* Remain visible briefly
+* Fade/slide away smoothly
+* Not block the interface
+* Not appear huge
+* Work on mobile
+* Work on tablet
+* Work on desktop
+
+Use the admin’s actual account name.
+
+Examples:
+
+Welcome Abdul!
+
+Welcome Ahmed!
+
+Welcome Omar!
+
+Do not show it repeatedly on every tiny route change.
+
+It should trigger when the admin enters the Admin experience/session, not every time they click another page.
+
+⸻
+
+5. PRODUCT FEED
+
+Create/maintain:
+
+Product Feed
+
+It should work like a vertical TikTok/Reels/Shorts-style product-discovery experience.
+
+Admins vertically scroll through product shorts.
+
+Each active video should automatically play.
+
+Videos outside the active view should pause.
+
+Scrolling should snap smoothly.
+
+⸻
+
+6. HUNDREDS OF PRODUCT SHORTS EVERY DAY
+
+Design the system to support:
+
+Hundreds of fresh product shorts every day.
+
+Products should focus on items that are:
+
+* Useful
+* Interesting
+* Trending
+* Potentially profitable
+* Available for UAE customers
+* Suitable for FirstPick
+* Deliverable to the UAE
+
+Do not fake product data.
+
+Use legitimate supplier/API/product-data sources.
+
+If no real integration is available, build the infrastructure properly without inventing products, stock, prices, shipping, or popularity.
+
+⸻
+
+7. PRODUCT FEED PERFORMANCE
+
+Use:
+
+* Pagination
+* Cursor loading
+* Lazy loading
+* Nearby-video preload
+* Video cleanup
+* Image optimization
+* Feed deduplication
+* Seen-product tracking
+* Added-product filtering
+* Efficient queries
+
+Do not load hundreds of videos simultaneously.
+
+⸻
+
+8. ADD THIS
+
+Each product short should have:
+
+Add This
+
+Save
+
+View Product
+
+When the admin presses Add This, show:
+
+* Source product
+* Source price
+* Source delivery
+* FirstPick profit
+* FirstPick selling price
+* Customer delivery
+* Customer total
+
+Allow the admin to review/edit before confirming.
+
+⸻
+
+9. ADDED PRODUCTS FROM FEED
+
+Create a section:
+
+Added Products From Feed
+
+Whenever an admin successfully presses Add This, save the product here.
+
+Store:
+
+* Product image
+* Product name
+* Original source
+* Original source URL
+* Source price
+* Source delivery
+* FirstPick profit
+* FirstPick selling price
+* Customer delivery
+* Date added
+* Added by
+* Status
+* Last checked
+
+Show a clear:
+
+Open Source Product
+
+button.
+
+The original link must remain accessible.
+
+⸻
+
+10. ADDED PRODUCTS SHOULD DISAPPEAR FROM FEED
+
+Once an admin successfully adds a product, that product/video should no longer appear in that admin’s Product Feed.
+
+This should remain true after:
+
+* Refresh
+* Closing FirstPick
+* Reopening
+* Logging out
+* Logging back in
+* Opening on another device
+
+Store this state in the backend/database.
+
+Do not rely only on localStorage.
+
+⸻
+
+11. SAVED PRODUCTS
+
+Keep Saved Products separate from Added Products From Feed.
+
+Saved = interested.
+
+Added = already added into the FirstPick sourcing workflow.
+
+Saved Products should include:
+
+* Product
+* Link
+* Source
+* Price
+* Delivery
+* Suggested markup
+* FirstPick price
+* Availability
+* Date saved
+* Last checked
+* Status
+
+⸻
+
+12. AUTOMATIC PROFIT
+
+Suggest profit between:
+
+AED 20 – AED 100
+
+Do not randomly choose the amount.
+
+Use configurable rules.
+
+Example:
+
+Source Price
+AED 120
+
+Profit
+AED 40
+
+FirstPick Selling Price
+AED 160
+
+Admins must be able to override it manually.
+
+⸻
+
+13. DELIVERY CALCULATION
+
+If source delivery is known:
+
+Customer Delivery = Source Delivery + AED 25
+
+Example:
+
+Source delivery
+AED 15
+
+FirstPick addition
+AED 25
+
+Customer delivery
+AED 40
+
+If source delivery is unavailable:
+
+Delivery price needs confirmation
+
+Never invent shipping values.
+
+⸻
+
+14. ADMIN CHAT — FIX DUPLICATE MESSAGE BUG
+
+There is currently an important messaging bug:
+
+When an admin sends one message, FirstPick sometimes sends the same message multiple times.
+
+Fix this completely.
+
+One send action must create exactly:
+
+ONE message
+
+unless the user deliberately sends multiple messages.
+
+Investigate:
+
+* Duplicate event listeners
+* Multiple form-submit handlers
+* Double click/tap events
+* Optimistic message rendering
+* Database listeners
+* Realtime listeners
+* Duplicate API calls
+* Retry logic
+* Message subscriptions
+* React re-renders
+* Race conditions
+
+Use unique message IDs and idempotent server-side handling where appropriate.
+
+Do not simply hide duplicates visually.
+
+Fix the source of the duplication.
+
+⸻
+
+15. ADMIN GROUP + PRIVATE CHATS
+
+Admins should have:
+
+FirstPick Admin Group
+
+and individual private chats.
+
+The chat list should feel similar in usefulness to WhatsApp but keep FirstPick’s own visual design.
+
+Example:
+
+FirstPick Admin Group
+
+Ahmed
+
+Omar
+
+Abdul
+
+Admins can select another admin and privately message them.
+
+⸻
+
+16. REAL-TIME MESSAGING
+
+Messages should update instantly.
+
+Support:
+
+* Messages
+* Timestamps
+* Sender
+* Profile image/initials
+* Unread count
+* Read state
+* Typing indicator
+* Online status
+* Last active
+* Message notifications
+* Smooth animations
+
+⸻
+
+17. MESSAGE NOTIFICATIONS
+
+Whenever another admin sends a message, send a notification to the relevant admin(s).
+
+For the group:
+
+New message from Ahmed
+
+For private chat:
+
+Ahmed sent you a message
+
+Show:
+
+* In-app notification
+* Browser/device notification where permission exists
+* Unread badge
+
+Do not notify the sender about their own message.
+
+Do not spam duplicate notifications for the same message.
+
+⸻
+
+18. TYPING NOTIFICATIONS
+
+When another admin starts typing, show a notification/indicator.
+
+Examples:
+
+Ahmed is typing…
+
+or:
+
+Ahmed is typing in FirstPick Admin Group
+
+This should primarily behave as a lightweight live notification.
+
+Do NOT repeatedly send full system push notifications every second while someone types.
+
+Use a temporary in-app notification/typing indicator that disappears after typing stops.
+
+For private chats:
+
+Ahmed is typing…
+
+For group:
+
+Ahmed is typing in FirstPick Admin Group
+
+Typing events should be throttled/debounced so they do not spam the backend or interface.
+
+⸻
+
+19. BETTER CHAT SOUND EFFECTS
+
+Improve FirstPick’s chat sounds significantly.
+
+Create/use premium, original or properly licensed sounds for:
+
+* Message sent
+* Message received
+* Typing
+* New group message
+* New private message
+* Incoming call
+* Connected call
+* Ended call
+* Success
+* Warning
+* Error
+* General notification
+
+Do not copy copyrighted WhatsApp, Apple, Discord, or other brand sounds.
+
+Sounds should feel premium and subtle.
+
+⸻
+
+20. ADMIN ONLINE STATUS
+
+Show:
+
+Active now
+
+Active 5m ago
+
+Active 2h ago
+
+Last active yesterday at 8:41 PM
+
+Use real activity/session data.
+
+Do not fake presence.
+
+⸻
+
+21. ADMIN ACTIVITY NOTIFICATIONS — OWNER ONLY
+
+Create an owner-only notification system.
+
+Only the main FirstPick owner account should receive these internal admin-activity notifications.
+
+Do not assume an account from frontend display text.
+
+Use the existing owner/super-admin role or securely designate the owner account in the backend.
+
+When another admin performs important actions, notify the owner.
+
+Examples:
+
+Ahmed added a product from Product Feed
+
+Omar published a product
+
+Ahmed changed an order status
+
+Omar started a break
+
+Ahmed ended a break
+
+Omar updated a product
+
+Ahmed logged into FirstPick
+
+Omar started a call
+
+Ahmed changed a setting
+
+Only notify for meaningful actions.
+
+Do NOT generate excessive notifications for every mouse movement, page visit, or keystroke.
+
+⸻
+
+22. OWNER ACTIVITY CENTER
+
+Create an owner-only section or filter:
+
+Admin Activity
+
+Show a chronological activity feed.
+
+Examples:
+
+Ahmed
+Added “Wireless Car Vacuum” from Product Feed
+2 minutes ago
+
+Omar
+Changed Order #1234 to Shipped
+7 minutes ago
+
+Ahmed
+Logged into Admin
+16 minutes ago
+
+Allow filtering by:
+
+* Admin
+* Products
+* Orders
+* Calls
+* Breaks
+* Login
+* Settings
+
+Protect this on the backend.
+
+Normal admins must not gain access unless granted permission.
+
+⸻
+
+23. ADMIN CALLING — CALL ALL ADMINS
+
+Improve the call system.
+
+When an admin chooses the appropriate:
+
+Call Admin Group
+
+or group-call action, send the incoming call to all eligible online admins.
+
+All admins should see a real incoming-call interface.
+
+Example:
+
+Ahmed is calling FirstPick Admin Group
+
+Buttons:
+
+Accept
+
+Decline
+
+The first admin accepting should NOT accidentally terminate or break the experience for everyone else if this is intended to be a group call.
+
+Implement proper multi-admin/group calling architecture if group calling is supported.
+
+Do not fake a group call using several unrelated broken one-to-one calls.
+
+⸻
+
+24. PRIVATE CALLS
+
+Admins should also still be able to call one admin directly.
+
+From a private chat:
+
+Voice Call
+
+Video Call
+
+Only the intended recipient should receive that private call.
+
+⸻
+
+25. FIX CALLING COMPLETELY
+
+The existing calling system is currently broken/not reliable.
+
+Fix the actual communication.
+
+Admins need to actually:
+
+* Hear each other
+* See each other
+* Accept
+* Decline
+* End calls
+* Mute
+* Unmute
+* Turn camera on
+* Turn camera off
+* Switch camera where supported
+
+Do not only redesign the UI.
+
+⸻
+
+26. AUDIO
+
+Fix:
+
+* Microphone permissions
+* Audio track publishing
+* Remote audio playback
+* Mute
+* Unmute
+* Device switching
+* Browser restrictions
+* Connection negotiation
+* Reconnection
+
+A connected call must actually transmit audio.
+
+⸻
+
+27. VIDEO
+
+Fix:
+
+* Camera permission
+* Local preview
+* Remote video
+* Camera toggle
+* Track replacement
+* Front/back camera
+* Device changes
+* Video cleanup
+
+Do not show fake connected camera states.
+
+⸻
+
+28. CALL INFRASTRUCTURE
+
+Use correct real-time technology.
+
+Properly handle:
+
+* WebRTC
+* Signaling
+* Offer/answer
+* ICE candidates
+* STUN
+* TURN when required
+* Peer connection
+* Multi-participant architecture if group calls are enabled
+* Media tracks
+* Reconnection
+* Call cleanup
+
+Never expose secrets in frontend code.
+
+⸻
+
+29. CALL UI
+
+Use premium animations.
+
+States:
+
+Calling…
+
+Ringing…
+
+Connecting…
+
+Connected
+
+Poor Connection
+
+Reconnecting…
+
+Declined
+
+No Answer
+
+Call Ended
+
+Missed Call
+
+Call Failed
+
+Animations can include:
+
+* Avatar pulse
+* Incoming call slide
+* Glass call-control dock
+* Smooth camera expansion
+* Microphone animation
+* Camera animation
+* Call connection transition
+* Smooth call end
+
+Keep performance high.
+
+⸻
+
+30. BREAKS
+
+Maintain/create:
+
+Breaks
+
+Allow:
+
+30 Minutes
+
+1 Hour
+
+Ask for:
+
+Reason
+
+Include:
+
+I confirm this break request is genuine.
+
+Do not use “Say Wallah.”
+
+⸻
+
+31. BREAK TIMER
+
+Persist timers using backend timestamps.
+
+Refresh should not reset it.
+
+Closing and reopening should not reset it.
+
+Another device should show correct remaining time.
+
+When finished:
+
+Break Finished
+
+Your break timer has finished.
+
+Send one notification.
+
+⸻
+
+32. BREAK HISTORY
+
+Show:
+
+* Admin
+* Reason
+* Start
+* Planned duration
+* Actual duration
+* Date
+* Ended normally/early
+
+Owner notifications should trigger for meaningful break events.
+
+⸻
+
+33. REMOVE FIRSTPICK GIFT CARDS
+
+Remove FirstPick Gift Cards from:
+
+* Customer website
+* Admin navigation
+* Checkout
+* Product areas
+* Gift-card purchasing
+* Gift-card marketing
+* Gift-card management
+
+Do not leave broken links or unused pages behind.
+
+Safely remove related navigation and UI.
+
+Do NOT accidentally damage normal payments, discounts, orders, or checkout functionality.
+
+If existing historical gift-card data exists, do not destroy financial/order records that may be needed for recordkeeping.
+
+⸻
+
+34. CHECK EVERY DEVICE SIZE
+
+Perform a complete responsive-design audit.
+
+Check the website at many widths and heights.
+
+Test:
+
+* Small phones
+* Large phones
+* iPhone portrait
+* iPhone landscape
+* Android phones
+* Small tablets
+* iPads
+* Tablet landscape
+* Small laptops
+* Normal laptops
+* Large monitors
+* Ultra-wide displays
+
+Everything must fit properly.
+
+Fix:
+
+* Text overflow
+* Buttons leaving screen
+* Modals too large
+* Sidebar issues
+* Keyboard overlap
+* Chat input overlap
+* Video feed cropping
+* Camera call layout
+* Product cards
+* Tables
+* Navigation
+* Headers
+* Footers
+* Checkout
+* Admin pages
+
+Do not design only around one screen size.
+
+⸻
+
+35. MOBILE SAFE AREAS
+
+Respect mobile safe areas.
+
+Nothing important should sit underneath:
+
+* Dynamic Island
+* Notches
+* Home indicator
+* Browser navigation bars
+
+Use proper responsive safe-area spacing.
+
+⸻
+
+36. ORIENTATION CHANGES
+
+If the device rotates:
+
+Portrait → Landscape
+
+or:
+
+Landscape → Portrait
+
+the interface should adapt without breaking.
+
+This is especially important for:
+
+* Product Feed
+* Chats
+* Calls
+* Video
+* Admin navigation
+* Modals
+
+⸻
+
+37. WEBSITE-WIDE PERFORMANCE
+
+Optimize:
+
+* Images
+* Videos
+* API calls
+* Database queries
+* Realtime subscriptions
+* Chat
+* Product Feed
+* Calling
+* Animations
+* Route loading
+* Components
+* Caching
+
+Find memory leaks.
+
+Clean up event listeners.
+
+Clean up realtime subscriptions.
+
+Do not keep invisible heavy components running in the background.
+
+⸻
+
+38. WEBSITE-WIDE ERROR HANDLING
+
+Handle:
+
+* Internet offline
+* Slow network
+* Failed API
+* Message failed
+* Duplicate send attempt
+* Product unavailable
+* Price unavailable
+* Shipping unknown
+* Notification denied
+* Microphone denied
+* Camera denied
+* Call failed
+* Session expired
+* Backend unavailable
+* Payment failure
+* Image failure
+* Video failure
+
+Never fake successful states.
+
+⸻
+
+39. ADMIN NOTIFICATION CENTER
+
+Upgrade FirstPick Notifications.
+
+Support categories:
+
+Messages
+
+Calls
+
+Products
+
+Orders
+
+Breaks
+
+Admin Activity
+
+System
+
+Show unread counts.
+
+Allow:
+
+Mark as Read
+
+Mark All as Read
+
+Avoid duplicate notification records.
+
+⸻
+
+40. ADMIN WELCOME ANIMATION
+
+Whenever an admin enters the website after opening/starting their Admin session, show the small bottom notification:
+
+Welcome [Admin Name]!
+
+Example:
+
+Welcome Ahmed!
+
+Use:
+
+* Smooth upward slide
+* Subtle blur/glass
+* Small FirstPick icon
+* Short display duration
+* Smooth disappearance
+
+Do not make it intrusive.
+
+⸻
+
+41. SECURITY
+
+Protect all Admin systems on the backend.
+
+Customers must never access:
+
+* Admin chats
+* Admin calls
+* Admin activity
+* Presence
+* Saved products
+* Added products
+* Supplier links
+* Source costs
+* Profit information
+* Break history
+* Device sessions
+
+Protect:
+
+* Database keys
+* API keys
+* TURN credentials
+* Payment secrets
+* Supplier credentials
+
+⸻
+
+42. TEST ADMIN LOGIN
+
+Test:
+
+* Login
+* Refresh
+* Close/reopen
+* Persistent session
+* Logout
+* Session expiration
+* Multiple devices
+* Invalid session
+* Owner role
+* Normal admin role
+
+⸻
+
+43. TEST MESSAGING
+
+Use multiple admin accounts.
+
+Verify:
+
+* One click = one message
+* No duplicate messages
+* Group message
+* Private message
+* Notifications
+* Typing indicator
+* Typing notification
+* Sounds
+* Online status
+* Last active
+* Unread
+* Reconnect
+* Refresh
+* Mobile
+* Desktop
+
+⸻
+
+44. TEST OWNER ACTIVITY
+
+Verify owner receives notifications when another admin performs meaningful actions.
+
+Make sure normal admins do NOT receive owner-only admin monitoring information.
+
+⸻
+
+45. TEST CALLING
+
+Test:
+
+* Private voice call
+* Private video call
+* Group/admin call
+* Incoming call
+* Audio
+* Video
+* Camera toggle
+* Mute
+* Accept
+* Decline
+* End
+* Poor network
+* Reconnection
+* Different devices
+* Different networks
+
+The call is only considered working if users can genuinely hear/see each other.
+
+⸻
+
+46. TEST DEVICE SIZES
+
+Test all major pages at many viewport sizes.
+
+Make sure everything fits.
+
+Do not leave horizontal overflow unless intentionally required.
+
+⸻
+
+47. CONTINUE PREVIOUS WORK
+
+Continue relevant work from the previous FirstPick development session.
+
+Do not restart already completed features.
+
+Do not erase:
+
+* Accounts
+* Products
+* Orders
+* Customer data
+* Payment data
+* Admin data
+
+Preserve working systems.
+
+⸻
+
+FINAL REQUIREMENT
+
+This update should make FirstPick feel like a complete modern business platform.
+
+The biggest requirements are:
+
+Persistent Admin Login
+The device securely remembers the admin session.
+
+Product Feed
+Hundreds of legitimate product shorts can be added daily.
+
+Added Products From Feed
+Products added from the feed are saved with their original source link.
+
+No Repeat Products
+Added products no longer appear in that admin’s Product Feed.
+
+Messaging
+Fix the duplicate-message bug completely.
+
+Notifications
+Messages should notify the correct admins.
+
+Typing should show a lightweight live notification/indicator.
+
+Calling
+Admins can genuinely hear and see each other.
+
+Admins can call individual admins and use an appropriate group/admin call system.
+
+Admin Presence
+Show active now and last active.
+
+Owner Monitoring
+When another admin performs meaningful actions, notify the owner account.
+
+Responsive Design
+Check every major device size and make sure everything fits.
+
+Welcome Message
+When an admin enters the Admin website, show a small animated:
+
+Welcome [Admin Name]!
+
+Gift Cards
+Remove FirstPick Gift Cards safely.
+
+Full Website
+Fix bugs, lag, responsiveness, loading, errors, broken animations, and poor performance throughout FirstPick.
+
+Do not replace working systems with fake demonstrations.
+
+Do not fabricate product information.
+
+Do not leave non-functional buttons.
+
+Do not call a feature finished merely because the UI looks correct.
+
+The underlying functionality must work.

@@ -20,7 +20,9 @@ async function ensureOrderColumns() {
       ADD COLUMN IF NOT EXISTS delayed_until TEXT,
       ADD COLUMN IF NOT EXISTS cancel_reason TEXT,
       ADD COLUMN IF NOT EXISTS refund_initiated BOOLEAN DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS customer_push_log TEXT DEFAULT '[]'
+      ADD COLUMN IF NOT EXISTS customer_push_log TEXT DEFAULT '[]',
+      ADD COLUMN IF NOT EXISTS coupon_code TEXT,
+      ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10,2) DEFAULT 0
   `);
 }
 ensureOrderColumns().catch(console.error);
@@ -221,7 +223,22 @@ router.post("/orders", async (req, res) => {
 
   const itemsSubtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  const total = itemsSubtotal + deliveryCharge + tip;
+  // ── Coupon ──────────────────────────────────────────────────────────────────
+  const rawCouponCode = (body as any).couponCode as string | undefined;
+  let discountAmount = 0;
+  let appliedCouponCode: string | null = null;
+  if (rawCouponCode?.trim()) {
+    try {
+      const { applyCoupon } = await import("./coupons");
+      const couponResult = await applyCoupon(rawCouponCode.trim(), itemsSubtotal);
+      if (couponResult) {
+        discountAmount = couponResult.discountAmount;
+        appliedCouponCode = couponResult.couponCode;
+      }
+    } catch { /* coupon validation failed silently */ }
+  }
+
+  const total = Math.max(0, itemsSubtotal + deliveryCharge + tip - discountAmount);
   const hasPreOrder = cartItems.some((i) => i.isPreOrder);
 
   const orderNumber = await generateOrderNumber();
@@ -240,6 +257,13 @@ router.post("/orders", async (req, res) => {
     status: "pending",
     hasPreOrder,
   }).returning();
+
+  // Store coupon data if applied
+  if (appliedCouponCode) {
+    await db.execute(sql`
+      UPDATE orders SET coupon_code = ${appliedCouponCode}, discount_amount = ${discountAmount} WHERE id = ${order.id}
+    `);
+  }
 
   if (cartItems.length > 0) {
     await db.insert(orderItemsTable).values(

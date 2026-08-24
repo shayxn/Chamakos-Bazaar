@@ -287,17 +287,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </motion.div>
 
-          {/* Shop column */}
+          {/* Quick Links column (admin-configurable) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.55, delay: 0.15, ease: EASE }}
           >
-            <h4 className="font-black uppercase tracking-wider mb-4 text-xs text-white/80">Shop</h4>
+            <h4 className="font-black uppercase tracking-wider mb-4 text-xs text-white/80">Quick Links</h4>
             <ul className="space-y-2.5 text-sm text-white/40">
-              <li><Link href="/shop" className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-block">All Products</Link></li>
-              <li><Link href="/order-tracking" className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-block">Track Order</Link></li>
+              {(settings.footer_links?.trim()
+                ? settings.footer_links.split("\n").filter(l => l.includes("|")).map(l => {
+                    const [label, href] = l.split("|").map(s => s.trim());
+                    return { label, href };
+                  })
+                : [
+                    { label: "All Products", href: "/shop" },
+                    { label: "Track Order", href: "/order-tracking" },
+                    { label: "Wishlist", href: "/wishlist" },
+                    { label: "Support", href: "/support" },
+                  ]
+              ).map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href} className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-block">{label}</Link>
+                </li>
+              ))}
             </ul>
           </motion.div>
 
@@ -319,7 +333,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="max-w-[1440px] mx-auto px-6 pb-8 pt-6 border-t border-white/8 flex flex-wrap items-center justify-between gap-2 text-xs text-white/25">
           <span className="font-black tracking-widest uppercase text-white/40">FirstPick</span>
-          <span className="text-right">&copy; {new Date().getFullYear()} All rights reserved. Authentic Products — Dubai</span>
+          <span className="text-right">{settings.footer_copyright || `© ${new Date().getFullYear()} All rights reserved. Authentic Products — Dubai`}</span>
         </div>
       </footer>
 

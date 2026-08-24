@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2, Megaphone, Plus, Trash2, ChevronUp, ChevronDown, Images } from "lucide-react";
+import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2, Megaphone, Plus, Trash2, ChevronUp, ChevronDown, Images, Link2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SETTING_DEFAULTS } from "@/lib/use-settings";
 
@@ -47,6 +47,8 @@ const TABS = [
   { id: "site", label: "Site Info", icon: Globe },
   { id: "shipping", label: "Shipping", icon: Truck },
   { id: "content", label: "Content", icon: Type },
+  { id: "footer", label: "Footer", icon: Link2 },
+  { id: "seo", label: "SEO", icon: Search },
 ];
 
 function SettingInput({
@@ -907,6 +909,36 @@ export default function AdminSiteSettings() {
             <h2 className="font-black uppercase tracking-wider text-primary mb-6">Content & Legal</h2>
             <SettingInput label="Privacy Policy" settingKey="privacy_policy" settings={settings} onChange={onChange} multiline />
             <SettingInput label="FAQ" settingKey="faq_text" settings={settings} onChange={onChange} multiline />
+          </div>
+        )}
+
+        {activeTab === "footer" && (
+          <div className="space-y-6">
+            <h2 className="font-black uppercase tracking-wider text-primary mb-2">Footer Settings</h2>
+            <SettingInput label="About Text (footer tagline)" settingKey="footer_description" settings={settings} onChange={onChange} multiline />
+            <SettingInput label="Copyright Text" settingKey="footer_copyright" settings={settings} onChange={onChange} placeholder={`© ${new Date().getFullYear()} All rights reserved.`} />
+            <div>
+              <label className="label-xs mb-1.5 block">Quick Links (one per line: Label | /path)</label>
+              <Textarea
+                className="min-h-[160px] font-mono text-xs"
+                placeholder={"Shop | /shop\nTrack Order | /order-tracking\nWishlist | /wishlist\nSupport | /support"}
+                value={settings["footer_links"] ?? ""}
+                onChange={(e) => onChange("footer_links", e.target.value)}
+              />
+              <p className="text-[10px] text-muted-foreground mt-1.5">Format: Label | /path — one link per line. Leave empty for defaults.</p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "seo" && (
+          <div className="space-y-5">
+            <h2 className="font-black uppercase tracking-wider text-primary mb-2">SEO & Meta</h2>
+            <p className="text-sm text-muted-foreground -mt-3">Configure how your store appears in search engines and social media previews.</p>
+            <div className="grid grid-cols-1 gap-4">
+              <SettingInput label="Site Title (browser tab + OG title)" settingKey="site_title" settings={settings} onChange={onChange} placeholder="FirstPick — Premium Streetwear Dubai" />
+              <SettingInput label="Meta Description" settingKey="site_meta_description" settings={settings} onChange={onChange} multiline placeholder="Premium authentic streetwear for those who walk their own path. Shop online, UAE delivery." />
+              <ImageSettingInput label="OG Social Image (1200×630 recommended)" settingKey="site_og_image" settings={settings} onChange={onChange} />
+            </div>
           </div>
         )}
       </div>

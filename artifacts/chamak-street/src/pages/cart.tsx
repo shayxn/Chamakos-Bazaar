@@ -12,7 +12,7 @@ import { getPrimaryProductMedia } from "@/lib/product-media";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 export default function Cart() {
-  const { data: cart, isLoading } = useGetCart({ query: { queryKey: getGetCartQueryKey() } });
+  const { data: cart, isLoading } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 30_000 } });
   const updateItem = useUpdateCartItem();
   const removeItem = useRemoveCartItem();
   const queryClient = useQueryClient();

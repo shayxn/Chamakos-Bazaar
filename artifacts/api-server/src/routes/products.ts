@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { db, productsTable, categoriesTable } from "@workspace/db";
-import { eq, ilike, and, inArray, ne, isNotNull, isNull, or, type SQL } from "drizzle-orm";
+import { eq, ilike, and, inArray, ne, isNotNull, isNull, or, type SQL, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
+import { sendComingSoonReleasePush } from "../lib/push";
 
 const router = Router();
 const productListCache = createTtlCache<unknown>(30_000);
@@ -13,6 +14,21 @@ function clearProductCaches() {
   productDetailCache.clear();
 }
 
+// ── Badge + Coming Soon columns migration ────────────────────────────────────
+let _badgeMigrated = false;
+async function ensureBadgeColumns() {
+  if (_badgeMigrated) return; _badgeMigrated = true;
+  await db.execute(sql`
+    ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS best_seller BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS trending BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS new_arrival BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS limited_edition BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS coming_soon BOOLEAN NOT NULL DEFAULT FALSE
+  `);
+}
+ensureBadgeColumns().catch(console.error);
+
 function serializeProduct(p: {
   id: number; name: string; description: string | null; price: string | number;
   imageUrl: string | null; imageUrls: string | null; stock: number;
@@ -22,6 +38,8 @@ function serializeProduct(p: {
   sellingFast?: boolean; spotlight?: boolean; hidden?: boolean;
   publishAt?: Date | string | null; unpublishAt?: Date | string | null;
   collection?: string | null;
+  bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
+  comingSoon?: boolean;
 }) {
   return {
     ...p,
@@ -90,6 +108,11 @@ router.get("/products", async (req, res) => {
       publishAt: productsTable.publishAt,
       unpublishAt: productsTable.unpublishAt,
       collection: productsTable.collection,
+      bestSeller: productsTable.bestSeller,
+      trending: productsTable.trending,
+      newArrival: productsTable.newArrival,
+      limitedEdition: productsTable.limitedEdition,
+      comingSoon: productsTable.comingSoon,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
@@ -109,6 +132,7 @@ router.post("/products", requireAdmin, async (req, res) => {
     rep?: boolean; sizes?: string; isPreOrder?: boolean; preOrderLabel?: string;
     preOrderDate?: string; preOrderNote?: string; sellingFast?: boolean; spotlight?: boolean;
     hidden?: boolean; publishAt?: string | null; unpublishAt?: string | null;
+    bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
   };
   if (!body.name || body.price === undefined) {
     res.status(400).json({ error: "name and price required" });
@@ -135,6 +159,11 @@ router.post("/products", requireAdmin, async (req, res) => {
     publishAt: body.publishAt ? new Date(body.publishAt) : null,
     unpublishAt: body.unpublishAt ? new Date(body.unpublishAt) : null,
     collection: (body as any).collection ?? null,
+    bestSeller: body.bestSeller ?? false,
+    trending: body.trending ?? false,
+    newArrival: body.newArrival ?? false,
+    limitedEdition: body.limitedEdition ?? false,
+    comingSoon: (body as any).comingSoon ?? false,
   }).returning();
   clearProductCaches();
   res.status(201).json(serializeProduct({ ...product, categoryName: null }));
@@ -228,6 +257,11 @@ router.get("/products/:id", async (req, res) => {
       publishAt: productsTable.publishAt,
       unpublishAt: productsTable.unpublishAt,
       collection: productsTable.collection,
+      bestSeller: productsTable.bestSeller,
+      trending: productsTable.trending,
+      newArrival: productsTable.newArrival,
+      limitedEdition: productsTable.limitedEdition,
+      comingSoon: productsTable.comingSoon,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
@@ -251,9 +285,29 @@ router.patch("/products/:id", requireAdmin, async (req, res) => {
   if (updateData.spotlight === true) {
     await db.update(productsTable).set({ spotlight: false }).where(eq(productsTable.spotlight, true));
   }
+
+  // Detect coming-soon → released transition to fire push notifications
+  let releaseProductName: string | null = null;
+  let releaseImageUrl: string | null = null;
+  if (updateData.comingSoon === false) {
+    const [cur] = await db
+      .select({ comingSoon: productsTable.comingSoon, name: productsTable.name, imageUrl: productsTable.imageUrl })
+      .from(productsTable).where(eq(productsTable.id, id)).limit(1);
+    if (cur?.comingSoon === true) {
+      releaseProductName = cur.name;
+      releaseImageUrl = cur.imageUrl;
+    }
+  }
+
   const [product] = await db.update(productsTable).set(updateData).where(eq(productsTable.id, id)).returning();
   if (!product) { res.status(404).json({ error: "Not found" }); return; }
   clearProductCaches();
+
+  // Fire release push in background (non-blocking)
+  if (releaseProductName) {
+    sendComingSoonReleasePush(id, releaseProductName, releaseImageUrl).catch(console.error);
+  }
+
   res.json(serializeProduct({ ...product, categoryName: null }));
 });
 

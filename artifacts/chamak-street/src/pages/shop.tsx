@@ -3,13 +3,15 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { useListProducts, useListCategories, getListProductsQueryKey, getListCategoriesQueryKey } from "@workspace/api-client-react";
 import { Link, useSearch, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, LayoutGrid, Grid2X2, SlidersHorizontal, X } from "lucide-react";
+import { Eye, LayoutGrid, Grid2X2, SlidersHorizontal, X, Heart } from "lucide-react";
 import { AnimatedInput } from "@/components/animated-input";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
 import { EventProductBadge } from "@/components/event-product-badge";
 import { RecentlyViewedSection } from "@/components/recently-viewed";
+import { useWishlist } from "@/hooks/use-wishlist";
+import { ComingSoonNotifyPrompt } from "@/components/coming-soon-notify-prompt";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -20,17 +22,23 @@ function TiltCard({ children }: { children: React.ReactNode }) {
   const [glare, setGlare] = useState({ x: 50, y: 50, show: false });
   const isResting = tilt.x === 0 && tilt.y === 0;
 
+  const rafRef = useRef<number>(0);
   const onMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const cx = (e.clientX - rect.left) / rect.width;
-    const cy = (e.clientY - rect.top) / rect.height;
-    setTilt({ x: (cy - 0.5) * -11, y: (cx - 0.5) * 11 });
-    setGlare({ x: cx * 100, y: cy * 100, show: true });
+    if (!el || rafRef.current) return;
+    const mx = e.clientX, my = e.clientY;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      const rect = el.getBoundingClientRect();
+      const rx = (mx - rect.left) / rect.width;
+      const ry = (my - rect.top) / rect.height;
+      setTilt({ x: (ry - 0.5) * -11, y: (rx - 0.5) * 11 });
+      setGlare({ x: rx * 100, y: ry * 100, show: true });
+    });
   }, []);
 
   const onMouseLeave = useCallback(() => {
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
     setTilt({ x: 0, y: 0 });
     setGlare(g => ({ ...g, show: false }));
   }, []);
@@ -98,6 +106,8 @@ export default function Shop() {
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("default");
   const [cols, setCols] = useState<4 | 2>(4);
+  const { ids: wishlistIds, toggle } = useWishlist();
+  const [notifyProduct, setNotifyProduct] = useState<{ id: number; name: string } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: categories } = useListCategories({
@@ -367,26 +377,65 @@ export default function Shop() {
                           </Link>
 
                           {/* Badges */}
-                          <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none">
+                          <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none z-10">
                             <EventProductBadge />
                             {product.featured && (
                               <span className="bg-primary/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Featured</span>
                             )}
                             {product.sellingFast && (
-                              <span className="bg-orange-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">🔥 Hot</span>
+                              <span className="bg-orange-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Hot</span>
+                            )}
+                            {(product as any).bestSeller && (
+                              <span className="bg-amber-400/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Best Seller</span>
+                            )}
+                            {(product as any).trending && (
+                              <span className="bg-cyan-400/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Trending</span>
+                            )}
+                            {(product as any).newArrival && (
+                              <span className="bg-emerald-400/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">New Arrival</span>
+                            )}
+                            {(product as any).limitedEdition && (
+                              <span className="bg-purple-400/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Limited</span>
+                            )}
+                            {(product as any).comingSoon && (
+                              <span className="text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm" style={{ background: "rgba(168,85,247,0.9)" }}>Coming Soon</span>
                             )}
                           </div>
 
-                          {/* Low stock / sold out */}
-                          {product.stock <= 5 && product.stock > 0 && (
-                            <div className="absolute bottom-2 left-2 pointer-events-none">
-                              <span className="bg-red-600/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Only {product.stock} left</span>
+                          {/* Wishlist heart */}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault(); e.stopPropagation();
+                              const isIn = wishlistIds.has(product.id);
+                              toggle(product.id);
+                              if (!isIn && (product as any).comingSoon) {
+                                setNotifyProduct({ id: product.id, name: product.name });
+                              }
+                            }}
+                            style={{ touchAction: "manipulation" }}
+                            className={`absolute top-2 right-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 border backdrop-blur-sm pointer-events-auto ${wishlistIds.has(product.id) ? "bg-rose-500/20 border-rose-400/30" : "bg-black/50 border-white/10 hover:border-rose-400/30"}`}
+                          >
+                            <Heart className={`h-3.5 w-3.5 transition-colors ${wishlistIds.has(product.id) ? "fill-rose-400 text-rose-400" : "text-white/40 hover:text-rose-400"}`} />
+                          </button>
+
+                          {/* Low stock / sold out / coming soon overlays */}
+                          {(product as any).comingSoon ? (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)" }}>
+                              <span className="text-white text-[10px] font-black px-4 py-2 uppercase tracking-widest rounded-sm border" style={{ background: "rgba(168,85,247,0.85)", borderColor: "rgba(192,132,252,0.4)" }}>Coming Soon</span>
                             </div>
-                          )}
-                          {product.stock === 0 && (
-                            <div className="absolute inset-0 bg-black/65 flex items-center justify-center backdrop-blur-[2px] pointer-events-none">
-                              <span className="bg-black/90 text-white text-xs font-black px-4 py-2 uppercase tracking-widest border border-white/20 rounded-sm">Sold Out</span>
-                            </div>
+                          ) : (
+                            <>
+                              {product.stock <= 5 && product.stock > 0 && (
+                                <div className="absolute bottom-2 left-2 pointer-events-none">
+                                  <span className="bg-red-600/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Only {product.stock} left</span>
+                                </div>
+                              )}
+                              {product.stock === 0 && (
+                                <div className="absolute inset-0 bg-black/65 flex items-center justify-center backdrop-blur-[2px] pointer-events-none">
+                                  <span className="bg-black/90 text-white text-xs font-black px-4 py-2 uppercase tracking-widest border border-white/20 rounded-sm">Sold Out</span>
+                                </div>
+                              )}
+                            </>
                           )}
 
                           {/* Quick view — slides up on hover */}
@@ -427,6 +476,12 @@ export default function Shop() {
       </div>
       <RecentlyViewedSection />
       <QuickViewModal productId={quickViewId} onClose={() => setQuickViewId(null)} />
+      {notifyProduct && (
+        <ComingSoonNotifyPrompt
+          productName={notifyProduct.name}
+          onClose={() => setNotifyProduct(null)}
+        />
+      )}
     </PageTransition>
   );
 }

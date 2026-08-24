@@ -5,13 +5,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { Flame } from "lucide-react";
+import { Flame, Smartphone } from "lucide-react";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [deviceLimitHit, setDeviceLimitHit] = useState(false);
   const login = useLogin();
   const queryClient = useQueryClient();
   const { data: user } = useGetMe({ query: { retry: false, queryKey: ["auth", "me-login"] } });
@@ -20,6 +21,47 @@ export default function Login() {
 
   if (user?.isAdmin) return <Redirect href="/admin" />;
   if (user && !user.isAdmin) return <Redirect href="/" />;
+
+  if (deviceLimitHit) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          animate={{ opacity: [0.04, 0.08, 0.04] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          style={{ background: "radial-gradient(ellipse at 50% 60%, #ff6600, transparent 70%)" }}
+        />
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-md bg-card border border-border/60 p-8 rounded-xl shadow-[0_0_60px_rgba(255,102,0,0.1)] relative z-10 text-center"
+        >
+          <div className="absolute top-0 left-0 right-0 h-0.5 fire-gradient rounded-t-xl" />
+          <motion.div
+            animate={{ rotate: [0, -8, 8, -8, 0] }}
+            transition={{ duration: 1.2, delay: 0.4 }}
+            className="w-16 h-16 rounded-2xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center mx-auto mb-6"
+          >
+            <Smartphone className="h-8 w-8 text-orange-500" />
+          </motion.div>
+          <h2 className="text-xl font-black uppercase tracking-widest mb-3">Maximum Devices Reached</h2>
+          <p className="text-muted-foreground text-sm mb-1">
+            This account is already signed in on <span className="text-white font-bold">3 devices</span>.
+          </p>
+          <p className="text-muted-foreground text-sm mb-8">
+            Sign out on another device first, then try again.
+          </p>
+          <button
+            onClick={() => setDeviceLimitHit(false)}
+            className="text-xs font-bold text-primary hover:opacity-70 transition-opacity uppercase tracking-wider"
+          >
+            ← Try again
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +75,11 @@ export default function Login() {
         },
         onError: (err: unknown) => {
           const msg = (err as { data?: { error?: string } })?.data?.error ?? "Please check your credentials and try again.";
-          toast({ title: "Login failed", description: msg, variant: "destructive" });
+          if (msg === "Maximum Devices Reached") {
+            setDeviceLimitHit(true);
+          } else {
+            toast({ title: "Login failed", description: msg, variant: "destructive" });
+          }
         }
       }
     );

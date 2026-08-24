@@ -4,7 +4,7 @@ import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
-  Zap, Users, BellRing, MessageCircle, Activity
+  Zap, Users, BellRing, MessageCircle, Activity, Ticket
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -230,9 +230,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: user, isLoading } = useGetMe({ query: { retry: false, queryKey: ["auth", "me"] } });
   const { permission, subscribe } = useAdminPushNotifications();
   const [showDeniedBanner, setShowDeniedBanner] = useState(false);
+  const [showNotifModal, setShowNotifModal] = useState(false);
 
-  // On first admin login: directly trigger the browser's native permission dialog.
-  // No custom pre-prompt — the browser dialog IS the request.
+  // Show a friendly in-app pre-prompt before the browser's native dialog.
   useEffect(() => {
     if (!user?.isAdmin) return;
     if (typeof Notification === "undefined") return;
@@ -246,14 +246,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
     // permission === "default" and never asked yet
     if (localStorage.getItem(NOTIF_KEY)) return;
-    // 800ms delay so the page finishes loading first
-    const t = setTimeout(async () => {
-      localStorage.setItem(NOTIF_KEY, "true");
-      const result = await subscribe();
-      if (result === "denied") {
-        setShowDeniedBanner(true);
-      }
-    }, 800);
+    // 800ms delay so the page finishes loading first, then show friendly modal
+    const t = setTimeout(() => setShowNotifModal(true), 800);
     return () => clearTimeout(t);
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -296,7 +290,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: "/admin/basics",         label: "FP Basics",      icon: Layers },
         { href: "/admin/categories",     label: "Categories",     icon: Tag },
         { href: "/admin/orders",         label: "Orders",         icon: ShoppingBag },
-
+        { href: "/admin/coupons",        label: "Coupons",        icon: Ticket },
       ],
     },
     {
@@ -321,6 +315,59 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "transparent" }}>
+      {/* ── Notification pre-prompt modal ── */}
+      <AnimatePresence>
+        {showNotifModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(10px)" }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-sm rounded-2xl p-7 space-y-6 text-center"
+              style={{ background: "rgba(10,10,10,0.98)", border: "1px solid rgba(255,102,0,0.22)" }}
+            >
+              <motion.div
+                className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #ff6600, #ffcc00)" }}
+                animate={{ scale: [1, 1.06, 1] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <BellRing className="h-8 w-8 text-white" />
+              </motion.div>
+              <div className="space-y-2">
+                <p className="font-black uppercase tracking-wider text-lg">Order Alerts</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Get notified instantly when a new order comes in — so you never miss a sale.
+                </p>
+              </div>
+              <div className="space-y-2.5">
+                <Button
+                  className="w-full fire-gradient border-none font-black uppercase tracking-wider"
+                  onClick={async () => {
+                    setShowNotifModal(false);
+                    localStorage.setItem(NOTIF_KEY, "true");
+                    const result = await subscribe();
+                    if (result === "denied") setShowDeniedBanner(true);
+                  }}
+                >
+                  Allow Notifications
+                </Button>
+                <button
+                  className="w-full py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-white/60 transition-colors"
+                  onClick={() => { setShowNotifModal(false); localStorage.setItem(NOTIF_KEY, "true"); }}
+                >
+                  No thanks
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Sidebar ── */}
       <aside
         className="w-full md:w-64 shrink-0 flex flex-col relative overflow-hidden glass-heavy"
@@ -511,20 +558,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AdminNamePrompt />
 
       {/* ── Main content — animated on route change ── */}
-      <main className="flex-1 overflow-auto" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)" }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location}
-            variants={contentVariants}
-            initial="initial"
-            animate="enter"
-            exit="exit"
-            className="p-6 md:p-8"
+      {(() => {
+        const isChat = location.endsWith("/admin/chat");
+        return (
+          <main
+            className={`flex-1 ${isChat ? "overflow-hidden flex flex-col min-h-0" : "overflow-auto"}`}
+            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)" }}
           >
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location}
+                variants={contentVariants}
+                initial="initial"
+                animate="enter"
+                exit="exit"
+                className={isChat ? "flex-1 flex flex-col min-h-0 overflow-hidden" : "p-6 md:p-8"}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        );
+      })()}
 
     </div>
   );

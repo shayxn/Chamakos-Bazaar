@@ -2,7 +2,7 @@ import { useListProducts, getListProductsQueryKey } from "@workspace/api-client-
 import { Link } from "wouter";
 import { motion, useInView, AnimatePresence, useScroll } from "@/lib/motion-noop";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Flame, Zap, Star, ShoppingBag } from "lucide-react";
+import { ArrowRight, Flame, Zap, Star, ShoppingBag, Heart } from "lucide-react";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 
 import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
@@ -14,6 +14,7 @@ import { TiktokSection } from "@/components/tiktok-section";
 import { ReviewsSection } from "@/components/reviews-section";
 import { EventHomepageBanner } from "@/components/event-homepage-banner";
 import { SpotlightBanner } from "@/components/spotlight-banner";
+import { useWishlist } from "@/hooks/use-wishlist";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -211,6 +212,7 @@ export default function Home() {
     { featured: true },
     { query: { queryKey: getListProductsQueryKey({ featured: true }), staleTime: 30_000 } }
   );
+  const { ids: wishlistIds, toggle: toggleWishlist } = useWishlist();
   const heroTitle = settings.hero_title || "Ignite the";
   const heroSubtitle = settings.hero_subtitle || "Streets.";
   const heroDescription = settings.hero_description || "Bold aesthetic. Unmatched drip. Dress like you own the block.";
@@ -472,9 +474,12 @@ export default function Home() {
                             />
                           </div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
-                          <div className="absolute top-3 right-3 text-[11px] font-black font-mono text-white/20 tracking-widest">
-                            {String(idx + 1).padStart(2, "0")}
-                          </div>
+                          <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWishlist(product.id); }}
+                            className={`absolute top-3 right-3 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all border backdrop-blur-sm ${wishlistIds.has(product.id) ? "bg-rose-500/20 border-rose-400/40" : "bg-black/40 border-white/10 hover:border-rose-400/30"}`}
+                          >
+                            <Heart className={`h-3.5 w-3.5 transition-colors ${wishlistIds.has(product.id) ? "fill-rose-400 text-rose-400" : "text-white/25 hover:text-rose-400"}`} />
+                          </button>
                           <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
                             {product.isPreOrder && (
                               <span className="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm shadow-lg">Pre-Order</span>

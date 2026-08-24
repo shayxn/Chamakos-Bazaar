@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAdmin } from "../lib/auth-middleware";
-import { initPush, saveSubscription, removeSubscription, sendOrderPush, saveCustomerSubscription, ensureCustomerSubTable } from "../lib/push";
+import { initPush, saveSubscription, removeSubscription, sendOrderPush, saveCustomerSubscription, ensureCustomerSubTable, saveWishlistSubscription } from "../lib/push";
 
 const router = Router();
 
@@ -71,6 +71,16 @@ router.post("/push/customer-subscribe", async (req, res) => {
 router.get("/push/vapid-public-key", async (_req, res) => {
   const key = await initPush();
   res.json({ publicKey: key });
+});
+
+// Wishlist "notify me on release" — links session_id to a push subscription
+router.post("/push/wishlist-notify-subscribe", async (req, res) => {
+  const { endpoint, p256dh, auth } = req.body as Record<string, string>;
+  if (!endpoint || !p256dh || !auth) { res.status(400).json({ error: "Missing fields" }); return; }
+  const sessionId = (req as any).session?.wishlistId as string | undefined;
+  if (!sessionId) { res.status(400).json({ error: "No session — add something to wishlist first" }); return; }
+  await saveWishlistSubscription(endpoint, p256dh, auth, sessionId);
+  res.json({ ok: true });
 });
 
 export default router;

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { requireAdmin } from "../lib/auth-middleware";
 import { sql } from "drizzle-orm";
-import { initPush, saveAdminSubscription, sendAdminChatPush } from "../lib/push";
+import { initPush, saveAdminSubscription, sendAdminChatPush, sendAdminCallPush } from "../lib/push";
 
 const router = Router();
 
@@ -46,9 +46,11 @@ async function ensureChatTables() {
       admin_id TEXT PRIMARY KEY,
       display_name TEXT NOT NULL,
       avatar_color TEXT NOT NULL DEFAULT '#ff6600',
+      pfp_data TEXT,
       last_name_change TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    ALTER TABLE admin_profiles ADD COLUMN IF NOT EXISTS pfp_data TEXT;
   `);
 }
 ensureChatTables().catch(console.error);
@@ -143,9 +145,14 @@ router.post("/admin/chat/messages/:id/react", requireAdmin, async (req, res) => 
 
 // WebRTC signaling (supports broadcast=true to ring all online admins)
 router.post("/admin/chat/signal", requireAdmin, (req, res) => {
-  const { to, from, fromName, signal, broadcast } = req.body as { to?: string; from: string; fromName: string; signal: object; broadcast?: boolean };
+  const { to, from, fromName, signal, broadcast } = req.body as { to?: string; from: string; fromName: string; signal: Record<string, unknown>; broadcast?: boolean };
+
+  // Push-notify offline admins when a call offer comes in (PWA / home-screen users)
+  if (signal?.type === "offer") {
+    sendAdminCallPush(fromName, from).catch(() => {});
+  }
+
   if (broadcast) {
-    // Ring all other online admins
     for (const [adminId] of chatClients) {
       if (adminId !== from) sendToAdmin(adminId, { type: "WEBRTC_SIGNAL", from, fromName, signal });
     }
@@ -197,6 +204,22 @@ router.post("/admin/profile", requireAdmin, async (req, res) => {
       last_name_change = NOW()
   `);
   broadcastChat({ type: "PRESENCE", adminId, adminName: displayName.trim(), online: chatClients.has(adminId), onlineAdmins: getOnlineAdmins() });
+  res.json({ ok: true });
+});
+
+// Save admin profile picture (base64 data URL or "fp_logo")
+router.post("/admin/profile/pfp", requireAdmin, async (req, res) => {
+  const { adminId, pfpData } = req.body as Record<string, string>;
+  if (!adminId || !pfpData) { res.status(400).json({ error: "adminId and pfpData required" }); return; }
+  // Limit size to ~600 KB encoded
+  if (pfpData.length > 800_000) { res.status(413).json({ error: "Image too large. Please use a smaller photo." }); return; }
+  await ensureChatTables();
+  await db.execute(sql`
+    INSERT INTO admin_profiles (admin_id, display_name, pfp_data)
+    VALUES (${adminId}, 'Admin', ${pfpData})
+    ON CONFLICT (admin_id) DO UPDATE SET pfp_data = EXCLUDED.pfp_data
+  `);
+  broadcastChat({ type: "PROFILE_UPDATE", adminId, pfpData });
   res.json({ ok: true });
 });
 
