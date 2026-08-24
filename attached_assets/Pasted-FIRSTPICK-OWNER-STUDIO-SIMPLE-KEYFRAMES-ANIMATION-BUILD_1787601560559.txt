@@ -1,0 +1,1108 @@
+FIRSTPICK — OWNER STUDIO + SIMPLE KEYFRAMES + ANIMATION BUILDER + PAGE CREATOR + ADD WITH CODING
+
+Continue developing the existing FirstPick website and Admin Dashboard.
+
+Do NOT rebuild the project from scratch.
+
+IMPORTANT:
+
+FirstPick Plus has already been deleted. Do NOT bring FirstPick Plus back.
+
+Do not recreate:
+
+* FirstPick Plus pages
+* FirstPick Plus admin sections
+* FirstPick Plus subscriptions
+* FirstPick Plus badges
+* FirstPick Plus settings
+* FirstPick Plus marketing
+* Any old FirstPick Plus UI
+
+If any old FirstPick Plus code or links remain, clean them up safely if they are no longer used.
+
+Preserve all current working FirstPick systems and data.
+
+⸻
+
+1. CREATE A SPECIAL OWNER-ONLY AREA
+
+Create a completely new section inside Admin that is only accessible to the FirstPick Owner.
+
+Call it:
+
+Owner Studio
+
+This should be a powerful area where the owner can visually build and edit FirstPick.
+
+Normal admins must NOT have access unless the owner explicitly grants permission.
+
+Protect this on the backend, not only by hiding the button.
+
+Inside Owner Studio, include tools such as:
+
+Pages
+
+Sections
+
+Elements
+
+Animations
+
+Keyframes
+
+Media
+
+Sounds
+
+Add With Coding 💻
+
+Preview
+
+Version History
+
+⸻
+
+2. EDIT THE WHOLE WEBSITE
+
+Owner Studio should allow me to visually edit the major parts of the FirstPick website.
+
+I should be able to edit:
+
+* Homepage
+* Product pages
+* Collection/category pages
+* Search pages
+* Customer account pages
+* Order tracking/status pages
+* Login pages
+* Store navigation
+* Footer
+* Banners
+* Promotional areas
+* Custom pages
+* Custom sections
+* Selected Admin pages where safe
+
+Protect critical functionality such as:
+
+* Checkout logic
+* Payments
+* Authentication
+* Order creation
+* Security
+* Permissions
+
+I should be able to change the design without accidentally deleting essential application logic.
+
+⸻
+
+3. ADD NEW STORE PAGES
+
+Inside Owner Studio, include:
+
+Add Page
+
+Let me create a completely new page in the FirstPick store.
+
+Ask for:
+
+Page Name
+
+URL / Slug
+
+Example:
+
+Page Name:
+Back to School
+
+URL:
+/back-to-school
+
+Then create a blank editable page.
+
+I should be able to add sections and content into it visually.
+
+⸻
+
+4. ADD NEW ADMIN PAGES
+
+Also allow me to create owner/admin pages.
+
+When creating a page, let me choose:
+
+Store Page
+
+or
+
+Admin Page
+
+Admin pages should support proper permission settings.
+
+Example:
+
+Owner Only
+
+All Admins
+
+Selected Roles
+
+Do not accidentally expose Admin pages publicly.
+
+⸻
+
+5. SECTION BUILDER
+
+Inside every editable page, allow:
+
+Add Section
+
+Built-in sections could include:
+
+* Hero
+* Product showcase
+* Product grid
+* Product carousel
+* Text section
+* Image section
+* Video section
+* Split image/text
+* Full-screen section
+* Scroll animation section
+* Banner
+* Buttons/CTA
+* Spacer
+* Custom section
+
+Allow:
+
+Duplicate Section
+
+Move Up
+
+Move Down
+
+Hide
+
+Delete
+
+⸻
+
+6. ADD ELEMENTS
+
+Inside a section, allow me to add:
+
+Text
+
+Heading
+
+Paragraph
+
+Button
+
+Image
+
+Video
+
+Icon
+
+Shape
+
+Product
+
+Product Card
+
+Product Text
+
+Price
+
+Badge
+
+Link
+
+Container
+
+Background
+
+and other useful visual elements.
+
+I should be able to drag and position these visually.
+
+⸻
+
+7. PRODUCT ELEMENTS
+
+Let me add real FirstPick product information into pages.
+
+Allow elements such as:
+
+Product Image
+
+Product Name
+
+Product Price
+
+Product Description
+
+Add to Cart Button
+
+Product Link
+
+Allow me to select which FirstPick product the element is connected to.
+
+If the product data changes, connected elements should update appropriately rather than requiring me to manually rewrite everything.
+
+⸻
+
+8. SIMPLE KEYFRAME SYSTEM
+
+I want the keyframe system to be very simple to use.
+
+Do NOT make it feel like professional animation software that requires complicated timelines.
+
+The basic workflow should be:
+
+1. Select an element, such as an image.
+2. Press:
+
+Add Scroll Animation
+
+3. Choose where the animation starts on the page.
+4. Choose where the animation ends on the page.
+5. Position the element at the START.
+6. Position the element at the END.
+7. FirstPick automatically animates smoothly between those two states while the customer scrolls.
+
+That is the main workflow.
+
+⸻
+
+9. SIMPLE START AND END POINTS
+
+For example, I add a backpack image.
+
+I select:
+
+Start Here
+
+Then place the backpack where I want it to begin.
+
+Then I scroll to another point on the page and press:
+
+End Here
+
+Then move the backpack where I want it to finish.
+
+FirstPick automatically creates the movement between those two positions.
+
+Example:
+
+START:
+Backpack centered.
+
+END:
+Backpack moved to the right and slightly larger.
+
+As the customer scrolls from the Start marker to the End marker, the backpack smoothly moves from Start → End.
+
+⸻
+
+10. START/END MARKERS
+
+Show clear visual markers in the editor:
+
+Animation Starts Here
+
+and
+
+Animation Ends Here
+
+Allow me to drag these markers up/down the page.
+
+The animation progress should be based on the customer’s scroll position between those two markers.
+
+This should make scroll animations easy even for someone who does not understand animation code.
+
+⸻
+
+11. OPTIONAL ADVANCED KEYFRAMES
+
+Keep the basic Start → End workflow simple.
+
+But optionally include:
+
+Add Middle Keyframe
+
+For example:
+
+Start
+25%
+50%
+75%
+End
+
+This should be optional.
+
+Do not force me to create lots of keyframes for a simple movement.
+
+⸻
+
+12. KEYFRAME PROPERTIES
+
+Allow scroll keyframes to animate:
+
+* X position
+* Y position
+* Scale
+* Rotation
+* Opacity
+* Blur
+* Tilt
+* Depth
+* Width/height where safe
+
+Preview the animation immediately.
+
+⸻
+
+13. BUILT-IN CAPCUT-STYLE ANIMATIONS
+
+In addition to manual scroll keyframes, give me a large library of simple built-in animations similar in ease of use to CapCut.
+
+Do NOT copy CapCut’s proprietary code/assets.
+
+Create FirstPick’s own animation presets.
+
+Categories:
+
+IN ANIMATIONS
+
+* Fade In
+* Slide Up
+* Slide Down
+* Slide Left
+* Slide Right
+* Zoom In
+* Scale Up
+* Pop In
+* Bounce In
+* Blur In
+* Rotate In
+* Flip In
+* Rise In
+* Drop In
+
+OUT ANIMATIONS
+
+* Fade Out
+* Slide Up Out
+* Slide Down Out
+* Slide Left Out
+* Slide Right Out
+* Zoom Out
+* Scale Down
+* Blur Out
+* Rotate Out
+* Drop Out
+
+LOOP ANIMATIONS
+
+* Float
+* Pulse
+* Gentle Bounce
+* Slow Rotate
+* Hover
+* Breathing Scale
+* Glow Pulse
+* Shake
+* Wiggle
+
+SCROLL ANIMATIONS
+
+* Fade While Scrolling
+* Move Left
+* Move Right
+* Move Up
+* Move Down
+* Zoom With Scroll
+* Rotate With Scroll
+* Parallax
+* Reveal
+* Sticky Scroll
+
+⸻
+
+14. APPLY ANIMATION
+
+When I select an element, show:
+
+Animation
+
+Then:
+
+In
+
+Out
+
+Loop
+
+Scroll
+
+Example:
+
+Text → Animation → In → Fade In
+
+Then show simple controls:
+
+Duration
+
+Delay
+
+Speed
+
+Direction
+
+Strength
+
+Do not make basic animation settings complicated.
+
+⸻
+
+15. ANIMATE TEXT
+
+Text should fully support animations.
+
+For example:
+
+Add heading:
+
+THE FUTURE OF FIRSTPICK
+
+Then apply:
+
+Fade In
+
+or
+
+Slide Up
+
+or
+
+Zoom In
+
+Also support text-specific animation options such as:
+
+* Word-by-word reveal
+* Line-by-line reveal
+* Character reveal
+* Blur reveal
+* Type-on effect
+
+Keep these optional.
+
+⸻
+
+16. ANIMATE IMAGES
+
+Images should support:
+
+* Fade
+* Slide
+* Scale
+* Rotate
+* Float
+* Scroll movement
+* Parallax
+* Keyframes
+
+Example:
+
+Upload backpack image → place it → set Start → set End → move it.
+
+That should be extremely easy.
+
+⸻
+
+17. DEVICE-SPECIFIC LAYOUT
+
+I must be able to change the layout separately depending on device.
+
+Include presets for:
+
+Small Phone
+
+Phone
+
+Large Phone
+
+Phone Landscape
+
+iPad Mini
+
+iPad
+
+iPad Air
+
+iPad Pro
+
+Tablet Landscape
+
+Laptop
+
+Desktop
+
+Large Desktop
+
+Ultra-wide
+
+Also support custom viewport dimensions.
+
+⸻
+
+18. DEVICE-SPECIFIC POSITION
+
+If I move an image on Phone, it should not automatically ruin Desktop.
+
+Use responsive overrides.
+
+Example:
+
+Desktop:
+Backpack on right.
+
+iPad:
+Backpack centered.
+
+Phone:
+Backpack below heading.
+
+Allow each device size/orientation to have its own layout.
+
+⸻
+
+19. DEVICE-SPECIFIC ANIMATIONS
+
+Animations should also support device overrides.
+
+Example:
+
+Desktop:
+Backpack moves 500px.
+
+iPad:
+Moves 250px.
+
+Phone:
+Moves 100px.
+
+Allow an animation to be disabled on certain devices.
+
+⸻
+
+20. ADD TEXT / PRODUCT TEXT / CONTENT
+
+Inside any page or section, let me add:
+
+* Headings
+* Paragraphs
+* Product text
+* Prices
+* Links
+* Buttons
+* Labels
+* Product descriptions
+* Custom text
+
+Let me edit:
+
+* Font size
+* Weight
+* Alignment
+* Spacing
+* Width
+* Position
+* Line height
+* Color
+* Opacity
+
+⸻
+
+21. OWNER PAGE MANAGER
+
+Inside Owner Studio add:
+
+Pages
+
+Show all editable pages.
+
+For each page:
+
+Edit
+
+Preview
+
+Duplicate
+
+Rename
+
+Change URL
+
+Hide
+
+Publish
+
+Delete
+
+Protect system-critical pages from unsafe deletion.
+
+⸻
+
+22. PAGE DRAFTS
+
+New or edited pages should start as:
+
+Draft
+
+Use:
+
+Draft → Preview → Publish
+
+Do not instantly publish every edit.
+
+⸻
+
+23. PREVIEW
+
+Allow me to preview pages on:
+
+* Phone
+* Tablet
+* iPad
+* Laptop
+* Desktop
+
+Preview the real:
+
+* Layout
+* Animations
+* Scroll behavior
+* Text
+* Images
+* Products
+
+before publishing.
+
+⸻
+
+24. UNDO / REDO
+
+Add:
+
+Undo
+
+Redo
+
+Support multiple steps.
+
+⸻
+
+25. VERSION HISTORY
+
+Every time a page/design is published, create a version.
+
+Example:
+
+Homepage — Version 18
+
+Allow:
+
+Preview
+
+Restore
+
+This protects the website if I make a bad edit.
+
+⸻
+
+26. OWNER-ONLY SOUND STUDIO
+
+Inside Owner Studio include:
+
+Sound Studio
+
+I should be able to customize sounds used across FirstPick Admin.
+
+Allow custom sounds for:
+
+* Message sent
+* Message received
+* Typing
+* New group message
+* New private message
+* Incoming call
+* Outgoing ringback
+* Call connected
+* Call ended
+* Missed call
+* Notification
+* New order
+* Success
+* Error
+* Warning
+
+Allow:
+
+Upload
+
+Preview
+
+Volume
+
+On/Off
+
+Reset to Default
+
+⸻
+
+27. CALL SOUND DIFFERENCE
+
+These must be separate:
+
+Outgoing Ringback
+
+The sound the caller hears while waiting.
+
+Incoming Ringtone
+
+The sound that plays on the other admin’s device when they are being called.
+
+Do not treat these as the same event.
+
+⸻
+
+28. NEW OWNER-ONLY PAGE — ADD WITH CODING 💻
+
+Create a completely new Owner-only Admin page called exactly:
+
+Add With Coding 💻
+
+This is for advanced custom additions.
+
+⸻
+
+29. ADD WITH CODING — IMPORTANT SECURITY MODEL
+
+I want to be able to add custom code, BUT do this safely.
+
+Do NOT simply take arbitrary code from a browser text box and immediately execute it with unrestricted access to FirstPick’s server, database, secrets, payment system, authentication, or operating system.
+
+Instead, build a controlled custom-code system.
+
+⸻
+
+30. CREATE NEW ITEM WITH CODING
+
+Inside:
+
+Add With Coding 💻
+
+show:
+
+Create New
+
+Then choose:
+
+New Store Page
+
+New Admin Page
+
+New Component
+
+New Event
+
+New Visual Effect
+
+⸻
+
+31. CODE EDITOR
+
+Provide a proper code editor.
+
+It should have:
+
+* Syntax highlighting
+* Line numbers
+* Search
+* Error markers
+* Format code
+* Undo/redo
+
+Allow supported formats appropriate to FirstPick’s stack.
+
+For example:
+
+* HTML-like component markup
+* CSS
+* JavaScript in a restricted client-side environment
+* Supported framework components where safely possible
+
+⸻
+
+32. CUSTOM PAGE WITH CODE
+
+Example:
+
+Press:
+
+New Store Page
+
+Enter:
+
+Page name:
+Gaming
+
+URL:
+/gaming
+
+Paste supported code.
+
+Press:
+
+Preview
+
+Then:
+
+Publish
+
+The page should become part of FirstPick.
+
+⸻
+
+33. ADD EVENT WITH CODING
+
+Allow:
+
+New Event
+
+Examples:
+
+* Button click
+* Page loaded
+* Product added
+* Order status changed
+* Animation trigger
+
+But custom events must use a safe documented FirstPick event API.
+
+Do NOT allow arbitrary code to bypass permissions or directly access secrets.
+
+⸻
+
+34. SAFE FIRSTPICK API
+
+For Add With Coding, expose a limited internal API.
+
+For example:
+
+FirstPick.navigate()
+
+FirstPick.showNotification()
+
+FirstPick.openProduct()
+
+FirstPick.playSound()
+
+FirstPick.triggerAnimation()
+
+FirstPick.getPublicProductData()
+
+Only expose safe functionality.
+
+Do NOT expose:
+
+* Database credentials
+* Payment secrets
+* Admin authentication tokens
+* Raw customer payment data
+* Server shell
+* Environment secrets
+
+⸻
+
+35. CODE PREVIEW
+
+Before custom code becomes live:
+
+Run Preview
+
+Show errors clearly.
+
+Do not publish code that fails validation/build checks.
+
+⸻
+
+36. PUBLISH CUSTOM CODE
+
+Workflow:
+
+Write/Paste Code
+
+→ Validate
+
+→ Preview
+
+→ Publish
+
+Do not make:
+
+Paste → Done → immediately execute unrestricted code on production.
+
+The experience can still feel simple while keeping FirstPick protected.
+
+⸻
+
+37. CUSTOM CODE VERSIONS
+
+Save versions of custom-code items.
+
+Allow:
+
+Restore Previous Version
+
+If custom code breaks a page, recovery should be easy.
+
+⸻
+
+38. DISABLE CUSTOM ITEM
+
+Each custom-coded page/component/event should have:
+
+Enable
+
+Disable
+
+If something starts causing problems, I should be able to turn it off immediately without deleting it.
+
+⸻
+
+39. EMERGENCY SAFE MODE
+
+If a custom visual page, animation, or code item causes serious errors, FirstPick should be able to disable that custom item automatically or allow the Owner to launch Admin without loading custom extensions.
+
+Do not let one custom script make the entire Admin inaccessible.
+
+⸻
+
+40. OWNER-ONLY SECURITY
+
+All of these features should be Owner-only by default:
+
+* Owner Studio
+* Page creation
+* Admin page creation
+* Visual editing
+* Keyframes
+* Motion Studio
+* Sound Studio
+* Add With Coding 💻
+* Publishing custom code
+* Version restoration
+
+Normal Admin accounts should not have access unless explicitly granted permission.
+
+⸻
+
+41. PERFORMANCE
+
+Visual editing and animation must not make the actual customer website lag.
+
+Optimize:
+
+* Scroll animations
+* Images
+* Videos
+* Transforms
+* Keyframes
+* Page loading
+* Custom components
+
+If a design becomes too heavy, warn the Owner.
+
+⸻
+
+42. FINAL EXPERIENCE
+
+The Owner should be able to do something like this:
+
+1. Open Owner Studio
+2. Press Add Page
+3. Create a new Store page
+4. Add a full-screen section
+5. Add a backpack image
+6. Add heading text
+7. Press Add Scroll Animation
+8. Mark where the animation starts
+9. Position the backpack at its starting point
+10. Mark where the animation ends
+11. Move the backpack to its ending position
+12. Add Fade In to the heading
+13. Add Slide Up to another text
+14. Preview on Phone
+15. Adjust Phone layout
+16. Preview on iPad
+17. Adjust iPad layout
+18. Preview Desktop
+19. Publish
+
+This should feel SIMPLE.
+
+I should not need to understand animation code to create a polished scrolling page.
+
+⸻
+
+FINAL REQUIREMENT
+
+Build a powerful but simple Owner Studio for FirstPick.
+
+Do NOT restore FirstPick Plus.
+
+Let the Owner:
+
+* Create Store pages
+* Create Admin pages
+* Add sections
+* Add text
+* Add images
+* Add products
+* Add product text
+* Move/resize elements
+* Customize layouts by device
+* Customize portrait/landscape layouts
+* Create simple Start → End scroll keyframes
+* Add optional extra keyframes
+* Use built-in CapCut-style animation presets
+* Add Fade In
+* Fade Out
+* Slide Up
+* Slide Down
+* Slide Left
+* Slide Right
+* Zoom
+* Pop
+* Bounce
+* Blur
+* Rotate
+* Parallax
+* Other useful animations
+* Preview changes
+* Save drafts
+* Publish
+* Undo/redo
+* Restore older versions
+* Customize sounds
+* Create advanced pages/components/events through Add With Coding 💻
+
+The keyframe workflow should remain extremely easy:
+
+Choose where scrolling starts → place element → choose where scrolling ends → move element → FirstPick creates the animation automatically.
+
+The advanced Add With Coding 💻 system should allow custom code, but it must use validation, previews, permissions, version history, and a restricted FirstPick API so custom code cannot accidentally expose secrets or destroy critical systems.
