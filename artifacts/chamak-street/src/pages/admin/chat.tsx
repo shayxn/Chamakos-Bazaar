@@ -2,10 +2,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Send, Smile, X, Users,
+  Phone, PhoneOff, Mic, MicOff, Video, VideoOff, Send, Smile, X, Users, ArrowLeft,
   Copy, Check, Bell, BellOff, PhoneCall, PhoneIncoming, Maximize2, Minimize2, Camera, CameraOff
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
@@ -169,6 +170,7 @@ function SpeakingWave() {
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function AdminChatPage() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Identity
   const [adminId] = useState(() => {
@@ -959,7 +961,9 @@ export default function AdminChatPage() {
                   onlineAdmins={onlineAdmins} adminId={adminId} adminName={adminName}
                   pushEnabled={pushEnabled} pushLoading={pushLoading} inviteCopied={inviteCopied}
                   onSubscribePush={subscribePush} onCopyInvite={copyInviteLink}
-                  onClose={() => setShowMembers(false)} onCall={(a) => { setShowMembers(false); startCall(a); }}
+                  onClose={() => setShowMembers(false)}
+                  onVoiceCall={(a) => { setShowMembers(false); startCall(a, false); }}
+                  onVideoCall={(a) => { setShowMembers(false); startCall(a, true); }}
                 />
               </motion.div>
             ) : (
@@ -974,7 +978,9 @@ export default function AdminChatPage() {
                   onlineAdmins={onlineAdmins} adminId={adminId} adminName={adminName}
                   pushEnabled={pushEnabled} pushLoading={pushLoading} inviteCopied={inviteCopied}
                   onSubscribePush={subscribePush} onCopyInvite={copyInviteLink}
-                  onClose={() => setShowMembers(false)} onCall={(a) => { setShowMembers(false); startCall(a); }}
+                  onClose={() => setShowMembers(false)}
+                  onVoiceCall={(a) => { setShowMembers(false); startCall(a, false); }}
+                  onVideoCall={(a) => { setShowMembers(false); startCall(a, true); }}
                 />
               </motion.div>
             )}
@@ -989,6 +995,18 @@ export default function AdminChatPage() {
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
           className="flex items-center gap-3 px-4 py-3 border-b border-white/8 z-10 shrink-0"
           style={G.header}>
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.length > 1) window.history.back();
+              else setLocation("/admin");
+            }}
+            aria-label="Back to admin dashboard"
+            className="w-9 h-9 rounded-xl flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/10 shrink-0"
+            style={{ touchAction: "manipulation" }}
+          >
+            <ArrowLeft className="h-4 w-4 text-white/75" />
+          </button>
           <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20 shrink-0">
             <Users className="h-4 w-4 text-primary" />
           </div>
@@ -1015,11 +1033,11 @@ export default function AdminChatPage() {
 
           <div className="flex items-center gap-1.5 shrink-0">
             <motion.button whileTap={{ scale: 0.9 }} onClick={() => startGroupCall()} disabled={callState !== "idle"}
-              title="Call all admins"
+              title="Quick voice call with the first available admin"
               className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border text-xs font-bold transition-all disabled:opacity-40"
               style={{ background: "rgba(255,102,0,0.12)", borderColor: "rgba(255,102,0,0.3)", color: "#ff6600", touchAction: "manipulation" }}>
               <PhoneCall className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline text-xs">Call</span>
+              <span className="hidden sm:inline text-xs">Quick call</span>
             </motion.button>
             <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowMembers(s => !s)}
               style={{ touchAction: "manipulation" }}
@@ -1178,12 +1196,12 @@ export default function AdminChatPage() {
 // ── Members panel content (shared between mobile/desktop) ─────────────────────
 function MembersContent({
   onlineAdmins, adminId, adminName, pushEnabled, pushLoading, inviteCopied,
-  onSubscribePush, onCopyInvite, onClose, onCall,
+  onSubscribePush, onCopyInvite, onClose, onVoiceCall, onVideoCall,
 }: {
   onlineAdmins: OnlineAdmin[]; adminId: string; adminName: string;
   pushEnabled: boolean; pushLoading: boolean; inviteCopied: boolean;
   onSubscribePush: () => void; onCopyInvite: () => void;
-  onClose: () => void; onCall: (a: OnlineAdmin) => void;
+  onClose: () => void; onVoiceCall: (a: OnlineAdmin) => void; onVideoCall: (a: OnlineAdmin) => void;
 }) {
   const G_sidebar = { background: "transparent" };
   return (
@@ -1241,10 +1259,16 @@ function MembersContent({
               <p className="text-[10px] text-green-400 font-bold">Online</p>
             </div>
             {a.adminId !== adminId && (
-              <motion.button whileTap={{ scale: 0.85 }} onClick={() => onCall(a)} style={{ touchAction: "manipulation" }}
-                className="w-9 h-9 rounded-full bg-primary/20 hover:bg-primary/40 flex items-center justify-center border border-primary/20">
-                <Phone className="h-3.5 w-3.5 text-primary" />
-              </motion.button>
+              <div className="flex items-center gap-1">
+                <motion.button whileTap={{ scale: 0.85 }} onClick={() => onVoiceCall(a)} title={`Voice call ${a.adminName}`} style={{ touchAction: "manipulation" }}
+                  className="w-9 h-9 rounded-full bg-primary/20 hover:bg-primary/40 flex items-center justify-center border border-primary/20">
+                  <Phone className="h-3.5 w-3.5 text-primary" />
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.85 }} onClick={() => onVideoCall(a)} title={`Video call ${a.adminName}`} style={{ touchAction: "manipulation" }}
+                  className="w-9 h-9 rounded-full bg-sky-400/15 hover:bg-sky-400/25 flex items-center justify-center border border-sky-300/20">
+                  <Video className="h-3.5 w-3.5 text-sky-300" />
+                </motion.button>
+              </div>
             )}
           </motion.div>
         ))}

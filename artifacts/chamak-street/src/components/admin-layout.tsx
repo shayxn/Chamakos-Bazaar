@@ -277,6 +277,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const logoutOtherDevices = async () => {
+    if (!window.confirm("Sign out every other active device? This device will stay signed in.")) return;
     const res = await fetch(`${BASE}/api/auth/admin/sessions/logout-others`, { method: "POST", credentials: "include" });
     if (!res.ok) {
       toast({ title: "Could not sign out other devices", variant: "destructive" });

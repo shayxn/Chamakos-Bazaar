@@ -1,0 +1,762 @@
+FIRSTPICK — REAL PRODUCT FEED, WORKING CALLING & MANAGE DEVICES FIX
+
+Continue working on the existing FirstPick website and Admin Dashboard. Do not rebuild the project and do not remove existing working features.
+
+This update has THREE major priorities:
+
+1. Make Product Feed a real TikTok-style feed using REAL products
+2. Fix Calling so admins can actually make and receive calls
+3. Make Manage Devices actually function
+
+Also continue any relevant unfinished FirstPick work from previous tasks.
+
+⸻
+
+1. PRODUCT FEED — TIKTOK-STYLE EXPERIENCE
+
+Completely improve the existing:
+
+Product Feed
+
+I want opening Product Feed to feel similar to opening TikTok’s For You feed, except instead of random entertainment videos, the feed is specifically for discovering real products FirstPick could sell in the UAE.
+
+The experience should be:
+
+Open Product Feed → video immediately appears → watch → scroll down → next video → keep scrolling
+
+Use full-screen vertical video cards.
+
+Scrolling/swiping DOWN should move to the next product.
+
+Scrolling/swiping UP should return to the previous product.
+
+Use smooth snapping between videos.
+
+Only the active video should play.
+
+The previous video should automatically pause.
+
+⸻
+
+2. ABSOLUTELY NO FAKE PRODUCTS
+
+THIS IS EXTREMELY IMPORTANT:
+
+DO NOT CREATE FAKE PRODUCTS.
+
+Do not populate Product Feed with placeholder products pretending to be real.
+
+Do not invent:
+
+* Product names
+* Product videos
+* Product prices
+* Product links
+* Product suppliers
+* Product availability
+* Product ratings
+* Product sales
+* Shipping costs
+* Delivery times
+* Trending status
+
+Every product shown in the live Product Feed must correspond to a real product from a real permitted/connected source.
+
+If there is no real product source connected yet, do NOT fake the feed.
+
+Instead, build the real feed infrastructure and clearly show that a product source needs to be connected.
+
+⸻
+
+3. REMOVE UNWANTED / FAKE SUPPLIER CONTENT
+
+Do NOT populate Product Feed with random supplier/store names or previous placeholder/demo sources.
+
+Specifically, do NOT use things such as:
+
+FashionCage
+
+Steoa Streetwear / Steoa Street Wear
+
+or other similar placeholder/demo supplier content.
+
+Remove this kind of fake/demo sourcing content from the Product Feed if it was previously generated.
+
+Do not replace it with another invented supplier.
+
+Only use legitimate connected sources.
+
+⸻
+
+4. PRODUCTS MUST WORK FOR UAE
+
+Products shown in Product Feed should be:
+
+Available in the UAE
+
+OR
+
+Confirmed to ship to the UAE
+
+Prioritize useful products such as:
+
+* Gadgets
+* Accessories
+* Home products
+* Car accessories
+* Electronics accessories
+* Lifestyle products
+* Trending useful products
+* Interesting products
+* Products with reasonable resale potential
+
+Do not show something simply because it is popular internationally if it cannot actually be ordered for UAE delivery.
+
+⸻
+
+5. REAL PRODUCT VIDEOS
+
+Each feed item should contain a real product video where the connected source legally/technically permits FirstPick to display it.
+
+The video should play inside FirstPick.
+
+Do not unnecessarily redirect the admin away from FirstPick simply to watch the video.
+
+The feed itself should be the viewing experience.
+
+IMPORTANT:
+
+Do not scrape, hotlink, bypass restrictions, or embed TikTok content in a way that violates the source platform’s rules.
+
+If TikTok or another platform requires an approved API/embed flow, use the supported method.
+
+If a source does not permit its video to be played directly inside FirstPick, do not secretly download/rehost it.
+
+Use legitimate integrations.
+
+⸻
+
+6. FEED UI
+
+The video should occupy most of the screen.
+
+Use a familiar short-video layout.
+
+At the bottom show:
+
+Product Name
+
+Price
+
+Ships to UAE ✓
+
+Source
+
+Keep information readable but minimal.
+
+On the side show actions such as:
+
+♡ Save
+
+＋ Add This
+
+🔗 Product
+
+Use FirstPick’s own icons and branding.
+
+Do not directly clone TikTok logos/assets.
+
+⸻
+
+7. SAVE PRODUCT
+
+Pressing:
+
+Save
+
+should save the real product into:
+
+Saved Products
+
+Save:
+
+* Product name
+* Source
+* Original URL
+* Source price
+* Delivery information
+* Product media reference
+* Date saved
+* Availability
+* Admin who saved it
+
+Show a smooth confirmation:
+
+Saved to FirstPick
+
+Saved products must persist across refreshes, sessions, and devices.
+
+⸻
+
+8. ADD THIS
+
+Pressing:
+
+Add This
+
+should open a review screen.
+
+Show:
+
+Product
+
+Original Price
+
+Original Delivery
+
+Suggested FirstPick Profit
+
+FirstPick Selling Price
+
+FirstPick Customer Delivery
+
+Original Product Link
+
+Allow the admin to review/edit before confirming.
+
+⸻
+
+9. ADDED PRODUCTS FROM FEED
+
+Once confirmed, save the product in:
+
+Added Products From Feed
+
+Store the real original product URL.
+
+The admin should always have:
+
+Open Source Product
+
+The original URL must actually work.
+
+Do not create fake URLs.
+
+⸻
+
+10. REMOVE ADDED PRODUCT FROM FEED
+
+Once an admin successfully adds a product:
+
+DO NOT SHOW THAT PRODUCT TO THAT ADMIN AGAIN.
+
+It should remain filtered after:
+
+* Refresh
+* Closing FirstPick
+* Returning later
+* Logging out/in
+* Switching devices
+
+Persist this on the backend.
+
+⸻
+
+11. AUTOMATIC PRICING
+
+Where legitimate source pricing information exists, suggest a FirstPick profit between:
+
+AED 20 – AED 100
+
+Use configurable pricing rules.
+
+Do not randomly choose the markup.
+
+The admin can manually change it.
+
+⸻
+
+12. DELIVERY
+
+When actual source delivery information exists:
+
+FirstPick Customer Delivery = Source Delivery + AED 25
+
+If the source delivery cost cannot be reliably determined:
+
+Delivery price needs confirmation
+
+Do NOT invent it.
+
+⸻
+
+13. PRODUCT FEED PERFORMANCE
+
+The feed should eventually support hundreds of legitimate product videos per day.
+
+Do NOT load hundreds simultaneously.
+
+Use:
+
+* Infinite scrolling
+* Cursor pagination
+* Lazy loading
+* Nearby-video preloading
+* Video resource cleanup
+* Caching
+* Duplicate detection
+* Added-product filtering
+* Optimized thumbnails
+* Efficient database queries
+
+The feed should remain smooth after lots of scrolling.
+
+⸻
+
+14. CALLING IS NOT SHOWING — FIX THIS
+
+Calling currently does not properly appear/work.
+
+I WANT TO ACTUALLY BE ABLE TO CALL OTHER ADMINS.
+
+Do not leave Calling as hidden backend functionality.
+
+Make Calling clearly accessible from the Admin interface.
+
+Add visible:
+
+Voice Call
+
+and
+
+Video Call
+
+buttons where appropriate.
+
+For example, when opening another admin’s private chat/profile, I should clearly see:
+
+📞 Voice Call
+
+🎥 Video Call
+
+The existing dedicated Calls section should also actually work.
+
+⸻
+
+15. INCOMING CALLS MUST SHOW
+
+When another admin calls me, I need to actually SEE the incoming call.
+
+Display a proper incoming-call interface over the Admin Dashboard.
+
+Example:
+
+Ahmed
+
+Incoming Video Call
+
+Decline
+
+Accept
+
+For voice:
+
+Ahmed
+
+Incoming Voice Call
+
+Decline
+
+Accept
+
+Do not require me to already be inside the Calls page to receive it.
+
+⸻
+
+16. CALL OTHER ADMINS
+
+From another admin’s profile/private conversation, allow:
+
+Voice Call
+
+Video Call
+
+The recipient should immediately receive the incoming call through the real-time system.
+
+If using the Admin Group call feature, all appropriate admins should receive the group-call invitation.
+
+⸻
+
+17. FIX ACTUAL AUDIO
+
+Calling is NOT considered fixed merely because a call screen appears.
+
+Both admins must actually be able to hear each other.
+
+Fix:
+
+* Microphone permissions
+* Microphone tracks
+* Remote audio
+* Audio output
+* Mute
+* Unmute
+* Peer connection
+* Signaling
+* Reconnection
+* Media cleanup
+* Browser autoplay/audio restrictions
+
+Test using two actual separate admin sessions/devices.
+
+⸻
+
+18. FIX ACTUAL VIDEO
+
+Video calls must actually transmit camera video.
+
+Fix:
+
+* Camera permission
+* Local preview
+* Remote camera
+* Camera tracks
+* Camera on/off
+* Front/back camera switching where supported
+* Video connection
+* Cleanup
+
+Both admins must genuinely see each other.
+
+⸻
+
+19. CALL UI
+
+Make Calling significantly more polished.
+
+States:
+
+Calling…
+
+Ringing…
+
+Connecting…
+
+Connected
+
+Poor Connection
+
+Reconnecting…
+
+Declined
+
+No Answer
+
+Call Ended
+
+Missed Call
+
+Call Failed
+
+Use premium FirstPick animations.
+
+Include:
+
+* Ringing avatar animation
+* Smooth incoming-call animation
+* Glass call controls
+* Animated mute
+* Animated camera toggle
+* Call timer
+* Smooth video transitions
+* Smooth end-call animation
+
+⸻
+
+20. CALL INFRASTRUCTURE
+
+Use proper real-time calling technology such as WebRTC or the project’s existing reliable calling architecture.
+
+Correctly handle:
+
+* Signaling
+* Offer/answer
+* ICE candidates
+* STUN
+* TURN where required
+* NAT traversal
+* Audio tracks
+* Video tracks
+* Connection state
+* Reconnection
+* Call teardown
+
+Do not expose secret credentials in frontend code.
+
+Do not fake calls.
+
+⸻
+
+21. MANAGE DEVICES — MAKE IT ACTUALLY WORK
+
+The existing:
+
+Manage Devices
+
+feature must actually function.
+
+Do NOT leave it as a visual page containing fake devices or buttons that do nothing.
+
+Manage Devices should use real authenticated session/device information.
+
+⸻
+
+22. CURRENT DEVICE
+
+Show:
+
+This Device
+
+Example:
+
+iPad
+Active now
+Current device
+
+or:
+
+iPhone
+Active now
+Current device
+
+Determine device type using appropriate session/client information.
+
+Do not pretend to know a device model if the browser does not reliably provide that information.
+
+⸻
+
+23. OTHER LOGGED-IN DEVICES
+
+If the same admin account is genuinely authenticated on another device/session, show that session.
+
+Example:
+
+iPhone
+Active 8 minutes ago
+
+Desktop Browser
+Active yesterday
+
+Only show real sessions.
+
+Never generate fake devices to make the page look populated.
+
+⸻
+
+24. LOG OUT DEVICE
+
+Each other active session should have:
+
+Log Out Device
+
+Pressing it should actually revoke that session.
+
+That device should no longer be authenticated once the revocation takes effect.
+
+Also provide:
+
+Log Out All Other Devices
+
+Require confirmation before performing this action.
+
+Do not log out the current device accidentally.
+
+⸻
+
+25. SECURE DEVICE SESSIONS
+
+Use the existing authentication provider/session infrastructure wherever possible.
+
+Never store:
+
+* Raw passwords
+* Authentication secrets
+* Full session tokens
+
+inside an insecure frontend database or UI.
+
+Manage Devices should show safe metadata only.
+
+⸻
+
+26. REMEMBER ADMIN LOGIN
+
+When an admin logs in successfully, keep that device securely signed into that admin account according to the existing authentication/session rules.
+
+The admin should not need to log in again every time they refresh or reopen FirstPick.
+
+Logging out should actually terminate that session.
+
+Revoking a device from Manage Devices should actually terminate that device’s session.
+
+⸻
+
+27. TEST MANAGE DEVICES
+
+Test with at least two separate sessions/devices.
+
+Example:
+
+Device A → Admin logged in
+
+Device B → Same Admin logged in
+
+Manage Devices should show both real sessions.
+
+From Device A:
+
+Log Out Device B
+
+Device B should subsequently lose access to protected Admin functionality and require authentication again.
+
+Do not mark this feature complete unless session revocation actually works.
+
+⸻
+
+28. RESPONSIVE DESIGN
+
+Test Product Feed, Calling, and Manage Devices on:
+
+* Small phones
+* Large phones
+* iPhone
+* Android
+* iPad
+* Tablet landscape
+* Laptop
+* Desktop
+* Large monitor
+
+Nothing should overflow or become inaccessible.
+
+Calls especially must adapt correctly between portrait and landscape.
+
+⸻
+
+29. CONTINUE EXISTING WORK
+
+Continue any relevant unfinished FirstPick tasks from previous development.
+
+Do not erase or restart completed work unnecessarily.
+
+Preserve:
+
+* Accounts
+* Orders
+* Products
+* Customers
+* Payments
+* Admin accounts
+* Chats
+* Notifications
+* Existing working systems
+
+⸻
+
+30. FINAL TEST
+
+Before considering this complete, verify:
+
+Product Feed
+
+Real products only ✓
+
+Real permitted product videos ✓
+
+UAE availability/shipping ✓
+
+No FashionCage ✓
+
+No Steoa Streetwear ✓
+
+No fake suppliers ✓
+
+No fake prices ✓
+
+Save works ✓
+
+Add This works ✓
+
+Original link works ✓
+
+Added Products From Feed works ✓
+
+Added product disappears from feed ✓
+
+Feed scrolls smoothly ✓
+
+Calling
+
+Call button actually visible ✓
+
+Voice Call works ✓
+
+Video Call works ✓
+
+Incoming call actually appears ✓
+
+Accept works ✓
+
+Decline works ✓
+
+Microphone actually transmits audio ✓
+
+Remote admin can actually hear audio ✓
+
+Camera actually transmits video ✓
+
+Remote admin can actually see video ✓
+
+Mute works ✓
+
+Camera toggle works ✓
+
+Call ending works ✓
+
+Manage Devices
+
+Current session is real ✓
+
+Other sessions are real ✓
+
+No fake device entries ✓
+
+Persistent login works ✓
+
+Log Out Device actually revokes session ✓
+
+Log Out All Other Devices works ✓
+
+Current device remains logged in ✓
+
+⸻
+
+FINAL REQUIREMENT
+
+Do not create fake functionality simply to make the interface appear finished.
+
+The Product Feed must use legitimate real products available in or deliverable to the UAE.
+
+Do not use FashionCage, Steoa Streetwear, or other placeholder/demo supplier content.
+
+The feed should feel like a premium TikTok-style product discovery experience:
+
+Watch → Scroll → Watch → Save → Add This → Continue scrolling.
+
+Calling must be visible and genuinely functional. I need to be able to press Voice Call or Video Call, have another admin receive the call, and actually communicate using microphone and camera.
+
+Manage Devices must also be real. It must represent actual authenticated sessions and allow sessions to be revoked.
+
+Do not mark any of these features complete just because the interface exists.
+
+The underlying functionality must actually work.

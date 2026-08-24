@@ -26,6 +26,18 @@ function extractRows<T>(result: unknown): T[] {
   return ((result as { rows?: T[] }).rows ?? []);
 }
 
+function describeDevice(userAgent: string | null): string {
+  const value = (userAgent ?? "").toLowerCase();
+  if (/ipad/.test(value)) return "iPad browser";
+  if (/iphone|ipod/.test(value)) return "iPhone browser";
+  if (/android/.test(value) && /mobile/.test(value)) return "Android phone browser";
+  if (/android/.test(value)) return "Android tablet browser";
+  if (/macintosh|mac os/.test(value)) return "Mac browser";
+  if (/windows/.test(value)) return "Windows browser";
+  if (/linux|cros/.test(value)) return "Desktop browser";
+  return "Unknown browser";
+}
+
 router.post("/auth/login", async (req, res) => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) {
@@ -139,7 +151,7 @@ router.get("/auth/admin/sessions", requireAdmin, async (req, res) => {
     : null;
   res.json(rows.map((row) => ({
     id: row.id,
-    device: row.user_agent?.split(" ")[0] || "Unknown browser",
+    device: describeDevice(row.user_agent),
     userAgent: row.user_agent,
     ipAddress: row.ip_address,
     lastSeenAt: row.last_seen_at,

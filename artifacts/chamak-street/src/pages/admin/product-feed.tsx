@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bookmark, BookmarkCheck, ChevronDown, ExternalLink, Loader2, PackageOpen, RefreshCw, ShoppingBag, Sparkles } from "lucide-react";
+import { Bookmark, BookmarkCheck, ChevronDown, ExternalLink, Loader2, PackageOpen, Plus, RefreshCw, ShoppingBag, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { parseProductMedia } from "@/lib/product-media";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const SOURCES = [
-  { value: "", label: "All imported" },
-  { value: "fashioncage", label: "Fashioncage" },
+  { value: "", label: "Approved sources" },
   { value: "stylescape", label: "Stylescape" },
   { value: "stealstreetwear", label: "Steal Streetwear" },
 ];
@@ -25,24 +24,33 @@ type FeedItem = {
   stock: number;
   importSource: string | null;
   externalId: string | null;
+  sourceUrl: string | null;
   hidden: boolean;
   collection: string | null;
   categoryName: string | null;
   createdAt: string;
   savedAt: string | null;
+  addedAt: string | null;
   state: "hidden" | "available";
 };
 
 type FeedResponse = { items: FeedItem[]; nextCursor: number | null; hasMore: boolean };
 
-function ProductMedia({ item }: { item: FeedItem }) {
+function ProductMedia({ item, active }: { item: FeedItem; active: boolean }) {
   const media = parseProductMedia(item.imageUrls || item.imageUrl);
   const primary = media[0];
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (active) video.play().catch(() => {});
+    else video.pause();
+  }, [active]);
   if (!primary) {
     return <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(255,102,0,0.28),transparent_35%),linear-gradient(135deg,#16131a,#050507)]" />;
   }
   if (primary.type === "video") {
-    return <video src={primary.url} className="absolute inset-0 w-full h-full object-cover" muted loop playsInline preload="metadata" />;
+    return <video ref={videoRef} src={primary.url} className="absolute inset-0 w-full h-full object-cover" muted loop playsInline preload={active ? "auto" : "metadata"} />;
   }
   return <img src={primary.url} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />;
 }
@@ -51,22 +59,35 @@ export default function AdminProductFeed() {
   const { toast } = useToast();
   const [source, setSource] = useState("");
   const [savedOnly, setSavedOnly] = useState(false);
+  const [addedOnly, setAddedOnly] = useState(false);
   const [items, setItems] = useState<FeedItem[]>([]);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [savingId, setSavingId] = useState<number | null>(null);
+  const [reviewItem, setReviewItem] = useState<FeedItem | null>(null);
+  const [profit, setProfit] = useState("20");
+  const [sellingPrice, setSellingPrice] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [activeId, setActiveId] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const articleRefs = useRef<Record<number, HTMLElement | null>>({});
 
   const load = useCallback(async (reset: boolean) => {
     const cursor = reset ? null : nextCursor;
     if (!reset && (!cursor || loadingMore)) return;
-    reset ? setLoading(true) : setLoadingMore(true);
+    if (reset) {
+      setLoading(true);
+      setActiveId(null);
+    } else {
+      setLoadingMore(true);
+    }
     try {
       const params = new URLSearchParams({ limit: "8" });
       if (source) params.set("source", source);
       if (savedOnly) params.set("saved", "true");
+      if (addedOnly) params.set("added", "true");
       if (cursor) params.set("cursor", String(cursor));
       const res = await fetch(`${BASE}/api/admin/product-feed?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Could not load imported products");
@@ -80,14 +101,18 @@ export default function AdminProductFeed() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [source, savedOnly, nextCursor, loadingMore, toast]);
+  }, [source, savedOnly, addedOnly, nextCursor, loadingMore, toast]);
 
   useEffect(() => {
     void load(true);
     scrollRef.current?.scrollTo({ top: 0 });
   // A fresh request is intentional when either server-side filter changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source, savedOnly]);
+  }, [source, savedOnly, addedOnly]);
+
+  useEffect(() => {
+    if (items.length && !activeId) setActiveId(items[0].id);
+  }, [items, activeId]);
 
   const toggleSaved = async (item: FeedItem) => {
     setSavingId(item.id);
@@ -113,8 +138,53 @@ export default function AdminProductFeed() {
 
   const onScroll = () => {
     const node = scrollRef.current;
-    if (!node || !hasMore || loadingMore) return;
-    if (node.scrollTop + node.clientHeight >= node.scrollHeight - 840) void load(false);
+    if (!node) return;
+    const center = node.getBoundingClientRect().top + node.clientHeight / 2;
+    let nearest: { id: number; distance: number } | null = null;
+    for (const item of items) {
+      const article = articleRefs.current[item.id];
+      if (!article) continue;
+      const rect = article.getBoundingClientRect();
+      const distance = Math.abs(rect.top + rect.height / 2 - center);
+      if (!nearest || distance < nearest.distance) nearest = { id: item.id, distance };
+    }
+    if (nearest) setActiveId(nearest.id);
+    if (hasMore && !loadingMore && node.scrollTop + node.clientHeight >= node.scrollHeight - 840) void load(false);
+  };
+
+  const openReview = (item: FeedItem) => {
+    if (!item.sourceUrl || item.supplierPrice === null) {
+      toast({ title: "Source details needed", description: "Sync this source again once its verified product URL and source price are available.", variant: "destructive" });
+      return;
+    }
+    const suggested = Math.max(20, Math.min(100, Math.round((item.price - item.supplierPrice) * 100) / 100));
+    setProfit(String(suggested));
+    setSellingPrice((item.supplierPrice + suggested).toFixed(2));
+    setReviewItem(item);
+  };
+
+  const addFromReview = async () => {
+    if (!reviewItem) return;
+    setAdding(true);
+    try {
+      const res = await fetch(`${BASE}/api/admin/product-feed/${reviewItem.id}/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ suggestedProfit: Number(profit), sellingPrice: Number(sellingPrice) }),
+      });
+      const data = await res.json() as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Could not add product from feed");
+      setItems((current) => addedOnly
+        ? current.map((item) => item.id === reviewItem.id ? { ...item, addedAt: new Date().toISOString() } : item)
+        : current.filter((item) => item.id !== reviewItem.id));
+      setReviewItem(null);
+      toast({ title: "Added to FirstPick review", description: "The original source URL and pricing snapshot were saved. Delivery still needs confirmation." });
+    } catch (error) {
+      toast({ title: "Could not add product", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+    } finally {
+      setAdding(false);
+    }
   };
 
   return (
@@ -142,11 +212,18 @@ export default function AdminProductFeed() {
             </button>
           ))}
           <button
-            onClick={() => setSavedOnly((current) => !current)}
+            onClick={() => { setSavedOnly((current) => !current); setAddedOnly(false); }}
             className={`shrink-0 ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-colors ${savedOnly ? "bg-amber-400 text-black" : "bg-white/5 border border-white/10 text-white/55 hover:text-white"}`}
             style={{ touchAction: "manipulation" }}
           >
             <Bookmark className="h-3 w-3" /> Saved
+          </button>
+          <button
+            onClick={() => { setAddedOnly((current) => !current); setSavedOnly(false); }}
+            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-colors ${addedOnly ? "bg-emerald-400 text-black" : "bg-white/5 border border-white/10 text-white/55 hover:text-white"}`}
+            style={{ touchAction: "manipulation" }}
+          >
+            <ShoppingBag className="h-3 w-3" /> Added
           </button>
         </div>
       </header>
@@ -168,11 +245,12 @@ export default function AdminProductFeed() {
             {items.map((item) => (
               <motion.article
                 key={item.id}
+                ref={(node) => { articleRefs.current[item.id] = node; }}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="snap-start relative min-h-[calc(100dvh-158px)] sm:min-h-[650px] flex items-end overflow-hidden border-b border-white/10"
               >
-                <ProductMedia item={item} />
+                <ProductMedia item={item} active={activeId === item.id} />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.2)_0%,rgba(0,0,0,0.04)_34%,rgba(0,0,0,0.94)_100%)]" />
                 <div className="relative z-10 w-full px-4 sm:px-8 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-28">
                   <div className="mx-auto max-w-3xl">
@@ -180,6 +258,9 @@ export default function AdminProductFeed() {
                       <span className="rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-widest bg-black/45 border border-white/20 backdrop-blur-xl">{item.importSource ?? "Imported"}</span>
                       <span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border backdrop-blur-xl ${item.hidden ? "bg-red-500/20 border-red-300/30 text-red-100" : "bg-emerald-500/15 border-emerald-300/25 text-emerald-100"}`}>
                         {item.hidden ? "Hidden in catalog" : "Available in catalog"}
+                      </span>
+                      <span className="rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border border-amber-300/25 bg-amber-400/10 text-amber-100 backdrop-blur-xl">
+                        UAE delivery needs confirmation
                       </span>
                       {item.categoryName && <span className="text-[10px] font-bold text-white/60">{item.categoryName}</span>}
                     </div>
@@ -205,12 +286,19 @@ export default function AdminProductFeed() {
                       <div className="rounded-2xl p-3 border border-white/10 bg-black/35 backdrop-blur-2xl"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">External ID</p><p className="mt-1 font-mono font-black truncate">{item.externalId ?? "Not provided"}</p></div>
                     </div>
                     <div className="mt-4 flex gap-2 flex-wrap">
+                      <Button size="sm" onClick={() => openReview(item)} disabled={!item.sourceUrl || item.supplierPrice === null} className="bg-white text-black hover:bg-white/85 font-black">
+                        <Plus className="h-3.5 w-3.5 mr-1.5" /> Add This
+                      </Button>
                       <Link href="/admin/products">
                         <Button size="sm" className="fire-gradient border-none font-black"><ShoppingBag className="h-3.5 w-3.5 mr-1.5" /> Manage catalog</Button>
                       </Link>
-                      <Link href={`/product/${item.id}`}>
-                        <Button size="sm" variant="outline" className="border-white/20 bg-black/30 hover:bg-white/10"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Customer view</Button>
-                      </Link>
+                      {item.sourceUrl ? (
+                        <a href={item.sourceUrl} target="_blank" rel="noreferrer">
+                          <Button size="sm" variant="outline" className="border-white/20 bg-black/30 hover:bg-white/10"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Open source product</Button>
+                        </a>
+                      ) : (
+                        <Button size="sm" variant="outline" disabled className="border-white/20 bg-black/30"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Source link unavailable</Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -221,6 +309,29 @@ export default function AdminProductFeed() {
         {loadingMore && <div className="py-7 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>}
         {!hasMore && items.length > 0 && <div className="py-5 text-center text-[10px] uppercase tracking-[0.22em] font-black text-white/25"><ChevronDown className="inline h-3 w-3 mr-1" /> End of verified feed</div>}
       </div>
+      <AnimatePresence>
+        {reviewItem && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 p-0 sm:p-6" onMouseDown={() => !adding && setReviewItem(null)}>
+            <motion.div initial={{ y: 28, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 28, opacity: 0 }} onMouseDown={(event) => event.stopPropagation()} className="w-full sm:max-w-lg max-h-[92dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl border border-white/15 p-5 sm:p-6" style={{ background: "rgba(12,12,16,0.97)", backdropFilter: "blur(32px)", paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
+              <div className="flex items-start justify-between gap-4">
+                <div><p className="text-[10px] font-black tracking-[0.2em] uppercase text-primary">Feed review</p><h2 className="mt-1 text-xl font-black">{reviewItem.name}</h2></div>
+                <button onClick={() => setReviewItem(null)} disabled={adding} className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center"><X className="h-4 w-4" /></button>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-2 text-sm">
+                <div className="rounded-2xl p-3 bg-white/5 border border-white/10"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">Original price</p><p className="mt-1 font-mono font-bold">AED {reviewItem.supplierPrice?.toFixed(2)}</p></div>
+                <div className="rounded-2xl p-3 bg-white/5 border border-white/10"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">Original delivery</p><p className="mt-1 font-bold text-amber-300">Needs confirmation</p></div>
+              </div>
+              <label className="mt-4 block text-[10px] font-black uppercase tracking-widest text-white/45">Suggested FirstPick profit (AED 20–100)</label>
+              <input type="number" min="20" max="100" step="1" value={profit} onChange={(event) => setProfit(event.target.value)} className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-3 font-mono text-sm outline-none focus:border-primary" />
+              <label className="mt-4 block text-[10px] font-black uppercase tracking-widest text-white/45">FirstPick selling price</label>
+              <input type="number" min="0.01" step="0.01" value={sellingPrice} onChange={(event) => setSellingPrice(event.target.value)} className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-3 font-mono text-sm outline-none focus:border-primary" />
+              <a href={reviewItem.sourceUrl ?? "#"} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"><ExternalLink className="h-3.5 w-3.5" /> Open verified source product</a>
+              <p className="mt-3 text-xs leading-relaxed text-white/50">Adding saves this real source URL and price snapshot for your admin account. It is removed from your default feed; customer delivery is never guessed.</p>
+              <Button onClick={() => void addFromReview()} disabled={adding || Number(profit) < 20 || Number(profit) > 100 || Number(sellingPrice) <= 0} className="mt-5 w-full fire-gradient border-none font-black">{adding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />} Confirm Add This</Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

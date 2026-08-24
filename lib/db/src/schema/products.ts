@@ -22,6 +22,7 @@ export const productsTable = pgTable("products", {
   supplierPrice: numeric("supplier_price", { precision: 10, scale: 2 }),
   importSource: text("import_source"),
   externalId: text("external_id"),
+  sourceUrl: text("source_url"),
   sellingFast: boolean("selling_fast").notNull().default(false),
   spotlight: boolean("spotlight").notNull().default(false),
   hidden: boolean("hidden").notNull().default(false),

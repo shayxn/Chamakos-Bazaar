@@ -37,6 +37,7 @@ type ShopifyImage = {
 
 type ShopifyProduct = {
   id: number;
+  handle?: string;
   title: string;
   body_html: string;
   product_type: string;
@@ -113,6 +114,7 @@ function parseShopifyProduct(p: ShopifyProduct) {
 
   return {
     externalId: String(p.id),
+    handle: p.handle ?? null,
     name: p.title,
     description,
     supplierPrice,
@@ -179,6 +181,7 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
       const base = parseShopifyProduct(p);
       return {
         ...base,
+        sourceUrl: base.handle ? `${baseUrl}/products/${base.handle}` : null,
         imageUrl: sanitizeProductImage(base.name, base.imageUrl, supplierName),
       };
     });
@@ -197,14 +200,14 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
     }
 
     type InsertRow = {
-      name: string; description: string | null; price: string; supplierPrice: string;
+      name: string; description: string | null; price: string; supplierPrice: string; sourceUrl: string | null;
       importSource: string; externalId: string | null; sizes: string | null; colors: string | null;
       stock: number; imageUrl: string | null; imageUrls: string | null;
       categoryId: number | null; featured: boolean; rep: boolean; isPreOrder: boolean;
     };
     type UpdateRow = { id: number; data: {
       name: string; sizes: string | null; colors: string | null; stock: number;
-      imageUrl: string | null; imageUrls: string | null; supplierPrice: string; categoryId: number | null;
+      imageUrl: string | null; imageUrls: string | null; supplierPrice: string; sourceUrl: string | null; categoryId: number | null;
     }};
 
     const toInsert: InsertRow[] = [];
@@ -228,6 +231,7 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
             imageUrl: parsed.imageUrl,
             imageUrls: parsed.imageUrls,
             supplierPrice: String(parsed.supplierPrice),
+            sourceUrl: parsed.sourceUrl,
             categoryId,
           },
         });
@@ -238,6 +242,7 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
           description: parsed.description,
           price: String(parsed.sellingPrice),
           supplierPrice: String(parsed.supplierPrice),
+          sourceUrl: parsed.sourceUrl,
           importSource: supplierName,
           externalId: parsed.externalId,
           sizes: parsed.sizes,
@@ -299,7 +304,7 @@ router.get("/import/fashioncage/preview", requireAdmin, async (_req, res) => {
     const products = await fetchShopifyProducts(SUPPLIERS.fashioncage);
     const preview = products.slice(0, 100).map((p) => {
       const base = parseShopifyProduct(p);
-      return { ...base, imageUrl: sanitizeProductImage(base.name, base.imageUrl) };
+      return { ...base, sourceUrl: base.handle ? `${SUPPLIERS.fashioncage}/products/${base.handle}` : null, imageUrl: sanitizeProductImage(base.name, base.imageUrl) };
     });
     res.json({ count: products.length, products: preview });
   } catch {
@@ -319,7 +324,7 @@ router.get("/import/stylescape/preview", requireAdmin, async (_req, res) => {
     const products = await fetchShopifyProducts(SUPPLIERS.stylescape);
     const preview = products.slice(0, 100).map((p) => {
       const base = parseShopifyProduct(p);
-      return { ...base, imageUrl: sanitizeProductImage(base.name, base.imageUrl, "stylescape") };
+      return { ...base, sourceUrl: base.handle ? `${SUPPLIERS.stylescape}/products/${base.handle}` : null, imageUrl: sanitizeProductImage(base.name, base.imageUrl, "stylescape") };
     });
     res.json({ count: products.length, products: preview });
   } catch {
@@ -339,7 +344,7 @@ router.get("/import/stealstreetwear/preview", requireAdmin, async (_req, res) =>
     const products = await fetchShopifyProducts(SUPPLIERS.stealstreetwear);
     const preview = products.slice(0, 100).map((p) => {
       const base = parseShopifyProduct(p);
-      return { ...base, imageUrl: sanitizeProductImage(base.name, base.imageUrl, "stealstreetwear") };
+      return { ...base, sourceUrl: base.handle ? `${SUPPLIERS.stealstreetwear}/products/${base.handle}` : null, imageUrl: sanitizeProductImage(base.name, base.imageUrl, "stealstreetwear") };
     });
     res.json({ count: products.length, products: preview });
   } catch {

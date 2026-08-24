@@ -1,0 +1,643 @@
+FIRSTPICK — FIX EVERY BUG, LAG ISSUE, DEVICE SIZE & CHAT EXIT PROBLEM
+
+Continue working on the existing FirstPick website and Admin Dashboard.
+
+Do NOT rebuild the project from scratch.
+
+Keep all working features, data, accounts, orders, products, payments, chats, calls, notifications, Product Feed, Saved Products, Added Products From Feed, Manage Devices, Breaks, and admin systems.
+
+This task is focused on making FirstPick feel extremely stable, smooth, responsive, and polished.
+
+⸻
+
+1. FIX EVERY MAJOR BUG
+
+Do a full audit of the entire FirstPick website.
+
+Find and fix every important bug you can identify.
+
+Check for:
+
+* Broken buttons
+* Buttons that do nothing
+* Duplicate actions
+* Duplicate messages
+* Pages that fail to load
+* Components that disappear
+* Incorrect loading states
+* Bad redirects
+* Broken navigation
+* Broken forms
+* Broken modals
+* Broken animations
+* Broken calls
+* Broken chats
+* Broken Product Feed behavior
+* Broken Manage Devices behavior
+* Incorrect notifications
+* Incorrect admin presence
+* Console errors
+* Failed network requests
+* Database errors
+* Race conditions
+* Realtime subscription problems
+
+Do not simply hide errors.
+
+Fix the underlying cause.
+
+⸻
+
+2. FIX ALL MAJOR LAG
+
+Find and fix anything causing noticeable lag.
+
+Check:
+
+* Slow page loading
+* Slow route changes
+* Laggy scrolling
+* Laggy Product Feed
+* Laggy chat
+* Laggy typing
+* Laggy call UI
+* Camera lag
+* Video lag
+* Notification lag
+* Delayed button presses
+* Slow modals
+* Slow search
+* Heavy animations
+* Large images
+* Unoptimized videos
+* Excessive database queries
+* Repeated API calls
+* Unnecessary re-renders
+* Memory leaks
+* Realtime listeners not being cleaned up
+* Background processes that keep running when not needed
+
+The website should feel immediate.
+
+⸻
+
+3. PERFORMANCE TARGET
+
+Aim for a smooth experience on supported devices.
+
+Prioritize:
+
+* Fast interaction response
+* Smooth scrolling
+* Stable animations
+* Minimal layout shifts
+* Fast chat updates
+* Fast page transitions
+* Efficient Product Feed video loading
+* Reliable calling
+* Low memory usage
+* Efficient database usage
+
+Do not sacrifice functionality just to improve benchmark scores.
+
+⸻
+
+4. TEST EVERY DEVICE CATEGORY
+
+Perform a complete responsive design audit.
+
+Do not only test one iPhone and one laptop.
+
+Check a wide range of realistic screen sizes and device classes.
+
+⸻
+
+5. IPAD TESTING
+
+Test layouts equivalent to major iPad generations and form factors, including:
+
+* Older standard iPads
+* Newer standard iPads
+* iPad mini sizes
+* iPad Air sizes
+* 11-inch iPad Pro sizes
+* 12.9-inch iPad Pro sizes
+* 13-inch iPad Pro sizes
+* Portrait
+* Landscape
+* Split-screen widths where supported
+
+You do not need physical access to literally every manufactured iPad.
+
+Use responsive viewport/device simulation covering the major dimensions and generations.
+
+Make sure everything fits correctly.
+
+⸻
+
+6. PHONE TESTING
+
+Test equivalent viewport sizes for:
+
+* Older small iPhones
+* Modern standard iPhones
+* iPhone Plus/Max sizes
+* Dynamic Island devices
+* Small Android phones
+* Standard Android phones
+* Large Android phones
+* Foldable-like narrow/wide layouts where reasonable
+
+Test both:
+
+Portrait
+
+and
+
+Landscape
+
+Nothing important should disappear off-screen.
+
+⸻
+
+7. COMPUTER TESTING
+
+Test the site across common computer sizes:
+
+* Small laptops
+* 13-inch laptops
+* 14-inch laptops
+* 15/16-inch laptops
+* Standard desktop monitors
+* Large desktop monitors
+* Ultra-wide monitors
+* Low-height browser windows
+* High-resolution screens
+
+Do not assume every computer uses the same resolution.
+
+⸻
+
+8. EVERYTHING MUST FIT
+
+Across every tested size, make sure:
+
+* Text fits
+* Buttons fit
+* Cards fit
+* Forms fit
+* Modals fit
+* Tables fit
+* Sidebars fit
+* Navigation fits
+* Product Feed fits
+* Chat fits
+* Call controls fit
+* Camera views fit
+* Manage Devices fits
+* Breaks fits
+* Notifications fit
+* Checkout fits
+* Product pages fit
+* Admin pages fit
+
+Prevent accidental horizontal overflow.
+
+If horizontal scrolling is intentionally required for a specific component, make it obvious and usable.
+
+⸻
+
+9. MOBILE SAFE AREAS
+
+Respect safe areas.
+
+Do not place important controls behind:
+
+* Notches
+* Dynamic Island
+* Home indicator
+* Browser bars
+* Rounded screen corners
+
+Use proper safe-area spacing.
+
+⸻
+
+10. KEYBOARD HANDLING
+
+When the on-screen keyboard opens on phones or tablets:
+
+* Chat input must remain visible
+* Send button must remain visible
+* Forms should not be covered
+* Modals should remain usable
+* Page should not jump badly
+* Chat should resize correctly
+
+Test this carefully.
+
+⸻
+
+11. CHAT — LET ME EXIT
+
+When I enter an admin chat, I need an obvious way to leave it.
+
+Add a clear:
+
+Back
+
+or
+
+Close Chat
+
+button.
+
+On mobile, it should take me back to the conversation list.
+
+On tablet/desktop, it should either:
+
+* Close the active conversation panel
+* Return to the chat list
+* Restore the previous layout
+
+Do not trap the admin inside a conversation.
+
+⸻
+
+12. CHAT EXIT BEHAVIOR
+
+Make chat navigation predictable.
+
+Example:
+
+Chats → Ahmed → Back → Chats
+
+or:
+
+Chats → FirstPick Admin Group → Back → Chats
+
+If a chat is opened from an admin profile, the Back button should return to the appropriate previous screen.
+
+Do not reset the entire Admin Dashboard just to leave a conversation.
+
+⸻
+
+13. SWIPE BACK WHERE APPROPRIATE
+
+On touch devices, support natural navigation where the framework safely allows it.
+
+For example:
+
+* Swipe back from private chat to chat list
+* Browser back should not break the app
+* Back navigation should preserve chat state where reasonable
+
+Do not interfere with native browser gestures unnecessarily.
+
+⸻
+
+14. CHAT LAYOUT RESPONSIVENESS
+
+On desktop:
+
+Use a clean split layout where appropriate:
+
+Conversation List | Active Chat
+
+On smaller tablets:
+
+Adapt intelligently.
+
+On phones:
+
+Show one screen at a time:
+
+Conversation List
+
+then
+
+Selected Chat
+
+with a clear Back button.
+
+Do not squeeze two unusable panels onto a small phone.
+
+⸻
+
+15. CHAT SCROLLING
+
+Make chat scrolling smooth.
+
+Fix:
+
+* Jumping to wrong message
+* Scroll position resetting
+* New messages forcing unwanted scroll
+* Keyboard opening and breaking scroll
+* Old-message loading lag
+* Duplicate rendering
+
+If the user is already near the bottom, new messages can keep them at the bottom.
+
+If they are reading older messages, do not aggressively yank them downward.
+
+⸻
+
+16. PRODUCT FEED RESPONSIVENESS
+
+The Product Feed must adapt perfectly to each device.
+
+On mobile:
+
+* Full-screen vertical feed
+* Controls reachable with one hand
+* No buttons behind safe areas
+* Text not cut off
+
+On iPad/tablet:
+
+* Video stays correctly proportioned
+* Controls do not look tiny
+* Landscape works
+
+On desktop:
+
+* Video area should not become absurdly wide
+* Keep readable controls
+* Mouse wheel and trackpad scrolling work smoothly
+
+⸻
+
+17. CALL SCREEN RESPONSIVENESS
+
+Calling must fit every device size.
+
+For voice calls:
+
+* Name visible
+* Controls visible
+* End button visible
+* Status visible
+
+For video calls:
+
+* Remote video fits correctly
+* Local preview does not cover important controls
+* Controls remain accessible
+* Portrait and landscape both work
+* Multi-admin layouts adapt correctly if group calling exists
+
+⸻
+
+18. MANAGE DEVICES RESPONSIVENESS
+
+Manage Devices should fit properly on all screens.
+
+On phone:
+
+Show clean stacked device cards.
+
+On tablet/desktop:
+
+Use additional horizontal space properly.
+
+Buttons such as:
+
+Log Out Device
+
+and
+
+Log Out All Other Devices
+
+must never be cut off.
+
+⸻
+
+19. MODALS
+
+Audit every modal.
+
+Make sure:
+
+* It fits inside viewport
+* It can scroll internally if necessary
+* Close button is always reachable
+* Keyboard does not hide content
+* Background does not scroll unexpectedly
+* Modal does not overflow off-screen
+
+⸻
+
+20. TABLES
+
+Admin tables often break on phones.
+
+For narrow screens, intelligently convert large tables into:
+
+* Cards
+* Stacked rows
+* Horizontally scrollable tables where appropriate
+
+Do not shrink text until it becomes unreadable.
+
+⸻
+
+21. LOADING PERFORMANCE
+
+Reduce unnecessary loading.
+
+Use:
+
+* Route-level caching
+* Lazy loading
+* Image compression
+* Video optimization
+* Skeleton states
+* Efficient API calls
+* Proper pagination
+* Request deduplication
+* Realtime subscription reuse
+
+Do not fetch the same data repeatedly without reason.
+
+⸻
+
+22. ANIMATION PERFORMANCE
+
+Keep FirstPick’s premium animations, but optimize them.
+
+Avoid:
+
+* Heavy blur everywhere
+* Huge shadow calculations
+* Animating expensive layout properties
+* Multiple simultaneous full-screen animations
+* Background animations on hidden pages
+
+Prefer performant transforms and opacity where appropriate.
+
+⸻
+
+23. REALTIME CLEANUP
+
+Audit realtime systems:
+
+* Chats
+* Typing
+* Presence
+* Calls
+* Notifications
+* Product Feed status
+
+Make sure subscriptions/listeners are properly cleaned up when pages close.
+
+Prevent duplicated listeners from causing:
+
+* Duplicate messages
+* Duplicate notifications
+* Duplicate call events
+* Memory leaks
+
+⸻
+
+24. ERROR STATES
+
+If something fails, show a useful error instead of freezing.
+
+Examples:
+
+Message failed to send
+
+Unable to load Product Feed
+
+Call connection failed
+
+Device session could not be revoked
+
+Include retry where appropriate.
+
+⸻
+
+25. FULL WEBSITE AUDIT
+
+Check every major part of FirstPick:
+
+* Homepage
+* Search
+* Product pages
+* Cart
+* Checkout
+* Account
+* Orders
+* FirstPick Plus
+* Admin Dashboard
+* Orders admin
+* Products admin
+* Product Feed
+* Saved Products
+* Added Products From Feed
+* Customers
+* Chats
+* Calls
+* Breaks
+* Notifications
+* Manage Devices
+* Settings
+
+Fix visible and functional problems.
+
+⸻
+
+26. DO NOT CLAIM TO TEST PHYSICAL DEVICES YOU DO NOT HAVE
+
+Use actual available test devices plus responsive/device emulation for broad coverage.
+
+Do not falsely claim:
+
+Tested on every iPad ever made
+
+if that was not literally done.
+
+Instead, cover the major viewport sizes and generations comprehensively and document what was actually tested.
+
+⸻
+
+27. FINAL DEVICE CHECK
+
+Before finishing, verify:
+
+Small phone
+
+Everything fits ✓
+
+Large phone
+
+Everything fits ✓
+
+Phone landscape
+
+Everything fits ✓
+
+iPad mini-size
+
+Everything fits ✓
+
+Standard iPad-size
+
+Everything fits ✓
+
+iPad Air-size
+
+Everything fits ✓
+
+iPad Pro-size
+
+Everything fits ✓
+
+Tablet landscape
+
+Everything fits ✓
+
+Small laptop
+
+Everything fits ✓
+
+Standard laptop
+
+Everything fits ✓
+
+Desktop
+
+Everything fits ✓
+
+Large monitor
+
+Everything fits ✓
+
+Ultra-wide
+
+Layout remains sensible ✓
+
+⸻
+
+FINAL REQUIREMENT
+
+Do a serious bug, lag, performance, responsive design, and navigation pass across FirstPick.
+
+Fix every major bug you can find.
+
+Fix major lag.
+
+Check all major device sizes and representative generations.
+
+Make sure the entire website fits correctly on phones, iPads/tablets, laptops, desktops, and large screens.
+
+Most importantly for Admin Chats:
+
+I must always be able to exit a chat.
+
+Add a clear and reliable Back/Close Chat flow.
+
+Do not leave me trapped inside a conversation.
+
+Do not call the task complete until FirstPick feels stable, fast, responsive, and usable across the major device sizes.
