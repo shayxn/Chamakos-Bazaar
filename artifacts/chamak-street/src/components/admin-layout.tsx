@@ -387,49 +387,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className={`${isChat ? "h-[100dvh] overflow-hidden" : "min-h-screen"} flex flex-col md:flex-row`} style={{ background: "transparent" }}>
-      {/* ── Notification pre-prompt modal ── */}
+      {/* ── Non-blocking notification prompt ── */}
       <AnimatePresence>
         {showNotifModal && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(10px)" }}
+            className="fixed inset-x-4 bottom-4 sm:left-auto sm:right-4 sm:w-[22rem] z-[50]"
+            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-sm rounded-2xl p-7 space-y-6 text-center"
+              className="w-full rounded-2xl p-4 space-y-4 text-left shadow-2xl"
               style={{ background: "rgba(10,10,10,0.98)", border: "1px solid rgba(255,102,0,0.22)" }}
             >
-              <motion.div
-                className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, #ff6600, #ffcc00)" }}
-                animate={{ scale: [1, 1.06, 1] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <BellRing className="h-8 w-8 text-white" />
-              </motion.div>
-              <div className="space-y-2">
-                <p className="font-black uppercase tracking-wider text-lg">Order Alerts</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Get notified instantly when a new order comes in — so you never miss a sale.
-                </p>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #ff6600, #ffcc00)" }}>
+                  <BellRing className="h-5 w-5 text-white" />
+                </div>
+                <div className="space-y-1 min-w-0">
+                  <p className="font-black uppercase tracking-wider text-sm">Order Alerts</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Get notified instantly when a new order comes in.
+                  </p>
+                </div>
               </div>
-              <div className="space-y-2.5">
+              <div className="flex items-center gap-2">
                 <Button
-                  className="w-full fire-gradient border-none font-black uppercase tracking-wider"
+                  size="sm"
+                  className="flex-1 fire-gradient border-none font-black uppercase tracking-wider"
                   onClick={async () => {
                     setShowNotifModal(false);
                     localStorage.setItem(NOTIF_KEY, "true");
                     const result = await subscribe();
                     if (result === "denied") setShowDeniedBanner(true);
                   }}
-                >
-                  Allow Notifications
-                </Button>
+                >Allow</Button>
                 <button
-                  className="w-full py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-white/60 transition-colors"
+                  className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-white/60 transition-colors"
                   onClick={() => { setShowNotifModal(false); localStorage.setItem(NOTIF_KEY, "true"); }}
                 >
                   No thanks

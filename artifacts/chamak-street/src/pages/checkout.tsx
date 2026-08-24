@@ -66,12 +66,13 @@ async function createZiinaCheckout(
   values: CheckoutValues,
   deliveryMethod: DeliveryMethod,
   tip: number,
+  couponCode?: string,
 ): Promise<string> {
   const res = await fetch(`${BASE}/api/payments/ziina-checkout`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...values, deliveryMethod, tip }),
+    body: JSON.stringify({ ...values, deliveryMethod, tip, couponCode }),
   });
   const result = await res.json() as { redirectUrl?: string; error?: string };
   if (!res.ok || !result.redirectUrl) throw new Error(result.error ?? "Ziina payment link could not be created");
@@ -206,7 +207,7 @@ export default function Checkout() {
     if (paymentMethod === "ziina") {
       setIsRedirectingToZiina(true);
       try {
-        const redirectUrl = await createZiinaCheckout(data, deliveryMethod, tipAmount);
+        const redirectUrl = await createZiinaCheckout(data, deliveryMethod, tipAmount, couponData?.code);
         queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
         window.location.assign(redirectUrl);
       } catch (err) {

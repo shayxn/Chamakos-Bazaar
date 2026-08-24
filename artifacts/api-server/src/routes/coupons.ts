@@ -146,8 +146,17 @@ export async function applyCoupon(code: string, orderTotal: number): Promise<{ d
     ? Math.round(orderTotal * val / 100 * 100) / 100
     : Math.min(val, orderTotal);
 
-  // Increment used_count
-  await db.execute(sql`UPDATE coupons SET used_count = used_count + 1 WHERE id = ${coupon.id}`);
+  // Consume atomically so concurrent checkouts cannot pass a finite usage limit.
+  const consumed = extractRows<{ id: number }>(
+    await db.execute(sql`
+      UPDATE coupons
+      SET used_count = used_count + 1
+      WHERE id = ${coupon.id}
+        AND (usage_limit IS NULL OR used_count < usage_limit)
+      RETURNING id
+    `),
+  );
+  if (!consumed[0]) return null;
 
   return { discountAmount, couponCode: coupon.code };
 }

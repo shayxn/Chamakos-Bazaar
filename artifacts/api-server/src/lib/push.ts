@@ -245,17 +245,17 @@ export async function saveAdminSubscription(endpoint: string, p256dh: string, au
   `);
 }
 
-async function getAdminSubscriptions(skipAdminId?: string): Promise<{ endpoint: string; p256dh: string; auth: string }[]> {
+async function getAdminSubscriptions(skipAdminId?: string): Promise<{ endpoint: string; p256dh: string; auth: string; admin_id?: string | null }[]> {
   await ensureAdminPushTable();
-  const result = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
+  const result = await db.execute<{ endpoint: string; p256dh: string; auth: string; admin_id?: string | null }>(
     skipAdminId
-      ? sql`SELECT endpoint, p256dh, auth FROM admin_push_subscriptions WHERE (admin_id != ${skipAdminId} OR admin_id IS NULL)`
-      : sql`SELECT endpoint, p256dh, auth FROM admin_push_subscriptions`
+      ? sql`SELECT endpoint, p256dh, auth, admin_id FROM admin_push_subscriptions WHERE (admin_id != ${skipAdminId} OR admin_id IS NULL)`
+      : sql`SELECT endpoint, p256dh, auth, admin_id FROM admin_push_subscriptions`
   );
   return Array.isArray(result) ? result : (result as any).rows ?? [];
 }
 
-export async function sendAdminCallPush(callerName: string, callerAdminId: string) {
+export async function sendAdminCallPush(callerName: string, callerAdminId: string, roomUrl = "/admin/chat") {
   try {
     if (!_initialized) await initPush();
     const subs = await getAdminSubscriptions(callerAdminId);
@@ -264,16 +264,16 @@ export async function sendAdminCallPush(callerName: string, callerAdminId: strin
       title: `📞 Incoming Call`,
       body: `${callerName} is calling you on FirstPick Admin`,
       type: "ADMIN_CALL",
-      data: { url: "/admin/chat" },
+        data: { url: roomUrl },
     });
     await deliver(subs, payload);
   } catch {}
 }
 
-export async function sendAdminChatPush(senderName: string, message: string, senderId: string) {
+export async function sendAdminChatPush(senderName: string, message: string, senderId: string, recipientAdminIds?: string[]) {
   try {
     if (!_initialized) await initPush();
-    const subs = await getAdminSubscriptions(senderId);
+    const subs = (await getAdminSubscriptions(senderId)).filter((sub: any) => !recipientAdminIds || recipientAdminIds.includes(sub.admin_id));
     if (!subs.length) return;
     const payload = JSON.stringify({
       title: `💬 ${senderName}`,

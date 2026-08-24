@@ -1,292 +1,161 @@
 import { Router } from "express";
-import { db } from "@workspace/db";
+import { db, usersTable } from "@workspace/db";
 import { requireAdmin } from "../lib/auth-middleware";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { initPush, saveAdminSubscription, sendAdminChatPush, sendAdminCallPush } from "../lib/push";
 
 const router = Router();
+type Admin = { id: string; name: string };
+type Client = { res: any; admin: Admin; deviceId: string };
+const clients = new Map<string, Client>(); // admin/device; an admin may have several browsers.
+const rooms = new Map<string, { initiator: string; members: Set<string>; createdAt: number }>();
+let migrated = false;
 
-// SSE registry
-const chatClients = new Map<string, { res: any; adminName: string; adminId: string }>();
-
-function broadcastChat(data: object) {
-  const chunk = `data: ${JSON.stringify(data)}\n\n`;
-  for (const [, client] of chatClients) {
-    try { client.res.write(chunk); client.res.flush?.(); } catch { chatClients.delete([...chatClients.entries()].find(([,v]) => v.res === client.res)?.[0] ?? ""); }
-  }
+async function me(req: any): Promise<Admin> {
+  const id = Number(req.session?.userId);
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+  if (!user?.isAdmin) throw new Error("No authenticated admin");
+  return { id: String(user.id), name: user.username };
 }
-
-export function getOnlineAdmins() {
-  return [...chatClients.values()].map(c => ({ adminId: c.adminId, adminName: c.adminName }));
-}
-
-// WebRTC signaling via SSE
-function sendToAdmin(adminId: string, data: object) {
-  const client = chatClients.get(adminId);
-  if (!client) return;
-  try { const chunk = `data: ${JSON.stringify(data)}\n\n`; client.res.write(chunk); client.res.flush?.(); } catch {}
-}
-
-let _chatMigrated = false;
-async function ensureChatTables() {
-  if (_chatMigrated) return; _chatMigrated = true;
+async function tables() {
+  if (migrated) return; migrated = true;
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS admin_chat_messages (
-      id SERIAL PRIMARY KEY,
-      sender_id TEXT NOT NULL,
-      sender_name TEXT NOT NULL,
-      message TEXT NOT NULL,
-      type TEXT NOT NULL DEFAULT 'text',
-      conversation_id TEXT NOT NULL DEFAULT 'group',
-      client_message_id TEXT,
-      metadata TEXT,
-      reactions TEXT NOT NULL DEFAULT '{}',
-      read_by TEXT NOT NULL DEFAULT '[]',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+      id SERIAL PRIMARY KEY, sender_id TEXT NOT NULL, sender_name TEXT NOT NULL, message TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'text', conversation_id TEXT NOT NULL DEFAULT 'group',
+      client_message_id TEXT, metadata TEXT, reactions TEXT NOT NULL DEFAULT '{}', read_by TEXT NOT NULL DEFAULT '[]',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
     CREATE TABLE IF NOT EXISTS admin_profiles (
       admin_id TEXT PRIMARY KEY,
       display_name TEXT NOT NULL,
       avatar_color TEXT NOT NULL DEFAULT '#ff6600',
       pfp_data TEXT,
       last_name_change TIMESTAMPTZ,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
     ALTER TABLE admin_profiles ADD COLUMN IF NOT EXISTS pfp_data TEXT;
     ALTER TABLE admin_chat_messages ADD COLUMN IF NOT EXISTS conversation_id TEXT NOT NULL DEFAULT 'group';
     ALTER TABLE admin_chat_messages ADD COLUMN IF NOT EXISTS client_message_id TEXT;
     CREATE UNIQUE INDEX IF NOT EXISTS admin_chat_messages_sender_client_message_key
-      ON admin_chat_messages (sender_id, client_message_id)
-      WHERE client_message_id IS NOT NULL;
+      ON admin_chat_messages(sender_id, client_message_id) WHERE client_message_id IS NOT NULL;
   `);
 }
-ensureChatTables().catch(console.error);
+function online() {
+  return [...new Map([...clients.values()].map(c => [c.admin.id, c.admin])).values()];
+}
+function write(client: Client, value: object) {
+  try { client.res.write(`data: ${JSON.stringify(value)}\n\n`); client.res.flush?.(); } catch { clients.delete(`${client.admin.id}:${client.deviceId}`); }
+}
+function emit(value: object, allowed?: Set<string>) {
+  for (const client of clients.values()) if (!allowed || allowed.has(client.admin.id)) write(client, value);
+}
+function dmMembers(conversationId: string): string[] | null {
+  const m = /^dm:(\d+):(\d+)$/.exec(conversationId);
+  return m ? [m[1], m[2]] : null;
+}
+function conversationFor(adminId: string, target?: unknown) {
+  if (!target || target === "group") return { id: "group", members: undefined as Set<string> | undefined };
+  if (typeof target !== "string") return null;
+  const members = dmMembers(target);
+  if (!members || !members.includes(adminId)) return null;
+  return { id: target, members: new Set(members) };
+}
+async function validAdmin(id: string) {
+  const [u] = await db.select().from(usersTable).where(eq(usersTable.id, Number(id)));
+  return !!u?.isAdmin;
+}
 
-// SSE stream
 router.get("/admin/chat/stream", requireAdmin, async (req, res) => {
-  const adminId = req.query.adminId as string || "admin";
-  const adminName = req.query.adminName as string || "Admin";
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders?.();
-  
-  chatClients.set(adminId, { res, adminName, adminId });
-  
-  // Notify others that this admin joined
-  broadcastChat({ type: "PRESENCE", adminId, adminName, online: true, onlineAdmins: getOnlineAdmins() });
-  
-  // Heartbeat
-  const hb = setInterval(() => { try { res.write(":\n\n"); (res as any).flush?.(); } catch { clearInterval(hb); }}, 25000);
-  
-  req.on("close", () => {
-    chatClients.delete(adminId);
-    clearInterval(hb);
-    broadcastChat({ type: "PRESENCE", adminId, adminName, online: false, onlineAdmins: getOnlineAdmins() });
-  });
+  const admin = await me(req); const deviceId = typeof req.query.deviceId === "string" ? req.query.deviceId.slice(0, 100) : crypto.randomUUID();
+  res.setHeader("Content-Type", "text/event-stream"); res.setHeader("Cache-Control", "no-cache"); res.setHeader("Connection", "keep-alive"); res.flushHeaders?.();
+  const key = `${admin.id}:${deviceId}`; clients.set(key, { res, admin, deviceId });
+  emit({ type: "PRESENCE", onlineAdmins: online() });
+  const heartbeat = setInterval(() => { try { res.write(":\n\n"); } catch {} }, 25000);
+  req.on("close", () => { clients.delete(key); clearInterval(heartbeat); emit({ type: "PRESENCE", onlineAdmins: online() }); });
 });
 
-// Send message
-router.post("/admin/chat/messages", requireAdmin, async (req, res) => {
-  const { senderId, senderName, message, type = "text", metadata, clientMessageId, conversationId = "group" } = req.body as Record<string, string>;
-  if (!message?.trim()) { res.status(400).json({ error: "Empty message" }); return; }
-  if (!senderId?.trim() || !senderName?.trim()) { res.status(400).json({ error: "Sender details are required" }); return; }
-  if (type !== "text") { res.status(400).json({ error: "Unsupported message type" }); return; }
-  await ensureChatTables();
-
-  if (clientMessageId) {
-    const [existing] = await db.execute<{
-      id: number; sender_id: string; sender_name: string; message: string; type: string;
-      conversation_id: string; client_message_id: string; metadata: string | null; reactions: string; read_by: string; created_at: string;
-    }>(
-      sql`SELECT id, sender_id, sender_name, message, type, conversation_id, client_message_id, metadata, reactions, read_by, created_at
-          FROM admin_chat_messages
-          WHERE sender_id = ${senderId} AND client_message_id = ${clientMessageId}
-          LIMIT 1`
-    ).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
-    if (existing) {
-      res.json({
-        id: existing.id, senderId: existing.sender_id, senderName: existing.sender_name,
-        message: existing.message, type: existing.type, conversationId: existing.conversation_id,
-        clientMessageId: existing.client_message_id, metadata: existing.metadata,
-        reactions: JSON.parse(existing.reactions ?? "{}"), readBy: JSON.parse(existing.read_by ?? "[]"),
-        createdAt: existing.created_at,
-      });
-      return;
-    }
-  }
-  
-  const [row] = await db.execute<{ id: number; created_at: string; client_message_id: string | null }>(
-    sql`INSERT INTO admin_chat_messages (sender_id, sender_name, message, type, conversation_id, client_message_id, metadata)
-        VALUES (${senderId}, ${senderName}, ${message.trim()}, ${type}, ${conversationId}, ${clientMessageId ?? null}, ${metadata ?? null})
-        RETURNING id, created_at, client_message_id`
-  ).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
-  
-  const newMsg = {
-    id: row?.id, senderId, senderName, message: message.trim(), type, conversationId,
-    clientMessageId: row?.client_message_id ?? clientMessageId ?? null, metadata,
-    reactions: {}, readBy: [senderId], createdAt: row?.created_at ?? new Date().toISOString(),
-  };
-  broadcastChat({ type: "MESSAGE", message: newMsg });
-  // Push to admins who are not currently in the SSE stream (app closed / home screen)
-  sendAdminChatPush(senderName, message, senderId).catch(() => {});
-  res.status(201).json(newMsg);
+router.get("/admin/chat/conversations", requireAdmin, async (req, res) => {
+  const admin = await me(req); await tables();
+  const all = await db.select().from(usersTable);
+  const admins = all.filter(u => u.isAdmin).map(u => ({ adminId: String(u.id), adminName: u.username }));
+  const rows = await db.execute<any>(sql`SELECT conversation_id, MAX(created_at) AS updated_at FROM admin_chat_messages GROUP BY conversation_id`).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
+  const visible = rows.filter((r: any) => r.conversation_id === "group" || dmMembers(r.conversation_id)?.includes(admin.id));
+  res.json({ me: admin, admins, conversations: [{ id: "group", kind: "group", name: "Admin team" }, ...visible.filter((r: any) => r.conversation_id !== "group").map((r: any) => ({ id: r.conversation_id, kind: "direct", updatedAt: r.updated_at }))] });
 });
 
-// Admin push subscribe
-router.post("/admin/chat/push-subscribe", requireAdmin, async (req, res) => {
-  const { endpoint, p256dh, auth, adminId } = req.body as Record<string, string>;
-  if (!endpoint || !p256dh || !auth) { res.status(400).json({ error: "Missing fields" }); return; }
-  await initPush();
-  await saveAdminSubscription(endpoint, p256dh, auth, adminId);
-  res.json({ ok: true });
-});
-
-// Get messages
 router.get("/admin/chat/messages", requireAdmin, async (req, res) => {
-  await ensureChatTables();
-  const conversationId = typeof req.query.conversationId === "string" ? req.query.conversationId : "group";
-  const rows = await db.execute<any>(
-    sql`SELECT id, sender_id, sender_name, message, type, conversation_id, client_message_id, metadata, reactions, read_by, created_at
-        FROM admin_chat_messages WHERE conversation_id = ${conversationId} ORDER BY created_at ASC LIMIT 200`
-  ).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
-  
-  res.json(rows.map((r: any) => ({
-    id: r.id, senderId: r.sender_id, senderName: r.sender_name, message: r.message,
-    type: r.type, conversationId: r.conversation_id, clientMessageId: r.client_message_id,
-    metadata: r.metadata, reactions: JSON.parse(r.reactions ?? "{}"),
-    readBy: JSON.parse(r.read_by ?? "[]"), createdAt: r.created_at
-  })));
+  const admin = await me(req); await tables(); const c = conversationFor(admin.id, req.query.conversationId);
+  if (!c) return void res.status(403).json({ error: "Conversation is not available to this admin" });
+  const rows = await db.execute<any>(sql`SELECT * FROM admin_chat_messages WHERE conversation_id=${c.id} ORDER BY created_at ASC LIMIT 200`).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
+  res.json(rows.map((r: any) => ({ id:r.id,senderId:r.sender_id,senderName:r.sender_name,message:r.message,type:r.type,conversationId:r.conversation_id,clientMessageId:r.client_message_id,metadata:r.metadata,reactions:JSON.parse(r.reactions||"{}"),readBy:JSON.parse(r.read_by||"[]"),createdAt:r.created_at })));
 });
 
-// Ephemeral typing events must never enter message history.
-router.post("/admin/chat/typing", requireAdmin, (req, res) => {
-  const { senderId, senderName, typing, conversationId = "group" } = req.body as Record<string, string | boolean>;
-  if (typeof senderId !== "string" || typeof senderName !== "string" || typeof typing !== "boolean") {
-    res.status(400).json({ error: "Invalid typing payload" });
-    return;
-  }
-  broadcastChat({ type: "TYPING", adminId: senderId, adminName: senderName, typing, conversationId });
-  res.status(204).end();
+router.post("/admin/chat/messages", requireAdmin, async (req, res) => {
+  const admin = await me(req); await tables(); const message = String(req.body?.message ?? "").trim(); const c = conversationFor(admin.id, req.body?.conversationId);
+  if (!message) return void res.status(400).json({ error: "Empty message" }); if (!c) return void res.status(403).json({ error: "Conversation is not available to this admin" });
+  if (c.members && !(await Promise.all([...c.members].map(validAdmin))).every(Boolean)) return void res.status(404).json({ error: "Admin not found" });
+  const cmid = typeof req.body?.clientMessageId === "string" ? req.body.clientMessageId : null;
+  const old = cmid ? await db.execute<any>(sql`SELECT * FROM admin_chat_messages WHERE sender_id=${admin.id} AND client_message_id=${cmid} LIMIT 1`).then(r => (Array.isArray(r)?r:(r as any).rows??[])[0]) : null;
+  const row = old ?? (await db.execute<any>(sql`INSERT INTO admin_chat_messages(sender_id,sender_name,message,conversation_id,client_message_id) VALUES(${admin.id},${admin.name},${message},${c.id},${cmid}) RETURNING *`).then(r => (Array.isArray(r)?r:(r as any).rows??[])[0]));
+  const output = { id:row.id,senderId:row.sender_id,senderName:row.sender_name,message:row.message,type:row.type,conversationId:row.conversation_id,clientMessageId:row.client_message_id,metadata:row.metadata,reactions:JSON.parse(row.reactions||"{}"),readBy:JSON.parse(row.read_by||"[]"),createdAt:row.created_at };
+  emit({ type:"MESSAGE", message:output }, c.members); if (!old) sendAdminChatPush(admin.name, message, admin.id, c.members ? [...c.members].filter(id => id !== admin.id) : undefined).catch(() => {});
+  res.status(old ? 200 : 201).json(output);
 });
 
-// React to message
-router.post("/admin/chat/messages/:id/react", requireAdmin, async (req, res) => {
-  const msgId = Number(req.params.id);
-  const { adminId, emoji } = req.body as { adminId: string; emoji: string };
-  await ensureChatTables();
-  
-  const [existing] = await db.execute<{ reactions: string }>(
-    sql`SELECT reactions FROM admin_chat_messages WHERE id = ${msgId}`
-  ).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
-  
-  const reactions: Record<string, string[]> = JSON.parse(existing?.reactions ?? "{}");
-  if (!reactions[emoji]) reactions[emoji] = [];
-  const idx = reactions[emoji].indexOf(adminId);
-  if (idx >= 0) reactions[emoji].splice(idx, 1); else reactions[emoji].push(adminId);
-  if (reactions[emoji].length === 0) delete reactions[emoji];
-  
-  await db.execute(sql`UPDATE admin_chat_messages SET reactions = ${JSON.stringify(reactions)} WHERE id = ${msgId}`);
-  broadcastChat({ type: "REACTION", messageId: msgId, reactions });
-  res.json({ reactions });
-});
+router.post("/admin/chat/typing", requireAdmin, async (req,res) => { const admin=await me(req); const c=conversationFor(admin.id,req.body?.conversationId); if(!c || typeof req.body?.typing!=="boolean") return void res.status(400).json({error:"Invalid typing payload"}); emit({type:"TYPING",adminId:admin.id,adminName:admin.name,typing:req.body.typing,conversationId:c.id},c.members); res.status(204).end(); });
+router.post("/admin/chat/messages/:id/react", requireAdmin, async (req,res) => { const admin=await me(req); await tables(); const emoji=String(req.body?.emoji??""); const [row]=await db.execute<any>(sql`SELECT conversation_id,reactions FROM admin_chat_messages WHERE id=${Number(req.params.id)}`).then(r=>Array.isArray(r)?r:(r as any).rows??[]); const c=row&&conversationFor(admin.id,row.conversation_id); if(!row||!c||!emoji) return void res.status(403).json({error:"Message unavailable"}); const reactions=JSON.parse(row.reactions||"{}"); reactions[emoji]??=[]; const i=reactions[emoji].indexOf(admin.id); i<0?reactions[emoji].push(admin.id):reactions[emoji].splice(i,1); if(!reactions[emoji].length)delete reactions[emoji]; await db.execute(sql`UPDATE admin_chat_messages SET reactions=${JSON.stringify(reactions)} WHERE id=${Number(req.params.id)}`); emit({type:"REACTION",messageId:Number(req.params.id),reactions,conversationId:c.id},c.members); res.json({reactions}); });
 
-// WebRTC signaling (supports broadcast=true to ring all online admins)
-router.post("/admin/chat/signal", requireAdmin, (req, res) => {
-  const { to, from, fromName, signal, broadcast, callId } = req.body as { to?: string; from: string; fromName: string; signal: Record<string, unknown>; broadcast?: boolean; callId?: string };
-  if (!from || !fromName || !signal?.type) {
-    res.status(400).json({ error: "Invalid call signal" });
-    return;
-  }
-
-  // Push-notify offline admins when a call offer comes in (PWA / home-screen users)
-  if (signal?.type === "offer") {
-    sendAdminCallPush(fromName, from).catch(() => {});
-  }
-
-  if (broadcast) {
-    for (const [adminId] of chatClients) {
-      if (adminId !== from) sendToAdmin(adminId, { type: "WEBRTC_SIGNAL", from, fromName, callId, signal });
-    }
-  } else if (to) {
-    sendToAdmin(to, { type: "WEBRTC_SIGNAL", from, fromName, callId, signal });
-  }
-  res.json({ ok: true });
-});
-
-router.get("/admin/chat/ice-config", requireAdmin, (_req, res) => {
-  const servers: Array<Record<string, string | string[]>> = [
-    { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
-  ];
-  const turnUrl = process.env.TURN_URL;
-  const turnUsername = process.env.TURN_USERNAME;
-  const turnCredential = process.env.TURN_CREDENTIAL;
-  if (turnUrl && turnUsername && turnCredential) {
-    servers.push({ urls: turnUrl, username: turnUsername, credential: turnCredential });
-  }
-  res.setHeader("Cache-Control", "no-store");
-  res.json({ iceServers: servers, turnAvailable: Boolean(turnUrl && turnUsername && turnCredential) });
-});
-
-// Online admins
-router.get("/admin/chat/online", requireAdmin, (_req, res) => {
-  res.json(getOnlineAdmins());
-});
-
-// Admin profile (name)
+// Existing admin profile setup continues to work independently of chat identity.
+// Chat itself always uses the authenticated account identity above.
 router.get("/admin/profile/:adminId", requireAdmin, async (req, res) => {
-  await ensureChatTables();
+  await tables();
   const rows = await db.execute<any>(
-    sql`SELECT * FROM admin_profiles WHERE admin_id = ${req.params.adminId}`
+    sql`SELECT * FROM admin_profiles WHERE admin_id = ${String(req.params.adminId)} LIMIT 1`,
   ).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
   res.json(rows[0] ?? null);
 });
-
 router.post("/admin/profile", requireAdmin, async (req, res) => {
   const { adminId, displayName, avatarColor } = req.body as Record<string, string>;
-  if (!adminId || !displayName?.trim()) { res.status(400).json({ error: "adminId and displayName required" }); return; }
-  await ensureChatTables();
-  
-  // Check 7-day cooldown for name change
-  const [existing] = await db.execute<{ last_name_change: string | null }>(
-    sql`SELECT last_name_change FROM admin_profiles WHERE admin_id = ${adminId}`
+  if (!adminId || !displayName?.trim()) return void res.status(400).json({ error: "adminId and displayName required" });
+  await tables();
+  const [existing] = await db.execute<any>(
+    sql`SELECT last_name_change FROM admin_profiles WHERE admin_id = ${adminId}`,
   ).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
-  
-  if (existing?.last_name_change) {
-    const lastChange = new Date(existing.last_name_change);
-    const daysSince = (Date.now() - lastChange.getTime()) / (1000 * 60 * 60 * 24);
-    if (daysSince < 7) {
-      const daysLeft = Math.ceil(7 - daysSince);
-      res.status(429).json({ error: `You can change your name again in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.` });
-      return;
-    }
+  if (existing?.last_name_change && (Date.now() - new Date(existing.last_name_change).getTime()) < 7 * 86_400_000) {
+    const daysLeft = Math.ceil(7 - (Date.now() - new Date(existing.last_name_change).getTime()) / 86_400_000);
+    return void res.status(429).json({ error: `You can change your name again in ${daysLeft} day${daysLeft === 1 ? "" : "s"}.` });
   }
-  
   await db.execute(sql`
     INSERT INTO admin_profiles (admin_id, display_name, avatar_color, last_name_change)
     VALUES (${adminId}, ${displayName.trim()}, ${avatarColor ?? "#ff6600"}, NOW())
-    ON CONFLICT (admin_id) DO UPDATE SET display_name = EXCLUDED.display_name, 
+    ON CONFLICT (admin_id) DO UPDATE SET display_name = EXCLUDED.display_name,
       avatar_color = COALESCE(EXCLUDED.avatar_color, admin_profiles.avatar_color),
       last_name_change = NOW()
   `);
-  broadcastChat({ type: "PRESENCE", adminId, adminName: displayName.trim(), online: chatClients.has(adminId), onlineAdmins: getOnlineAdmins() });
+  emit({ type: "PROFILE_UPDATE", adminId, displayName: displayName.trim() });
   res.json({ ok: true });
 });
-
-// Save admin profile picture (base64 data URL or "fp_logo")
 router.post("/admin/profile/pfp", requireAdmin, async (req, res) => {
   const { adminId, pfpData } = req.body as Record<string, string>;
-  if (!adminId || !pfpData) { res.status(400).json({ error: "adminId and pfpData required" }); return; }
-  // Limit size to ~600 KB encoded
-  if (pfpData.length > 800_000) { res.status(413).json({ error: "Image too large. Please use a smaller photo." }); return; }
-  await ensureChatTables();
+  if (!adminId || !pfpData) return void res.status(400).json({ error: "adminId and pfpData required" });
+  if (pfpData.length > 800_000) return void res.status(413).json({ error: "Image too large. Please use a smaller photo." });
+  await tables();
   await db.execute(sql`
     INSERT INTO admin_profiles (admin_id, display_name, pfp_data)
     VALUES (${adminId}, 'Admin', ${pfpData})
     ON CONFLICT (admin_id) DO UPDATE SET pfp_data = EXCLUDED.pfp_data
   `);
-  broadcastChat({ type: "PROFILE_UPDATE", adminId, pfpData });
+  emit({ type: "PROFILE_UPDATE", adminId, pfpData });
   res.json({ ok: true });
 });
 
+router.post("/admin/chat/push-subscribe", requireAdmin, async (req,res) => { const admin=await me(req); const {endpoint,p256dh,auth}=req.body??{}; if(!endpoint||!p256dh||!auth)return void res.status(400).json({error:"Missing fields"}); await initPush(); await saveAdminSubscription(endpoint,p256dh,auth,admin.id); res.json({ok:true}); });
+router.get("/admin/chat/online", requireAdmin, (_req,res)=>res.json(online()));
+router.get("/admin/chat/ice-config", requireAdmin, (_req,res) => { const iceServers:any[]=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}]; if(process.env.TURN_URL&&process.env.TURN_USERNAME&&process.env.TURN_CREDENTIAL)iceServers.push({urls:process.env.TURN_URL,username:process.env.TURN_USERNAME,credential:process.env.TURN_CREDENTIAL}); res.json({iceServers}); });
+
+// WebRTC mesh is deliberately limited to a small internal team, not a large conference.
+router.post("/admin/chat/rooms", requireAdmin, async(req,res)=>{const admin=await me(req); const id=crypto.randomUUID(); rooms.set(id,{initiator:admin.id,members:new Set([admin.id]),createdAt:Date.now()}); emit({type:"ROOM_INVITE",roomId:id,from:admin},new Set(online().map(a=>a.id).filter(id=>id!==admin.id))); sendAdminCallPush(admin.name,admin.id,`/admin/chat?room=${encodeURIComponent(id)}`).catch(()=>{}); res.status(201).json({roomId:id});});
+router.post("/admin/chat/rooms/:roomId/join", requireAdmin, async(req,res)=>{const admin=await me(req);const roomId=String(req.params.roomId);const room=rooms.get(roomId);if(!room)return void res.status(404).json({error:"Room ended"}); room.members.add(admin.id); emit({type:"ROOM_MEMBERS",roomId,members:[...room.members]});res.json({members:[...room.members]});});
+router.post("/admin/chat/rooms/:roomId/leave", requireAdmin, async(req,res)=>{const admin=await me(req);const roomId=String(req.params.roomId);const room=rooms.get(roomId);if(room){room.members.delete(admin.id);if(!room.members.size)rooms.delete(roomId);else emit({type:"ROOM_MEMBERS",roomId,members:[...room.members]});}res.status(204).end();});
+router.post("/admin/chat/rooms/:roomId/signal", requireAdmin, async(req,res)=>{const admin=await me(req);const roomId=String(req.params.roomId);const room=rooms.get(roomId);const to=String(req.body?.to??"");if(!room||!room.members.has(admin.id)||!room.members.has(to))return void res.status(403).json({error:"Room signal denied"});emit({type:"ROOM_SIGNAL",roomId,from:admin.id,fromName:admin.name,signal:req.body.signal},new Set([to]));res.status(204).end();});
+setInterval(()=>{const now=Date.now();for(const [id,room] of rooms)if(!room.members.size||now-room.createdAt>8*60*60_000)rooms.delete(id);},60_000).unref();
 export default router;

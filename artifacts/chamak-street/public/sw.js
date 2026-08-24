@@ -14,6 +14,11 @@ self.addEventListener("push", (event) => {
   catch { payload = { title: "FirstPick", body: event.data.text(), type: "GENERIC" }; }
 
   const { title, body, type, data } = payload;
+  const baseSafeUrl = (candidate) => {
+    if (!candidate) return `${BASE_PATH}/admin`;
+    if (/^https?:\/\//.test(candidate) || candidate.startsWith(BASE_PATH + "/")) return candidate;
+    return `${BASE_PATH}${candidate.startsWith("/") ? candidate : `/${candidate}`}`;
+  };
 
   // Determine icon/badge/tag/url per notification type
   let tag = `notif-${Date.now()}`;
@@ -22,11 +27,11 @@ self.addEventListener("push", (event) => {
 
   if (type === "NEW_ORDER") {
     tag = `order-${data?.orderNumber || Date.now()}`;
-    url = data?.url || `${BASE_PATH}/admin/orders`;
+    url = baseSafeUrl(data?.url || "/admin/orders");
     requireInteraction = true;
   } else if (type === "CUSTOMER_SEARCH") {
     tag = "search-notif";
-    url = data?.url || `${BASE_PATH}/admin/visitors`;
+    url = baseSafeUrl(data?.url || "/admin/visitors");
   } else if (type === "NEW_VISITOR") {
     tag = "visitor-notif";
     url = `${BASE_PATH}/admin/visitors`;
@@ -40,7 +45,12 @@ self.addEventListener("push", (event) => {
   } else if (type === "NEW_ACCOUNT") {
     tag = "account-notif";
     url = `${BASE_PATH}/admin/visitors`;
+  } else if (type === "ADMIN_CALL") {
+    tag = `admin-call-${data?.roomId || "incoming"}`;
+    url = baseSafeUrl(data?.url || "/admin/chat");
+    requireInteraction = true;
   }
+  if (data?.url) url = baseSafeUrl(data.url);
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {

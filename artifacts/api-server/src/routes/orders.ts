@@ -234,8 +234,14 @@ router.post("/orders", async (req, res) => {
       if (couponResult) {
         discountAmount = couponResult.discountAmount;
         appliedCouponCode = couponResult.couponCode;
+      } else {
+        res.status(400).json({ error: "This coupon is invalid, expired, or no longer available" });
+        return;
       }
-    } catch { /* coupon validation failed silently */ }
+    } catch {
+      res.status(400).json({ error: "This coupon could not be applied" });
+      return;
+    }
   }
 
   const total = Math.max(0, itemsSubtotal + deliveryCharge + tip - discountAmount);
@@ -296,7 +302,7 @@ router.post("/orders", async (req, res) => {
   if (fullOrder) {
     sendOrderPush({
       orderNumber: fullOrder.orderNumber ?? `#${fullOrder.id}`,
-      customerName: fullOrder.customerName,
+      customerName: fullOrder.customerName ?? "Customer",
       total: fullOrder.total,
       deliveryMethod: fullOrder.deliveryMethod ?? "standard",
       deliveryCharge: fullOrder.deliveryCharge ?? 20,

@@ -1,6 +1,6 @@
 import { Router, type Request } from "express";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { getDeliveryCharges, DELIVERY_METHODS } from "../lib/delivery";
 
@@ -168,7 +168,20 @@ router.post("/payments/ziina-checkout", async (req, res) => {
   const deliveryCharge = charges[parsed.deliveryMethod] ?? 20;
   const tip = parsed.tip;
   const itemsSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const total = itemsSubtotal + deliveryCharge + tip;
+  const rawCouponCode = typeof req.body?.couponCode === "string" ? req.body.couponCode.trim() : "";
+  let discountAmount = 0;
+  let appliedCouponCode: string | null = null;
+  if (rawCouponCode) {
+    const { applyCoupon } = await import("./coupons");
+    const coupon = await applyCoupon(rawCouponCode, itemsSubtotal);
+    if (!coupon) {
+      res.status(400).json({ error: "This coupon is invalid, expired, or no longer available" });
+      return;
+    }
+    discountAmount = coupon.discountAmount;
+    appliedCouponCode = coupon.couponCode;
+  }
+  const total = Math.max(0, itemsSubtotal + deliveryCharge + tip - discountAmount);
 
   const hasPreOrder = cartItems.some((item) => item.isPreOrder);
 
@@ -195,6 +208,13 @@ router.post("/payments/ziina-checkout", async (req, res) => {
     status: "pending",
     hasPreOrder,
   }).returning();
+  if (appliedCouponCode) {
+    await db.execute(sql`
+      UPDATE orders
+      SET coupon_code = ${appliedCouponCode}, discount_amount = ${discountAmount}
+      WHERE id = ${order.id}
+    `);
+  }
 
   await db.insert(orderItemsTable).values(
     cartItems.map((item) => ({

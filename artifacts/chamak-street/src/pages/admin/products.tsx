@@ -779,8 +779,8 @@ export default function AdminProducts() {
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
           side="right"
-          className="w-full sm:max-w-2xl flex flex-col p-0 gap-0 border-l border-white/8"
-          style={{ background: "#0a0a0a" }}
+          className="h-[100dvh] w-full sm:max-w-2xl flex flex-col p-0 gap-0 border-l border-white/8"
+          style={{ background: "#0a0a0a", overscrollBehavior: "contain" }}
         >
           {/* Fixed header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/8 shrink-0"
@@ -817,7 +817,9 @@ export default function AdminProducts() {
           </div>
 
           {/* Scrollable body */}
-          <form id="product-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          <form id="product-form" onSubmit={handleSubmit}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5 space-y-4"
+            style={{ WebkitOverflowScrolling: "touch" }}>
 
             {/* Media */}
             <Section title="Product Media" icon={ImageIcon} accent="rgba(255,102,0,0.18)">
