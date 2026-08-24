@@ -179,6 +179,7 @@ function AdminRouter() {
         <Route path="/admin/chat" component={AdminChat} />
         <Route path="/admin/coupons" component={AdminCoupons} />
         <Route path="/admin/feed" component={AdminProductFeed} />
+        <Route path="/admin/product-feed" component={AdminProductFeed} />
 
         <Route component={NotFound} />
       </Switch>

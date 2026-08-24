@@ -233,7 +233,9 @@ const linkVariants = {
 const contentVariants = {
   initial: { opacity: 0, y: 14 },
   enter: { opacity: 1, y: 0, transition: { duration: 0.38, ease: EASE } },
-  exit: { opacity: 0, y: -8, transition: { duration: 0.18 } },
+  // Never hold navigation behind an exit animation. The next admin page must
+  // render on the first tap, especially on mobile Safari.
+  exit: { opacity: 0, y: -8, transition: { duration: 0 } },
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
