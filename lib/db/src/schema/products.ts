@@ -23,6 +23,8 @@ export const productsTable = pgTable("products", {
   importSource: text("import_source"),
   externalId: text("external_id"),
   sourceUrl: text("source_url"),
+  videoUrl: text("video_url"),
+  shipsToUaeVerified: boolean("ships_to_uae_verified").notNull().default(false),
   sellingFast: boolean("selling_fast").notNull().default(false),
   spotlight: boolean("spotlight").notNull().default(false),
   hidden: boolean("hidden").notNull().default(false),

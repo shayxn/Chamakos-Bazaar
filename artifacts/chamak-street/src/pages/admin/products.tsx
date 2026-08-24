@@ -49,6 +49,7 @@ type ProductFormData = ProductInput & {
   sellingFast?: boolean; spotlight?: boolean; hidden?: boolean; publishAt?: string | null; unpublishAt?: string | null;
   bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
   comingSoon?: boolean;
+  videoUrl?: string | null; shipsToUaeVerified?: boolean;
 };
 
 const BULK_ACTIONS = [
@@ -338,6 +339,7 @@ export default function AdminProducts() {
     isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
     sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
     bestSeller: false, trending: false, newArrival: false, limitedEdition: false,
+     videoUrl: null, shipsToUaeVerified: false,
   });
 
   const set = (partial: Partial<ProductFormData>) => setFormData(f => ({ ...f, ...partial }));
@@ -349,7 +351,7 @@ export default function AdminProducts() {
       for (const file of files) uploaded.push(await uploadMedia(file));
       setMediaItems(prev => {
         const next = [...prev, ...uploaded];
-        set({ imageUrl: serializeProductMedia(next) });
+        set({ imageUrl: serializeProductMedia(next), videoUrl: next.find((item) => item.type === "video")?.url ?? null });
         return next;
       });
     } catch {
@@ -361,7 +363,10 @@ export default function AdminProducts() {
 
   const handleMediaChange = (items: ProductMedia[]) => {
     setMediaItems(items);
-    set({ imageUrl: items.length > 0 ? serializeProductMedia(items) : "" });
+    set({
+      imageUrl: items.length > 0 ? serializeProductMedia(items) : "",
+      videoUrl: items.find((item) => item.type === "video")?.url ?? null,
+    });
   };
 
   const openNew = () => {
@@ -373,6 +378,7 @@ export default function AdminProducts() {
       sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
       bestSeller: false, trending: false, newArrival: false, limitedEdition: false,
       comingSoon: false,
+       videoUrl: null, shipsToUaeVerified: false,
     });
     setSheetOpen(true);
   };
@@ -401,6 +407,8 @@ export default function AdminProducts() {
       newArrival: (product as ProductFormData).newArrival ?? false,
       limitedEdition: (product as ProductFormData).limitedEdition ?? false,
       comingSoon: (product as ProductFormData).comingSoon ?? false,
+       videoUrl: (product as ProductFormData).videoUrl ?? null,
+       shipsToUaeVerified: (product as ProductFormData).shipsToUaeVerified ?? false,
     });
     setSheetOpen(true);
   };
@@ -814,6 +822,21 @@ export default function AdminProducts() {
             {/* Media */}
             <Section title="Product Media" icon={ImageIcon} accent="rgba(255,102,0,0.18)">
               <MediaZone items={mediaItems} onChange={handleMediaChange} uploading={uploading} onUpload={handleUpload} />
+            </Section>
+
+            <Section title="Shorts Feed Eligibility" icon={ShieldCheck} accent="rgba(34,197,94,0.18)">
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div>
+                  <p className="text-sm font-bold">Verified UAE delivery</p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-white/35">Enable only after a real supplier source confirms this product can ship to the UAE.</p>
+                </div>
+                <Toggle checked={formData.shipsToUaeVerified ?? false} onChange={(shipsToUaeVerified) => set({ shipsToUaeVerified })} color="#22c55e" />
+              </div>
+              <div className={`rounded-xl border p-3 text-xs ${formData.videoUrl ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-100" : "border-amber-400/25 bg-amber-400/10 text-amber-100"}`}>
+                {formData.videoUrl
+                  ? "A real uploaded product video is attached. This product can appear in Product Feed once UAE delivery is verified."
+                  : "Add an owned or permitted product video above. Image-only products stay out of Product Feed."}
+              </div>
             </Section>
 
             {/* Basic Info */}

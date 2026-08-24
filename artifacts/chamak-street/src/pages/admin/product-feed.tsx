@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bookmark, BookmarkCheck, ChevronDown, ExternalLink, Loader2, PackageOpen, Plus, RefreshCw, ShoppingBag, Sparkles, X } from "lucide-react";
+import { Bookmark, BookmarkCheck, ChevronDown, ExternalLink, Loader2, MessageCircle, PackageOpen, Plus, RefreshCw, Send, ShoppingBag, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { parseProductMedia } from "@/lib/product-media";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const SOURCES = [
@@ -25,34 +24,34 @@ type FeedItem = {
   importSource: string | null;
   externalId: string | null;
   sourceUrl: string | null;
+  videoUrl: string | null;
+  shipsToUaeVerified: boolean;
   hidden: boolean;
   collection: string | null;
   categoryName: string | null;
   createdAt: string;
   savedAt: string | null;
   addedAt: string | null;
+  commentCount: number;
   state: "hidden" | "available";
 };
 
 type FeedResponse = { items: FeedItem[]; nextCursor: number | null; hasMore: boolean };
+type FeedComment = { id: number; authorName: string; body: string; createdAt: string };
 
-function ProductMedia({ item, active }: { item: FeedItem; active: boolean }) {
-  const media = parseProductMedia(item.imageUrls || item.imageUrl);
-  const primary = media[0];
+function ProductMedia({ videoUrl, active, muted }: { videoUrl: string | null; active: boolean; muted: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     if (active) video.play().catch(() => {});
     else video.pause();
   }, [active]);
-  if (!primary) {
-    return <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(255,102,0,0.28),transparent_35%),linear-gradient(135deg,#16131a,#050507)]" />;
+  if (!videoUrl || failed) {
+    return <div className="absolute inset-0 grid place-items-center bg-[#08080a] text-center"><p className="text-xs font-bold text-white/45">This verified product video is temporarily unavailable.</p></div>;
   }
-  if (primary.type === "video") {
-    return <video ref={videoRef} src={primary.url} className="absolute inset-0 w-full h-full object-cover" muted loop playsInline preload={active ? "auto" : "metadata"} />;
-  }
-  return <img src={primary.url} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />;
+  return <video ref={videoRef} src={videoUrl} className="absolute inset-0 w-full h-full object-cover" muted={muted} loop playsInline preload={active ? "auto" : "metadata"} onError={() => setFailed(true)} />;
 }
 
 export default function AdminProductFeed() {
@@ -71,6 +70,12 @@ export default function AdminProductFeed() {
   const [sellingPrice, setSellingPrice] = useState("");
   const [adding, setAdding] = useState(false);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [muted, setMuted] = useState(true);
+  const [commentsFor, setCommentsFor] = useState<FeedItem | null>(null);
+  const [comments, setComments] = useState<FeedComment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [postingComment, setPostingComment] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const articleRefs = useRef<Record<number, HTMLElement | null>>({});
 
@@ -163,6 +168,44 @@ export default function AdminProductFeed() {
     setReviewItem(item);
   };
 
+  const openComments = async (item: FeedItem) => {
+    setCommentsFor(item);
+    setComments([]);
+    setCommentsLoading(true);
+    try {
+      const res = await fetch(`${BASE}/api/admin/product-feed/${item.id}/comments`, { credentials: "include" });
+      if (!res.ok) throw new Error("Could not load comments");
+      setComments(await res.json() as FeedComment[]);
+    } catch (error) {
+      toast({ title: "Comments unavailable", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const postComment = async () => {
+    if (!commentsFor || !commentText.trim() || postingComment) return;
+    setPostingComment(true);
+    try {
+      const res = await fetch(`${BASE}/api/admin/product-feed/${commentsFor.id}/comments`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body: commentText.trim() }),
+      });
+      const comment = await res.json() as FeedComment & { error?: string };
+      if (!res.ok) throw new Error(comment.error ?? "Could not post comment");
+      setComments((current) => [...current, comment]);
+      setCommentText("");
+      setItems((current) => current.map((item) => item.id === commentsFor.id ? { ...item, commentCount: item.commentCount + 1 } : item));
+      setCommentsFor((current) => current ? { ...current, commentCount: current.commentCount + 1 } : current);
+    } catch (error) {
+      toast({ title: "Could not post comment", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+    } finally {
+      setPostingComment(false);
+    }
+  };
+
   const addFromReview = async () => {
     if (!reviewItem) return;
     setAdding(true);
@@ -189,12 +232,12 @@ export default function AdminProductFeed() {
 
   return (
     <div className="h-full min-h-0 flex flex-col overflow-hidden text-white">
-      <header className="shrink-0 px-4 sm:px-6 py-4 border-b border-white/10" style={{ background: "rgba(7,7,10,0.75)", backdropFilter: "blur(32px)" }}>
+      <header className="shrink-0 px-4 sm:px-6 py-3 border-b border-white/10" style={{ background: "rgba(7,7,10,0.82)", backdropFilter: "blur(32px)" }}>
         <div className="flex items-start sm:items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-primary"><Sparkles className="h-3 w-3" /> Discovery</p>
-            <h1 className="mt-1 text-xl sm:text-2xl font-black tracking-tight">Product Feed</h1>
-            <p className="mt-1 text-xs text-white/50">Live catalog records imported from your configured suppliers. No estimates or invented stock.</p>
+            <h1 className="mt-1 text-xl sm:text-2xl font-black tracking-tight">Product Shorts</h1>
+            <p className="mt-1 text-xs text-white/50">Only verified UAE-delivery products with real stored video are shown.</p>
           </div>
           <Button variant="outline" size="sm" onClick={() => void load(true)} disabled={loading} className="border-white/15 bg-white/5 hover:bg-white/10">
             <RefreshCw className={`h-3.5 w-3.5 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
@@ -232,13 +275,13 @@ export default function AdminProductFeed() {
         {loading ? (
           <div className="h-full min-h-[44dvh] flex flex-col items-center justify-center gap-3 text-white/45">
             <Loader2 className="h-6 w-6 text-primary animate-spin" />
-            <p className="text-xs font-bold">Loading verified catalog records…</p>
+            <p className="text-xs font-bold">Loading verified product shorts…</p>
           </div>
         ) : items.length === 0 ? (
           <div className="h-full min-h-[44dvh] flex flex-col items-center justify-center p-6 text-center">
             <PackageOpen className="h-12 w-12 text-white/20 mb-4" />
-            <h2 className="font-black">No matching imported products</h2>
-            <p className="mt-2 max-w-sm text-sm text-white/45">Sync a supplier or change the filter to see product records here.</p>
+            <h2 className="font-black">No verified product shorts yet</h2>
+            <p className="mt-2 max-w-sm text-sm text-white/45">Add a real product video in Inventory and mark UAE delivery as verified only after the supplier confirms it. Image-only items stay out of this feed.</p>
           </div>
         ) : (
           <AnimatePresence initial={false}>
@@ -248,58 +291,39 @@ export default function AdminProductFeed() {
                 ref={(node) => { articleRefs.current[item.id] = node; }}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="snap-start relative min-h-[calc(100dvh-158px)] sm:min-h-[650px] flex items-end overflow-hidden border-b border-white/10"
+                className="snap-start relative h-[calc(100dvh-142px)] min-h-[520px] sm:min-h-[650px] flex items-end overflow-hidden border-b border-white/10 bg-black"
               >
-                <ProductMedia item={item} active={activeId === item.id} />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.2)_0%,rgba(0,0,0,0.04)_34%,rgba(0,0,0,0.94)_100%)]" />
-                <div className="relative z-10 w-full px-4 sm:px-8 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-28">
-                  <div className="mx-auto max-w-3xl">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-widest bg-black/45 border border-white/20 backdrop-blur-xl">{item.importSource ?? "Imported"}</span>
-                      <span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border backdrop-blur-xl ${item.hidden ? "bg-red-500/20 border-red-300/30 text-red-100" : "bg-emerald-500/15 border-emerald-300/25 text-emerald-100"}`}>
-                        {item.hidden ? "Hidden in catalog" : "Available in catalog"}
-                      </span>
-                      <span className="rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border border-amber-300/25 bg-amber-400/10 text-amber-100 backdrop-blur-xl">
-                        UAE delivery needs confirmation
-                      </span>
-                      {item.categoryName && <span className="text-[10px] font-bold text-white/60">{item.categoryName}</span>}
-                    </div>
-                    <div className="mt-3 flex items-end justify-between gap-4">
-                      <div className="min-w-0">
-                        <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-none text-balance">{item.name}</h2>
-                        {item.description && <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/65 line-clamp-3">{item.description}</p>}
-                      </div>
-                      <button
-                        onClick={() => void toggleSaved(item)}
-                        disabled={savingId === item.id}
-                        className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center border backdrop-blur-2xl transition-colors ${item.savedAt ? "bg-amber-400 text-black border-amber-200" : "bg-black/40 border-white/20 text-white hover:bg-white/15"}`}
-                        aria-label={item.savedAt ? "Remove from saved products" : "Save product"}
-                        style={{ touchAction: "manipulation" }}
-                      >
-                        {savingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : item.savedAt ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <div className="rounded-2xl p-3 border border-white/10 bg-black/35 backdrop-blur-2xl"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">Catalog price</p><p className="mt-1 font-mono font-black text-primary">AED {item.price.toFixed(2)}</p></div>
-                      <div className="rounded-2xl p-3 border border-white/10 bg-black/35 backdrop-blur-2xl"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">Source price</p><p className="mt-1 font-mono font-black">{item.supplierPrice === null ? "Not provided" : `AED ${item.supplierPrice.toFixed(2)}`}</p></div>
-                      <div className="rounded-2xl p-3 border border-white/10 bg-black/35 backdrop-blur-2xl"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">Catalog stock</p><p className="mt-1 font-mono font-black">{item.stock}</p></div>
-                      <div className="rounded-2xl p-3 border border-white/10 bg-black/35 backdrop-blur-2xl"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">External ID</p><p className="mt-1 font-mono font-black truncate">{item.externalId ?? "Not provided"}</p></div>
-                    </div>
-                    <div className="mt-4 flex gap-2 flex-wrap">
-                      <Button size="sm" onClick={() => openReview(item)} disabled={!item.sourceUrl || item.supplierPrice === null} className="bg-white text-black hover:bg-white/85 font-black">
-                        <Plus className="h-3.5 w-3.5 mr-1.5" /> Add This
-                      </Button>
-                      <Link href="/admin/products">
-                        <Button size="sm" className="fire-gradient border-none font-black"><ShoppingBag className="h-3.5 w-3.5 mr-1.5" /> Manage catalog</Button>
-                      </Link>
-                      {item.sourceUrl ? (
-                        <a href={item.sourceUrl} target="_blank" rel="noreferrer">
-                          <Button size="sm" variant="outline" className="border-white/20 bg-black/30 hover:bg-white/10"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Open source product</Button>
-                        </a>
-                      ) : (
-                        <Button size="sm" variant="outline" disabled className="border-white/20 bg-black/30"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Source link unavailable</Button>
-                      )}
-                    </div>
+                <ProductMedia videoUrl={item.videoUrl} active={activeId === item.id} muted={muted} />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.22)_0%,rgba(0,0,0,0.02)_34%,rgba(0,0,0,0.92)_100%)] pointer-events-none" />
+                <button onClick={() => setMuted((current) => !current)} aria-label={muted ? "Turn sound on" : "Mute video"} className="absolute z-20 top-4 right-4 w-10 h-10 rounded-full bg-black/45 border border-white/20 backdrop-blur-xl flex items-center justify-center" style={{ touchAction: "manipulation" }}>
+                  {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </button>
+                <div className="absolute z-20 right-3 sm:right-7 bottom-[max(7.3rem,env(safe-area-inset-bottom))] flex flex-col gap-4">
+                  <button onClick={() => void toggleSaved(item)} disabled={savingId === item.id} aria-label={item.savedAt ? "Remove from saved products" : "Save product"} className="flex flex-col items-center gap-1 text-white" style={{ touchAction: "manipulation" }}>
+                    <span className={`grid h-12 w-12 place-items-center rounded-full border backdrop-blur-xl ${item.savedAt ? "bg-amber-400 text-black border-amber-100" : "bg-black/45 border-white/25"}`}>{savingId === item.id ? <Loader2 className="h-5 w-5 animate-spin" /> : item.savedAt ? <BookmarkCheck className="h-5 w-5" /> : <Bookmark className="h-5 w-5" />}</span>
+                    <span className="text-[10px] font-black uppercase">Save</span>
+                  </button>
+                  <button onClick={() => void openComments(item)} aria-label="Open comments" className="flex flex-col items-center gap-1 text-white" style={{ touchAction: "manipulation" }}>
+                    <span className="grid h-12 w-12 place-items-center rounded-full border border-white/25 bg-black/45 backdrop-blur-xl"><MessageCircle className="h-5 w-5" /></span>
+                    <span className="text-[10px] font-black">{item.commentCount}</span>
+                  </button>
+                  <button onClick={() => openReview(item)} disabled={!item.sourceUrl || item.supplierPrice === null} aria-label="Add this product" className="flex flex-col items-center gap-1 text-white disabled:opacity-40" style={{ touchAction: "manipulation" }}>
+                    <span className="grid h-12 w-12 place-items-center rounded-full bg-primary text-black border border-yellow-200/60 shadow-[0_0_24px_rgba(255,102,0,0.5)]"><Plus className="h-6 w-6" /></span>
+                    <span className="text-[10px] font-black uppercase">Add This</span>
+                  </button>
+                </div>
+                <div className="relative z-10 w-full max-w-4xl px-4 sm:px-8 pr-20 sm:pr-28 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-widest bg-emerald-400/15 border border-emerald-200/30 text-emerald-100 backdrop-blur-xl">Verified UAE delivery</span>
+                    <span className="rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-widest bg-black/45 border border-white/20 backdrop-blur-xl">{item.importSource ?? "Supplier"}</span>
+                  </div>
+                  <h2 className="mt-3 text-2xl sm:text-4xl font-black tracking-tight leading-none text-balance">{item.name}</h2>
+                  {item.description && <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70 line-clamp-2">{item.description}</p>}
+                  <p className="mt-3 text-xl font-mono font-black text-primary">AED {item.price.toFixed(2)}</p>
+                  <div className="mt-4 flex gap-2 flex-wrap">
+                    <Button size="sm" onClick={() => openReview(item)} disabled={!item.sourceUrl || item.supplierPrice === null} className="bg-white text-black hover:bg-white/85 font-black"><Plus className="h-3.5 w-3.5 mr-1.5" /> Add This</Button>
+                    <Link href="/admin/products"><Button size="sm" className="fire-gradient border-none font-black"><ShoppingBag className="h-3.5 w-3.5 mr-1.5" /> Inventory</Button></Link>
+                    {item.sourceUrl && <a href={item.sourceUrl} target="_blank" rel="noreferrer"><Button size="sm" variant="outline" className="border-white/20 bg-black/30 hover:bg-white/10"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Source</Button></a>}
                   </div>
                 </div>
               </motion.article>
@@ -319,16 +343,39 @@ export default function AdminProductFeed() {
               </div>
               <div className="mt-5 grid grid-cols-2 gap-2 text-sm">
                 <div className="rounded-2xl p-3 bg-white/5 border border-white/10"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">Original price</p><p className="mt-1 font-mono font-bold">AED {reviewItem.supplierPrice?.toFixed(2)}</p></div>
-                <div className="rounded-2xl p-3 bg-white/5 border border-white/10"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">Original delivery</p><p className="mt-1 font-bold text-amber-300">Needs confirmation</p></div>
+                <div className="rounded-2xl p-3 bg-white/5 border border-white/10"><p className="text-[9px] uppercase tracking-widest font-black text-white/45">Supplier delivery</p><p className="mt-1 font-bold text-emerald-300">UAE verified</p></div>
               </div>
               <label className="mt-4 block text-[10px] font-black uppercase tracking-widest text-white/45">Suggested FirstPick profit (AED 20–100)</label>
               <input type="number" min="20" max="100" step="1" value={profit} onChange={(event) => setProfit(event.target.value)} className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-3 font-mono text-sm outline-none focus:border-primary" />
               <label className="mt-4 block text-[10px] font-black uppercase tracking-widest text-white/45">FirstPick selling price</label>
               <input type="number" min="0.01" step="0.01" value={sellingPrice} onChange={(event) => setSellingPrice(event.target.value)} className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-3 font-mono text-sm outline-none focus:border-primary" />
               <a href={reviewItem.sourceUrl ?? "#"} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"><ExternalLink className="h-3.5 w-3.5" /> Open verified source product</a>
-              <p className="mt-3 text-xs leading-relaxed text-white/50">Adding saves this real source URL and price snapshot for your admin account. It is removed from your default feed; customer delivery is never guessed.</p>
+              <p className="mt-3 text-xs leading-relaxed text-white/50">Adding saves this real source URL, price snapshot, and verified UAE-delivery state for your admin account. It is removed from your default feed.</p>
               <Button onClick={() => void addFromReview()} disabled={adding || Number(profit) < 20 || Number(profit) > 100 || Number(sellingPrice) <= 0} className="mt-5 w-full fire-gradient border-none font-black">{adding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />} Confirm Add This</Button>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {commentsFor && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/65 p-0 sm:p-6" onMouseDown={() => setCommentsFor(null)}>
+            <motion.section initial={{ y: 32, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 32, opacity: 0 }} onMouseDown={(event) => event.stopPropagation()} className="flex w-full sm:max-w-lg max-h-[82dvh] min-h-[420px] flex-col overflow-hidden rounded-t-3xl sm:rounded-3xl border border-white/15" style={{ background: "rgba(13,13,17,0.98)", backdropFilter: "blur(32px)" }}>
+              <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-5 py-4">
+                <div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Team discussion</p><h2 className="mt-1 truncate font-black">{commentsFor.name}</h2></div>
+                <button onClick={() => setCommentsFor(null)} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5"><X className="h-4 w-4" /></button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                {commentsLoading ? <div className="grid h-full place-items-center"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div> : comments.length === 0 ? (
+                  <div className="grid h-full place-items-center text-center"><MessageCircle className="mb-3 h-9 w-9 text-white/20" /><p className="text-sm font-bold text-white/60">No comments yet</p><p className="mt-1 text-xs text-white/35">Start the team discussion about this product short.</p></div>
+                ) : (
+                  <div className="space-y-4">{comments.map((comment) => <div key={comment.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3"><div className="flex items-center justify-between gap-3"><p className="text-xs font-black text-primary">{comment.authorName}</p><time className="text-[10px] text-white/35">{new Date(comment.createdAt).toLocaleString()}</time></div><p className="mt-1.5 text-sm leading-relaxed text-white/80">{comment.body}</p></div>)}</div>
+                )}
+              </div>
+              <form onSubmit={(event) => { event.preventDefault(); void postComment(); }} className="flex shrink-0 gap-2 border-t border-white/10 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <input value={commentText} onChange={(event) => setCommentText(event.target.value)} maxLength={500} placeholder="Write a comment…" className="h-11 min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-3 text-sm outline-none placeholder:text-white/30 focus:border-primary" />
+                <button type="submit" disabled={!commentText.trim() || postingComment} aria-label="Post comment" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary text-black disabled:opacity-45" style={{ touchAction: "manipulation" }}>{postingComment ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}</button>
+              </form>
+            </motion.section>
           </motion.div>
         )}
       </AnimatePresence>

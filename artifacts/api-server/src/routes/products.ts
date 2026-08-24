@@ -25,7 +25,9 @@ async function ensureBadgeColumns() {
       ADD COLUMN IF NOT EXISTS new_arrival BOOLEAN NOT NULL DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS limited_edition BOOLEAN NOT NULL DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS coming_soon BOOLEAN NOT NULL DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS source_url TEXT
+      ADD COLUMN IF NOT EXISTS source_url TEXT,
+      ADD COLUMN IF NOT EXISTS video_url TEXT,
+      ADD COLUMN IF NOT EXISTS ships_to_uae_verified BOOLEAN NOT NULL DEFAULT FALSE
   `);
 }
 ensureBadgeColumns().catch(console.error);
@@ -40,7 +42,7 @@ function serializeProduct(p: {
   publishAt?: Date | string | null; unpublishAt?: Date | string | null;
   collection?: string | null;
   bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
-  comingSoon?: boolean;
+  comingSoon?: boolean; videoUrl?: string | null; shipsToUaeVerified?: boolean;
 }) {
   return {
     ...p,
@@ -48,6 +50,8 @@ function serializeProduct(p: {
     createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : p.createdAt,
     publishAt: p.publishAt instanceof Date ? p.publishAt.toISOString() : (p.publishAt ?? null),
     unpublishAt: p.unpublishAt instanceof Date ? p.unpublishAt.toISOString() : (p.unpublishAt ?? null),
+    videoUrl: p.videoUrl ?? null,
+    shipsToUaeVerified: p.shipsToUaeVerified ?? false,
   };
 }
 
@@ -114,6 +118,8 @@ router.get("/products", async (req, res) => {
       newArrival: productsTable.newArrival,
       limitedEdition: productsTable.limitedEdition,
       comingSoon: productsTable.comingSoon,
+       videoUrl: productsTable.videoUrl,
+       shipsToUaeVerified: productsTable.shipsToUaeVerified,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
@@ -134,6 +140,7 @@ router.post("/products", requireAdmin, async (req, res) => {
     preOrderDate?: string; preOrderNote?: string; sellingFast?: boolean; spotlight?: boolean;
     hidden?: boolean; publishAt?: string | null; unpublishAt?: string | null;
     bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
+     videoUrl?: string | null; shipsToUaeVerified?: boolean;
   };
   if (!body.name || body.price === undefined) {
     res.status(400).json({ error: "name and price required" });
@@ -165,6 +172,8 @@ router.post("/products", requireAdmin, async (req, res) => {
     newArrival: body.newArrival ?? false,
     limitedEdition: body.limitedEdition ?? false,
     comingSoon: (body as any).comingSoon ?? false,
+     videoUrl: body.videoUrl ?? null,
+     shipsToUaeVerified: body.shipsToUaeVerified ?? false,
   }).returning();
   clearProductCaches();
   res.status(201).json(serializeProduct({ ...product, categoryName: null }));
@@ -263,6 +272,8 @@ router.get("/products/:id", async (req, res) => {
       newArrival: productsTable.newArrival,
       limitedEdition: productsTable.limitedEdition,
       comingSoon: productsTable.comingSoon,
+       videoUrl: productsTable.videoUrl,
+       shipsToUaeVerified: productsTable.shipsToUaeVerified,
       createdAt: productsTable.createdAt,
     })
     .from(productsTable)
