@@ -106,6 +106,7 @@ const Receipt = lazy(() => import("@/pages/receipt"));
 const WishlistPage = lazy(() => import("@/pages/wishlist"));
 const MaintenancePage = lazy(() => import("@/pages/maintenance"));
 const BackToSchool = lazy(() => import("@/pages/back-to-school"));
+const CustomStorePage = lazy(() => import("@/pages/custom-store-page"));
 
 // ── Admin pages (lazy — customers never load these) ──
 import AdminLayout from "@/components/admin-layout";
@@ -127,10 +128,11 @@ const AdminNotificationSettings = lazy(() => import("@/pages/admin/notification-
 const AdminAbandonedCarts = lazy(() => import("@/pages/admin/abandoned-carts"));
 const AdminStockAlerts = lazy(() => import("@/pages/admin/stock-alerts"));
 const AdminSalesReports = lazy(() => import("@/pages/admin/sales-reports"));
-const AdminImport = lazy(() => import("@/pages/admin/import"));
 const AdminChat = lazy(() => import("@/pages/admin/chat"));
 const AdminActivityLog = lazy(() => import("@/pages/admin/activity-log"));
 const AdminCoupons = lazy(() => import("@/pages/admin/coupons"));
+const AdminOwnerStudio = lazy(() => import("@/pages/admin/owner-studio"));
+const StudioAdminPage = lazy(() => import("@/pages/admin/studio-admin-page"));
 
 // ── Suspense fallback ──
 function PageSkeleton() {
@@ -174,10 +176,11 @@ function AdminRouter() {
         <Route path="/admin/abandoned-carts" component={AdminAbandonedCarts} />
         <Route path="/admin/stock-alerts" component={AdminStockAlerts} />
         <Route path="/admin/sales-reports" component={AdminSalesReports} />
-        <Route path="/admin/import" component={AdminImport} />
         <Route path="/admin/activity" component={AdminActivityLog} />
         <Route path="/admin/chat" component={AdminChat} />
         <Route path="/admin/coupons" component={AdminCoupons} />
+        <Route path="/admin/owner-studio" component={AdminOwnerStudio} />
+        <Route path="/admin/studio/:slug" component={StudioAdminPage} />
 
         <Route component={NotFound} />
       </Switch>
@@ -242,6 +245,7 @@ function MainRouter() {
             <Route path="/support" component={SupportPage} />
             <Route path="/wishlist" component={WishlistPage} />
             <Route path="/maintenance" component={MaintenancePage} />
+            <Route path="/:slug" component={CustomStorePage} />
 
             <Route component={NotFound} />
           </Switch>

@@ -1,0 +1,1405 @@
+FIRSTPICK — EXTREMELY EASY PAGE BUILDER + FIRSTPICK TOOLBOX + CUSTOM CODING + COMPLETE WEBSITE TESTING
+
+Continue developing the existing FirstPick website and Admin Dashboard.
+
+Do NOT rebuild the project from scratch.
+
+Preserve all existing working systems, data, products, customers, orders, payments, admin accounts, chats, calls, notifications, Manage Devices, Breaks, Owner Studio, Saved Products, Added Products, and all other current FirstPick functionality.
+
+IMPORTANT:
+
+Do NOT bring FirstPick Plus back. It has been removed.
+
+This upgrade should make creating pages, adding elements, adding animations, and using custom code extremely easy.
+
+The goal is that I should be able to build a new page without needing to understand complicated web development.
+
+After implementing this, perform an extremely thorough test, bug-fix, responsiveness, performance, and polish pass across the ENTIRE FirstPick website and Admin Dashboard.
+
+⸻
+
+1. MAKE OWNER STUDIO EXTREMELY EASY
+
+The existing Owner Studio should become much easier to use.
+
+When I open Owner Studio, I should immediately understand what to do.
+
+Do not make it feel like complicated professional development software.
+
+Use large clear actions such as:
+
++ New Page
+
++ New Event
+
+Edit Existing Page
+
+FirstPick Toolbox
+
+Animations
+
+Custom Coding 💻
+
+Preview
+
+Everything should be visual and simple.
+
+⸻
+
+2. TWO MAIN CUSTOM-CODING BUTTONS
+
+Inside:
+
+Add With Coding 💻
+
+the first screen should be extremely simple.
+
+Show TWO major buttons:
+
+MAKE NEW PAGE
+
+and
+
+MAKE NEW EVENT
+
+Do not overwhelm me with lots of confusing options immediately.
+
+⸻
+
+3. MAKE NEW PAGE — CUSTOM CODING
+
+When I press:
+
+Make New Page
+
+ask:
+
+Where should this page be created?
+
+Options:
+
+Store
+
+Admin
+
+Then ask for:
+
+Page Name
+
+and:
+
+Page URL
+
+Example:
+
+Page Name:
+Gaming
+
+URL:
+/gaming
+
+Then open the coding editor.
+
+⸻
+
+4. EDIT AN EXISTING PAGE WITH CODE
+
+Also let me choose:
+
+Edit Existing Page
+
+Then show my existing pages.
+
+Example:
+
+* Homepage
+* Products
+* Orders
+* About
+* Contact
+* Custom pages
+* Admin pages
+
+I select the page.
+
+Then open the coding editor for the supported custom area of that page.
+
+Do not expose or overwrite critical application code unnecessarily.
+
+⸻
+
+5. EXTREMELY SIMPLE CODE EDITOR
+
+The code editor should feel easy.
+
+Do not require complicated deployment steps.
+
+I should be able to:
+
+1. Open the code editor.
+2. Paste/write supported code.
+3. Press:
+
+Run / Preview
+
+4. See what it looks like.
+5. Press:
+
+Submit & Publish
+
+6. The page/event becomes active.
+
+That should be the basic workflow.
+
+⸻
+
+6. SUBMIT & PUBLISH
+
+Add one clear button:
+
+Submit & Publish
+
+When pressed:
+
+* Validate the code
+* Check for errors
+* Build the supported custom content
+* Publish it to the correct place
+
+If it is a:
+
+Store Page
+
+it should become available in the Store.
+
+If it is an:
+
+Admin Page
+
+it should become available in Admin according to its permissions.
+
+The experience should feel:
+
+Code → Preview → Submit & Publish → Done
+
+⸻
+
+7. DO NOT MAKE CUSTOM CODING UNSAFE
+
+Keep the workflow easy, but do NOT execute unrestricted arbitrary code with full access to:
+
+* Database credentials
+* Payment secrets
+* Authentication secrets
+* Environment variables
+* Customer private information
+* Server shell
+* Admin tokens
+
+Use a safe supported custom-code environment and FirstPick APIs.
+
+Easy does not mean insecure.
+
+⸻
+
+8. MAKE NEW EVENT
+
+When I press:
+
+Make New Event
+
+open another simple workflow.
+
+Ask:
+
+Where should this event work?
+
+Options:
+
+Store
+
+Admin
+
+Then:
+
+Choose Page
+
+Then:
+
+Choose Trigger
+
+Examples:
+
+* Page opens
+* Button clicked
+* Product clicked
+* Product added to cart
+* User scrolls to section
+* Element enters screen
+* Order status changes
+* Admin opens page
+* Custom supported event
+
+Then open the coding editor.
+
+⸻
+
+9. EVENT CODE WORKFLOW
+
+For a new event:
+
+1. Choose Store/Admin.
+2. Choose page.
+3. Choose trigger.
+4. Write/paste code.
+5. Preview/test.
+6. Press:
+
+Submit & Publish
+
+Then the event should actually work.
+
+⸻
+
+10. EASY VISUAL PAGE BUILDER
+
+The non-coding way of making pages should be even easier.
+
+When I press:
+
++ New Page
+
+ask:
+
+Store Page
+
+or
+
+Admin Page
+
+Then:
+
+Page Name
+
+Then immediately open a blank visual page.
+
+⸻
+
+11. SIMPLE PLUS BUTTON
+
+Inside the page builder, show a clear:
+
++
+
+button.
+
+When I press it, open the:
+
+FIRSTPICK TOOLBOX
+
+This should be the main way to add things to the page.
+
+⸻
+
+12. FIRSTPICK TOOLBOX — LIKE A ROBLOX TOOLBOX
+
+Create a visual content library inspired by the simplicity of the Roblox Studio Toolbox, but designed entirely for FirstPick.
+
+Call it:
+
+FirstPick Toolbox
+
+The Toolbox should show everything I can add to a page.
+
+Use categories, icons, search, and previews.
+
+Example categories:
+
+Text
+
+Products
+
+Images
+
+Buttons
+
+Layout
+
+Store
+
+Media
+
+Animations
+
+Decorations
+
+Sections
+
+Navigation
+
+Effects
+
+⸻
+
+13. TOOLBOX — TEXT
+
+Inside:
+
+Text
+
+include:
+
+* Heading
+* Subheading
+* Paragraph
+* Small Text
+* Label
+* Price Text
+* Product Text
+* Announcement
+* Badge Text
+* Button Text
+
+By default, new text should use FirstPick’s existing font/design system.
+
+I should not need to manually figure out the font.
+
+⸻
+
+14. TOOLBOX — PRODUCTS
+
+Inside:
+
+Products
+
+let me add real FirstPick product elements such as:
+
+* Product Card
+* Product Image
+* Product Name
+* Product Price
+* Product Description
+* Add to Cart Button
+* Product Grid
+* Product Carousel
+* Featured Product
+* Product Badge
+* Product Category
+
+Let me select an existing FirstPick product.
+
+Do not use fake products.
+
+⸻
+
+15. TOOLBOX — IMAGES & MEDIA
+
+Allow:
+
+* Image
+* Video
+* Background Image
+* Background Video
+* Icon
+* Logo
+* Decorative Image
+
+Let me upload media or select from the existing Media Library.
+
+⸻
+
+16. TOOLBOX — LAYOUT
+
+Include simple layout items:
+
+* Section
+* Container
+* Row
+* Column
+* Grid
+* Spacer
+* Divider
+* Full Screen Section
+* Split Layout
+* Centered Layout
+* Sticky Section
+
+I should be able to drag these into the page.
+
+⸻
+
+17. TOOLBOX — READY-MADE SECTIONS
+
+Include ready-to-use FirstPick sections.
+
+Examples:
+
+* Hero
+* Product Showcase
+* New Arrivals
+* Featured Products
+* Best Sellers
+* Category Row
+* Promo Banner
+* Full Screen Product
+* Image + Text
+* Text + Image
+* Video Hero
+* Product Carousel
+* Announcement
+* FAQ
+* Contact
+* Footer
+* Call To Action
+
+Everything should already match FirstPick’s design language.
+
+⸻
+
+18. TOOLBOX SEARCH
+
+Add a search bar.
+
+Example:
+
+I search:
+
+product
+
+It should show product-related elements.
+
+I search:
+
+animation
+
+It should show animation tools.
+
+I search:
+
+text
+
+It should show text elements.
+
+⸻
+
+19. DRAG & DROP
+
+I should be able to drag an item from the FirstPick Toolbox onto the page.
+
+Example:
+
+Toolbox → Image → drag onto page.
+
+Toolbox → Heading → drag onto page.
+
+Toolbox → Product Card → drag onto page.
+
+Make placement intuitive.
+
+⸻
+
+20. SIMPLE EDITING CONTROLS
+
+When I click an element, show easy controls.
+
+For text:
+
+* Edit text
+* Size
+* Weight
+* Alignment
+* Color
+* Width
+
+For images:
+
+* Replace
+* Resize
+* Position
+* Crop
+* Fit
+* Opacity
+
+For buttons:
+
+* Text
+* Link/action
+* Size
+* Style
+* Animation
+
+Do not show advanced settings unless I open:
+
+Advanced
+
+⸻
+
+21. SIMPLE ANIMATION SYSTEM
+
+Animations should feel as easy as CapCut.
+
+I should be able to select an element and press:
+
+Animation
+
+Then see visual animation choices.
+
+Do NOT make me write keyframes for basic animations.
+
+⸻
+
+22. CAPCUT-STYLE ANIMATION CATEGORIES
+
+Use simple categories:
+
+IN
+
+* Fade In
+* Slide Up
+* Slide Down
+* Slide Left
+* Slide Right
+* Zoom In
+* Pop In
+* Bounce In
+* Blur In
+* Rotate In
+* Flip In
+* Rise
+* Drop
+
+OUT
+
+* Fade Out
+* Slide Out
+* Zoom Out
+* Blur Out
+* Drop Out
+* Rotate Out
+
+LOOP
+
+* Float
+* Pulse
+* Bounce
+* Wiggle
+* Shake
+* Slow Rotate
+* Breathing
+* Glow Pulse
+
+SCROLL
+
+* Move With Scroll
+* Fade With Scroll
+* Zoom With Scroll
+* Rotate With Scroll
+* Parallax
+* Reveal
+* Sticky Scroll
+
+⸻
+
+23. ANIMATION PREVIEWS
+
+Each animation should have a small preview.
+
+I should be able to press:
+
+Preview
+
+before applying it.
+
+⸻
+
+24. SIMPLE ANIMATION SETTINGS
+
+After choosing an animation, only show the important controls first:
+
+Speed
+
+Delay
+
+Strength
+
+Direction
+
+Then an optional:
+
+Advanced
+
+button.
+
+⸻
+
+25. SIMPLE SCROLL KEYFRAMES
+
+Keep the keyframe feature, but make it extremely simple.
+
+I should not have to manually understand timelines.
+
+Workflow:
+
+1. Add an image.
+2. Press:
+
+Scroll Animation
+
+3. Press:
+
+Set Start
+
+4. Scroll to where I want the animation to begin.
+5. Place the object where I want it at the beginning.
+6. Press:
+
+Set End
+
+7. Scroll to where I want it to finish.
+8. Move the object to its final position.
+9. Done.
+
+FirstPick should automatically interpolate the movement.
+
+⸻
+
+26. EXAMPLE — BACKPACK
+
+Example:
+
+I add a backpack image.
+
+At the top of the section:
+
+Set Start
+
+Backpack position:
+Center
+
+Then I scroll further down.
+
+Set End
+
+Move backpack:
+Right side
+
+FirstPick automatically makes the backpack move smoothly from the center to the right as the customer scrolls.
+
+That is how simple it should be.
+
+⸻
+
+27. OPTIONAL EXTRA KEYFRAMES
+
+If I want more control, allow:
+
++ Add Keyframe
+
+But this should be optional.
+
+Basic users should only need:
+
+Start
+
+and
+
+End
+
+⸻
+
+28. TEXT ANIMATIONS
+
+Allow animations to work on text.
+
+Examples:
+
+* Fade In
+* Slide Up
+* Blur Reveal
+* Word Reveal
+* Letter Reveal
+* Type On
+* Pop
+* Zoom
+
+⸻
+
+29. EVERYTHING SHOULD LOOK FIRSTPICK BY DEFAULT
+
+When I add:
+
+* Text
+* Buttons
+* Product cards
+* Sections
+* Navigation
+* Containers
+
+they should automatically use FirstPick’s current:
+
+* Font
+* Spacing
+* Colors
+* Radius
+* Dark theme
+* Orange/yellow accents
+* Styling
+
+I should not have to redesign every element from zero.
+
+⸻
+
+30. STORE OR ADMIN PAGE
+
+Every new page should clearly have:
+
+Page Type
+
+Options:
+
+Store
+
+Admin
+
+Store pages are customer-facing.
+
+Admin pages are protected.
+
+Admin pages must support permissions such as:
+
+Owner Only
+
+All Admins
+
+Selected Roles
+
+⸻
+
+31. PAGE NAVIGATION
+
+When creating a page, let me choose whether it should automatically appear in:
+
+* Main navigation
+* Footer
+* Admin sidebar
+* Nowhere / direct link only
+
+Do not automatically clutter navigation.
+
+⸻
+
+32. PAGE DUPLICATION
+
+Allow:
+
+Duplicate Page
+
+This should duplicate:
+
+* Layout
+* Elements
+* Animations
+* Styles
+
+without duplicating sensitive runtime data.
+
+⸻
+
+33. SECTION DUPLICATION
+
+Allow:
+
+Duplicate Section
+
+This makes building similar areas much faster.
+
+⸻
+
+34. SAVE AS TOOLBOX ITEM
+
+Allow me to build my own section and press:
+
+Save to FirstPick Toolbox
+
+Example:
+
+I make a custom product hero.
+
+Save it as:
+
+My Product Hero
+
+Then I can reuse it later.
+
+This should be Owner-only.
+
+⸻
+
+35. DEVICE PREVIEW
+
+At the top of the editor show device buttons:
+
+Phone
+
+Tablet
+
+iPad
+
+Laptop
+
+Desktop
+
+Also:
+
+Portrait
+
+Landscape
+
+⸻
+
+36. DEVICE-SPECIFIC EDITING
+
+I should be able to change element position and size separately for different devices.
+
+Example:
+
+Phone:
+Image below text.
+
+iPad:
+Image beside text.
+
+Desktop:
+Image on right.
+
+Changes should use responsive overrides.
+
+Do not force me to build three completely separate pages.
+
+⸻
+
+37. CHECK MANY DEVICE SIZES
+
+Test representative viewport sizes for:
+
+* Small phones
+* Standard phones
+* Large phones
+* Phone landscape
+* iPad mini
+* Standard iPad
+* iPad Air
+* iPad Pro
+* Tablet landscape
+* Small laptops
+* Standard laptops
+* Desktop
+* Large desktop
+* Ultra-wide
+
+⸻
+
+38. CROP / OVERFLOW DETECTION
+
+If an element becomes cropped or goes outside the screen, show a warning.
+
+Example:
+
+This element is outside the visible area on iPhone-size screens.
+
+Button:
+
+Fix Position
+
+or
+
+Bring Into View
+
+⸻
+
+39. AUTO-FIT
+
+Include:
+
+Auto Fit This Device
+
+When pressed, FirstPick should attempt to correct obvious overflow/spacing problems without destroying the design.
+
+⸻
+
+40. PREVIEW BEFORE PUBLISHING
+
+Everything should support:
+
+Draft
+
+→ Preview
+
+→ Publish
+
+Do not instantly make edits live.
+
+⸻
+
+41. VERSION HISTORY
+
+Keep version history for pages and major design changes.
+
+Allow:
+
+Restore Previous Version
+
+⸻
+
+42. UNDO / REDO
+
+Add:
+
+Undo
+
+Redo
+
+Make it reliable.
+
+⸻
+
+43. FULL FIRSTPICK WEBSITE TEST AFTER BUILDING THIS
+
+AFTER implementing everything above, perform a complete audit of the ENTIRE FirstPick website.
+
+I mean everything.
+
+Do not only test the new Owner Studio.
+
+⸻
+
+44. TEST CUSTOMER WEBSITE
+
+Check:
+
+* Homepage
+* Header
+* Navigation
+* Search
+* Product pages
+* Product lists
+* Categories
+* Cart
+* Checkout
+* Payment flow
+* Customer login
+* Account
+* Orders
+* Order tracking
+* Footer
+* Contact
+* Terms
+* Privacy Policy
+* Returns/refund pages
+* Any legal/information pages
+* Every custom Store page
+
+⸻
+
+45. TEST ADMIN
+
+Check every Admin section.
+
+Including:
+
+* Dashboard
+* Orders
+* Products
+* Customers
+* Product Discovery / Feed if still present
+* Saved Products
+* Added Products
+* Chats
+* Private chats
+* Admin Group
+* Calls
+* Voice calls
+* Video calls
+* Notifications
+* Breaks
+* Manage Devices
+* Admin Activity
+* Owner Studio
+* Visual Editor
+* Animations
+* Sound Studio
+* Add With Coding 💻
+* Any custom Admin pages
+
+⸻
+
+46. TEST EVERY BUTTON
+
+Go through the website and verify that important buttons actually work.
+
+Check:
+
+* Save
+* Delete
+* Edit
+* Submit
+* Publish
+* Cancel
+* Back
+* Close
+* Add
+* Remove
+* Checkout
+* Add to cart
+* Calls
+* Message
+* Logout
+* Manage Devices
+* Owner actions
+* Navigation links
+
+Do not leave dead buttons.
+
+⸻
+
+47. TEST EVERY LINK
+
+Check internal links.
+
+Check legal links.
+
+Check footer links.
+
+Check product links.
+
+Check Admin links.
+
+Check custom pages.
+
+Fix broken links.
+
+⸻
+
+48. TEST FOR BUGS
+
+Find and fix every major bug you can identify.
+
+Check for:
+
+* Duplicate messages
+* Duplicate notifications
+* Double submissions
+* Buttons firing twice
+* Broken chat state
+* Broken call state
+* Broken page navigation
+* Broken authentication
+* Broken Manage Devices
+* Broken page builder
+* Broken custom code
+* Broken animations
+* Broken responsive layouts
+* Broken forms
+* Console errors
+* Network errors
+
+⸻
+
+49. FIX LAG
+
+Audit performance across the entire website.
+
+Fix:
+
+* Slow scrolling
+* Laggy animations
+* Heavy blur
+* Slow page loads
+* Slow Admin
+* Slow chats
+* Slow typing
+* Slow calls
+* Slow product pages
+* Slow media
+* Excessive database requests
+* Duplicate requests
+* Memory leaks
+* Too many listeners
+* Unnecessary component re-renders
+* Large unoptimized images
+* Large unoptimized videos
+
+⸻
+
+50. FIX RESPONSIVENESS
+
+Check every page at representative widths.
+
+Make sure:
+
+* Nothing is cropped
+* Nothing goes off-screen
+* No important button is hidden
+* Text fits
+* Modals fit
+* Chat input fits
+* Call controls fit
+* Tables adapt
+* Cards adapt
+* Forms adapt
+* Headers adapt
+* Footer adapts
+
+⸻
+
+51. TEST ORIENTATION
+
+Test:
+
+Portrait
+
+and
+
+Landscape
+
+especially on:
+
+* Phones
+* iPads
+* Tablets
+
+Make sure layouts adapt smoothly.
+
+⸻
+
+52. TEST KEYBOARD ON MOBILE
+
+When typing:
+
+* Chat input remains visible
+* Forms remain visible
+* Buttons are not hidden behind keyboard
+* Page does not jump badly
+
+⸻
+
+53. TEST SAFE AREAS
+
+Respect:
+
+* Dynamic Island
+* Notches
+* Rounded corners
+* Home indicator
+* Browser bars
+
+⸻
+
+54. TEST ANIMATIONS
+
+Check every animation for:
+
+* Smoothness
+* Correct start
+* Correct end
+* Correct direction
+* No flicker
+* No layout breaking
+* No major lag
+* Correct mobile behavior
+
+⸻
+
+55. TEST CUSTOM CODE
+
+For Add With Coding:
+
+Test:
+
+* New Store Page
+* New Admin Page
+* New Event
+* Preview
+* Validation
+* Publish
+* Disable
+* Restore previous version
+* Error handling
+
+A bad custom-code item must not break the whole website.
+
+⸻
+
+56. TEST PAGE CREATOR
+
+Test:
+
+* Create page
+* Add text
+* Add image
+* Add product
+* Add section
+* Add animation
+* Device override
+* Preview
+* Publish
+* Edit published page
+* Restore previous version
+
+⸻
+
+57. FIX EVERYTHING FOUND
+
+After testing:
+
+Do not simply report bugs.
+
+Actually fix the bugs you find where possible.
+
+Then retest the affected feature.
+
+⸻
+
+58. NO FAKE SUCCESS
+
+Do not say:
+
+Everything works
+
+just because pages render.
+
+Verify actual functionality.
+
+For example:
+
+A call is not working unless audio/video genuinely connects.
+
+Manage Devices is not working unless real sessions can be revoked.
+
+Publishing is not working unless the page actually becomes accessible.
+
+⸻
+
+59. ZERO OBVIOUS BUGS TARGET
+
+The goal is to finish with:
+
+* No known major bugs
+* No known critical broken flows
+* No obvious layout overflow
+* No obvious duplicate messages
+* No obvious dead buttons
+* No obvious major lag
+* No major console errors
+* No major broken responsive layouts
+
+Do not claim literal mathematical “zero bugs” if unverified.
+
+Instead, test thoroughly and resolve every identified major/obvious issue before completion.
+
+⸻
+
+60. FINAL POLISH
+
+After functionality is fixed, polish the whole experience.
+
+Improve:
+
+* Transitions
+* Button feedback
+* Loading states
+* Empty states
+* Error states
+* Navigation
+* Spacing
+* Typography consistency
+* Animation smoothness
+* Mobile usability
+* Tablet usability
+* Desktop usability
+
+Everything should feel premium and extremely smooth.
+
+⸻
+
+FINAL REQUIREMENT
+
+Make FirstPick’s Owner Studio so easy that I should be able to create a professional page without knowing web development.
+
+The easy workflow should basically be:
+
+Owner Studio
+
+→ + New Page
+
+→ choose Store or Admin
+
+→ press +
+
+→ choose something from FirstPick Toolbox
+
+→ drag it onto the page
+
+→ edit it
+
+→ add a CapCut-style animation if I want
+
+→ preview Phone / iPad / Desktop
+
+→ Publish
+
+For coding:
+
+Add With Coding 💻
+
+→ Make New Page OR Make New Event
+
+→ choose Store or Admin
+
+→ write/paste code
+
+→ Preview
+
+→ Submit & Publish
+
+→ Done.
+
+Make the FirstPick Toolbox feel like an easy content toolbox where I can find:
+
+* Text
+* Images
+* Products
+* Product cards
+* Buttons
+* Sections
+* Videos
+* Layouts
+* Animations
+* Effects
+* Store components
+
+All using FirstPick styling by default.
+
+Keep the simple scroll animation system:
+
+Set Start → position the element → Set End → move the element → done.
+
+Include a large library of easy CapCut-style animations.
+
+After building all of this, test EVERYTHING across the entire FirstPick website and Admin Dashboard, including Terms, policies, checkout, chats, calls, Manage Devices, custom pages, Owner Studio, and everything else currently present.
+
+Then:
+
+Fix every major bug found.
+
+Fix every major lag issue found.
+
+Fix cropped layouts.
+
+Fix responsive problems.
+
+Check representative phone, iPad/tablet, laptop, desktop, orientation, and screen sizes.
+
+Retest after fixes.
+
+The final result should be smooth, responsive, polished, stable, easy to use, and free of known major/obvious bugs.

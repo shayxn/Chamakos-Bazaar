@@ -12,7 +12,6 @@ import contentRouter from "./content";
 import settingsRouter from "./settings";
 import reviewsRouter from "./reviews";
 import tiktokRouter from "./tiktok";
-import importRouter from "./import";
 import stockAlertsRouter from "./stock-alerts";
 import customerAccountsRouter from "./customer-accounts";
 import salesReportsRouter from "./sales-reports";
@@ -29,7 +28,7 @@ import adminChatRouter from "./admin-chat";
 import adminActivityRouter from "./admin-activity";
 import couponsRouter from "./coupons";
 import wishlistRouter from "./wishlist";
-import productImporterRouter from "./product-importer";
+import ownerStudioRouter from "./owner-studio";
 
 
 const router: IRouter = Router();
@@ -48,7 +47,6 @@ router.use(contentRouter);
 router.use(settingsRouter);
 router.use(reviewsRouter);
 router.use(tiktokRouter);
-router.use(importRouter);
 router.use(stockAlertsRouter);
 router.use(salesReportsRouter);
 router.use(eventsRouter);
@@ -64,7 +62,7 @@ router.use(adminChatRouter);
 router.use(adminActivityRouter);
 router.use(couponsRouter);
 router.use(wishlistRouter);
-router.use(productImporterRouter);
+router.use(ownerStudioRouter);
 
 
 export default router;

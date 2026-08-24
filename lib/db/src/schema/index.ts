@@ -19,3 +19,4 @@ export * from "./abandoned_carts";
 export * from "./visitor_sessions";
 export * from "./widgets";
 export * from "./product_import_queue";
+export * from "./owner_studio_pages";

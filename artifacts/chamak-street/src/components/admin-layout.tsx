@@ -5,7 +5,7 @@ import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
   Zap, Users, BellRing, MessageCircle, Activity, Ticket, Smartphone,
-  Phone, Menu, Shield, Download
+  Phone, Menu, Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -252,7 +252,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sessions, setSessions] = useState<AdminDeviceSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [ownerStudioAccess, setOwnerStudioAccess] = useState(false);
   const isChat = location.split("?")[0] === "/admin/chat";
+
+  useEffect(() => {
+    if (!user?.isAdmin) {
+      setOwnerStudioAccess(false);
+      return;
+    }
+    const controller = new AbortController();
+    fetch(`${BASE}/api/owner-studio/access`, { credentials: "include", signal: controller.signal })
+      .then(async (response) => response.ok ? response.json() as Promise<{ canAccess?: boolean }> : { canAccess: false })
+      .then((access) => setOwnerStudioAccess(Boolean(access.canAccess)))
+      .catch((error) => {
+        if ((error as Error).name !== "AbortError") setOwnerStudioAccess(false);
+      });
+    return () => controller.abort();
+  }, [user?.id, user?.isAdmin]);
 
   const loadSessions = async () => {
     setSessionsLoading(true);
@@ -361,7 +377,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
     { href: "/admin/products", label: "Products", icon: Package },
-    { href: "/admin/import", label: "Product Importer", icon: Download },
     { href: "/admin/basics", label: "FP Basics", icon: Layers },
     { href: "/admin/categories", label: "Categories", icon: Tag },
     { href: "/admin/visitors", label: "Live Customers", icon: Users },
@@ -370,6 +385,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/notifications", label: "Notifications", icon: BellRing },
     { href: "/admin/activity", label: "Activity Log", icon: Activity },
     { href: "/admin/coupons", label: "Coupons", icon: Ticket },
+    ...(ownerStudioAccess ? [{ href: "/admin/owner-studio", label: "Owner Studio", icon: Zap }] : []),
     { href: "/admin/site-settings", label: "Site Settings", icon: Settings },
     { href: "/admin/reviews", label: "Reviews", icon: Star },
     { href: "/admin/tiktok", label: "TikTok Videos", icon: Video },
