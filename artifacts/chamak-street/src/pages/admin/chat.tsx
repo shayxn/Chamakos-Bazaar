@@ -141,7 +141,7 @@ export default function AdminChatPage() {
     }catch(error){
       toast({title:kind==="image"?"Photo not sent":"Voice message not sent",description:error instanceof Error?error.message:undefined,variant:"destructive"});
     }finally{setUploadingMedia(false);}
-  },[toast]);
+  },[send,toast]);
   const selectPhoto=(file?:File)=>{
     if(!file)return;
     if(!file.type.startsWith("image/")){
