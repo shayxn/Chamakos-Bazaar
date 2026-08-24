@@ -219,8 +219,10 @@ export default function AdminChatPage() {
   const sseRef = useRef<EventSource | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const callPeerRef = useRef<OnlineAdmin | null>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingLastSentRef = useRef(0);
   const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -230,6 +232,34 @@ export default function AdminChatPage() {
   const activeCallIdRef = useRef<string | null>(null);
   const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const attachLocalVideo = useCallback((node: HTMLVideoElement | null) => {
+    localVideoRef.current = node;
+    if (node) node.srcObject = localStreamRef.current;
+  }, []);
+
+  const attachRemoteVideo = useCallback((node: HTMLVideoElement | null) => {
+    remoteVideoRef.current = node;
+    if (node) node.srcObject = remoteStreamRef.current;
+  }, []);
+
+  const teardownCallMedia = useCallback(() => {
+    if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
+    const peerConnection = pcRef.current;
+    pcRef.current = null;
+    peerConnection?.close();
+    localStreamRef.current?.getTracks().forEach(track => track.stop());
+    localStreamRef.current = null;
+    remoteStreamRef.current = null;
+    pendingIceCandidatesRef.current = [];
+    activeCallIdRef.current = null;
+    if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+  }, []);
+
+  useEffect(() => {
+    callPeerRef.current = callPeer;
+  }, [callPeer]);
 
   // Load history
   useEffect(() => {
@@ -286,7 +316,7 @@ export default function AdminChatPage() {
         // Show browser notification for incoming call if page is hidden
         if (sig.type === "offer" && document.hidden && typeof Notification !== "undefined" && Notification.permission === "granted") {
           try {
-            new Notification("📞 Incoming Call", {
+            new Notification("Incoming Call", {
               body: `${data.fromName} is calling you on FirstPick`,
               tag: "incoming-call",
               requireInteraction: true,
@@ -307,7 +337,6 @@ export default function AdminChatPage() {
 
   useEffect(() => () => {
     if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-    if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
   }, []);
 
   // Auto-scroll
@@ -409,18 +438,23 @@ export default function AdminChatPage() {
     if (!res.ok) throw new Error("Call signal failed");
   }, [adminId, adminName]);
 
-  const endCall = useCallback(() => {
-    if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
-    pcRef.current?.close(); pcRef.current = null;
-    localStreamRef.current?.getTracks().forEach(t => t.stop());
-    localStreamRef.current = null;
-    pendingIceCandidatesRef.current = [];
-    activeCallIdRef.current = null;
-    if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+  useEffect(() => () => {
+    const peerId = callPeerRef.current?.adminId;
+    if (peerId && pcRef.current) {
+      signal(peerId, { type: "hangup" }).catch(() => {});
+    }
+    teardownCallMedia();
+  }, [signal, teardownCallMedia]);
+
+  const endCall = useCallback((notifyPeer = true) => {
+    const peerId = callPeerRef.current?.adminId;
+    if (notifyPeer && peerId && pcRef.current) {
+      signal(peerId, { type: "hangup" }).catch(() => {});
+    }
+    teardownCallMedia();
     setCallState("idle"); setCallPeer(null); setMuted(false); setCameraOn(false);
     setLocalHasVideo(false); setRemoteHasVideo(false); setCallMaximized(false);
-  }, []);
+  }, [signal, teardownCallMedia]);
 
   const createPeer = useCallback(async (initiator: boolean, targetId: string, withVideo = false): Promise<RTCPeerConnection> => {
     const pc = new RTCPeerConnection({ iceServers: iceServersRef.current });
@@ -454,14 +488,17 @@ export default function AdminChatPage() {
     setCameraOn(hasVid);
 
     pc.ontrack = (e) => {
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = e.streams[0];
-      const hasRemoteVid = e.streams[0]?.getVideoTracks().length > 0;
+      const remoteStream = e.streams[0] ?? new MediaStream([e.track]);
+      remoteStreamRef.current = remoteStream;
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream;
+      const hasRemoteVid = remoteStream.getVideoTracks().length > 0;
       setRemoteHasVideo(hasRemoteVid);
     };
     pc.onicecandidate = (e) => {
       if (e.candidate) signal(targetId, { type: "ice-candidate", candidate: e.candidate }).catch(() => {});
     };
     pc.onconnectionstatechange = () => {
+      if (pcRef.current !== pc) return;
       if (pc.connectionState === "connected") {
         if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
         setCallState("in-call");
@@ -504,7 +541,8 @@ export default function AdminChatPage() {
     if (callState !== "idle") return;
     try {
       activeCallIdRef.current = crypto.randomUUID();
-      setCallState("calling"); setCallPeer(peer);
+      callPeerRef.current = peer;
+      setCallState("calling"); setCallPeer(peer); setCallMaximized(true);
       const pc = await createPeer(false, peer.adminId, withVideo);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
@@ -523,7 +561,9 @@ export default function AdminChatPage() {
     if (!incomingCall) return;
     try {
       setCallState("calling");
-      setCallPeer({ adminId: incomingCall.from, adminName: incomingCall.fromName });
+      const peer = { adminId: incomingCall.from, adminName: incomingCall.fromName };
+      callPeerRef.current = peer;
+      setCallPeer(peer); setCallMaximized(true);
       const pc = await createPeer(false, incomingCall.from, withVideo);
       await pc.setRemoteDescription(incomingCall.offer);
       for (const candidate of pendingIceCandidatesRef.current.splice(0)) {
@@ -617,6 +657,8 @@ export default function AdminChatPage() {
       endCall(); toast({ title: "Call declined" });
     } else if (t === "busy") {
       endCall(); toast({ title: "Admin is busy", description: `${fromName} is already on another call.` });
+    } else if (t === "hangup") {
+      endCall(false); toast({ title: "Call ended" });
     }
   }, [callState, endCall, signal, toast]);
 
@@ -643,7 +685,7 @@ export default function AdminChatPage() {
       });
       localStorage.setItem("fp_admin_push", "1");
       setPushEnabled(true);
-      toast({ title: "🔔 Notifications enabled!" });
+      toast({ title: "Notifications enabled" });
     } catch (e) {
       toast({ title: "Setup failed", description: String(e), variant: "destructive" });
     } finally { setPushLoading(false); }
@@ -658,7 +700,7 @@ export default function AdminChatPage() {
   const visibleMessages = messages.filter(m => m.type === "text" && !m.message.startsWith("__TYPING__"));
   const otherAdmins = onlineAdmins.filter(a => a.adminId !== adminId);
   const isCallActive = callState === "calling" || callState === "in-call";
-  const showFullscreenCall = isCallActive && (isMobile || callMaximized);
+  const showFullscreenCall = isCallActive && callMaximized;
 
   // ── Render ─────────────────────────────────────────────────────────────────────
   return (
@@ -687,69 +729,74 @@ export default function AdminChatPage() {
             className="fixed inset-0 z-[200] flex flex-col"
             style={{ background: "rgba(0,0,0,0.97)" }}
           >
-            {/* Remote video / avatar */}
-            <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-              {remoteHasVideo ? (
-                <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
-              ) : (
-                <div className="flex flex-col items-center gap-5">
-                  <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}>
-                    <Avatar name={callPeer?.adminName ?? "?"} size={100} ring={callState === "calling"} />
-                  </motion.div>
-                  <p className="text-xl font-black">{callPeer?.adminName ?? "Admin Group"}</p>
-                  {callState === "calling" ? (
-                    <div className="flex items-center gap-1.5">
-                      {[0,1,2].map(i => (
-                        <motion.div key={i} animate={{ opacity: [0.3,1,0.3], scale: [0.8,1,0.8] }} transition={{ repeat: Infinity, duration: 1, delay: i * 0.25 }}
-                          className="w-2 h-2 rounded-full bg-primary" />
-                      ))}
-                      <p className="text-muted-foreground text-sm ml-1">Ringing…</p>
-                    </div>
-                  ) : (
-                    <SpeakingWave />
-                  )}
-                  {/* Ripple rings for calling state */}
-                  {callState === "calling" && [0,1,2].map(i => (
-                    <motion.div key={i} animate={{ scale: [1, 2.8], opacity: [0.25, 0] }} transition={{ repeat: Infinity, duration: 2.5, delay: i * 0.8 }}
-                      className="absolute w-32 h-32 rounded-full border border-primary/30" />
-                  ))}
+            {/* Top Bar */}
+            <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 pt-safe pt-4" style={{ paddingTop: "max(env(safe-area-inset-top), 16px)" }}>
+              {callState === "in-call" && (
+                <div className="bg-black/50 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-mono font-black text-primary border border-primary/20 shadow-lg">
+                  {formatDuration(callDuration)}
                 </div>
               )}
+              <button onClick={() => setCallMaximized(false)}
+                  className="ml-auto w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center shadow-lg transition-colors">
+                  <Minimize2 className="h-5 w-5 text-white/90" />
+                </button>
+            </div>
 
-              {/* Local video PiP */}
-              <motion.div drag dragConstraints={{ top: 8, left: 8, right: 8, bottom: 8 }}
-                className="absolute bottom-4 right-4 rounded-2xl overflow-hidden border border-white/20 bg-black shadow-2xl cursor-grab active:cursor-grabbing z-10"
-                style={{ width: 100, aspectRatio: "9/16" }}>
-                <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+            {/* Video Grid */}
+            <div className="flex-1 relative flex flex-col sm:flex-row p-4 gap-4 pt-20 pb-2 overflow-hidden">
+              {/* Remote Tile */}
+              <div className="flex-1 min-h-0 bg-black/50 border border-white/10 rounded-3xl overflow-hidden relative shadow-2xl flex items-center justify-center">
+                {remoteHasVideo ? (
+                <video ref={attachRemoteVideo} autoPlay playsInline className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center gap-5 z-10">
+                    <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}>
+                      <Avatar name={callPeer?.adminName ?? "?"} size={100} ring={callState === "calling"} />
+                    </motion.div>
+                    <p className="text-xl font-black">{callPeer?.adminName ?? "Admin Group"}</p>
+                    {callState === "calling" ? (
+                      <div className="flex items-center gap-1.5">
+                        {[0,1,2].map(i => (
+                          <motion.div key={i} animate={{ opacity: [0.3,1,0.3], scale: [0.8,1,0.8] }} transition={{ repeat: Infinity, duration: 1, delay: i * 0.25 }}
+                            className="w-2 h-2 rounded-full bg-primary" />
+                        ))}
+                        <p className="text-muted-foreground text-sm ml-1">Ringing…</p>
+                      </div>
+                    ) : (
+                      <SpeakingWave />
+                    )}
+                  </div>
+                )}
+                {callState === "calling" && [0,1,2].map(i => (
+                  <motion.div key={i} animate={{ scale: [1, 2.8], opacity: [0.25, 0] }} transition={{ repeat: Infinity, duration: 2.5, delay: i * 0.8 }}
+                    className="absolute w-32 h-32 rounded-full border border-primary/30 pointer-events-none" />
+                ))}
+                <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs font-black tracking-wide">{callPeer?.adminName ?? "Admin Group"}</span>
+                </div>
+              </div>
+
+              {/* Local Tile */}
+              <div className="flex-1 min-h-0 bg-black/50 border border-white/10 rounded-3xl overflow-hidden relative shadow-2xl flex items-center justify-center">
+                <video ref={attachLocalVideo} autoPlay playsInline muted className="w-full h-full object-cover" />
                 {!localHasVideo && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-                    <Avatar name={adminName} size={36} />
+                    <Avatar name={adminName} size={100} />
                   </div>
                 )}
-              </motion.div>
-
-              {/* Duration & minimize row */}
-              <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-safe pt-4" style={{ paddingTop: "max(env(safe-area-inset-top), 16px)" }}>
-                {callState === "in-call" && (
-                  <div className="bg-black/50 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-mono font-black text-primary border border-primary/20">
-                    {formatDuration(callDuration)}
-                  </div>
-                )}
-                {!isMobile && (
-                  <button onClick={() => setCallMaximized(false)}
-                    className="ml-auto w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
-                    <Minimize2 className="h-4 w-4" />
-                  </button>
-                )}
+                <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2">
+                  <span className="text-xs font-black tracking-wide">You</span>
+                </div>
               </div>
             </div>
 
             {/* Control bar */}
-            <div className="flex items-center justify-center gap-6 py-8"
-              style={{ paddingBottom: "max(env(safe-area-inset-bottom), 32px)", ...G.dark }}>
+            <div className="flex items-center justify-center gap-6 py-6 shrink-0"
+              style={{ paddingBottom: "max(env(safe-area-inset-bottom), 24px)", ...G.dark }}>
               {/* Mute */}
               <motion.button whileTap={{ scale: 0.88 }} onClick={toggleMute} style={{ touchAction: "manipulation" }}
-                className={`w-14 h-14 rounded-full flex flex-col items-center justify-center gap-1 transition-all border ${muted ? "bg-red-600/90 border-red-500/50" : "bg-white/10 border-white/15 hover:bg-white/20"}`}>
+                className={`w-14 h-14 rounded-full flex flex-col items-center justify-center gap-1 transition-all border ${muted ? "bg-red-600/90 border-red-500/50 shadow-lg shadow-red-900/30" : "bg-white/10 border-white/15 hover:bg-white/20"}`}>
                 {muted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                 <span className="text-[9px] font-bold text-white/60">{muted ? "Muted" : "Mic"}</span>
               </motion.button>
@@ -762,7 +809,7 @@ export default function AdminChatPage() {
               </motion.button>
 
               {/* End call */}
-              <motion.button whileTap={{ scale: 0.88 }} onClick={endCall} style={{ touchAction: "manipulation" }}
+              <motion.button whileTap={{ scale: 0.88 }} onClick={() => endCall()} style={{ touchAction: "manipulation" }}
                 className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-500 flex flex-col items-center justify-center gap-1 shadow-xl shadow-red-900/60">
                 <PhoneOff className="h-6 w-6" />
                 <span className="text-[9px] font-bold text-white/80">End</span>
@@ -783,7 +830,7 @@ export default function AdminChatPage() {
           >
             {/* Video area */}
             <div className="relative aspect-video bg-black">
-              <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+              <video ref={attachRemoteVideo} autoPlay playsInline className="w-full h-full object-cover" />
               {!remoteHasVideo && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                   <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}>
@@ -802,7 +849,7 @@ export default function AdminChatPage() {
               )}
               {/* PiP */}
               <div className="absolute top-2 right-2 w-14 rounded-lg overflow-hidden border border-white/20 bg-black" style={{ aspectRatio: "4/3" }}>
-                <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                <video ref={attachLocalVideo} autoPlay playsInline muted className="w-full h-full object-cover" />
                 {!localHasVideo && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/80">
                     <Avatar name={adminName} size={22} />
@@ -833,7 +880,7 @@ export default function AdminChatPage() {
                   className="w-9 h-9 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center border border-white/8 transition-all">
                   <Maximize2 className="h-3.5 w-3.5 text-white/70" />
                 </button>
-                <button onClick={endCall} style={{ touchAction: "manipulation" }}
+                <button onClick={() => endCall()} style={{ touchAction: "manipulation" }}
                   className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center shadow-lg shadow-red-900/50 transition-colors">
                   <PhoneOff className="h-4 w-4" />
                 </button>
@@ -941,55 +988,54 @@ export default function AdminChatPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Members panel (bottom sheet on mobile, right drawer on desktop) ── */}
+      {/* ── Two-Pane Layout container ── */}
+      <div className="flex-1 flex min-h-0 relative z-10 w-full">
+
+      {/* ── Left Pane (Desktop Sidebar) ── */}
+      {!isMobile && (
+        <div className="w-80 flex-shrink-0 flex flex-col border-r border-white/10" style={G.sidebar}>
+          <MembersContent
+            onlineAdmins={onlineAdmins} adminId={adminId} adminName={adminName}
+            pushEnabled={pushEnabled} pushLoading={pushLoading} inviteCopied={inviteCopied}
+            onSubscribePush={subscribePush} onCopyInvite={copyInviteLink}
+            onClose={() => {}}
+            isDesktop={true}
+            onVoiceCall={(a) => { startCall(a, false); }}
+            onVideoCall={(a) => { startCall(a, true); }}
+          />
+        </div>
+      )}
+
+      {/* ── Mobile Members panel (bottom sheet) ── */}
       <AnimatePresence>
-        {showMembers && (
+        {isMobile && showMembers && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowMembers(false)}
-              className="absolute inset-0 z-10 bg-black/40 backdrop-blur-sm" />
-            {isMobile ? (
-              /* Mobile: bottom sheet */
-              <motion.div
-                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                transition={{ type: "spring", stiffness: 420, damping: 36 }}
-                className="absolute inset-x-0 bottom-0 z-20 rounded-t-3xl border-t border-white/8 flex flex-col max-h-[80%]"
-                style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", ...G.sidebar }}
-              >
-                <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mt-3 mb-1 shrink-0" />
-                <MembersContent
-                  onlineAdmins={onlineAdmins} adminId={adminId} adminName={adminName}
-                  pushEnabled={pushEnabled} pushLoading={pushLoading} inviteCopied={inviteCopied}
-                  onSubscribePush={subscribePush} onCopyInvite={copyInviteLink}
-                  onClose={() => setShowMembers(false)}
-                  onVoiceCall={(a) => { setShowMembers(false); startCall(a, false); }}
-                  onVideoCall={(a) => { setShowMembers(false); startCall(a, true); }}
-                />
-              </motion.div>
-            ) : (
-              /* Desktop: right side drawer */
-              <motion.div
-                initial={{ x: 320, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 320, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 420, damping: 36 }}
-                className="absolute right-0 top-0 h-full w-72 border-l border-white/8 flex flex-col z-20"
-                style={G.sidebar}
-              >
-                <MembersContent
-                  onlineAdmins={onlineAdmins} adminId={adminId} adminName={adminName}
-                  pushEnabled={pushEnabled} pushLoading={pushLoading} inviteCopied={inviteCopied}
-                  onSubscribePush={subscribePush} onCopyInvite={copyInviteLink}
-                  onClose={() => setShowMembers(false)}
-                  onVoiceCall={(a) => { setShowMembers(false); startCall(a, false); }}
-                  onVideoCall={(a) => { setShowMembers(false); startCall(a, true); }}
-                />
-              </motion.div>
-            )}
+              className="absolute inset-0 z-30 bg-black/40 backdrop-blur-sm" />
+            <motion.div
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 420, damping: 36 }}
+              className="absolute inset-x-0 bottom-0 z-40 rounded-t-3xl border-t border-white/8 flex flex-col max-h-[85%]"
+              style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", ...G.sidebar }}
+            >
+              <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mt-3 mb-1 shrink-0" />
+              <MembersContent
+                onlineAdmins={onlineAdmins} adminId={adminId} adminName={adminName}
+                pushEnabled={pushEnabled} pushLoading={pushLoading} inviteCopied={inviteCopied}
+                onSubscribePush={subscribePush} onCopyInvite={copyInviteLink}
+                onClose={() => setShowMembers(false)}
+                isDesktop={false}
+                onVoiceCall={(a) => { setShowMembers(false); startCall(a, false); }}
+                onVideoCall={(a) => { setShowMembers(false); startCall(a, true); }}
+              />
+            </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      {/* ── Main chat area ── */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
+      {/* ── Main chat area (Right Pane) ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
 
         {/* Header */}
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
@@ -998,6 +1044,7 @@ export default function AdminChatPage() {
           <button
             type="button"
             onClick={() => {
+              if (callState !== "idle") endCall();
               if (window.history.length > 1) window.history.back();
               else setLocation("/admin");
             }}
@@ -1039,16 +1086,18 @@ export default function AdminChatPage() {
               <PhoneCall className="h-3.5 w-3.5" />
               <span className="hidden sm:inline text-xs">Quick call</span>
             </motion.button>
-            <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowMembers(s => !s)}
-              style={{ touchAction: "manipulation" }}
-              className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold transition-all">
-              <Users className="h-3.5 w-3.5" />
-              {onlineAdmins.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-primary text-white text-[9px] font-black flex items-center justify-center shrink-0">
-                  {onlineAdmins.length}
-                </span>
-              )}
-            </motion.button>
+            {isMobile && (
+              <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowMembers(s => !s)}
+                style={{ touchAction: "manipulation" }}
+                className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold transition-all">
+                <Users className="h-3.5 w-3.5" />
+                {onlineAdmins.length > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-primary text-white text-[9px] font-black flex items-center justify-center shrink-0">
+                    {onlineAdmins.length}
+                  </span>
+                )}
+              </motion.button>
+            )}
           </div>
         </motion.div>
 
@@ -1189,6 +1238,7 @@ export default function AdminChatPage() {
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -1196,26 +1246,28 @@ export default function AdminChatPage() {
 // ── Members panel content (shared between mobile/desktop) ─────────────────────
 function MembersContent({
   onlineAdmins, adminId, adminName, pushEnabled, pushLoading, inviteCopied,
-  onSubscribePush, onCopyInvite, onClose, onVoiceCall, onVideoCall,
+  onSubscribePush, onCopyInvite, onClose, isDesktop, onVoiceCall, onVideoCall,
 }: {
   onlineAdmins: OnlineAdmin[]; adminId: string; adminName: string;
   pushEnabled: boolean; pushLoading: boolean; inviteCopied: boolean;
   onSubscribePush: () => void; onCopyInvite: () => void;
-  onClose: () => void; onVoiceCall: (a: OnlineAdmin) => void; onVideoCall: (a: OnlineAdmin) => void;
+  onClose: () => void; isDesktop?: boolean; onVoiceCall: (a: OnlineAdmin) => void; onVideoCall: (a: OnlineAdmin) => void;
 }) {
   const G_sidebar = { background: "transparent" };
   return (
     <>
       {/* Header */}
-      <div className="p-4 border-b border-white/8 flex items-center justify-between shrink-0">
+      <div className="p-4 border-b border-white/8 flex items-center justify-between shrink-0 h-[61px]">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           <p className="font-black uppercase tracking-widest text-xs">{onlineAdmins.length} Online</p>
         </div>
-        <motion.button whileTap={{ scale: 0.9 }} onClick={onClose} style={{ touchAction: "manipulation" }}
-          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10">
-          <X className="h-4 w-4 text-muted-foreground" />
-        </motion.button>
+        {!isDesktop && (
+          <motion.button whileTap={{ scale: 0.9 }} onClick={onClose} style={{ touchAction: "manipulation" }}
+            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10">
+            <X className="h-4 w-4 text-muted-foreground" />
+          </motion.button>
+        )}
       </div>
 
       {/* Push notifications */}

@@ -130,7 +130,6 @@ const AdminImport = lazy(() => import("@/pages/admin/import"));
 const AdminChat = lazy(() => import("@/pages/admin/chat"));
 const AdminActivityLog = lazy(() => import("@/pages/admin/activity-log"));
 const AdminCoupons = lazy(() => import("@/pages/admin/coupons"));
-const AdminProductFeed = lazy(() => import("@/pages/admin/product-feed"));
 
 // ── Suspense fallback ──
 function PageSkeleton() {
@@ -178,8 +177,6 @@ function AdminRouter() {
         <Route path="/admin/activity" component={AdminActivityLog} />
         <Route path="/admin/chat" component={AdminChat} />
         <Route path="/admin/coupons" component={AdminCoupons} />
-        <Route path="/admin/feed" component={AdminProductFeed} />
-        <Route path="/admin/product-feed" component={AdminProductFeed} />
 
         <Route component={NotFound} />
       </Switch>

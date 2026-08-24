@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Plus, Edit, Trash2, Upload, Image as ImageIcon, CheckCircle, XCircle,
   X, Calendar, Package, EyeOff, Star, Flame, Tag, DollarSign, Layers,
-  GripVertical, ChevronDown, ChevronUp, Sparkles, ShieldCheck, AlertTriangle, Zap, Timer
+  GripVertical, ChevronDown, ChevronUp, Sparkles, AlertTriangle, Zap, Timer
 } from "lucide-react";
 import type { Product, ProductInput } from "@workspace/api-client-react";
 import {
@@ -822,21 +822,6 @@ export default function AdminProducts() {
             {/* Media */}
             <Section title="Product Media" icon={ImageIcon} accent="rgba(255,102,0,0.18)">
               <MediaZone items={mediaItems} onChange={handleMediaChange} uploading={uploading} onUpload={handleUpload} />
-            </Section>
-
-            <Section title="Shorts Feed Eligibility" icon={ShieldCheck} accent="rgba(34,197,94,0.18)">
-              <div className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                <div>
-                  <p className="text-sm font-bold">Verified UAE delivery</p>
-                  <p className="mt-1 text-[10px] leading-relaxed text-white/35">Enable only after a real supplier source confirms this product can ship to the UAE.</p>
-                </div>
-                <Toggle checked={formData.shipsToUaeVerified ?? false} onChange={(shipsToUaeVerified) => set({ shipsToUaeVerified })} color="#22c55e" />
-              </div>
-              <div className={`rounded-xl border p-3 text-xs ${formData.videoUrl ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-100" : "border-amber-400/25 bg-amber-400/10 text-amber-100"}`}>
-                {formData.videoUrl
-                  ? "A real uploaded product video is attached. This product can appear in Product Feed once UAE delivery is verified."
-                  : "Add an owned or permitted product video above. Image-only products stay out of Product Feed."}
-              </div>
             </Section>
 
             {/* Basic Info */}

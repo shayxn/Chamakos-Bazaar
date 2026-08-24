@@ -29,7 +29,6 @@ import adminChatRouter from "./admin-chat";
 import adminActivityRouter from "./admin-activity";
 import couponsRouter from "./coupons";
 import wishlistRouter from "./wishlist";
-import productFeedRouter from "./product-feed";
 
 
 const router: IRouter = Router();
@@ -64,7 +63,6 @@ router.use(adminChatRouter);
 router.use(adminActivityRouter);
 router.use(couponsRouter);
 router.use(wishlistRouter);
-router.use(productFeedRouter);
 
 
 export default router;
