@@ -10,6 +10,8 @@ const SUPPLIERS: Record<string, string> = {
   stylescape: "https://stylescape.me",
   stealstreetwear: "https://stealstreetwear.com",
 };
+// Public shipping policy checked on 2026-08-24: "FAST SHIPPING 1-3 DAYS ONLY ALL OVER UAE".
+const UAE_DELIVERY_VERIFIED_SOURCES = new Set(["stealstreetwear"]);
 
 const CHAMAK_PLACEHOLDER_URL = "/chamak-placeholder.svg";
 
@@ -35,6 +37,13 @@ type ShopifyImage = {
   src: string;
 };
 
+type ShopifyMediaSource = {
+  url?: string;
+  src?: string;
+  mime_type?: string;
+  type?: string;
+};
+
 type ShopifyProduct = {
   id: number;
   handle?: string;
@@ -46,6 +55,9 @@ type ShopifyProduct = {
   variants: ShopifyVariant[];
   options: ShopifyOption[];
   images: ShopifyImage[];
+  media?: Array<{ media_type?: string; sources?: ShopifyMediaSource[]; src?: string; url?: string }>;
+  videos?: ShopifyMediaSource[];
+  video?: ShopifyMediaSource | string;
 };
 
 type SyncStats = {
@@ -71,6 +83,60 @@ function slugify(name: string): string {
 
 function calcSellingPrice(supplierPrice: number): number {
   return Math.round((supplierPrice + 25) * 1.3 * 100) / 100;
+}
+
+function extractSupplierVideo(p: ShopifyProduct): string | null {
+  const candidates: ShopifyMediaSource[] = [];
+  for (const media of p.media ?? []) {
+    if (media.media_type === "video" || media.sources?.some((source) => source.mime_type?.startsWith("video/") || source.type === "video")) {
+      candidates.push(...(media.sources ?? []), { src: media.src, url: media.url, type: media.media_type });
+    }
+  }
+  candidates.push(...(p.videos ?? []));
+  if (typeof p.video === "string") candidates.push({ url: p.video, type: "video" });
+  else if (p.video) candidates.push(p.video);
+  return candidates
+    .map((candidate) => candidate.url ?? candidate.src)
+    .find((url): url is string => typeof url === "string" && /^https?:\/\//i.test(url) && /\.(mp4|webm|mov|m4v|ogg)(\?|#|$)/i.test(url))
+    ?? null;
+}
+
+function extractVideoFromHtml(html: string): string | null {
+  const matches = [
+    ...html.matchAll(/<(?:video|source)[^>]+src=["']([^"']+\.(?:mp4|webm|mov|m4v|ogg)(?:\?[^"']*)?)["']/gi),
+    ...html.matchAll(/https?:\\?\/\\?\/[^"'\\\s]+?\.(?:mp4|webm|mov|m4v|ogg)(?:\?[^"'\\\s]*)?/gi),
+  ];
+  for (const match of matches) {
+    const candidate = (match[1] ?? match[0]).replace(/\\\//g, "/").replace(/&amp;/g, "&");
+    if (/^https?:\/\//i.test(candidate)) return candidate;
+  }
+  return null;
+}
+
+async function fetchSupplierProductVideo(baseUrl: string, handle: string | null): Promise<string | null> {
+  if (!handle) return null;
+  try {
+    const res = await fetch(`${baseUrl}/products/${encodeURIComponent(handle)}`, {
+      headers: { "Accept": "text/html", "User-Agent": "Mozilla/5.0 FirstPick product-media sync" },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return null;
+    return extractVideoFromHtml(await res.text());
+  } catch {
+    return null;
+  }
+}
+
+async function mapWithConcurrency<T, R>(items: T[], maxConcurrent: number, task: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = [];
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(maxConcurrent, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await task(items[index]);
+    }
+  }));
+  return results;
 }
 
 async function fetchShopifyProducts(baseUrl: string): Promise<ShopifyProduct[]> {
@@ -111,6 +177,7 @@ function parseShopifyProduct(p: ShopifyProduct) {
   const inStock = p.variants.some((v) => v.available);
   const description = stripHtml(p.body_html) || null;
   const imageUrls = p.images.map((img) => ({ url: img.src, type: "image" as const }));
+  const videoUrl = extractSupplierVideo(p);
 
   return {
     externalId: String(p.id),
@@ -124,6 +191,7 @@ function parseShopifyProduct(p: ShopifyProduct) {
     stock: inStock ? 100 : 0,
     imageUrl: imageUrls[0]?.url ?? null,
     imageUrls: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null,
+    videoUrl,
     categoryName: p.product_type?.trim() || null,
   };
 }
@@ -177,12 +245,13 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
       .where(eq(productsTable.importSource, supplierName));
     const existingByExternalId = new Map(existingImported.map((p) => [p.externalId, p.id]));
 
-    const parsedProducts = shopifyProducts.map((p) => {
+    const parsedProducts = await mapWithConcurrency(shopifyProducts, 4, async (p) => {
       const base = parseShopifyProduct(p);
       return {
         ...base,
         sourceUrl: base.handle ? `${baseUrl}/products/${base.handle}` : null,
         imageUrl: sanitizeProductImage(base.name, base.imageUrl, supplierName),
+        videoUrl: base.videoUrl ?? await fetchSupplierProductVideo(baseUrl, base.handle),
       };
     });
 
@@ -200,14 +269,14 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
     }
 
     type InsertRow = {
-      name: string; description: string | null; price: string; supplierPrice: string; sourceUrl: string | null;
+      name: string; description: string | null; price: string; supplierPrice: string; sourceUrl: string | null; videoUrl: string | null; shipsToUaeVerified: boolean;
       importSource: string; externalId: string | null; sizes: string | null; colors: string | null;
       stock: number; imageUrl: string | null; imageUrls: string | null;
       categoryId: number | null; featured: boolean; rep: boolean; isPreOrder: boolean;
     };
     type UpdateRow = { id: number; data: {
       name: string; sizes: string | null; colors: string | null; stock: number;
-      imageUrl: string | null; imageUrls: string | null; supplierPrice: string; sourceUrl: string | null; categoryId: number | null;
+      imageUrl: string | null; imageUrls: string | null; supplierPrice: string; sourceUrl: string | null; categoryId: number | null; videoUrl?: string; shipsToUaeVerified: boolean;
     }};
 
     const toInsert: InsertRow[] = [];
@@ -233,6 +302,8 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
             supplierPrice: String(parsed.supplierPrice),
             sourceUrl: parsed.sourceUrl,
             categoryId,
+            ...(parsed.videoUrl ? { videoUrl: parsed.videoUrl } : {}),
+            shipsToUaeVerified: UAE_DELIVERY_VERIFIED_SOURCES.has(supplierName),
           },
         });
       } else {
@@ -243,6 +314,8 @@ async function runSupplierImport(baseUrl: string, supplierName: string): Promise
           price: String(parsed.sellingPrice),
           supplierPrice: String(parsed.supplierPrice),
           sourceUrl: parsed.sourceUrl,
+          videoUrl: parsed.videoUrl,
+          shipsToUaeVerified: UAE_DELIVERY_VERIFIED_SOURCES.has(supplierName),
           importSource: supplierName,
           externalId: parsed.externalId,
           sizes: parsed.sizes,
@@ -356,6 +429,15 @@ router.post("/import/stealstreetwear", requireAdmin, async (_req, res) => {
   const result = await runSupplierImport(SUPPLIERS.stealstreetwear, "stealstreetwear");
   if (result.error) res.status(502).json({ error: result.error });
   else res.json(result);
+});
+
+router.post("/import/sync-approved", requireAdmin, async (_req, res) => {
+  const result = await runSupplierImport(SUPPLIERS.stealstreetwear, "stealstreetwear");
+  if (result.error) {
+    res.status(502).json({ error: result.error });
+    return;
+  }
+  res.json({ stealstreetwear: result });
 });
 
 /* ─── delete by source ─── */

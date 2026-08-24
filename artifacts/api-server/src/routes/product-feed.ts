@@ -112,7 +112,7 @@ router.get("/admin/product-feed", requireAdmin, async (req, res) => {
   const parsedCursor = Number(req.query.cursor);
   const cursor = Number.isInteger(parsedCursor) && parsedCursor > 0 ? parsedCursor : null;
   const parsedLimit = Number(req.query.limit);
-  const limit = Number.isInteger(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 30) : 12;
+   const limit = Number.isInteger(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 100) : 24;
 
   if (source && !ALLOWED_SOURCES.has(source)) {
     res.status(400).json({ error: "Unknown supplier source" });

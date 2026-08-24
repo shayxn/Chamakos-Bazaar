@@ -51,7 +51,11 @@ function ProductMedia({ videoUrl, active, muted }: { videoUrl: string | null; ac
   if (!videoUrl || failed) {
     return <div className="absolute inset-0 grid place-items-center bg-[#08080a] text-center"><p className="text-xs font-bold text-white/45">This verified product video is temporarily unavailable.</p></div>;
   }
-  return <video ref={videoRef} src={videoUrl} className="absolute inset-0 w-full h-full object-cover" muted={muted} loop playsInline preload={active ? "auto" : "metadata"} onError={() => setFailed(true)} />;
+  return (
+    <div className="absolute inset-0 flex justify-center bg-black">
+      <video ref={videoRef} src={videoUrl} className="h-full w-auto max-w-full object-cover" muted={muted} loop playsInline preload={active ? "auto" : "metadata"} onError={() => setFailed(true)} />
+    </div>
+  );
 }
 
 export default function AdminProductFeed() {
@@ -64,6 +68,7 @@ export default function AdminProductFeed() {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [reviewItem, setReviewItem] = useState<FeedItem | null>(null);
   const [profit, setProfit] = useState("20");
@@ -89,7 +94,7 @@ export default function AdminProductFeed() {
       setLoadingMore(true);
     }
     try {
-      const params = new URLSearchParams({ limit: "8" });
+       const params = new URLSearchParams({ limit: "24" });
       if (source) params.set("source", source);
       if (savedOnly) params.set("saved", "true");
       if (addedOnly) params.set("added", "true");
@@ -157,6 +162,22 @@ export default function AdminProductFeed() {
     if (hasMore && !loadingMore && node.scrollTop + node.clientHeight >= node.scrollHeight - 840) void load(false);
   };
 
+  const refreshFromSupplier = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch(`${BASE}/api/import/sync-approved`, { method: "POST", credentials: "include" });
+      const data = await res.json() as { error?: string; stealstreetwear?: { imported: number; updated: number; total: number } };
+      if (!res.ok) throw new Error(data.error ?? "Supplier sync failed");
+      await load(true);
+      const sync = data.stealstreetwear;
+      toast({ title: "Product Shorts refreshed", description: sync ? `${sync.total} supplier products checked for real video media.` : undefined });
+    } catch (error) {
+      toast({ title: "Could not refresh supplier shorts", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const openReview = (item: FeedItem) => {
     if (!item.sourceUrl || item.supplierPrice === null) {
       toast({ title: "Source details needed", description: "Sync this source again once its verified product URL and source price are available.", variant: "destructive" });
@@ -222,7 +243,7 @@ export default function AdminProductFeed() {
         ? current.map((item) => item.id === reviewItem.id ? { ...item, addedAt: new Date().toISOString() } : item)
         : current.filter((item) => item.id !== reviewItem.id));
       setReviewItem(null);
-      toast({ title: "Added to FirstPick review", description: "The original source URL and pricing snapshot were saved. Delivery still needs confirmation." });
+      toast({ title: "Added to FirstPick review", description: "The original source URL, pricing snapshot, and verified UAE-delivery state were saved." });
     } catch (error) {
       toast({ title: "Could not add product", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
     } finally {
@@ -237,10 +258,10 @@ export default function AdminProductFeed() {
           <div>
             <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-primary"><Sparkles className="h-3 w-3" /> Discovery</p>
             <h1 className="mt-1 text-xl sm:text-2xl font-black tracking-tight">Product Shorts</h1>
-            <p className="mt-1 text-xs text-white/50">Only verified UAE-delivery products with real stored video are shown.</p>
+            <p className="mt-1 text-xs text-white/50">Fresh supplier media · real product shorts only · UAE delivery verified.</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => void load(true)} disabled={loading} className="border-white/15 bg-white/5 hover:bg-white/10">
-            <RefreshCw className={`h-3.5 w-3.5 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
+          <Button variant="outline" size="sm" onClick={() => void refreshFromSupplier()} disabled={loading || syncing} className="border-white/15 bg-white/5 hover:bg-white/10">
+            <RefreshCw className={`h-3.5 w-3.5 mr-2 ${(loading || syncing) ? "animate-spin" : ""}`} /> {syncing ? "Checking sources" : "Refresh"}
           </Button>
         </div>
         <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
@@ -281,7 +302,7 @@ export default function AdminProductFeed() {
           <div className="h-full min-h-[44dvh] flex flex-col items-center justify-center p-6 text-center">
             <PackageOpen className="h-12 w-12 text-white/20 mb-4" />
             <h2 className="font-black">No verified product shorts yet</h2>
-            <p className="mt-2 max-w-sm text-sm text-white/45">Add a real product video in Inventory and mark UAE delivery as verified only after the supplier confirms it. Image-only items stay out of this feed.</p>
+            <p className="mt-2 max-w-sm text-sm text-white/45">Supplier sync is checking for real product video media. Image-only or UAE-delivery-unverified products stay out of this feed.</p>
           </div>
         ) : (
           <AnimatePresence initial={false}>
@@ -298,6 +319,18 @@ export default function AdminProductFeed() {
                 <button onClick={() => setMuted((current) => !current)} aria-label={muted ? "Turn sound on" : "Mute video"} className="absolute z-20 top-4 right-4 w-10 h-10 rounded-full bg-black/45 border border-white/20 backdrop-blur-xl flex items-center justify-center" style={{ touchAction: "manipulation" }}>
                   {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </button>
+                <motion.button
+                  initial={{ opacity: 0, x: -18 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  whileTap={{ scale: 0.94 }}
+                  onClick={() => openReview(item)}
+                  disabled={!item.sourceUrl || item.supplierPrice === null}
+                  className="absolute z-20 left-3 sm:left-7 top-1/2 -translate-y-1/2 flex items-center gap-2 rounded-full border border-yellow-100/70 bg-gradient-to-r from-primary to-amber-300 px-4 py-3 text-xs font-black uppercase tracking-wider text-black shadow-[0_0_30px_rgba(255,102,0,0.55)] disabled:opacity-40"
+                  style={{ touchAction: "manipulation" }}
+                >
+                  <motion.span animate={{ rotate: [0, 12, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}><Plus className="h-4 w-4" /></motion.span>
+                  Add This
+                </motion.button>
                 <div className="absolute z-20 right-3 sm:right-7 bottom-[max(7.3rem,env(safe-area-inset-bottom))] flex flex-col gap-4">
                   <button onClick={() => void toggleSaved(item)} disabled={savingId === item.id} aria-label={item.savedAt ? "Remove from saved products" : "Save product"} className="flex flex-col items-center gap-1 text-white" style={{ touchAction: "manipulation" }}>
                     <span className={`grid h-12 w-12 place-items-center rounded-full border backdrop-blur-xl ${item.savedAt ? "bg-amber-400 text-black border-amber-100" : "bg-black/45 border-white/25"}`}>{savingId === item.id ? <Loader2 className="h-5 w-5 animate-spin" /> : item.savedAt ? <BookmarkCheck className="h-5 w-5" /> : <Bookmark className="h-5 w-5" />}</span>
@@ -306,10 +339,6 @@ export default function AdminProductFeed() {
                   <button onClick={() => void openComments(item)} aria-label="Open comments" className="flex flex-col items-center gap-1 text-white" style={{ touchAction: "manipulation" }}>
                     <span className="grid h-12 w-12 place-items-center rounded-full border border-white/25 bg-black/45 backdrop-blur-xl"><MessageCircle className="h-5 w-5" /></span>
                     <span className="text-[10px] font-black">{item.commentCount}</span>
-                  </button>
-                  <button onClick={() => openReview(item)} disabled={!item.sourceUrl || item.supplierPrice === null} aria-label="Add this product" className="flex flex-col items-center gap-1 text-white disabled:opacity-40" style={{ touchAction: "manipulation" }}>
-                    <span className="grid h-12 w-12 place-items-center rounded-full bg-primary text-black border border-yellow-200/60 shadow-[0_0_24px_rgba(255,102,0,0.5)]"><Plus className="h-6 w-6" /></span>
-                    <span className="text-[10px] font-black uppercase">Add This</span>
                   </button>
                 </div>
                 <div className="relative z-10 w-full max-w-4xl px-4 sm:px-8 pr-20 sm:pr-28 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
@@ -321,7 +350,6 @@ export default function AdminProductFeed() {
                   {item.description && <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70 line-clamp-2">{item.description}</p>}
                   <p className="mt-3 text-xl font-mono font-black text-primary">AED {item.price.toFixed(2)}</p>
                   <div className="mt-4 flex gap-2 flex-wrap">
-                    <Button size="sm" onClick={() => openReview(item)} disabled={!item.sourceUrl || item.supplierPrice === null} className="bg-white text-black hover:bg-white/85 font-black"><Plus className="h-3.5 w-3.5 mr-1.5" /> Add This</Button>
                     <Link href="/admin/products"><Button size="sm" className="fire-gradient border-none font-black"><ShoppingBag className="h-3.5 w-3.5 mr-1.5" /> Inventory</Button></Link>
                     {item.sourceUrl && <a href={item.sourceUrl} target="_blank" rel="noreferrer"><Button size="sm" variant="outline" className="border-white/20 bg-black/30 hover:bg-white/10"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Source</Button></a>}
                   </div>
