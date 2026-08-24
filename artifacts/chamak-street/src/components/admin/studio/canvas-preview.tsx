@@ -13,6 +13,7 @@ function elementMotion(element: StudioElement) {
 function StudioElementPreview({ element }: { element: StudioElement }) {
   const type = element.type ?? "text";
   const motionProps = elementMotion(element);
+  const textStyle = { fontFamily: element.fontFamily === "mono" ? "var(--app-font-mono)" : element.fontFamily === "system" ? "Inter, sans-serif" : "var(--app-font-sans)" };
   
   if (type === "image" || type === "video") {
     const source = element.url || element.imageUrl;
@@ -39,11 +40,11 @@ function StudioElementPreview({ element }: { element: StudioElement }) {
   }
   
   if (type === "heading") {
-    return <motion.h2 {...motionProps} className="text-3xl sm:text-5xl font-black tracking-[-0.05em] uppercase leading-[0.9] text-white">{element.text || element.label || "Heading"}</motion.h2>;
+    return <motion.h2 {...motionProps} style={textStyle} className="text-3xl sm:text-5xl font-black tracking-[-0.05em] uppercase leading-[0.9] text-white">{element.text || element.label || "Heading"}</motion.h2>;
   }
   
   if (type === "badge") {
-    return <motion.span {...motionProps} className="inline-flex rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">{element.text || element.label || "Badge"}</motion.span>;
+    return <motion.span {...motionProps} style={textStyle} className="inline-flex rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">{element.text || element.label || "Badge"}</motion.span>;
   }
   
   if (type === "product") {
@@ -55,7 +56,7 @@ function StudioElementPreview({ element }: { element: StudioElement }) {
     );
   }
   
-  return <motion.p {...motionProps} className="max-w-2xl text-base leading-7 text-white/65">{element.text || element.label || "Enter text..."}</motion.p>;
+  return <motion.p {...motionProps} style={textStyle} className="max-w-2xl text-base leading-7 text-white/65">{element.text || element.label || "Enter text..."}</motion.p>;
 }
 
 export function CanvasPreview({ 

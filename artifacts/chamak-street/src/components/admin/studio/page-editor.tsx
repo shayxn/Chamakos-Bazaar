@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Monitor, Smartphone, Tablet, Trash2, Copy, Play, Settings2, Settings, Box, Code, RotateCcw, Undo2, Redo2, Plus, Laptop, Clapperboard } from "lucide-react";
+import { Monitor, Smartphone, Tablet, Trash2, Copy, Play, Settings2, Settings, Box, Code, RotateCcw, Undo2, Redo2, Plus, Laptop, Clapperboard, Type, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { fetchApi } from "./api";
@@ -36,6 +36,7 @@ export function PageEditor({
   const [savedSlug, setSavedSlug] = useState(page.slug);
   
   const [rightPanel, setRightPanel] = useState<"toolbox" | "properties" | "animations" | "json" | "history" | "closed">("toolbox");
+  const [previewMode, setPreviewMode] = useState<"edit" | "live">("edit");
   
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<"section" | "element" | null>(null);
@@ -249,6 +250,33 @@ export function PageEditor({
     if (s) activeSectionId = s.id;
   }
 
+  const addQuickText = () => {
+    const textElement = {
+      type: "heading",
+      text: "Add FirstPick text",
+      fontFamily: "firstpick" as const,
+      animation: { preset: "slide-up", phase: "in" as const, duration: 0.45 },
+    };
+    if (activeSectionId) {
+      handleAddElement(activeSectionId, textElement);
+      return;
+    }
+    const sectionId = `sec-${Date.now()}`;
+    const elementId = `el-${Date.now()}`;
+    handleContentChange({
+      ...content,
+      sections: [...content.sections, { id: sectionId, type: "content", label: "FirstPick Text", elements: [{ id: elementId, ...textElement }] }],
+    });
+    handleSelect(elementId, "element");
+  };
+
+  const rawSystemRoute = (content as PageContent & { systemRoute?: string }).systemRoute;
+  const templatePreview = rawSystemRoute?.includes(":")
+    ? rawSystemRoute.startsWith("/product") ? "/shop" : rawSystemRoute.startsWith("/games") ? "/games" : "/"
+    : rawSystemRoute;
+  const previewRoute = templatePreview || (page.pageType === "admin" ? `/admin/studio/${page.slug}` : `/${page.slug}`);
+  const previewUrl = `${previewRoute}${previewRoute.includes("?") ? "&" : "?"}studio_preview=1`;
+
   // JSON editor local state
   const [jsonStr, setJsonStr] = useState("");
   useEffect(() => {
@@ -303,6 +331,10 @@ export function PageEditor({
           <button onClick={() => setLandscape((value) => !value)} className={`hidden md:block rounded-md border px-2 py-1 text-[9px] font-black uppercase tracking-wider ${landscape ? "border-primary/40 bg-primary/10 text-primary" : "border-white/10 text-gray-500 hover:text-white"}`}>
             {landscape ? "Landscape" : "Portrait"}
           </button>
+          <div className="flex items-center rounded-lg border border-white/5 bg-black p-1 shrink-0">
+            <button onClick={() => setPreviewMode("edit")} className={`rounded-md px-2 py-1.5 text-[9px] font-black uppercase tracking-wider ${previewMode === "edit" ? "bg-primary/15 text-primary" : "text-gray-500 hover:text-white"}`}>Edit draft</button>
+            <button onClick={() => setPreviewMode("live")} className={`rounded-md px-2 py-1.5 text-[9px] font-black uppercase tracking-wider ${previewMode === "live" ? "bg-primary/15 text-primary" : "text-gray-500 hover:text-white"}`}>Live page</button>
+          </div>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
@@ -310,6 +342,7 @@ export function PageEditor({
           <Button variant="ghost" size="icon" onClick={handleUndo} disabled={!undoStack.length} title="Undo" className="text-gray-400 hover:text-white disabled:opacity-30 shrink-0"><Undo2 className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" onClick={handleRedo} disabled={!redoStack.length} title="Redo" className="text-gray-400 hover:text-white disabled:opacity-30 shrink-0"><Redo2 className="h-4 w-4" /></Button>
            <Button variant="ghost" size="icon" onClick={handleRevertChanges} disabled={!hasUnsavedChanges} title="Revert unsaved changes" className="text-gray-400 hover:text-white disabled:opacity-30 shrink-0"><RotateCcw className="h-4 w-4" /></Button>
+           <Button variant="ghost" size="icon" onClick={addQuickText} title="Add FirstPick text" className="text-primary hover:text-primary shrink-0"><Type className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" onClick={() => setRightPanel("toolbox")} title="Open FirstPick Toolbox" className="text-primary hover:text-primary shrink-0"><Plus className="h-4 w-4" /></Button>
            <Button variant="ghost" size="icon" onClick={() => setRightPanel("animations")} title="Open Animations" className="text-primary hover:text-primary shrink-0"><Clapperboard className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" onClick={handleDuplicate} className="text-gray-400 hover:text-white shrink-0"><Copy className="h-4 w-4" /></Button>
@@ -352,8 +385,18 @@ export function PageEditor({
               <div className="h-2 w-2 rounded-full bg-green-500/50" />
             </div>
             
-            <div className="flex-1 overflow-y-auto relative">
-                <CanvasPreview content={content} selectedId={selectedId} onSelect={handleSelect} onDropItem={handleCanvasDrop} />
+             <div className="flex-1 overflow-y-auto relative">
+                {previewMode === "live" ? (
+                  <div className="min-h-full bg-black">
+                    <div className="flex items-center justify-between border-b border-primary/20 bg-primary/5 px-3 py-2 text-[9px] font-black uppercase tracking-wider text-primary">
+                      <span>Current page · {previewRoute}</span>
+                      <a href={previewRoute} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary/70 hover:text-primary"><ExternalLink className="h-3 w-3" />Open</a>
+                    </div>
+                    <iframe src={previewUrl} title={`Current page preview for ${page.title}`} className="block h-[calc(100vh-11rem)] min-h-[560px] w-full border-0 bg-black" />
+                  </div>
+                ) : (
+                  <CanvasPreview content={content} selectedId={selectedId} onSelect={handleSelect} onDropItem={handleCanvasDrop} />
+                )}
             </div>
           </motion.div>
         </div>

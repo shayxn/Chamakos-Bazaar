@@ -7,6 +7,7 @@ export type StudioElement = {
   imageUrl?: string;
   label?: string;
   productId?: string | number;
+  fontFamily?: "firstpick" | "mono" | "system";
   animation?: {
     preset?: string;
     duration?: number;

@@ -29,9 +29,9 @@ const SECTION_PRESETS: ToolboxEntry[] = [
 ];
 
 const ELEMENT_PRESETS: ToolboxEntry[] = [
-  { type: "heading", label: "Heading", category: "Text", description: "Large campaign headline", icon: Type, default: { text: "New Heading", animation: { preset: "slide-up", duration: 0.45 } } },
-  { type: "subheading", label: "Subheading", category: "Text", description: "Supporting statement", icon: AlignLeft, default: { text: "A sharp supporting line.", animation: { preset: "fade", duration: 0.45 } } },
-  { type: "text", label: "Paragraph", category: "Text", description: "Longer page copy", icon: AlignLeft, default: { text: "Add your text here...", animation: { preset: "fade", duration: 0.45 } } },
+  { type: "heading", label: "Heading", category: "Text", description: "Large campaign headline", icon: Type, default: { text: "New Heading", fontFamily: "firstpick", animation: { preset: "slide-up", duration: 0.45 } } },
+  { type: "subheading", label: "Subheading", category: "Text", description: "Supporting statement", icon: AlignLeft, default: { text: "A sharp supporting line.", fontFamily: "firstpick", animation: { preset: "fade", duration: 0.45 } } },
+  { type: "text", label: "Paragraph", category: "Text", description: "Longer page copy", icon: AlignLeft, default: { text: "Add your text here...", fontFamily: "firstpick", animation: { preset: "fade", duration: 0.45 } } },
   { type: "badge", label: "Badge", category: "Text", description: "A small highlighted label", icon: Tag, default: { text: "NEW ARRIVAL", animation: { preset: "pop-in", duration: 0.38 } } },
   { type: "button", label: "Button", category: "Buttons", description: "A clear call to action", icon: MousePointerClick, default: { text: "EXPLORE", href: "/shop", animation: { preset: "fade", duration: 0.42 } } },
   { type: "image", label: "Image", category: "Media", description: "Add a media-library or HTTPS image", icon: ImageIcon, default: { imageUrl: "", animation: { preset: "zoom-in", duration: 0.55 } } },

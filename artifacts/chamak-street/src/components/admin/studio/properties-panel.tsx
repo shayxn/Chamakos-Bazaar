@@ -226,6 +226,18 @@ function ElementProperties({ element, onChange }: { element: StudioElement, onCh
         </div>
       )}
 
+      {(t === "text" || t === "heading" || t === "subheading" || t === "button" || t === "badge") && (
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-black uppercase tracking-wider text-gray-500">FirstPick font</label>
+          <select value={element.fontFamily || "firstpick"} onChange={(event) => onChange({ fontFamily: event.target.value })} className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-xs text-white outline-none focus:border-primary/60">
+            <option value="firstpick">FirstPick / Space Grotesk</option>
+            <option value="mono">FirstPick Mono / Space Mono</option>
+            <option value="system">System Sans</option>
+          </select>
+          <p className="text-[9px] leading-3 text-gray-500">New Toolbox text uses the FirstPick font automatically.</p>
+        </div>
+      )}
+
       {(t === "image") && (
         <div className="space-y-1.5">
           <label className="text-[10px] font-black uppercase tracking-wider text-gray-500">Image URL</label>

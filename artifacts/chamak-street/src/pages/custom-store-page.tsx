@@ -15,6 +15,7 @@ type StudioElement = {
   imageUrl?: string;
   label?: string;
   productId?: string | number;
+  fontFamily?: "firstpick" | "mono" | "system";
   animation?: { preset?: string; duration?: number; delay?: number; strength?: number };
   scrollAnimation?: {
     enabled?: boolean; start?: number; end?: number;
@@ -117,6 +118,7 @@ function ProductBinding({ id, onClick }: { id?: string | number; onClick: () => 
 function StudioElementView({ element, onEvent }: { element: StudioElement; onEvent: (trigger: string, id?: string) => boolean }) {
   const type = element.type ?? "text";
   const motionProps = elementMotion(element);
+  const textStyle = { fontFamily: element.fontFamily === "mono" ? "var(--app-font-mono)" : element.fontFamily === "system" ? "Inter, sans-serif" : "var(--app-font-sans)" };
   const wrap = (child: React.ReactNode) => <ScrollFrame element={element}>{child}</ScrollFrame>;
   if (type === "product") return wrap(<motion.div {...motionProps}><ProductBinding id={element.productId} onClick={() => onEvent("product-click", element.id)} /></motion.div>);
   if (type === "image" || type === "video") {
@@ -141,13 +143,13 @@ function StudioElementView({ element, onEvent }: { element: StudioElement; onEve
     );
   }
   if (type === "heading") {
-    return wrap(<motion.h2 {...motionProps} className="text-3xl sm:text-5xl font-black tracking-[-0.05em] uppercase leading-[0.9]">{element.text || element.label}</motion.h2>);
+    return wrap(<motion.h2 {...motionProps} style={textStyle} className="text-3xl sm:text-5xl font-black tracking-[-0.05em] uppercase leading-[0.9]">{element.text || element.label}</motion.h2>);
   }
   if (type === "badge") {
-    return wrap(<motion.span {...motionProps} className="inline-flex rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">{element.text || element.label}</motion.span>);
+    return wrap(<motion.span {...motionProps} style={textStyle} className="inline-flex rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">{element.text || element.label}</motion.span>);
   }
   if (type === "divider") return wrap(<motion.hr {...motionProps} className="max-w-2xl border-white/15" />);
-  return wrap(<motion.p {...motionProps} className="max-w-2xl text-base leading-7 text-white/65">{element.text || element.label}</motion.p>);
+  return wrap(<motion.p {...motionProps} style={textStyle} className="max-w-2xl text-base leading-7 text-white/65">{element.text || element.label}</motion.p>);
 }
 
 export default function CustomStorePage() {
