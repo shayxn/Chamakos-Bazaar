@@ -37,6 +37,8 @@ async function ensureChatTables() {
       sender_name TEXT NOT NULL,
       message TEXT NOT NULL,
       type TEXT NOT NULL DEFAULT 'text',
+      conversation_id TEXT NOT NULL DEFAULT 'group',
+      client_message_id TEXT,
       metadata TEXT,
       reactions TEXT NOT NULL DEFAULT '{}',
       read_by TEXT NOT NULL DEFAULT '[]',
@@ -51,6 +53,11 @@ async function ensureChatTables() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     ALTER TABLE admin_profiles ADD COLUMN IF NOT EXISTS pfp_data TEXT;
+    ALTER TABLE admin_chat_messages ADD COLUMN IF NOT EXISTS conversation_id TEXT NOT NULL DEFAULT 'group';
+    ALTER TABLE admin_chat_messages ADD COLUMN IF NOT EXISTS client_message_id TEXT;
+    CREATE UNIQUE INDEX IF NOT EXISTS admin_chat_messages_sender_client_message_key
+      ON admin_chat_messages (sender_id, client_message_id)
+      WHERE client_message_id IS NOT NULL;
   `);
 }
 ensureChatTables().catch(console.error);
@@ -81,17 +88,45 @@ router.get("/admin/chat/stream", requireAdmin, async (req, res) => {
 
 // Send message
 router.post("/admin/chat/messages", requireAdmin, async (req, res) => {
-  const { senderId, senderName, message, type = "text", metadata } = req.body as Record<string, string>;
+  const { senderId, senderName, message, type = "text", metadata, clientMessageId, conversationId = "group" } = req.body as Record<string, string>;
   if (!message?.trim()) { res.status(400).json({ error: "Empty message" }); return; }
+  if (!senderId?.trim() || !senderName?.trim()) { res.status(400).json({ error: "Sender details are required" }); return; }
+  if (type !== "text") { res.status(400).json({ error: "Unsupported message type" }); return; }
   await ensureChatTables();
+
+  if (clientMessageId) {
+    const [existing] = await db.execute<{
+      id: number; sender_id: string; sender_name: string; message: string; type: string;
+      conversation_id: string; client_message_id: string; metadata: string | null; reactions: string; read_by: string; created_at: string;
+    }>(
+      sql`SELECT id, sender_id, sender_name, message, type, conversation_id, client_message_id, metadata, reactions, read_by, created_at
+          FROM admin_chat_messages
+          WHERE sender_id = ${senderId} AND client_message_id = ${clientMessageId}
+          LIMIT 1`
+    ).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
+    if (existing) {
+      res.json({
+        id: existing.id, senderId: existing.sender_id, senderName: existing.sender_name,
+        message: existing.message, type: existing.type, conversationId: existing.conversation_id,
+        clientMessageId: existing.client_message_id, metadata: existing.metadata,
+        reactions: JSON.parse(existing.reactions ?? "{}"), readBy: JSON.parse(existing.read_by ?? "[]"),
+        createdAt: existing.created_at,
+      });
+      return;
+    }
+  }
   
-  const [row] = await db.execute<{ id: number; created_at: string }>(
-    sql`INSERT INTO admin_chat_messages (sender_id, sender_name, message, type, metadata) 
-        VALUES (${senderId}, ${senderName}, ${message}, ${type ?? "text"}, ${metadata ?? null})
-        RETURNING id, created_at`
+  const [row] = await db.execute<{ id: number; created_at: string; client_message_id: string | null }>(
+    sql`INSERT INTO admin_chat_messages (sender_id, sender_name, message, type, conversation_id, client_message_id, metadata)
+        VALUES (${senderId}, ${senderName}, ${message.trim()}, ${type}, ${conversationId}, ${clientMessageId ?? null}, ${metadata ?? null})
+        RETURNING id, created_at, client_message_id`
   ).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
   
-  const newMsg = { id: row?.id, senderId, senderName, message, type: type ?? "text", metadata, reactions: {}, readBy: [senderId], createdAt: row?.created_at ?? new Date().toISOString() };
+  const newMsg = {
+    id: row?.id, senderId, senderName, message: message.trim(), type, conversationId,
+    clientMessageId: row?.client_message_id ?? clientMessageId ?? null, metadata,
+    reactions: {}, readBy: [senderId], createdAt: row?.created_at ?? new Date().toISOString(),
+  };
   broadcastChat({ type: "MESSAGE", message: newMsg });
   // Push to admins who are not currently in the SSE stream (app closed / home screen)
   sendAdminChatPush(senderName, message, senderId).catch(() => {});
@@ -110,16 +145,29 @@ router.post("/admin/chat/push-subscribe", requireAdmin, async (req, res) => {
 // Get messages
 router.get("/admin/chat/messages", requireAdmin, async (req, res) => {
   await ensureChatTables();
+  const conversationId = typeof req.query.conversationId === "string" ? req.query.conversationId : "group";
   const rows = await db.execute<any>(
-    sql`SELECT id, sender_id, sender_name, message, type, metadata, reactions, read_by, created_at 
-        FROM admin_chat_messages ORDER BY created_at ASC LIMIT 200`
+    sql`SELECT id, sender_id, sender_name, message, type, conversation_id, client_message_id, metadata, reactions, read_by, created_at
+        FROM admin_chat_messages WHERE conversation_id = ${conversationId} ORDER BY created_at ASC LIMIT 200`
   ).then(r => Array.isArray(r) ? r : (r as any).rows ?? []);
   
   res.json(rows.map((r: any) => ({
     id: r.id, senderId: r.sender_id, senderName: r.sender_name, message: r.message,
-    type: r.type, metadata: r.metadata, reactions: JSON.parse(r.reactions ?? "{}"),
+    type: r.type, conversationId: r.conversation_id, clientMessageId: r.client_message_id,
+    metadata: r.metadata, reactions: JSON.parse(r.reactions ?? "{}"),
     readBy: JSON.parse(r.read_by ?? "[]"), createdAt: r.created_at
   })));
+});
+
+// Ephemeral typing events must never enter message history.
+router.post("/admin/chat/typing", requireAdmin, (req, res) => {
+  const { senderId, senderName, typing, conversationId = "group" } = req.body as Record<string, string | boolean>;
+  if (typeof senderId !== "string" || typeof senderName !== "string" || typeof typing !== "boolean") {
+    res.status(400).json({ error: "Invalid typing payload" });
+    return;
+  }
+  broadcastChat({ type: "TYPING", adminId: senderId, adminName: senderName, typing, conversationId });
+  res.status(204).end();
 });
 
 // React to message
@@ -145,7 +193,11 @@ router.post("/admin/chat/messages/:id/react", requireAdmin, async (req, res) => 
 
 // WebRTC signaling (supports broadcast=true to ring all online admins)
 router.post("/admin/chat/signal", requireAdmin, (req, res) => {
-  const { to, from, fromName, signal, broadcast } = req.body as { to?: string; from: string; fromName: string; signal: Record<string, unknown>; broadcast?: boolean };
+  const { to, from, fromName, signal, broadcast, callId } = req.body as { to?: string; from: string; fromName: string; signal: Record<string, unknown>; broadcast?: boolean; callId?: string };
+  if (!from || !fromName || !signal?.type) {
+    res.status(400).json({ error: "Invalid call signal" });
+    return;
+  }
 
   // Push-notify offline admins when a call offer comes in (PWA / home-screen users)
   if (signal?.type === "offer") {
@@ -154,12 +206,26 @@ router.post("/admin/chat/signal", requireAdmin, (req, res) => {
 
   if (broadcast) {
     for (const [adminId] of chatClients) {
-      if (adminId !== from) sendToAdmin(adminId, { type: "WEBRTC_SIGNAL", from, fromName, signal });
+      if (adminId !== from) sendToAdmin(adminId, { type: "WEBRTC_SIGNAL", from, fromName, callId, signal });
     }
   } else if (to) {
-    sendToAdmin(to, { type: "WEBRTC_SIGNAL", from, fromName, signal });
+    sendToAdmin(to, { type: "WEBRTC_SIGNAL", from, fromName, callId, signal });
   }
   res.json({ ok: true });
+});
+
+router.get("/admin/chat/ice-config", requireAdmin, (_req, res) => {
+  const servers: Array<Record<string, string | string[]>> = [
+    { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
+  ];
+  const turnUrl = process.env.TURN_URL;
+  const turnUsername = process.env.TURN_USERNAME;
+  const turnCredential = process.env.TURN_CREDENTIAL;
+  if (turnUrl && turnUsername && turnCredential) {
+    servers.push({ urls: turnUrl, username: turnUsername, credential: turnCredential });
+  }
+  res.setHeader("Cache-Control", "no-store");
+  res.json({ iceServers: servers, turnAvailable: Boolean(turnUrl && turnUsername && turnCredential) });
 });
 
 // Online admins

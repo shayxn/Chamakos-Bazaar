@@ -56,13 +56,17 @@ app.use("/api", router);
 
 async function seedAdminUser() {
   try {
-    const adminPassword = process.env.ADMIN_PASSWORD ?? "chamak2024";
-    const hash = await bcrypt.hash(adminPassword, 12);
     const [existing] = await db
       .select()
       .from(usersTable)
       .where(eq(usersTable.username, "admin"));
     if (!existing) {
+      const adminPassword = process.env.ADMIN_PASSWORD;
+      if (!adminPassword) {
+        logger.warn("ADMIN_PASSWORD is not configured; admin account was not seeded");
+        return;
+      }
+      const hash = await bcrypt.hash(adminPassword, 12);
       await db.insert(usersTable).values({
         username: "admin",
         passwordHash: hash,
@@ -72,9 +76,9 @@ async function seedAdminUser() {
     } else {
       await db
         .update(usersTable)
-        .set({ passwordHash: hash, isAdmin: true })
+        .set({ isAdmin: true })
         .where(eq(usersTable.id, existing.id));
-      logger.info("Admin user credentials synced");
+      logger.info("Admin user authorization verified");
     }
   } catch (err) {
     logger.error({ err }, "Failed to seed admin user");

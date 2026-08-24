@@ -4,14 +4,25 @@ import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
-  Zap, Users, BellRing, MessageCircle, Activity, Ticket
+  Zap, Users, BellRing, MessageCircle, Activity, Ticket, Smartphone, PanelsTopLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import { useAdminPushNotifications } from "@/hooks/use-admin-notifications";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 const NOTIF_KEY = "firstpick_notif_asked";
+const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+type AdminDeviceSession = {
+  id: number;
+  device: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  lastSeenAt: string;
+  createdAt: string;
+  isCurrent: boolean;
+};
 
 function NotificationDeniedBanner({ onDismiss }: { onDismiss: () => void }) {
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -229,8 +240,51 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [location] = useLocation();
   const { data: user, isLoading } = useGetMe({ query: { retry: false, queryKey: ["auth", "me"] } });
   const { permission, subscribe } = useAdminPushNotifications();
+  const { toast } = useToast();
   const [showDeniedBanner, setShowDeniedBanner] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
+  const [showSessions, setShowSessions] = useState(false);
+  const [sessions, setSessions] = useState<AdminDeviceSession[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const isChat = location.endsWith("/admin/chat");
+
+  const loadSessions = async () => {
+    setSessionsLoading(true);
+    try {
+      const res = await fetch(`${BASE}/api/auth/admin/sessions`, { credentials: "include" });
+      if (!res.ok) throw new Error("Could not load active devices");
+      setSessions(await res.json() as AdminDeviceSession[]);
+    } catch (error) {
+      toast({ title: "Could not load devices", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
+  const revokeSession = async (id: number) => {
+    const res = await fetch(`${BASE}/api/auth/admin/sessions/${id}`, { method: "DELETE", credentials: "include" });
+    if (!res.ok) {
+      toast({ title: "Could not sign out device", variant: "destructive" });
+      return;
+    }
+    const result = await res.json() as { loggedOutCurrent?: boolean };
+    if (result.loggedOutCurrent) {
+      window.location.assign(`${BASE}/login`);
+      return;
+    }
+    setSessions((current) => current.filter((session) => session.id !== id));
+    toast({ title: "Device signed out" });
+  };
+
+  const logoutOtherDevices = async () => {
+    const res = await fetch(`${BASE}/api/auth/admin/sessions/logout-others`, { method: "POST", credentials: "include" });
+    if (!res.ok) {
+      toast({ title: "Could not sign out other devices", variant: "destructive" });
+      return;
+    }
+    setSessions((current) => current.filter((session) => session.isCurrent));
+    toast({ title: "Other devices signed out" });
+  };
 
   // Show a friendly in-app pre-prompt before the browser's native dialog.
   useEffect(() => {
@@ -250,6 +304,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const t = setTimeout(() => setShowNotifModal(true), 800);
     return () => clearTimeout(t);
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!user?.isAdmin) return;
+    const key = `fp_admin_welcome_${user.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    const timer = window.setTimeout(() => {
+      toast({ title: `Welcome back, ${user.username}`, description: "Your FirstPick workspace is ready." });
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [user?.id, user?.isAdmin, user?.username, toast]);
+
+  useEffect(() => {
+    if (showSessions) void loadSessions();
+  }, [showSessions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
     return (
@@ -291,6 +360,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: "/admin/categories",     label: "Categories",     icon: Tag },
         { href: "/admin/orders",         label: "Orders",         icon: ShoppingBag },
         { href: "/admin/coupons",        label: "Coupons",        icon: Ticket },
+        { href: "/admin/feed",           label: "Product Feed",   icon: PanelsTopLeft },
       ],
     },
     {
@@ -314,7 +384,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "transparent" }}>
+    <div className={`${isChat ? "h-[100dvh] overflow-hidden" : "min-h-screen"} flex flex-col md:flex-row`} style={{ background: "transparent" }}>
       {/* ── Notification pre-prompt modal ── */}
       <AnimatePresence>
         {showNotifModal && (
@@ -368,9 +438,72 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {showSessions && (
+          <motion.div
+            className="fixed inset-0 z-[220] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(14px)" }}
+          >
+            <motion.section
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              className="w-full max-w-lg overflow-hidden rounded-3xl border border-white/10"
+              style={{ background: "rgba(15,15,20,0.88)", backdropFilter: "blur(46px)", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Active admin devices"
+            >
+              <div className="flex items-start justify-between gap-4 p-5 border-b border-white/10">
+                <div>
+                  <p className="text-[10px] font-black tracking-[0.22em] uppercase text-primary">Account security</p>
+                  <h2 className="mt-1 text-lg font-black">Active devices</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">Only signed-in devices for this admin account are shown.</p>
+                </div>
+                <button onClick={() => setShowSessions(false)} className="p-2 rounded-full text-muted-foreground hover:text-white hover:bg-white/10" style={{ touchAction: "manipulation" }}>
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="max-h-[52dvh] overflow-y-auto p-3 space-y-2">
+                {sessionsLoading ? (
+                  <p className="py-8 text-center text-xs text-muted-foreground">Loading devices…</p>
+                ) : sessions.length === 0 ? (
+                  <p className="py-8 text-center text-xs text-muted-foreground">No active devices found.</p>
+                ) : sessions.map((session) => (
+                  <div key={session.id} className="rounded-2xl border border-white/8 p-3.5 flex items-center gap-3" style={{ background: "rgba(255,255,255,0.035)" }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary shrink-0"><Smartphone className="h-4 w-4" /></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold truncate">{session.device}</p>
+                        {session.isCurrent && <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">This device</span>}
+                      </div>
+                      <p className="mt-1 text-[10px] text-muted-foreground truncate">Last active {new Date(session.lastSeenAt).toLocaleString("en-AE")}</p>
+                    </div>
+                    {!session.isCurrent && (
+                      <button onClick={() => void revokeSession(session.id)} className="px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-red-300 bg-red-500/10 hover:bg-red-500/20" style={{ touchAction: "manipulation" }}>
+                        Sign out
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="p-4 border-t border-white/10 flex gap-2 justify-end">
+                <Button variant="ghost" onClick={() => setShowSessions(false)}>Close</Button>
+                <Button className="fire-gradient border-none font-black" onClick={() => void logoutOtherDevices()} disabled={sessionsLoading || sessions.length < 2}>
+                  Sign out other devices
+                </Button>
+              </div>
+            </motion.section>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Sidebar ── */}
       <aside
-        className="w-full md:w-64 shrink-0 flex flex-col relative overflow-hidden glass-heavy"
+        className={`${isChat ? "hidden" : "w-full md:w-64 flex"} shrink-0 flex-col relative overflow-hidden glass-heavy`}
         style={{ minHeight: "100vh" }}
       >
         {/* Animated accent bar on left edge */}
@@ -416,6 +549,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground pl-9">@{user.username}</p>
+          <button
+            type="button"
+            onClick={() => setShowSessions(true)}
+            className="mt-3 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-white transition-colors"
+            style={{ background: "rgba(255,255,255,0.04)", touchAction: "manipulation" }}
+          >
+            <Smartphone className="h-3.5 w-3.5 text-primary" /> Manage devices
+          </button>
         </motion.div>
 
         {/* Action buttons */}
@@ -559,7 +700,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ── Main content — animated on route change ── */}
       {(() => {
-        const isChat = location.endsWith("/admin/chat");
         return (
           <main
             className={`flex-1 ${isChat ? "overflow-hidden flex flex-col min-h-0" : "overflow-auto"}`}

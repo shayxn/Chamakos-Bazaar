@@ -12,7 +12,7 @@ const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 // ── Types ──────────────────────────────────────────────────────────────────────
 type ChatMessage = {
   id?: number; senderId: string; senderName: string; message: string;
-  type: string; metadata?: string | null; reactions: Record<string, string[]>;
+  type: string; conversationId?: string; clientMessageId?: string | null; metadata?: string | null; reactions: Record<string, string[]>;
   readBy: string[]; createdAt: string; _pending?: boolean;
 };
 type OnlineAdmin = { adminId: string; adminName: string };
@@ -39,7 +39,7 @@ const VIDEO_CONSTRAINTS = {
 };
 
 // ── ICE servers ────────────────────────────────────────────────────────────────
-const ICE_SERVERS = [
+const DEFAULT_ICE_SERVERS: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
   { urls: "stun:stun2.l.google.com:19302" },
@@ -220,8 +220,13 @@ export default function AdminChatPage() {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingLastSentRef = useRef(0);
   const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingClickThrottleRef = useRef(0);
+  const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const activeCallIdRef = useRef<string | null>(null);
+  const iceServersRef = useRef<RTCIceServer[]>(DEFAULT_ICE_SERVERS);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Load history
@@ -230,6 +235,16 @@ export default function AdminChatPage() {
       .then(r => r.ok ? r.json() : []).then((msgs: ChatMessage[]) => {
         setMessages(msgs);
       }).catch(() => {});
+  }, []);
+
+  // TURN is optional, but when configured it is delivered only after admin auth.
+  useEffect(() => {
+    fetch(`${BASE}/api/admin/chat/ice-config`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { iceServers?: RTCIceServer[] } | null) => {
+        if (data?.iceServers?.length) iceServersRef.current = data.iceServers;
+      })
+      .catch(() => {});
   }, []);
 
   // SSE connection
@@ -245,6 +260,14 @@ export default function AdminChatPage() {
         const msg = data.message as ChatMessage;
         setMessages(prev => {
           if (prev.some(m => m.id === msg.id)) return prev;
+            if (msg.clientMessageId) {
+              const optimisticIndex = prev.findIndex(m => m.clientMessageId === msg.clientMessageId);
+              if (optimisticIndex >= 0) {
+                const next = [...prev];
+                next[optimisticIndex] = msg;
+                return next;
+              }
+            }
           if (msg.senderId !== adminId) playReceivedSound();
           return [...prev, msg];
         });
@@ -268,12 +291,22 @@ export default function AdminChatPage() {
             });
           } catch {}
         }
-        handleSignal(data.from as string, data.fromName as string, sig as RTCSessionDescriptionInit | RTCIceCandidateInit);
+        handleSignal(
+          data.from as string,
+          data.fromName as string,
+          sig as RTCSessionDescriptionInit | RTCIceCandidateInit,
+          typeof data.callId === "string" ? data.callId : undefined,
+        );
       }
     };
 
     return () => { es.close(); };
   }, [adminId, adminName]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => () => {
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
+  }, []);
 
   // Auto-scroll
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -303,31 +336,43 @@ export default function AdminChatPage() {
     const msg = (text ?? input).trim();
     if (!msg || sending) return;
     setSending(true); playSentSound();
+    const clientMessageId = crypto.randomUUID();
     const optimistic: ChatMessage = {
       senderId: adminId, senderName: adminName, message: msg,
-      type: "text", reactions: {}, readBy: [adminId], createdAt: new Date().toISOString(), _pending: true
+      type: "text", conversationId: "group", clientMessageId,
+      reactions: {}, readBy: [adminId], createdAt: new Date().toISOString(), _pending: true
     };
     setMessages(prev => [...prev, optimistic]); setInput("");
     try {
       const res = await fetch(`${BASE}/api/admin/chat/messages`, {
         method: "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senderId: adminId, senderName: adminName, message: msg }),
+        body: JSON.stringify({ senderId: adminId, senderName: adminName, message: msg, clientMessageId, conversationId: "group" }),
       });
+      if (!res.ok) throw new Error("Message could not be sent");
       const saved = await res.json() as ChatMessage;
-      setMessages(prev => prev.filter(m => !m._pending).concat([saved]));
+      setMessages(prev => {
+        const i = prev.findIndex(m => m.clientMessageId === clientMessageId);
+        if (i < 0) return prev.some(m => m.id === saved.id) ? prev : [...prev, saved];
+        const next = [...prev];
+        next[i] = saved;
+        return next;
+      });
     } catch {
-      setMessages(prev => prev.filter(m => !m._pending));
+      setMessages(prev => prev.filter(m => m.clientMessageId !== clientMessageId));
       toast({ title: "Failed to send", variant: "destructive" });
     } finally { setSending(false); }
   }, [input, sending, adminId, adminName, toast]);
 
   // ── Typing ────────────────────────────────────────────────────────────────────
   const broadcastTyping = (typing: boolean) => {
-    fetch(`${BASE}/api/admin/chat/messages`, {
+    const now = Date.now();
+    if (typing && now - typingLastSentRef.current < 900) return;
+    typingLastSentRef.current = now;
+    fetch(`${BASE}/api/admin/chat/typing`, {
       method: "POST", credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ senderId: adminId, senderName: adminName, message: "__TYPING__", type: `typing_${typing}` }),
+      body: JSON.stringify({ senderId: adminId, senderName: adminName, typing, conversationId: "group" }),
     }).catch(() => {});
   };
   const handleInputChange = (val: string) => {
@@ -351,17 +396,24 @@ export default function AdminChatPage() {
 
   // ── WebRTC ────────────────────────────────────────────────────────────────────
   const signal = useCallback(async (to: string | null, data: unknown, broadcast?: boolean) => {
-    await fetch(`${BASE}/api/admin/chat/signal`, {
+    const res = await fetch(`${BASE}/api/admin/chat/signal`, {
       method: "POST", credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to: to ?? undefined, from: adminId, fromName: adminName, signal: data, broadcast: broadcast ?? false }),
+      body: JSON.stringify({
+        to: to ?? undefined, from: adminId, fromName: adminName,
+        signal: data, broadcast: broadcast ?? false, callId: activeCallIdRef.current ?? undefined,
+      }),
     });
+    if (!res.ok) throw new Error("Call signal failed");
   }, [adminId, adminName]);
 
   const endCall = useCallback(() => {
+    if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
     pcRef.current?.close(); pcRef.current = null;
     localStreamRef.current?.getTracks().forEach(t => t.stop());
     localStreamRef.current = null;
+    pendingIceCandidatesRef.current = [];
+    activeCallIdRef.current = null;
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     setCallState("idle"); setCallPeer(null); setMuted(false); setCameraOn(false);
@@ -369,14 +421,27 @@ export default function AdminChatPage() {
   }, []);
 
   const createPeer = useCallback(async (initiator: boolean, targetId: string, withVideo = false): Promise<RTCPeerConnection> => {
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers: iceServersRef.current });
     pcRef.current = pc;
 
-    // Always request HD audio; optionally request video
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: AUDIO_CONSTRAINTS,
-      video: withVideo ? VIDEO_CONSTRAINTS : false,
-    }).catch(() => navigator.mediaDevices.getUserMedia({ audio: AUDIO_CONSTRAINTS }));
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("This browser does not support microphone or camera calling.");
+    }
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: AUDIO_CONSTRAINTS,
+        video: withVideo ? VIDEO_CONSTRAINTS : false,
+      });
+    } catch (error) {
+      if (!withVideo) throw error;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: AUDIO_CONSTRAINTS });
+        toast({ title: "Camera unavailable", description: "The call will continue with audio only." });
+      } catch {
+        throw error;
+      }
+    }
 
     localStreamRef.current = stream;
     if (localVideoRef.current) localVideoRef.current.srcObject = stream;
@@ -391,47 +456,89 @@ export default function AdminChatPage() {
       const hasRemoteVid = e.streams[0]?.getVideoTracks().length > 0;
       setRemoteHasVideo(hasRemoteVid);
     };
-    pc.onicecandidate = (e) => { if (e.candidate) signal(targetId, { type: "ice-candidate", candidate: e.candidate }); };
+    pc.onicecandidate = (e) => {
+      if (e.candidate) signal(targetId, { type: "ice-candidate", candidate: e.candidate }).catch(() => {});
+    };
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === "connected") setCallState("in-call");
-      if (pc.connectionState === "disconnected" || pc.connectionState === "failed") endCall();
+      if (pc.connectionState === "connected") {
+        if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
+        setCallState("in-call");
+      }
+      if (pc.connectionState === "disconnected") {
+        setCallState("calling");
+        if (disconnectTimerRef.current) clearTimeout(disconnectTimerRef.current);
+        disconnectTimerRef.current = setTimeout(() => {
+          if (pc.connectionState === "disconnected") {
+            toast({ title: "Call connection lost", variant: "destructive" });
+            endCall();
+          }
+        }, 7_000);
+      }
+      if (pc.connectionState === "failed" || pc.connectionState === "closed") {
+        toast({ title: "Call ended", description: "The connection could not be maintained.", variant: "destructive" });
+        endCall();
+      }
     };
 
     if (initiator) {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      await signal(null, { type: "offer", offer }, true);
+      await signal(targetId, { type: "offer", offer });
     }
     return pc;
-  }, [signal, endCall]);
+  }, [signal, endCall, toast]);
 
   const startGroupCall = async (withVideo = false) => {
     if (callState !== "idle") return;
-    // Allow calling even if no admins are currently online — push will ring their device
-    setCallState("calling");
-    setCallPeer({ adminId: "group", adminName: "Admin Group" });
-    await createPeer(true, "broadcast", withVideo);
+    const firstAvailable = onlineAdmins.find((admin) => admin.adminId !== adminId);
+    if (!firstAvailable) {
+      toast({ title: "No team member online", description: "Start a direct call when another admin is available." });
+      return;
+    }
+    await startCall(firstAvailable, withVideo);
   };
 
   const startCall = async (peer: OnlineAdmin, withVideo = false) => {
     if (callState !== "idle") return;
-    setCallState("calling"); setCallPeer(peer);
-    const pc = await createPeer(false, peer.adminId, withVideo);
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    await signal(peer.adminId, { type: "offer", offer });
+    try {
+      activeCallIdRef.current = crypto.randomUUID();
+      setCallState("calling"); setCallPeer(peer);
+      const pc = await createPeer(false, peer.adminId, withVideo);
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await signal(peer.adminId, { type: "offer", offer });
+    } catch (error) {
+      endCall();
+      toast({
+        title: "Call could not start",
+        description: error instanceof Error ? error.message : "Allow microphone access and try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const acceptCall = async (withVideo = false) => {
     if (!incomingCall) return;
-    setCallState("in-call");
-    setCallPeer({ adminId: incomingCall.from, adminName: incomingCall.fromName });
-    const pc = await createPeer(false, incomingCall.from, withVideo);
-    await pc.setRemoteDescription(incomingCall.offer);
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    await signal(incomingCall.from, { type: "answer", answer });
-    setIncomingCall(null);
+    try {
+      setCallState("calling");
+      setCallPeer({ adminId: incomingCall.from, adminName: incomingCall.fromName });
+      const pc = await createPeer(false, incomingCall.from, withVideo);
+      await pc.setRemoteDescription(incomingCall.offer);
+      for (const candidate of pendingIceCandidatesRef.current.splice(0)) {
+        await pc.addIceCandidate(candidate).catch(() => {});
+      }
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await signal(incomingCall.from, { type: "answer", answer });
+      setIncomingCall(null);
+    } catch (error) {
+      endCall();
+      toast({
+        title: "Call could not connect",
+        description: error instanceof Error ? error.message : "Allow microphone access and try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const declineCall = () => {
@@ -448,7 +555,9 @@ export default function AdminChatPage() {
   const toggleCamera = useCallback(async () => {
     if (!pcRef.current) return;
     if (cameraOn) {
-      localStreamRef.current?.getVideoTracks().forEach(t => { t.enabled = false; t.stop(); });
+      const sender = pcRef.current.getSenders().find((item) => item.track?.kind === "video");
+      await sender?.replaceTrack(null);
+      localStreamRef.current?.getVideoTracks().forEach(t => { t.stop(); localStreamRef.current?.removeTrack(t); });
       setCameraOn(false); setLocalHasVideo(false);
     } else {
       try {
@@ -474,21 +583,40 @@ export default function AdminChatPage() {
     }
   }, [cameraOn, toast]);
 
-  const handleSignal = useCallback(async (from: string, fromName: string, sig: RTCSessionDescriptionInit | RTCIceCandidateInit | { type: string }) => {
+  const handleSignal = useCallback(async (
+    from: string,
+    fromName: string,
+    sig: RTCSessionDescriptionInit | RTCIceCandidateInit | { type: string },
+    callId?: string,
+  ) => {
     const t = (sig as { type: string }).type;
     if (t === "offer") {
+      if (callState !== "idle") {
+        signal(from, { type: "busy" }).catch(() => {});
+        return;
+      }
       const offerSig = sig as { type: "offer"; offer: RTCSessionDescriptionInit };
+      activeCallIdRef.current = callId ?? crypto.randomUUID();
       setIncomingCall({ from, fromName, offer: offerSig.offer });
       setCallState("receiving");
     } else if (t === "answer" && pcRef.current) {
       await pcRef.current.setRemoteDescription((sig as { type: "answer"; answer: RTCSessionDescriptionInit }).answer);
-      setCallState("in-call");
+      for (const candidate of pendingIceCandidatesRef.current.splice(0)) {
+        await pcRef.current.addIceCandidate(candidate).catch(() => {});
+      }
     } else if (t === "ice-candidate" && pcRef.current) {
-      await pcRef.current.addIceCandidate((sig as { type: "ice-candidate"; candidate: RTCIceCandidateInit }).candidate).catch(() => {});
+      const candidate = (sig as { type: "ice-candidate"; candidate: RTCIceCandidateInit }).candidate;
+      if (pcRef.current.remoteDescription) {
+        await pcRef.current.addIceCandidate(candidate).catch(() => {});
+      } else {
+        pendingIceCandidatesRef.current.push(candidate);
+      }
     } else if (t === "declined") {
       endCall(); toast({ title: "Call declined" });
+    } else if (t === "busy") {
+      endCall(); toast({ title: "Admin is busy", description: `${fromName} is already on another call.` });
     }
-  }, [endCall, toast]);
+  }, [callState, endCall, signal, toast]);
 
   // ── Push subscribe ────────────────────────────────────────────────────────────
   const subscribePush = async () => {

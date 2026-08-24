@@ -5,6 +5,8 @@ import { LoginBody } from "@workspace/api-zod";
 import * as crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { sql } from "drizzle-orm";
+import { requireAdmin } from "../lib/auth-middleware";
+import { ensureAdminSessionsTable, getRequestDeviceDetails, touchAdminSession } from "../lib/admin-sessions";
 
 const router = Router();
 const BCRYPT_ROUNDS = 12;
@@ -19,25 +21,9 @@ async function verifyPassword(password: string, storedHash: string): Promise<boo
   return storedHash === legacySha256Hash(password);
 }
 
-// ── Device session tracking ────────────────────────────────────────────────────
-let _sessionsTableEnsured = false;
-async function ensureSessionsTable() {
-  if (_sessionsTableEnsured) return;
-  _sessionsTableEnsured = true;
-  await db.execute(sql`
-    CREATE TABLE IF NOT EXISTS admin_device_sessions (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL,
-      device_token TEXT UNIQUE NOT NULL,
-      last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
-}
-
 function extractRows<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
-  return (result as any).rows ?? [];
+  return ((result as { rows?: T[] }).rows ?? []);
 }
 
 router.post("/auth/login", async (req, res) => {
@@ -61,13 +47,13 @@ router.post("/auth/login", async (req, res) => {
 
   // ── Device session limit ───────────────────────────────────────────────────
   if (user.isAdmin) {
-    await ensureSessionsTable();
+    await ensureAdminSessionsTable();
 
     // Remove stale sessions (older than 7 days, matching cookie max-age)
     await db.execute(sql`
       DELETE FROM admin_device_sessions
       WHERE user_id = ${user.id}
-        AND last_seen_at < NOW() - INTERVAL '7 days'
+        AND (last_seen_at < NOW() - INTERVAL '30 days' OR revoked_at IS NOT NULL)
     `);
 
     // Count active device sessions
@@ -85,9 +71,10 @@ router.post("/auth/login", async (req, res) => {
 
     // Register this device
     const deviceToken = crypto.randomUUID();
+    const { userAgent, ipAddress } = getRequestDeviceDetails(req);
     await db.execute(sql`
-      INSERT INTO admin_device_sessions (user_id, device_token)
-      VALUES (${user.id}, ${deviceToken})
+      INSERT INTO admin_device_sessions (user_id, device_token, user_agent, ip_address)
+      VALUES (${user.id}, ${deviceToken}, ${userAgent}, ${ipAddress})
     `);
     (req.session as Record<string, unknown>).deviceToken = deviceToken;
   }
@@ -101,7 +88,7 @@ router.post("/auth/logout", async (req, res) => {
   const deviceToken = session?.deviceToken as string | undefined;
   if (deviceToken) {
     try {
-      await ensureSessionsTable();
+      await ensureAdminSessionsTable();
       await db.execute(sql`DELETE FROM admin_device_sessions WHERE device_token = ${deviceToken}`);
     } catch {}
   }
@@ -121,7 +108,85 @@ router.get("/auth/me", async (req, res) => {
     res.status(401).json({ error: "Not authenticated" });
     return;
   }
+  if (user.isAdmin && !(await touchAdminSession(req, user.id))) {
+    req.session = null;
+    res.status(401).json({ error: "Admin session expired. Please sign in again." });
+    return;
+  }
   res.json({ id: user.id, username: user.username, isAdmin: user.isAdmin });
+});
+
+router.get("/auth/admin/sessions", requireAdmin, async (req, res) => {
+  const userId = (req.session as Record<string, unknown>).userId as number;
+  const currentToken = (req.session as Record<string, unknown>).deviceToken as string | undefined;
+  await ensureAdminSessionsTable();
+  const rows = extractRows<{
+    id: number;
+    user_agent: string | null;
+    ip_address: string | null;
+    last_seen_at: string;
+    created_at: string;
+  }>(await db.execute(sql`
+    SELECT id, user_agent, ip_address, last_seen_at, created_at
+    FROM admin_device_sessions
+    WHERE user_id = ${userId} AND revoked_at IS NULL
+    ORDER BY last_seen_at DESC
+  `));
+  const current = currentToken
+    ? extractRows<{ id: number }>(await db.execute(sql`
+        SELECT id FROM admin_device_sessions WHERE user_id = ${userId} AND device_token = ${currentToken} LIMIT 1
+      `))[0]?.id
+    : null;
+  res.json(rows.map((row) => ({
+    id: row.id,
+    device: row.user_agent?.split(" ")[0] || "Unknown browser",
+    userAgent: row.user_agent,
+    ipAddress: row.ip_address,
+    lastSeenAt: row.last_seen_at,
+    createdAt: row.created_at,
+    isCurrent: row.id === current,
+  })));
+});
+
+router.delete("/auth/admin/sessions/:id", requireAdmin, async (req, res) => {
+  const userId = (req.session as Record<string, unknown>).userId as number;
+  const sessionId = Number(req.params.id);
+  if (!Number.isInteger(sessionId)) {
+    res.status(400).json({ error: "Invalid session id" });
+    return;
+  }
+  const currentToken = (req.session as Record<string, unknown>).deviceToken as string | undefined;
+  const target = extractRows<{ device_token: string }>(await db.execute(sql`
+    SELECT device_token FROM admin_device_sessions
+    WHERE id = ${sessionId} AND user_id = ${userId} AND revoked_at IS NULL
+    LIMIT 1
+  `))[0];
+  if (!target) {
+    res.status(404).json({ error: "Session not found" });
+    return;
+  }
+  await db.execute(sql`
+    UPDATE admin_device_sessions SET revoked_at = NOW()
+    WHERE id = ${sessionId} AND user_id = ${userId}
+  `);
+  if (target.device_token === currentToken) req.session = null;
+  res.json({ ok: true, loggedOutCurrent: target.device_token === currentToken });
+});
+
+router.post("/auth/admin/sessions/logout-others", requireAdmin, async (req, res) => {
+  const userId = (req.session as Record<string, unknown>).userId as number;
+  const currentToken = (req.session as Record<string, unknown>).deviceToken as string | undefined;
+  if (!currentToken) {
+    res.status(400).json({ error: "Current device session is missing" });
+    return;
+  }
+  await ensureAdminSessionsTable();
+  await db.execute(sql`
+    UPDATE admin_device_sessions
+    SET revoked_at = NOW()
+    WHERE user_id = ${userId} AND device_token <> ${currentToken} AND revoked_at IS NULL
+  `);
+  res.json({ ok: true });
 });
 
 export default router;

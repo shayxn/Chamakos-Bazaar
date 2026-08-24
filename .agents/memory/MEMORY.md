@@ -53,3 +53,4 @@
 - [Coming Soon products](coming-soon-products.md) — coming_soon bool col; visible in shop with purple badge/overlay; wishlist → push sub via session_id JOIN; PATCH release triggers sendComingSoonReleasePush; prompt only on shop.tsx (not product detail yet).
 - [Order confirmation page](order-page.md) — pages/order.tsx fully rewritten: confetti + animated orange tick + "Order Placed, Thanks!" + items list + info + WhatsApp CTA + "Go back to shop". Priority animation removed from checkout; all orders navigate to /order/:id.
 - [iOS Notification guards](ios-notification-guard.md) — always wrap Notification.permission and Notification.requestPermission() with `typeof Notification !== "undefined"` check; iOS Safari crashes without it. Same for navigator.serviceWorker availability check.
+- [Product feed data integrity](product-feed-data-integrity.md) — discovery must use persisted imported catalog data only; saved products remain per-admin and non-destructive.
