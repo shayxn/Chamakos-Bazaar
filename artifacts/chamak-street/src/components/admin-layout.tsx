@@ -4,7 +4,8 @@ import { Link, useLocation, Redirect } from "wouter";
 import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
-  Zap, Users, BellRing, MessageCircle, Activity, Ticket, Smartphone
+  Zap, Users, BellRing, MessageCircle, Activity, Ticket, Smartphone,
+  Phone, Menu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -240,6 +241,8 @@ const contentVariants = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const search = typeof window !== "undefined" ? window.location.search : "";
+  const isCalls = search.includes("view=calls");
   const { data: user, isLoading } = useGetMe({ query: { retry: false, queryKey: ["auth", "me"] } });
   const { permission, subscribe } = useAdminPushNotifications();
   const { toast } = useToast();
@@ -248,7 +251,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [showSessions, setShowSessions] = useState(false);
   const [sessions, setSessions] = useState<AdminDeviceSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
-  const isChat = location.endsWith("/admin/chat");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const isChat = location.split("?")[0] === "/admin/chat";
 
   const loadSessions = async () => {
     setSessionsLoading(true);
@@ -353,40 +357,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <Redirect href="/login" />;
   }
 
-  const linkGroups = [
-    {
-      label: "Store",
-      links: [
-        { href: "/admin",               label: "Dashboard",      icon: LayoutDashboard },
-        { href: "/admin/products",       label: "Products",       icon: Package },
-        { href: "/admin/basics",         label: "FP Basics",      icon: Layers },
-        { href: "/admin/categories",     label: "Categories",     icon: Tag },
-        { href: "/admin/orders",         label: "Orders",         icon: ShoppingBag },
-        { href: "/admin/coupons",        label: "Coupons",        icon: Ticket },
-      ],
-    },
-    {
-      label: "Analytics",
-      links: [
-        { href: "/admin/visitors",       label: "Live Customers", icon: Users },
-        { href: "/admin/notifications",  label: "Notifications",  icon: BellRing },
-        { href: "/admin/activity",       label: "Activity Log",   icon: Activity },
-        { href: "/admin/chat",           label: "Chat",           icon: MessageCircle },
-      ],
-    },
-    {
-      label: "Content",
-      links: [
-        { href: "/admin/site-settings", label: "Site Settings",  icon: Settings },
-        { href: "/admin/reviews",        label: "Reviews",        icon: Star },
-        { href: "/admin/tiktok",         label: "TikTok Videos",  icon: Video },
-        { href: "/admin/terms",          label: "Pages & Legal",  icon: FileText },
-      ],
-    },
+  const allLinks = [
+    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+    { href: "/admin/products", label: "Products", icon: Package },
+    { href: "/admin/basics", label: "FP Basics", icon: Layers },
+    { href: "/admin/categories", label: "Categories", icon: Tag },
+    { href: "/admin/visitors", label: "Live Customers", icon: Users },
+    { href: "/admin/chat", label: "Chats", icon: MessageCircle },
+    { href: "/admin/chat?view=calls", label: "Calls", icon: Phone },
+    { href: "/admin/notifications", label: "Notifications", icon: BellRing },
+    { href: "/admin/activity", label: "Activity Log", icon: Activity },
+    { href: "/admin/coupons", label: "Coupons", icon: Ticket },
+    { href: "/admin/site-settings", label: "Site Settings", icon: Settings },
+    { href: "/admin/reviews", label: "Reviews", icon: Star },
+    { href: "/admin/tiktok", label: "TikTok Videos", icon: Video },
+    { href: "/admin/terms", label: "Pages & Legal", icon: FileText },
   ];
 
   return (
-    <div className={`${isChat ? "h-[100dvh] overflow-hidden" : "min-h-screen"} flex flex-col md:flex-row`} style={{ background: "transparent" }}>
+    <div className="h-[100dvh] overflow-hidden flex bg-[#000000] text-white">
       {/* ── Non-blocking notification prompt ── */}
       <AnimatePresence>
         {showNotifModal && (
@@ -500,226 +490,181 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
       </AnimatePresence>
 
+      {/* ── Mobile navigation: preserve every existing admin destination ── */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <motion.div
+            className="fixed inset-0 z-[210] md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <button
+              type="button"
+              aria-label="Close admin navigation"
+              className="absolute inset-0 h-full w-full bg-black/75 backdrop-blur-sm"
+              onClick={() => setMobileNavOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: -320 }}
+              animate={{ x: 0 }}
+              exit={{ x: -320 }}
+              transition={{ type: "spring", stiffness: 360, damping: 34 }}
+              className="relative flex h-full w-[18rem] max-w-[84vw] flex-col border-r border-[#1a1a1a] bg-[#0A0A0A] shadow-2xl"
+              aria-label="Admin navigation"
+            >
+              <div className="flex items-center justify-between px-5 pb-4 pt-[max(1.25rem,env(safe-area-inset-top))]">
+                <div className="flex items-center gap-2.5">
+                  <div className="text-orange-500">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M14 2L4 14H13L11 22L21 10H12L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div className="leading-none">
+                    <div className="text-sm font-bold tracking-wide text-white">FIRSTPICK</div>
+                    <div className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#ff6600]">Admin</div>
+                  </div>
+                </div>
+                <button type="button" onClick={() => setMobileNavOpen(false)} className="rounded-lg p-2 text-gray-400 hover:bg-[#161616] hover:text-white" aria-label="Close menu">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="px-4 pb-3"><GlobalSearch /></div>
+              <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
+                {allLinks.map((link) => {
+                  const Icon = link.icon;
+                  const active = link.href === "/admin/chat?view=calls"
+                    ? isChat && isCalls
+                    : link.href === "/admin/chat"
+                      ? isChat && !isCalls
+                      : location === link.href;
+                  return (
+                    <Link key={link.href} href={link.href}>
+                      <div
+                        onClick={() => setMobileNavOpen(false)}
+                        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-medium transition-colors ${active ? "bg-[#ff6600]/10 text-[#ff6600]" : "text-gray-400 hover:bg-[#111] hover:text-gray-200"}`}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span>{link.label}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </nav>
+              <button type="button" onClick={() => { setMobileNavOpen(false); setShowSessions(true); }} className="m-4 flex items-center gap-3 rounded-xl border border-[#222] bg-[#111] px-3 py-3 text-left">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500/20 text-xs font-bold text-orange-500">{user.username.slice(0, 2).toUpperCase()}</span>
+                <span><span className="block text-xs font-bold text-white">{user.username}</span><span className="block text-[10px] text-gray-500">Manage devices</span></span>
+              </button>
+            </motion.aside>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        type="button"
+        onClick={() => setMobileNavOpen(true)}
+        className="fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[80] flex h-10 w-10 items-center justify-center rounded-xl border border-[#282828] bg-[#0f0f0f]/95 text-gray-300 shadow-xl backdrop-blur md:hidden"
+        aria-label="Open admin navigation"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
       {/* ── Sidebar ── */}
       <aside
-        className={`${isChat ? "hidden" : "w-full md:w-64 flex"} shrink-0 flex-col relative overflow-hidden glass-heavy`}
-        style={{ minHeight: "100vh" }}
+        className="w-full md:w-60 flex-shrink-0 flex-col relative overflow-hidden bg-[#0A0A0A] border-r border-[#1a1a1a] hidden md:flex"
       >
-        {/* Animated accent bar on left edge */}
-        <div
-          className="absolute left-0 top-0 bottom-0 w-[2px]"
-          style={{
-            background: "linear-gradient(180deg, transparent 0%, #ff6600 25%, #ffcc00 50%, #ff4400 75%, transparent 100%)",
-            backgroundSize: "100% 300%",
-            animation: "adminAccentBar 4s linear infinite",
-          }}
-        />
-
-        {/* Subtle background glow blob */}
-        <div
-          className="absolute -top-20 -left-20 w-64 h-64 rounded-full pointer-events-none"
-          style={{
-            background: "radial-gradient(circle, rgba(255,102,0,0.06) 0%, transparent 70%)",
-            animation: "orbPulse 6s ease-in-out infinite",
-          }}
-        />
-
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: EASE }}
-          className="relative p-5 pb-4"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          <div className="flex items-center gap-2.5 mb-1">
-            <motion.div
-              whileHover={{ scale: 1.12, rotate: 10 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              className="relative flex items-center justify-center w-7 h-7 rounded-lg shrink-0"
-              style={{ background: "linear-gradient(135deg, #ff6600, #ffcc00)", boxShadow: "0 2px 12px rgba(255,102,0,0.45)" }}
-            >
-              <Zap className="h-3.5 w-3.5 text-white" />
-              <div className="absolute inset-0 rounded-lg opacity-50"
-                style={{ border: "1px solid rgba(255,204,0,0.8)", animation: "statusDotPulse 2s ease-in-out infinite" }} />
-            </motion.div>
-            <span className="font-black uppercase tracking-[0.18em] text-sm gradient-text-animate">
-              FirstPick Admin
-            </span>
+        <div className="p-5 pb-4">
+          <div className="flex items-center gap-2.5 mb-6">
+            <div className="text-orange-500">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2L4 14H13L11 22L21 10H12L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="leading-none">
+              <div className="text-white font-bold text-sm tracking-wide">FIRSTPICK</div>
+              <div className="text-[#ff6600] text-[9px] font-bold tracking-[0.2em] uppercase mt-0.5">Admin</div>
+            </div>
+            <a href="/" target="_blank" rel="noopener noreferrer" className="ml-auto text-gray-500 hover:text-white transition-colors">
+              <Globe className="w-4 h-4" />
+            </a>
           </div>
-          <p className="text-[10px] text-muted-foreground pl-9">@{user.username}</p>
-          <button
-            type="button"
-            onClick={() => setShowSessions(true)}
-            className="mt-3 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-white transition-colors"
-            style={{ background: "rgba(255,255,255,0.04)", touchAction: "manipulation" }}
-          >
-            <Smartphone className="h-3.5 w-3.5 text-primary" /> Manage devices
-          </button>
-        </motion.div>
 
-        {/* Action buttons */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.3 }}
-          className="px-3 pt-3 pb-2 flex gap-2"
-        >
-          <Link href="/" className="flex-1">
-            <Button
-              variant="outline" size="sm"
-              className="w-full justify-start text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:border-orange-500/40 hover:text-primary"
-              style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}
-            >
-              <ArrowLeft className="h-3.5 w-3.5 mr-2" /> Back to Store
-            </Button>
-          </Link>
-          <a href="/" target="_blank" rel="noopener noreferrer">
-            <Button
-              variant="ghost" size="sm"
-              className="px-2 text-muted-foreground hover:text-primary transition-colors"
-              title="View Site"
-            >
-              <Globe className="h-3.5 w-3.5" />
-            </Button>
-          </a>
-        </motion.div>
-
-        <div className="pb-1">
           <GlobalSearch />
         </div>
 
-        {/* Nav — staggered entrance */}
-        <motion.nav
-          variants={sidebarVariants}
-          initial="hidden"
-          animate="show"
-          className="flex-1 py-2 px-3 overflow-y-auto space-y-5"
-        >
-          {linkGroups.map((group, gi) => (
-            <motion.div key={group.label} variants={linkVariants} custom={gi}>
-              <p
-                className="text-[9px] uppercase tracking-[0.28em] font-black px-3 mb-2"
-                style={{ animation: "adminLabelColor 5s ease-in-out infinite" }}
-              >
-                {group.label}
-              </p>
-              <div className="space-y-0.5">
-                {group.links.map((link, li) => {
-                  const Icon = link.icon;
-                  const isActive = location === link.href;
-                  return (
-                    <motion.div key={link.href} variants={linkVariants} custom={li}>
-                      <Link href={link.href}>
-                        <motion.div
-                          whileHover={!isActive ? { x: 3, backgroundColor: "rgba(255,102,0,0.08)" } : {}}
-                          whileTap={{ scale: 0.97 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-[11px] tracking-wide cursor-pointer relative overflow-hidden ${
-                            isActive ? "admin-active-pill text-white" : "text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          {isActive && (
-                            <div
-                              className="absolute inset-0 pointer-events-none"
-                              style={{
-                                background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
-                                animation: "adminShimmer 2.5s ease-in-out infinite",
-                              }}
-                            />
-                          )}
-                          <Icon className="h-3.5 w-3.5 shrink-0 relative z-10" />
-                          <span className="relative z-10">{link.label}</span>
-                          {isActive && (
-                            <motion.div
-                              layoutId="admin-active-dot"
-                              className="ml-auto w-1.5 h-1.5 rounded-full bg-white/80 shrink-0 relative z-10"
-                              style={{ boxShadow: "0 0 6px white" }}
-                              transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                            />
-                          )}
-                        </motion.div>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
+        {/* Nav */}
+        <nav className="flex-1 py-2 px-3 overflow-y-auto space-y-1">
+          {allLinks.map((link) => {
+            const Icon = link.icon;
+            let isActive = false;
+            if (link.href === "/admin/chat?view=calls") {
+              isActive = isChat && isCalls;
+            } else if (link.href === "/admin/chat") {
+              isActive = isChat && !isCalls;
+            } else {
+              isActive = location === link.href;
+            }
+
+            return (
+              <Link key={link.href} href={link.href}>
+                <div
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wide cursor-pointer transition-colors ${
+                    isActive ? "text-[#ff6600] bg-[#ff6600]/10" : "text-gray-400 hover:text-gray-200 hover:bg-[#111]"
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1">{link.label}</span>
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Bottom User Area */}
+        <div className="p-4 border-t border-[#1a1a1a]">
+          <div className="flex items-center justify-between cursor-pointer hover:bg-[#111] p-2 -mx-2 rounded-xl transition-colors" onClick={() => setShowSessions(true)}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-xs">
+                {user.username.slice(0, 2).toUpperCase()}
               </div>
-            </motion.div>
-          ))}
-        </motion.nav>
-
-        {/* Bottom badge */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="px-4 py-3 space-y-2"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
-        >
-          {/* System Online */}
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
-            style={{ background: "rgba(255,102,0,0.06)", border: "1px solid rgba(255,102,0,0.15)" }}>
-            <motion.div
-              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-1.5 h-1.5 rounded-full shrink-0"
-              style={{ background: "#ff6600" }}
-            />
-            <span className="text-[9px] font-black uppercase tracking-widest text-orange-400/70">System Online</span>
+              <div>
+                <div className="text-xs font-bold text-white">{user.username}</div>
+                <div className="text-[10px] text-gray-500">Owner</div>
+              </div>
+            </div>
+            <ArrowLeft className="w-3 h-3 text-gray-500 -rotate-90" />
           </div>
-
-          {/* Notification status */}
-          <AnimatePresence>
-            {permission === "granted" && (
-              <motion.div
-                key="alerts-on"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center gap-2 px-3 py-1.5"
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" style={{ boxShadow: "0 0 6px #4ade80" }} />
-                <span className="text-[9px] font-bold uppercase tracking-widest text-green-400/70">Alerts ON</span>
-              </motion.div>
-            )}
-            {showDeniedBanner && (
-              <NotificationDeniedBanner
-                key="denied-banner"
-                onDismiss={() => {
-                  setShowDeniedBanner(false);
-                  localStorage.setItem(NOTIF_KEY + "_denied_dismissed", "true");
-                }}
-              />
-            )}
-          </AnimatePresence>
-        </motion.div>
+          
+          <div className="mt-4 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-bold text-white">FirstPick Plus</div>
+              <div className="text-[10px] text-green-500">Active</div>
+            </div>
+            <div className="w-8 h-8 rounded-full border border-[#333] flex items-center justify-center">
+              <Star className="w-4 h-4 text-orange-500" />
+            </div>
+          </div>
+        </div>
       </aside>
 
       <AdminNamePrompt />
 
-      {/* ── Main content — animated on route change ── */}
-      {(() => {
-        return (
-          <main
-            className={`flex-1 ${isChat ? "overflow-hidden flex flex-col min-h-0" : "overflow-auto"}`}
-            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)" }}
+      {/* ── Main content ── */}
+      <main className={`flex-1 flex flex-col min-h-0 min-w-0 bg-[#000000]`}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location + (isCalls ? "-calls" : "")}
+            variants={contentVariants}
+            initial="initial"
+            animate="enter"
+            exit="exit"
+            className={isChat ? "flex-1 flex flex-col min-h-0 overflow-hidden p-2 md:p-4" : "p-6 md:p-8 flex-1 overflow-auto"}
           >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={location}
-                variants={contentVariants}
-                initial="initial"
-                animate="enter"
-                exit="exit"
-                className={isChat ? "flex-1 flex flex-col min-h-0 overflow-hidden" : "p-6 md:p-8"}
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
-          </main>
-        );
-      })()}
-
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </main>
     </div>
   );
 }
