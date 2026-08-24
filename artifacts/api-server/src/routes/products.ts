@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, productsTable, categoriesTable } from "@workspace/db";
+import { db, productsTable, categoriesTable, usersTable } from "@workspace/db";
 import { eq, ilike, and, inArray, ne, isNotNull, isNull, or, type SQL, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
@@ -35,6 +35,7 @@ ensureBadgeColumns().catch(console.error);
 function serializeProduct(p: {
   id: number; name: string; description: string | null; price: string | number;
   imageUrl: string | null; imageUrls: string | null; stock: number;
+  sourceUrl?: string | null;
   categoryId: number | null; categoryName?: string | null; featured: boolean;
   rep: boolean; sizes: string | null; isPreOrder: boolean; preOrderLabel: string | null;
   preOrderDate: string | null; preOrderNote: string | null; createdAt: Date | string;
@@ -43,9 +44,10 @@ function serializeProduct(p: {
   collection?: string | null;
   bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
   comingSoon?: boolean; videoUrl?: string | null; shipsToUaeVerified?: boolean;
-}) {
-  return {
-    ...p,
+}, options: { includeSourceUrl?: boolean } = {}) {
+  const { sourceUrl, ...publicFields } = p;
+  const product = {
+    ...publicFields,
     price: Number(p.price),
     createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : p.createdAt,
     publishAt: p.publishAt instanceof Date ? p.publishAt.toISOString() : (p.publishAt ?? null),
@@ -53,6 +55,31 @@ function serializeProduct(p: {
     videoUrl: p.videoUrl ?? null,
     shipsToUaeVerified: p.shipsToUaeVerified ?? false,
   };
+  return options.includeSourceUrl ? { ...product, sourceUrl: sourceUrl ?? null } : product;
+}
+
+const AMAZON_DOMAINS = [
+  "amazon.com", "amazon.ae", "amazon.ca", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it",
+  "amazon.es", "amazon.nl", "amazon.se", "amazon.pl", "amazon.com.br", "amazon.com.mx", "amazon.com.au",
+  "amazon.co.jp", "amazon.in", "amazon.sg", "amazon.sa", "amazon.eg", "amazon.com.tr",
+];
+
+function normalizeSourceUrl(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null || value === "") return null;
+  if (typeof value !== "string") throw new Error("Amazon source link must be a URL");
+  let parsed: URL;
+  try {
+    parsed = new URL(value.trim());
+  } catch {
+    throw new Error("Amazon source link must be a valid URL");
+  }
+  const hostname = parsed.hostname.toLowerCase().replace(/\.$/, "");
+  const isAmazon = hostname === "amzn.to" || AMAZON_DOMAINS.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`));
+  if (parsed.protocol !== "https:" || !isAmazon) {
+    throw new Error("Amazon source link must be an HTTPS Amazon or amzn.to URL");
+  }
+  return parsed.toString();
 }
 
 function isPublished(p: { hidden: boolean; publishAt: Date | null; unpublishAt: Date | null }): boolean {
@@ -63,8 +90,18 @@ function isPublished(p: { hidden: boolean; publishAt: Date | null; unpublishAt: 
   return true;
 }
 
+async function hasVerifiedAdminSession(req: { session?: Record<string, unknown> }) {
+  const userId = req.session?.userId;
+  if (typeof userId !== "number" || !Number.isInteger(userId)) return false;
+  const [user] = await db.select({ isAdmin: usersTable.isAdmin })
+    .from(usersTable)
+    .where(eq(usersTable.id, userId))
+    .limit(1);
+  return user?.isAdmin === true;
+}
+
 router.get("/products", async (req, res) => {
-  const isAdmin = (req as any).session?.userId != null;
+  const isAdmin = await hasVerifiedAdminSession(req as any);
   const cacheKey = isAdmin ? null : req.originalUrl;
   if (cacheKey) {
     const cached = productListCache.get(cacheKey);
@@ -97,6 +134,7 @@ router.get("/products", async (req, res) => {
       price: productsTable.price,
       imageUrl: productsTable.imageUrl,
       imageUrls: productsTable.imageUrls,
+      sourceUrl: productsTable.sourceUrl,
       stock: productsTable.stock,
       categoryId: productsTable.categoryId,
       categoryName: categoriesTable.name,
@@ -127,7 +165,7 @@ router.get("/products", async (req, res) => {
     .where(conditions.length > 0 ? and(...conditions) : undefined);
 
   const filtered = isAdmin ? products : products.filter(p => isPublished(p as any));
-  const result = filtered.map(serializeProduct);
+  const result = filtered.map((product) => serializeProduct(product, { includeSourceUrl: isAdmin }));
   if (cacheKey) { productListCache.set(cacheKey, result); setPublicReadCacheHeaders(res); }
   res.json(result);
 });
@@ -140,10 +178,17 @@ router.post("/products", requireAdmin, async (req, res) => {
     preOrderDate?: string; preOrderNote?: string; sellingFast?: boolean; spotlight?: boolean;
     hidden?: boolean; publishAt?: string | null; unpublishAt?: string | null;
     bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
-     videoUrl?: string | null; shipsToUaeVerified?: boolean;
+      videoUrl?: string | null; shipsToUaeVerified?: boolean; sourceUrl?: string | null;
   };
   if (!body.name || body.price === undefined) {
     res.status(400).json({ error: "name and price required" });
+    return;
+  }
+  let sourceUrl: string | null | undefined;
+  try {
+    sourceUrl = normalizeSourceUrl(body.sourceUrl);
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Invalid source link" });
     return;
   }
   const [product] = await db.insert(productsTable).values({
@@ -174,9 +219,10 @@ router.post("/products", requireAdmin, async (req, res) => {
     comingSoon: (body as any).comingSoon ?? false,
      videoUrl: body.videoUrl ?? null,
      shipsToUaeVerified: body.shipsToUaeVerified ?? false,
+     sourceUrl: sourceUrl ?? null,
   }).returning();
   clearProductCaches();
-  res.status(201).json(serializeProduct({ ...product, categoryName: null }));
+  res.status(201).json(serializeProduct({ ...product, categoryName: null }, { includeSourceUrl: true }));
 });
 
 router.get("/products/complete-the-look", async (req, res) => {
@@ -236,7 +282,7 @@ router.get("/products/complete-the-look", async (req, res) => {
 router.get("/products/:id", async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const isAdmin = (req as any).session?.userId != null;
+  const isAdmin = await hasVerifiedAdminSession(req as any);
   const cacheKey = isAdmin ? null : req.originalUrl;
   if (cacheKey) {
     const cached = productDetailCache.get(cacheKey);
@@ -251,6 +297,7 @@ router.get("/products/:id", async (req, res) => {
       price: productsTable.price,
       imageUrl: productsTable.imageUrl,
       imageUrls: productsTable.imageUrls,
+      sourceUrl: productsTable.sourceUrl,
       stock: productsTable.stock,
       categoryId: productsTable.categoryId,
       categoryName: categoriesTable.name,
@@ -282,7 +329,7 @@ router.get("/products/:id", async (req, res) => {
 
   if (!product) { res.status(404).json({ error: "Not found" }); return; }
   if (!isAdmin && !isPublished(product as any)) { res.status(404).json({ error: "Not found" }); return; }
-  const result = serializeProduct(product);
+  const result = serializeProduct(product, { includeSourceUrl: isAdmin });
   if (cacheKey) { productDetailCache.set(cacheKey, result); setPublicReadCacheHeaders(res); }
   res.json(result);
 });
@@ -290,10 +337,31 @@ router.get("/products/:id", async (req, res) => {
 router.patch("/products/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  const updateData: Record<string, unknown> = { ...req.body };
+  const body = req.body as Record<string, unknown>;
+  const allowedFields = [
+    "name", "description", "price", "imageUrl", "imageUrls", "stock", "categoryId", "featured", "rep",
+    "sizes", "isPreOrder", "preOrderLabel", "preOrderDate", "preOrderNote", "sellingFast", "spotlight",
+    "hidden", "publishAt", "unpublishAt", "collection", "bestSeller", "trending", "newArrival",
+    "limitedEdition", "comingSoon", "videoUrl", "shipsToUaeVerified", "sourceUrl",
+  ] as const;
+  const updateData: Record<string, unknown> = {};
+  for (const field of allowedFields) {
+    if (body[field] !== undefined) updateData[field] = body[field];
+  }
+  if (Object.keys(updateData).length === 0) {
+    res.status(400).json({ error: "No editable product fields supplied" });
+    return;
+  }
   if (updateData.price !== undefined) updateData.price = String(updateData.price);
   if (updateData.publishAt !== undefined) updateData.publishAt = updateData.publishAt ? new Date(updateData.publishAt as string) : null;
   if (updateData.unpublishAt !== undefined) updateData.unpublishAt = updateData.unpublishAt ? new Date(updateData.unpublishAt as string) : null;
+  try {
+    const sourceUrl = normalizeSourceUrl(updateData.sourceUrl);
+    if (sourceUrl !== undefined) updateData.sourceUrl = sourceUrl;
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Invalid source link" });
+    return;
+  }
   if (updateData.spotlight === true) {
     await db.update(productsTable).set({ spotlight: false }).where(eq(productsTable.spotlight, true));
   }
@@ -320,7 +388,7 @@ router.patch("/products/:id", requireAdmin, async (req, res) => {
     sendComingSoonReleasePush(id, releaseProductName, releaseImageUrl).catch(console.error);
   }
 
-  res.json(serializeProduct({ ...product, categoryName: null }));
+  res.json(serializeProduct({ ...product, categoryName: null }, { includeSourceUrl: true }));
 });
 
 router.delete("/products/all", requireAdmin, async (_req, res) => {

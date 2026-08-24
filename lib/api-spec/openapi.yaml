@@ -927,6 +927,8 @@ components:
           type: ["string", "null"]
         imageUrls:
           type: ["string", "null"]
+        sourceUrl:
+          type: ["string", "null"]
         stock:
           type: integer
         categoryId:
@@ -976,6 +978,8 @@ components:
           type: string
         imageUrls:
           type: string
+        sourceUrl:
+          type: ["string", "null"]
         stock:
           type: integer
         categoryId:
@@ -1008,6 +1012,8 @@ components:
           type: string
         imageUrls:
           type: string
+        sourceUrl:
+          type: ["string", "null"]
         stock:
           type: integer
         categoryId:

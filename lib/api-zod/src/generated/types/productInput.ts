@@ -12,6 +12,8 @@ export interface ProductInput {
   price: number;
   imageUrl?: string;
   imageUrls?: string;
+  /** @nullable */
+  sourceUrl?: string | null;
   stock: number;
   categoryId?: number;
   featured?: boolean;

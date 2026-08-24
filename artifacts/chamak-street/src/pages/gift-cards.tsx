@@ -28,7 +28,7 @@ export default function GiftCardsPage() {
 
   // Pre-fill sender from account
   useEffect(() => {
-    if (me?.name && !senderName) setSender(me.name);
+    if (me?.username && !senderName) setSender(me.username);
   }, [me]);
 
   const displayAmount = isCustom
@@ -98,14 +98,11 @@ export default function GiftCardsPage() {
                   {AMOUNTS.map(a => (
                     <motion.button key={a} whileTap={{ scale: 0.95 }}
                       onClick={() => { setAmount(a); setIsCustom(false); }}
-                      style={{ touchAction: "manipulation" }}
                       className={`py-3 rounded-xl text-sm font-black border transition-all ${
                         !isCustom && amount === a
                           ? "border-primary/60 text-primary"
                           : "border-white/10 text-white/50 hover:border-white/20"
                       }`}
-                      style2={{ background: !isCustom && amount === a ? "rgba(255,102,0,0.1)" : "rgba(255,255,255,0.03)" }}
-                      // @ts-ignore
                       style={{ touchAction: "manipulation", background: !isCustom && amount === a ? "rgba(255,102,0,0.1)" : "rgba(255,255,255,0.03)" }}>
                       {a}
                     </motion.button>

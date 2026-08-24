@@ -16,6 +16,8 @@ export interface Product {
   imageUrl?: string | null;
   /** @nullable */
   imageUrls?: string | null;
+  /** @nullable */
+  sourceUrl?: string | null;
   stock: number;
   /** @nullable */
   categoryId?: number | null;

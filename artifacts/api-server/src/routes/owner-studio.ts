@@ -647,9 +647,12 @@ router.get("/owner-studio/admins", requireOwner, async (_req, res): Promise<void
 
 router.patch("/owner-studio/grants", requireOwner, async (req, res): Promise<void> => {
   const ownerId = await getOwnerId();
-  const ids = Array.isArray(req.body?.adminIds)
-    ? [...new Set(req.body.adminIds.map(Number).filter((id: number) => Number.isInteger(id) && id > 0 && id !== ownerId))]
+  const candidateIds = Array.isArray(req.body?.adminIds)
+    ? (req.body.adminIds as unknown[])
+      .map((value) => Number(value))
+      .filter((id): id is number => Number.isInteger(id) && id > 0 && id !== ownerId)
     : [];
+  const ids: number[] = [...new Set(candidateIds)];
   const validAdmins = ids.length
     ? await db.select({ id: usersTable.id }).from(usersTable).where(and(eq(usersTable.isAdmin, true), inArray(usersTable.id, ids)))
     : [];

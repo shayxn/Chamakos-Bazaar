@@ -15,6 +15,59 @@ import { useSettings } from "@/lib/use-settings";
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
 const CATEGORY_ICONS = [Package, Backpack, Pencil, BookOpen, Calculator, ShoppingBag];
+const CATEGORY_PHOTOS: Record<string, string> = {
+  "Pencil Cases": "pencil-cases.jpg",
+  "Pencil Packs": "pencil-packs.jpg",
+  "Eraser Packs": "eraser-packs.jpg",
+  "Sharpener Packs": "sharpener-packs.jpg",
+  "Water Bottles": "water-bottles.jpg",
+};
+
+function isLegacyPlaceholder(url?: string | null) {
+  return !url || /placehold\.co|placeholder/i.test(url);
+}
+
+function schoolAsset(fileName: string) {
+  return `${BASE}/back-to-school/${fileName}`;
+}
+
+function getSchoolProductPhoto(product: Product) {
+  const media = getPrimaryProductMedia(product.imageUrl);
+  if (media?.type === "image" && !isLegacyPlaceholder(media.url)) return media.url;
+
+  if (product.categoryName === "Backpacks") {
+    const match = product.name.match(/(\d+)\s*$/);
+    const imageNumber = Math.max(1, Math.min(10, Number(match?.[1] ?? 1)));
+    return schoolAsset(`backpack-${String(imageNumber).padStart(2, "0")}.jpg`);
+  }
+
+  return schoolAsset(CATEGORY_PHOTOS[product.categoryName ?? ""] ?? "pencil-cases.jpg");
+}
+
+function SchoolProductPhoto({ product, alt, className, loading = "lazy" }: {
+  product: Product;
+  alt: string;
+  className: string;
+  loading?: "eager" | "lazy";
+}) {
+  const fallback = getSchoolProductPhoto(product);
+  const [src, setSrc] = useState(fallback);
+
+  useEffect(() => setSrc(getSchoolProductPhoto(product)), [product.id, product.imageUrl]);
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading={loading}
+      decoding="async"
+      className={className}
+      onError={() => {
+        if (src !== fallback) setSrc(fallback);
+      }}
+    />
+  );
+}
 
 export default function BackToSchool() {
   const settings = useSettings();
@@ -24,6 +77,7 @@ export default function BackToSchool() {
   const [animationRun, setAnimationRun] = useState(0);
   const [addingId, setAddingId] = useState<number | null>(null);
   const [addedId, setAddedId] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(18);
 
   useEffect(() => {
     if (!isEnabled) return;
@@ -78,7 +132,15 @@ export default function BackToSchool() {
     return matchesSearch && matchesCategory;
   }), [rawProducts, search, activeCategory]);
 
-  const heroProducts = (rawProducts ?? []).slice(0, 5);
+  const heroProducts = useMemo(() => {
+    const allProducts = rawProducts ?? [];
+    return [
+      ...allProducts.filter((product) => product.categoryName === "Backpacks"),
+      ...allProducts.filter((product) => product.categoryName !== "Backpacks"),
+    ].slice(0, 5);
+  }, [rawProducts]);
+
+  useEffect(() => setVisibleCount(18), [search, activeCategory]);
 
   const addToCart = async (event: React.MouseEvent<HTMLButtonElement>, product: Product) => {
     event.preventDefault();
@@ -183,10 +245,15 @@ export default function BackToSchool() {
               </div>
 
               <div className="relative hidden min-h-[350px] lg:block">
-                <div className="absolute left-[22%] top-[5%] h-[285px] w-[235px] rounded-[3.4rem] border border-white/10 bg-gradient-to-br from-neutral-500 via-neutral-800 to-black shadow-[0_28px_56px_rgba(0,0,0,0.7)]" />
-                <Backpack className="absolute left-[26%] top-[18%] h-40 w-40 text-black/55" strokeWidth={0.65} />
+                <div className="absolute left-[22%] top-[5%] h-[285px] w-[235px] overflow-hidden rounded-[3.4rem] border border-orange-200/20 bg-gradient-to-br from-neutral-700 via-neutral-900 to-black shadow-[0_28px_56px_rgba(0,0,0,0.7)]">
+                  {heroProducts[0] ? (
+                    <SchoolProductPhoto product={heroProducts[0]} alt="" loading="eager" className="h-full w-full object-cover opacity-90" />
+                  ) : (
+                    <Backpack className="absolute left-[18%] top-[22%] h-40 w-40 text-white/30" strokeWidth={0.65} />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-white/5" />
+                </div>
                 {heroProducts.slice(0, 4).map((product, index) => {
-                  const media = getPrimaryProductMedia(product.imageUrl);
                   const layouts = [
                     "left-0 bottom-[20px] h-36 w-36",
                     "right-[8%] top-[26px] h-44 w-36",
@@ -194,9 +261,12 @@ export default function BackToSchool() {
                     "left-[38%] bottom-0 h-28 w-28",
                   ];
                   return (
-                    <motion.div key={product.id} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 + index * 0.1, duration: 0.55, ease: EASE }} className={`absolute overflow-hidden rounded-2xl border border-white/15 bg-black shadow-2xl ${layouts[index]}`}>
-                      {media?.type === "image" ? <img src={media.url} alt="" className="h-full w-full object-cover" /> : <Package className="m-auto h-full w-10 text-white/20" />}
-                    </motion.div>
+                    <div key={product.id} className={`absolute overflow-hidden rounded-2xl border border-white/15 bg-black shadow-2xl ${layouts[index]}`}>
+                      <SchoolProductPhoto product={product} alt="" loading="eager" className="h-full w-full object-cover" />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-6">
+                        <span className="block truncate text-[8px] font-black uppercase tracking-wider text-white/80">{product.categoryName}</span>
+                      </div>
+                    </div>
                   );
                 })}
                 <span className="absolute right-4 top-0 rotate-6 rounded-sm bg-[#d6b15e] px-2 py-3 text-center text-[8px] font-black uppercase leading-tight text-black">Plan<br />Focus<br />Achieve</span>
@@ -222,7 +292,7 @@ export default function BackToSchool() {
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ffab1a]">Back to School picks</p>
-              <h2 className="mt-1 text-2xl font-black tracking-tight text-white">Student Essentials</h2>
+              <h2 className="mt-1 text-2xl font-black tracking-tight text-white">Student Essentials <span className="text-sm font-bold text-white/35">({products.length})</span></h2>
             </div>
             <div className="relative w-full sm:w-64">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" />
@@ -239,15 +309,14 @@ export default function BackToSchool() {
               <p className="mt-3 text-sm font-bold text-white/70">No matching school essentials yet.</p>
             </div>
           ) : (
-            <motion.div layout className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-              <AnimatePresence mode="popLayout">
-                {products.map((product, index) => {
-                  const media = getPrimaryProductMedia(product.imageUrl);
-                  return (
-                    <motion.article key={product.id} layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ delay: Math.min(index * 0.025, 0.22), duration: 0.32, ease: EASE }} className="group overflow-hidden rounded-xl border border-white/10 bg-[#151515] transition-colors hover:border-orange-300/40">
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                {products.slice(0, visibleCount).map((product) => (
+                    <article key={product.id} className="group overflow-hidden rounded-xl border border-white/10 bg-[#151515] transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-orange-300/40">
                       <Link href={`/product/${product.id}`} className="block">
                         <div className="relative aspect-square overflow-hidden bg-[#0b0b0b]">
-                          {media?.type === "image" ? <img src={media.url} alt={product.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /> : <Package className="absolute left-1/2 top-1/2 h-9 w-9 -translate-x-1/2 -translate-y-1/2 text-white/15" />}
+                          <SchoolProductPhoto product={product} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          <span className="absolute left-2 top-2 rounded-full border border-white/15 bg-black/55 px-2 py-1 text-[8px] font-black uppercase tracking-wider text-white/80 backdrop-blur-sm">{product.categoryName || "School pick"}</span>
                           {product.stock === 0 && <span className="absolute inset-0 flex items-center justify-center bg-black/65 text-[10px] font-black uppercase tracking-widest text-white">Sold out</span>}
                         </div>
                       </Link>
@@ -259,18 +328,24 @@ export default function BackToSchool() {
                           {addedId === product.id ? <><Check className="h-3 w-3 text-green-300" /> Added</> : addingId === product.id ? "Adding…" : "Add to cart"}
                         </button>
                       </div>
-                    </motion.article>
-                  );
-                })}
-              </AnimatePresence>
-            </motion.div>
+                    </article>
+                ))}
+              </div>
+              {products.length > visibleCount && (
+                <div className="mt-6 flex justify-center">
+                  <button onClick={() => setVisibleCount((count) => Math.min(count + 18, products.length))} className="rounded-lg border border-orange-300/35 bg-orange-400/10 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-orange-100 transition-colors hover:bg-orange-400/20" style={{ touchAction: "manipulation" }}>
+                    Show more essentials ({products.length - visibleCount})
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
 
         <section className="mx-auto max-w-[1260px] px-3 pt-6 sm:px-5">
           <div className="grid divide-y divide-white/10 overflow-hidden rounded-xl border border-white/10 bg-[#161616] sm:grid-cols-4 sm:divide-x sm:divide-y-0">
             {[
-              { icon: Truck, title: "Fast Delivery", detail: "Across UAE" },
+              { icon: Truck, title: "AED 25 Delivery", detail: "Across UAE" },
               { icon: ShieldCheck, title: "UAE Ready", detail: "Verified shipping" },
               { icon: Award, title: "Useful Picks", detail: "For the school year" },
               { icon: Backpack, title: "Student Essentials", detail: "Chosen for you" },

@@ -159,7 +159,8 @@ export default function CustomStorePage() {
   const [page, setPage] = useState<PublishedPage | null>(null);
   const [state, setState] = useState<"loading" | "missing" | "ready">("loading");
   const [notice, setNotice] = useState("");
-  const runActions = useCallback((actions: PublishedPage["content"]["events"][number]["actions"]) => {
+  type StudioAction = NonNullable<PublishedPage["content"]["events"]>[number]["actions"][number];
+  const runActions = useCallback((actions: StudioAction[]) => {
     actions.forEach((action) => {
       if (action.type === "show-notification" && action.message) setNotice(action.message);
       if (action.type === "navigate" && action.href) /^https:\/\//i.test(action.href) ? window.location.assign(action.href) : navigate(action.href);

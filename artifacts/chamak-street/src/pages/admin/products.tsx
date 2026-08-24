@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Plus, Edit, Trash2, Upload, Image as ImageIcon, CheckCircle, XCircle,
   X, Calendar, Package, EyeOff, Star, Flame, Tag, DollarSign, Layers,
-  GripVertical, ChevronDown, ChevronUp, Sparkles, AlertTriangle, Zap, Timer
+  GripVertical, ChevronDown, ChevronUp, Sparkles, AlertTriangle, Zap, Timer, Link as LinkIcon, ExternalLink
 } from "lucide-react";
 import type { Product, ProductInput } from "@workspace/api-client-react";
 import {
@@ -51,6 +51,7 @@ type ProductFormData = ProductInput & {
   comingSoon?: boolean;
   videoUrl?: string | null; shipsToUaeVerified?: boolean;
   collection?: string | null;
+  sourceUrl?: string | null;
 };
 
 const BULK_ACTIONS = [
@@ -341,7 +342,7 @@ export default function AdminProducts() {
     const controller = new AbortController();
     fetch(`${BASE}/api/settings`, { credentials: "include", signal: controller.signal })
       .then((response) => response.ok ? response.json() as Promise<Record<string, string>> : {})
-      .then((settings) => setBackToSchoolEnabled(settings.back_to_school_enabled !== "false"))
+      .then((settings: Record<string, string>) => setBackToSchoolEnabled(settings.back_to_school_enabled !== "false"))
       .catch(() => {});
     return () => controller.abort();
   }, []);
@@ -352,7 +353,7 @@ export default function AdminProducts() {
     isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
     sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
     bestSeller: false, trending: false, newArrival: false, limitedEdition: false,
-     videoUrl: null, shipsToUaeVerified: false,
+     videoUrl: null, shipsToUaeVerified: false, sourceUrl: null,
   });
 
   const set = (partial: Partial<ProductFormData>) => setFormData(f => ({ ...f, ...partial }));
@@ -391,7 +392,7 @@ export default function AdminProducts() {
       sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
       bestSeller: false, trending: false, newArrival: false, limitedEdition: false,
       comingSoon: false,
-       videoUrl: null, shipsToUaeVerified: false, collection: collection ?? null,
+       videoUrl: null, shipsToUaeVerified: false, collection: collection ?? null, sourceUrl: null,
     });
     setSheetOpen(true);
   };
@@ -423,6 +424,7 @@ export default function AdminProducts() {
        videoUrl: (product as ProductFormData).videoUrl ?? null,
        shipsToUaeVerified: (product as ProductFormData).shipsToUaeVerified ?? false,
        collection: (product as ProductFormData).collection ?? null,
+        sourceUrl: (product as ProductFormData).sourceUrl ?? null,
     });
     setSheetOpen(true);
   };
@@ -503,7 +505,7 @@ export default function AdminProducts() {
   };
 
   const removeFromBackToSchool = (id: number) => {
-    updateProduct.mutate({ id, data: { collection: null } as ProductInput }, {
+    updateProduct.mutate({ id, data: { collection: null } as unknown as ProductInput }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
         toast({ title: "Removed from Back to School", description: "The product remains in your main inventory." });
@@ -760,6 +762,17 @@ export default function AdminProducts() {
                       <p className="text-[10px] uppercase text-muted-foreground tracking-widest mb-0.5">{product.categoryName || "—"}</p>
                       <h3 className="font-bold leading-tight truncate">{product.name}</h3>
                     </div>
+                   {(product as ProductFormData).sourceUrl && (
+                     <a
+                       href={(product as ProductFormData).sourceUrl!}
+                       target="_blank"
+                       rel="noreferrer"
+                       onClick={event => event.stopPropagation()}
+                       className="mb-3 inline-flex w-fit items-center gap-1 text-[10px] font-black uppercase tracking-wider text-orange-300/80 transition-colors hover:text-orange-200"
+                     >
+                       Amazon link <ExternalLink className="h-3 w-3" />
+                     </a>
+                   )}
                     <p className="font-mono font-bold text-primary text-sm shrink-0 ml-2">AED {product.price.toFixed(2)}</p>
                   </div>
                   <div className="mt-auto pt-3 flex items-center gap-2 border-t border-border/40">
@@ -936,6 +949,18 @@ export default function AdminProducts() {
             {/* Media */}
             <Section title="Product Media" icon={ImageIcon} accent="rgba(255,102,0,0.18)">
               <MediaZone items={mediaItems} onChange={handleMediaChange} uploading={uploading} onUpload={handleUpload} />
+            </Section>
+
+            <Section title="Source & Provenance" icon={LinkIcon} accent="rgba(251,191,36,0.18)">
+              <Field label="Amazon product link" hint="Use the exact Amazon or amzn.to listing URL for this item. It stays private to Admin.">
+                <Input
+                  type="url"
+                  value={formData.sourceUrl ?? ""}
+                  onChange={e => set({ sourceUrl: e.target.value || null })}
+                  placeholder="https://www.amazon.ae/dp/..."
+                  className="glass-input text-white placeholder-white/25"
+                />
+              </Field>
             </Section>
 
             {/* Basic Info */}

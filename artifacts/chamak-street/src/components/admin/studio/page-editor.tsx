@@ -4,7 +4,7 @@ import { Monitor, Smartphone, Tablet, Trash2, Copy, Play, Settings2, Settings, B
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { fetchApi } from "./api";
-import { Page, PageContent } from "./types";
+import type { Page, PageContent, StudioElement } from "./types";
 import { CanvasPreview } from "./canvas-preview";
 import { PropertiesPanel } from "./properties-panel";
 import { Toolbox } from "./toolbox";
@@ -50,7 +50,7 @@ export function PageEditor({
   }, [page.id, page.title, page.slug]);
 
   // To handle auto-save debounce
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const cloneContent = (value: PageContent) => JSON.parse(JSON.stringify(value)) as PageContent;
   const saveUpdates = useCallback(async (updates: Partial<Page>) => {
@@ -215,7 +215,11 @@ export function PageEditor({
     const newContent = cloneContent(content);
     const sIdx = newContent.sections.findIndex(s => s.id === sectionId);
     if (sIdx > -1) {
-      const newEl = { id: `el-${Date.now()}`, ...el };
+      const newEl: StudioElement = {
+        ...el,
+        id: `el-${Date.now()}`,
+        type: typeof el.type === "string" ? el.type : "text",
+      };
       if (!newContent.sections[sIdx].elements) newContent.sections[sIdx].elements = [];
       newContent.sections[sIdx].elements.push(newEl);
       handleContentChange(newContent);
@@ -243,7 +247,7 @@ export function PageEditor({
   };
   
   // Find selected section id for Toolbox
-  let activeSectionId = null;
+  let activeSectionId: string | null = null;
   if (selectedType === "section") activeSectionId = selectedId;
   else if (selectedType === "element" && selectedId) {
     const s = content.sections.find(sec => (sec.elements || []).some(e => e.id === selectedId));

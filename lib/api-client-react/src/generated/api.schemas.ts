@@ -78,6 +78,8 @@ export interface Product {
   imageUrl?: string | null;
   /** @nullable */
   imageUrls?: string | null;
+  /** @nullable */
+  sourceUrl?: string | null;
   stock: number;
   /** @nullable */
   categoryId?: number | null;
@@ -112,6 +114,8 @@ export interface ProductInput {
   price: number;
   imageUrl?: string;
   imageUrls?: string;
+  /** @nullable */
+  sourceUrl?: string | null;
   stock: number;
   categoryId?: number;
   featured?: boolean;
@@ -129,6 +133,8 @@ export interface ProductUpdate {
   price?: number;
   imageUrl?: string;
   imageUrls?: string;
+  /** @nullable */
+  sourceUrl?: string | null;
   stock?: number;
   categoryId?: number;
   featured?: boolean;

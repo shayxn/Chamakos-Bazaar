@@ -5,6 +5,12 @@ export type ProductMedia = {
   type: ProductMediaType;
 };
 
+function normalizeMediaUrl(url: string): string {
+  if (!url.startsWith("/back-to-school/")) return url;
+  const base = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+  return `${base}${url}`;
+}
+
 function inferMediaType(url: string): ProductMediaType {
   return /\.(mp4|mov|m4v|webm|ogg)(\?|#|$)/i.test(url) || /\/video\/upload\//.test(url)
     ? "video"
@@ -19,12 +25,12 @@ export function parseProductMedia(value?: string | null): ProductMedia[] {
     if (Array.isArray(parsed)) {
       return parsed
         .map((item): ProductMedia | null => {
-          if (typeof item === "string") return { url: item, type: inferMediaType(item) };
+          if (typeof item === "string") return { url: normalizeMediaUrl(item), type: inferMediaType(item) };
           if (!item || typeof item !== "object") return null;
           const candidate = item as { url?: unknown; type?: unknown };
           if (typeof candidate.url !== "string" || candidate.url.trim() === "") return null;
           return {
-            url: candidate.url,
+            url: normalizeMediaUrl(candidate.url),
             type: candidate.type === "video" ? "video" : inferMediaType(candidate.url),
           };
         })
@@ -34,7 +40,7 @@ export function parseProductMedia(value?: string | null): ProductMedia[] {
     // Existing products store a plain URL in imageUrl.
   }
 
-  return [{ url: value, type: inferMediaType(value) }];
+  return [{ url: normalizeMediaUrl(value), type: inferMediaType(value) }];
 }
 
 export function serializeProductMedia(media: ProductMedia[]): string {

@@ -356,9 +356,9 @@ function ElementProperties({ element, onChange }: { element: StudioElement, onCh
                 </label>
               </div>
               <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Start position</p>
-              <MotionFields value={scroll.from} onChange={(from) => updateScroll({ from })} />
+              <MotionFields value={scroll.from ?? {}} onChange={(from) => updateScroll({ from })} />
               <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">End position</p>
-              <MotionFields value={scroll.to} onChange={(to) => updateScroll({ to })} />
+              <MotionFields value={scroll.to ?? {}} onChange={(to) => updateScroll({ to })} />
             </>
           )}
         </div>
