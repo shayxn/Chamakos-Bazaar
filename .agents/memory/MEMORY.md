@@ -59,3 +59,4 @@
 - [Admin chat media](admin-chat-media.md) — photos and voice messages are private direct uploads that must be verified before a chat record can reference them.
 - [Owner Studio security](owner-studio-security.md) — Studio access, publishing, per-page sharing, versions, and public links have strict server-side boundaries.
 - [Built-in Studio page layers](built-in-studio-page-layers.md) — additions to core Store/Admin routes render as published layers, keeping existing transactional screens untouched.
+- [Amazon Back to School sourcing](amazon-back-to-school-sourcing.md) — public Amazon.com listing details feed the collection; USD is converted to AED with an AED 10–20 margin, while source URLs stay Admin-only.
