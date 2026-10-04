@@ -430,7 +430,7 @@ export default function ProductDetail() {
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      await navigator.share({ title: product?.name ?? "", text: `Check out ${product?.name ?? ""} on FirstPick`, url }).catch(() => {});
+      await navigator.share({ title: product?.name ?? "", text: `Check out ${product?.name ?? ""} on IMAGINATE`, url }).catch(() => {});
     } else {
       await navigator.clipboard.writeText(url).catch(() => {});
       toast({ title: "Link copied!" });

@@ -153,7 +153,7 @@ export default function AccountRegister() {
               </div>
 
               <h1 className="text-3xl font-black uppercase tracking-tight mb-1 text-center">Create Account</h1>
-              <p className="text-muted-foreground text-sm text-center mb-8">Join FirstPick for faster checkout &amp; order tracking</p>
+              <p className="text-muted-foreground text-sm text-center mb-8">Create an IMAGINATE account for faster checkout and order tracking.</p>
 
               <form onSubmit={sendCode} className="space-y-4">
                 {error && (

@@ -236,8 +236,8 @@ export function useAdminPushNotifications() {
         } else {
           // Confirmation notification — fires immediately after permission granted
           try {
-            new Notification("FirstPick Admin 🔔", {
-              body: "Notifications are on! You'll now receive real-time updates for new orders, customer activity, and important FirstPick alerts.",
+            new Notification("IMAGINATE Admin 🔔", {
+              body: "Notifications are on. You'll receive real-time updates for new orders, customer activity, and important IMAGINATE alerts.",
               icon: "/favicon.ico",
               tag: "fp-notifications-enabled",
             });

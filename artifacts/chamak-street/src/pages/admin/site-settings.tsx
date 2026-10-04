@@ -1,13 +1,24 @@
 import { useState, useEffect, useRef } from "react";
-import { useGetAllSettings, useBulkUpsertSettings } from "@workspace/api-client-react";
+import { useGetAllSettings, useBulkUpsertSettings, useListProducts } from "@workspace/api-client-react";
+import type { Product } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2, Megaphone, Plus, Trash2, ChevronUp, ChevronDown, Images, Link2, Search } from "lucide-react";
+import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2, Megaphone, Plus, Trash2, ChevronUp, ChevronDown, Images, Link2, Search, BookOpen, ExternalLink, ShieldAlert, Radio } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SETTING_DEFAULTS } from "@/lib/use-settings";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
@@ -36,15 +47,19 @@ async function uploadImageFile(file: File): Promise<string> {
 }
 
 type SettingsMap = Record<string, string>;
+type AdminProduct = Product & { collection?: string | null; sourceUrl?: string | null };
 
 const TABS = [
   { id: "announcement", label: "Announcement", icon: Megaphone },
   { id: "hero", label: "Hero Section", icon: Flame },
+  { id: "live", label: "IMAGINATE Live", icon: Radio },
   { id: "logo", label: "Logo Blending", icon: Image },
   { id: "trust", label: "Trust Cards", icon: Star },
   { id: "sections", label: "Sections", icon: Video },
   { id: "social", label: "Social Buttons", icon: MessageCircle },
   { id: "site", label: "Site Info", icon: Globe },
+  { id: "school", label: "Back To School", icon: BookOpen },
+  { id: "emergency", label: "Emergency", icon: ShieldAlert },
   { id: "shipping", label: "Shipping", icon: Truck },
   { id: "content", label: "Content", icon: Type },
   { id: "footer", label: "Footer", icon: Link2 },
@@ -215,7 +230,7 @@ function ColorInput({
 }: {
   label: string; settingKey: string; settings: SettingsMap; onChange: (key: string, val: string) => void;
 }) {
-  const val = settings[settingKey] ?? SETTING_DEFAULTS[settingKey] ?? "#ff6600";
+  const val = settings[settingKey] ?? SETTING_DEFAULTS[settingKey] ?? "#7c3aed";
   return (
     <div>
       <label className="label-xs mb-1.5 block">{label}</label>
@@ -434,20 +449,6 @@ function HeroImagesManager({ settings, onChange }: { settings: SettingsMap; onCh
         <Plus className="h-3.5 w-3.5" /> Add Another Slide
       </Button>
 
-      {/* Default image quick-insert */}
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
-        <img src="/chamako-hero.png" alt="Default hero" className="w-16 h-10 object-cover rounded-lg shrink-0 border border-border/40" />
-        <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-black uppercase tracking-wide">Default Hero Image</p>
-          <p className="text-[10px] text-muted-foreground truncate">/chamako-hero.png</p>
-        </div>
-        <Button type="button" variant="outline" size="sm"
-          onClick={() => { if (!images.includes("/chamako-hero.png")) setImages([...images.filter(Boolean), "/chamako-hero.png"], [...portraits, ""]); }}
-          className="shrink-0 text-xs font-bold uppercase tracking-wide border-primary/30 hover:border-primary px-2.5">
-          + Use
-        </Button>
-      </div>
-
       <div className="pt-2">
         <div className="flex items-center justify-between mb-1.5">
           <label className="label-xs">Slide Interval (seconds)</label>
@@ -505,16 +506,45 @@ function TrustCardSettings({ n, settings, onChange }: { n: number; settings: Set
 
 export default function AdminSiteSettings() {
   const { data: dbSettings, isLoading } = useGetAllSettings({ query: { staleTime: 0, queryKey: ["admin", "site-settings"] } });
+  const { data: products, isLoading: isProductsLoading } = useListProducts(undefined, {
+    query: { queryKey: ["admin", "site-settings", "products"], staleTime: 0 },
+  });
   const bulkUpsert = useBulkUpsertSettings();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [settings, setSettings] = useState<SettingsMap>({});
   const [activeTab, setActiveTab] = useState("hero");
   const [hasChanges, setHasChanges] = useState(false);
+  const [emergencyConfirmOpen, setEmergencyConfirmOpen] = useState(false);
+  const originalSettingsRef = useRef<SettingsMap>({});
+  const schoolProducts = ((products ?? []) as AdminProduct[]).filter((product) => product.collection === "back_to_school");
 
   useEffect(() => {
     if (dbSettings) {
-      setSettings({ ...SETTING_DEFAULTS, ...dbSettings });
+      const mergedSettings = { ...SETTING_DEFAULTS, ...dbSettings };
+      const hasLegacyBrand = (value: string | undefined) => /first[\s_-]?pick|chamak(?:os| street)?/i.test(value ?? "");
+      for (const key of ["site_name", "site_tagline", "site_title", "site_meta_description", "footer_description", "footer_copyright", "about_text"]) {
+        if (hasLegacyBrand(mergedSettings[key])) mergedSettings[key] = SETTING_DEFAULTS[key] ?? "";
+      }
+      if (!mergedSettings.logo_url || hasLegacyBrand(mergedSettings.logo_url) || /chamak-logo/i.test(mergedSettings.logo_url)) {
+        mergedSettings.logo_url = "/imaginate-logo.png";
+      }
+      if (/chamako-hero|firstpick/i.test(mergedSettings.hero_image ?? "")) mergedSettings.hero_image = "";
+      mergedSettings.hero_images = (mergedSettings.hero_images ?? "").split("|").filter((image) => !hasLegacyBrand(image)).join("|");
+      if (hasLegacyBrand(mergedSettings.announcement_text)) {
+        mergedSettings.announcement_active = "false";
+        mergedSettings.announcement_text = "";
+      }
+      if (["#ff6600", "#ffcc00"].includes((mergedSettings.primary_color ?? "").toLowerCase()) || ["#ff6600", "#ffcc00"].includes((mergedSettings.accent_color ?? "").toLowerCase())) {
+        mergedSettings.primary_color = SETTING_DEFAULTS.primary_color;
+        mergedSettings.accent_color = SETTING_DEFAULTS.accent_color;
+      }
+      if (["#ff6600", "#ffcc00"].includes((mergedSettings.announcement_color ?? "").toLowerCase())) {
+        mergedSettings.announcement_color = SETTING_DEFAULTS.announcement_color;
+      }
+      mergedSettings.worldwide_shipping_enabled = "false";
+      setSettings(mergedSettings);
+      originalSettingsRef.current = mergedSettings;
       setHasChanges(false);
     }
   }, [dbSettings]);
@@ -524,18 +554,38 @@ export default function AdminSiteSettings() {
     setHasChanges(true);
   };
 
-  const handleSave = () => {
+  const persistSettings = () => {
     bulkUpsert.mutate(
       { data: settings },
       {
         onSuccess: () => {
-          toast({ title: "Settings saved!" });
-          queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).includes("Setting") });
+          originalSettingsRef.current = settings;
+          setEmergencyConfirmOpen(false);
+          toast({
+            title: settings.emergency_shutdown === "true" ? "Emergency ShutDown is active" : "Settings saved!",
+            description: settings.emergency_shutdown === "true" ? "Customers will see the return-soon screen shortly." : undefined,
+          });
+          queryClient.invalidateQueries({ queryKey: ["settings"] });
+          queryClient.invalidateQueries({ queryKey: ["customer", "emergency-shutdown"] });
+          queryClient.invalidateQueries({ queryKey: ["operational-settings"] });
+          queryClient.invalidateQueries({ queryKey: ["admin", "site-settings"] });
           setHasChanges(false);
         },
         onError: () => toast({ title: "Error saving settings", variant: "destructive" }),
       }
     );
+  };
+
+  const handleSave = () => {
+    const isTurningEmergencyOn =
+      settings.emergency_shutdown === "true" &&
+      originalSettingsRef.current.emergency_shutdown !== "true";
+
+    if (isTurningEmergencyOn) {
+      setEmergencyConfirmOpen(true);
+      return;
+    }
+    persistSettings();
   };
 
   if (isLoading) {
@@ -561,7 +611,7 @@ export default function AdminSiteSettings() {
             className="fire-gradient border-none font-black uppercase tracking-wider gap-2 relative"
           >
             <Save className="h-4 w-4" />
-            {bulkUpsert.isPending ? "Saving..." : "Save Changes"}
+            {bulkUpsert.isPending ? "Saving..." : activeTab === "emergency" ? "Submit Emergency Setting" : "Save Changes"}
             {hasChanges && !bulkUpsert.isPending && (
               <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-400 border border-background" />
             )}
@@ -610,7 +660,7 @@ export default function AdminSiteSettings() {
               settingKey="announcement_text"
               settings={settings}
               onChange={onChange}
-              placeholder="e.g. FREE SHIPPING on orders over AED 200 · Use code CHAMAK10 for 10% off"
+              placeholder="A short event or collection announcement"
             />
             <SettingInput
               label="Banner Link (optional)"
@@ -625,11 +675,11 @@ export default function AdminSiteSettings() {
               <div className="flex items-center gap-3">
                 <input
                   type="color"
-                  value={settings.announcement_color ?? "#ff6600"}
+                  value={settings.announcement_color ?? "#7c3aed"}
                   onChange={(e) => onChange("announcement_color", e.target.value)}
                   className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent"
                 />
-                <span className="text-sm text-muted-foreground font-mono">{settings.announcement_color ?? "#ff6600"}</span>
+                <span className="text-sm text-muted-foreground font-mono">{settings.announcement_color ?? "#7c3aed"}</span>
               </div>
             </div>
 
@@ -639,12 +689,41 @@ export default function AdminSiteSettings() {
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-2 bg-muted border-b border-border">Live Preview</p>
                 <div
                   className="px-6 py-2.5 text-center text-white text-xs font-black uppercase tracking-widest"
-                  style={{ backgroundColor: settings.announcement_color ?? "#ff6600" }}
+                  style={{ backgroundColor: settings.announcement_color ?? "#7c3aed" }}
                 >
                   {settings.announcement_text}
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === "live" && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="font-black uppercase tracking-wider text-primary">IMAGINATE Live</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Set the October 27 announcement. Leave time and timezone empty until the event time is confirmed; the storefront will show the date without a countdown.
+              </p>
+            </div>
+            <ToggleInput label="Show the Live announcement on the storefront" settingKey="live_event_enabled" settings={settings} onChange={onChange} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <SettingInput label="Event title" settingKey="live_event_title" settings={settings} onChange={onChange} />
+              <SettingInput label="Event date" settingKey="live_event_date" settings={settings} onChange={onChange} type="date" />
+              <SettingInput label="Event time (optional)" settingKey="live_event_time" settings={settings} onChange={onChange} type="time" />
+              <SettingInput label="Timezone (optional)" settingKey="live_event_timezone" settings={settings} onChange={onChange} placeholder="Asia/Dubai" />
+              <div className="sm:col-span-2">
+                <SettingInput label="Description" settingKey="live_event_description" settings={settings} onChange={onChange} multiline />
+              </div>
+              <SettingInput label="Button label (optional)" settingKey="live_event_cta_text" settings={settings} onChange={onChange} />
+              <SettingInput label="Announcement link (optional)" settingKey="live_event_cta_url" settings={settings} onChange={onChange} type="url" />
+              <div className="sm:col-span-2">
+                <SettingInput label="Live stream link (only when confirmed)" settingKey="live_event_live_url" settings={settings} onChange={onChange} type="url" />
+              </div>
+              <div className="sm:col-span-2">
+                <ImageSettingInput label="Campaign background (optional)" settingKey="live_event_background" settings={settings} onChange={onChange} />
+              </div>
+            </div>
           </div>
         )}
 
@@ -710,7 +789,7 @@ export default function AdminSiteSettings() {
               <p className="text-xs text-muted-foreground mb-3">Live Preview:</p>
               <div style={{ background: settings.logo_bg_color === "transparent" ? "transparent" : settings.logo_bg_color, display: "inline-block", padding: `${settings.logo_padding}px`, borderRadius: `${settings.logo_border_radius}px` }}>
                 <img
-                  src={settings.logo_url || "/firstpick-logo.svg"}
+                  src={settings.logo_url || "/imaginate-logo.png"}
                   alt="Logo Preview"
                   style={{
                     height: `${settings.logo_height || 56}px`,
@@ -776,7 +855,7 @@ export default function AdminSiteSettings() {
                   <VideoSettingInput label="Custom video URL or file" settingKey="hero_middle_video" settings={settings} onChange={onChange} />
                 )}
                 {!settings.hero_middle_video?.trim() && (
-                  <p className="text-[11px] text-muted-foreground/60 italic">Using the built-in FirstPick video.</p>
+                  <p className="text-[11px] text-muted-foreground/60 italic">No default IMAGINATE campaign video is configured.</p>
                 )}
               </div>
 
@@ -837,7 +916,7 @@ export default function AdminSiteSettings() {
               </div>
               <p className="text-xs text-muted-foreground mb-3">Shown in the footer, links to your TikTok profile.</p>
               <ToggleInput label="Show TikTok Button" settingKey="tiktok_btn_visible" settings={settings} onChange={onChange} />
-              <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@firstpick" />
+              <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@yourhandle" />
               <SettingInput label="Button Text" settingKey="tiktok_btn_text" settings={settings} onChange={onChange} placeholder="Follow on TikTok" />
               <div>
                 <label className="label-xs mb-1.5 block">Button Color</label>
@@ -866,8 +945,8 @@ export default function AdminSiteSettings() {
               </div>
               <SettingInput label="Email" settingKey="contact_email" settings={settings} onChange={onChange} type="email" />
               <SettingInput label="WhatsApp / Phone" settingKey="contact_phone" settings={settings} onChange={onChange} />
-              <SettingInput label="Instagram Handle" settingKey="contact_instagram" settings={settings} onChange={onChange} placeholder="@chamakstreet" />
-              <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@firstpick" />
+              <SettingInput label="Instagram Handle" settingKey="contact_instagram" settings={settings} onChange={onChange} placeholder="@yourhandle" />
+              <SettingInput label="TikTok Handle" settingKey="contact_tiktok" settings={settings} onChange={onChange} placeholder="@yourhandle" />
             </div>
 
             {/* Maintenance Mode */}
@@ -891,9 +970,19 @@ export default function AdminSiteSettings() {
               <h2 className="font-black uppercase tracking-wider text-primary">Delivery Pricing</h2>
               <p className="text-sm text-muted-foreground -mt-3">Set the delivery prices customers see at checkout. Leave blank to use defaults (Standard 20, Express 30, Priority 40).</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <SettingInput label="Standard Delivery (AED)" settingKey="delivery_standard_price" settings={settings} onChange={onChange} placeholder="20" />
+                <SettingInput label="Standard Delivery (AED)" settingKey="delivery_standard_price" settings={settings} onChange={onChange} placeholder="25" />
                 <SettingInput label="Express Delivery (AED)" settingKey="delivery_express_price" settings={settings} onChange={onChange} placeholder="30" />
                 <SettingInput label="Priority Delivery (AED)" settingKey="delivery_priority_price" settings={settings} onChange={onChange} placeholder="40" />
+              </div>
+            </div>
+            <div className="rounded-2xl border border-violet-400/20 bg-violet-400/[0.04] p-5">
+              <h2 className="font-black uppercase tracking-wider text-violet-200">Delivery destinations</h2>
+              <p className="mt-2 text-sm leading-relaxed text-white/60">
+                United Arab Emirates only. Worldwide shipping is OFF and hidden from customers. International countries, rates, and any currency conversion have not been configured.
+              </p>
+              <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+                <span className="text-sm font-bold text-white/80">Worldwide shipping</span>
+                <span role="status" aria-label="Worldwide shipping is off" className="rounded-full border border-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white/50">Off</span>
               </div>
             </div>
             <div className="border-t border-border/40 pt-6 space-y-5">
@@ -909,6 +998,105 @@ export default function AdminSiteSettings() {
             <h2 className="font-black uppercase tracking-wider text-primary mb-6">Content & Legal</h2>
             <SettingInput label="Privacy Policy" settingKey="privacy_policy" settings={settings} onChange={onChange} multiline />
             <SettingInput label="FAQ" settingKey="faq_text" settings={settings} onChange={onChange} multiline />
+          </div>
+        )}
+
+        {activeTab === "school" && (
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-yellow-300/20 bg-yellow-300/[0.06] p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-yellow-200" />
+                    <h2 className="font-black uppercase tracking-wider text-yellow-100">Back To School</h2>
+                  </div>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
+                    Hide or restore the seasonal destination without deleting products. When hidden, its customer links and direct route disappear with no blank storefront space.
+                  </p>
+                </div>
+                <a
+                  href={`${BASE}/admin/products`}
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-yellow-200/25 px-3 text-xs font-black uppercase tracking-wider text-yellow-100 transition-colors hover:bg-yellow-200/10"
+                >
+                  Manage products
+                </a>
+              </div>
+              <div className="mt-5 border-t border-yellow-100/10 pt-5">
+                <ToggleInput label="Show Back To School to customers" settingKey="back_to_school_enabled" settings={settings} onChange={onChange} />
+                <p className="mt-2 text-xs text-white/45">
+                  {settings.back_to_school_enabled === "false"
+                    ? "Hidden — products and saved source links stay safely in Admin."
+                    : "Live — customers can browse the Back To School destination."}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border/60 bg-black/20">
+              <div className="flex items-center justify-between gap-4 border-b border-border/50 p-5">
+                <div>
+                  <h3 className="font-black uppercase tracking-wider text-white">Collection product links</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">Private source links are visible only in Admin.</p>
+                </div>
+                <span className="rounded-full bg-yellow-300/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-yellow-100">
+                  {schoolProducts.length} products
+                </span>
+              </div>
+              <div className="divide-y divide-border/50">
+                {isProductsLoading ? (
+                  <div className="p-6 text-sm text-muted-foreground">Loading collection products…</div>
+                ) : schoolProducts.length === 0 ? (
+                  <div className="p-6 text-sm text-muted-foreground">No Back To School products are currently assigned.</div>
+                ) : (
+                  schoolProducts.map((product) => (
+                    <div key={product.id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-white">{product.name}</p>
+                        <p className="mt-1 text-xs font-mono text-violet-200">AED {Number(product.price).toFixed(2)}</p>
+                      </div>
+                      {product.sourceUrl ? (
+                        <a
+                          href={product.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex w-fit shrink-0 items-center gap-1.5 text-xs font-black uppercase tracking-wider text-violet-200 transition-colors hover:text-violet-100"
+                        >
+                          Product link <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      ) : (
+                        <span className="text-xs font-bold text-white/35">No product link saved</span>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "emergency" && (
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-red-400/35 bg-red-500/[0.08] p-5">
+              <div className="flex items-start gap-3">
+                <ShieldAlert className="mt-0.5 h-6 w-6 shrink-0 text-red-300" />
+                <div>
+                  <h2 className="font-black uppercase tracking-wider text-red-100">Emergency ShutDown</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/65">
+                    Use this only when the storefront must pause immediately. Customers stay on the site but cannot interact with it; they see a branded “We&apos;ll Be Back Soon!” maintenance screen. Admin remains available to turn this off.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 border-t border-red-200/15 pt-5">
+                <ToggleInput label="Turn on Emergency ShutDown" settingKey="emergency_shutdown" settings={settings} onChange={onChange} />
+                {settings.emergency_shutdown === "true" ? (
+                  <p className="mt-3 text-xs font-black uppercase tracking-wider text-red-200">Emergency ShutDown will activate when you submit and confirm below.</p>
+                ) : (
+                  <p className="mt-3 text-xs text-white/45">Storefront is operating normally.</p>
+                )}
+              </div>
+            </div>
+            <p className="rounded-xl border border-border/50 bg-muted/20 p-4 text-xs leading-relaxed text-muted-foreground">
+              Turning this on requires a final Yes/No confirmation. Turning it off restores the customer storefront without changing products, carts, orders, or checkout data.
+            </p>
           </div>
         )}
 
@@ -935,8 +1123,8 @@ export default function AdminSiteSettings() {
             <h2 className="font-black uppercase tracking-wider text-primary mb-2">SEO & Meta</h2>
             <p className="text-sm text-muted-foreground -mt-3">Configure how your store appears in search engines and social media previews.</p>
             <div className="grid grid-cols-1 gap-4">
-              <SettingInput label="Site Title (browser tab + OG title)" settingKey="site_title" settings={settings} onChange={onChange} placeholder="FirstPick — Premium Streetwear Dubai" />
-              <SettingInput label="Meta Description" settingKey="site_meta_description" settings={settings} onChange={onChange} multiline placeholder="Premium authentic streetwear for those who walk their own path. Shop online, UAE delivery." />
+              <SettingInput label="Site Title (browser tab + OG title)" settingKey="site_title" settings={settings} onChange={onChange} placeholder="IMAGINATE — UAE Streetwear" />
+              <SettingInput label="Meta Description" settingKey="site_meta_description" settings={settings} onChange={onChange} multiline placeholder="IMAGINATE is a UAE-based clothing and streetwear label." />
               <ImageSettingInput label="OG Social Image (1200×630 recommended)" settingKey="site_og_image" settings={settings} onChange={onChange} />
             </div>
           </div>
@@ -952,10 +1140,30 @@ export default function AdminSiteSettings() {
             className="fire-gradient border-none font-black uppercase tracking-wider"
           >
             <Save className="h-4 w-4 mr-2" />
-            {bulkUpsert.isPending ? "Saving..." : "Save All Changes"}
+            {bulkUpsert.isPending ? "Saving..." : activeTab === "emergency" ? "Submit Emergency Setting" : "Save All Changes"}
           </Button>
         </motion.div>
       </div>
+
+      <AlertDialog open={emergencyConfirmOpen} onOpenChange={setEmergencyConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are You Sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Customers will see the IMAGINATE maintenance overlay and cannot use the storefront until you turn Emergency ShutDown off again. Admin access stays available.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, keep the store online</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={persistSettings}
+              className="bg-red-500 text-white hover:bg-red-600"
+            >
+              Yes, activate shut down
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

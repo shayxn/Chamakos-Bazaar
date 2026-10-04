@@ -87,7 +87,7 @@ export default function OrderTracking() {
           transition={{ duration: 0.4 }}
           className="text-center mb-14"
         >
-          <p className="text-xs text-primary uppercase tracking-[0.3em] font-black mb-4">Chamak Street</p>
+          <p className="text-xs text-primary uppercase tracking-[0.3em] font-black mb-4">IMAGINATE</p>
           <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-4">
             Track Your <span className="gradient-text">Order</span>
           </h1>
@@ -140,7 +140,7 @@ export default function OrderTracking() {
               <Button
                 onClick={handleTrack}
                 disabled={loading}
-                className="w-full h-13 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(255,102,0,0.3)] hover:shadow-[0_0_35px_rgba(255,102,0,0.55)] transition-shadow"
+                className="w-full h-13 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(124,58,237,0.25)] hover:shadow-[0_0_35px_rgba(124,58,237,0.4)] transition-shadow"
                 size="lg"
               >
                 {loading ? (

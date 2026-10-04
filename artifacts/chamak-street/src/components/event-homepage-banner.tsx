@@ -37,7 +37,7 @@ export function EventHomepageBanner() {
 
   if (!hp) return null;
 
-  const color = hp.bannerColor || "#ff6600";
+  const color = hp.bannerColor || "#7c3aed";
   const textColor = hp.textColor || "#ffffff";
   const accentColor = hp.accentColor || "#ffffff";
 

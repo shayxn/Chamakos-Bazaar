@@ -209,7 +209,7 @@ export default function CustomStorePage() {
 
   return (
     <main className="min-h-screen bg-black text-white">
-      <title>{`${page.title} | FirstPick`}</title>
+      <title>{`${page.title} | IMAGINATE`}</title>
       {notice && <button type="button" onClick={() => setNotice("")} className="fixed left-1/2 top-5 z-50 -translate-x-1/2 rounded-full border border-orange-400/30 bg-black/90 px-5 py-3 text-xs font-bold text-orange-100 shadow-2xl backdrop-blur">{notice} <span className="ml-2 text-orange-300">Dismiss</span></button>}
       {page.content.sections.filter((section) => !section.hidden).map((section, index) => (
         <section key={section.id || `${section.type}-${index}`} className={`relative overflow-hidden px-5 py-16 sm:px-8 sm:py-24 ${section.type === "hero" || section.type === "full-screen" ? "min-h-[72vh] flex items-center" : ""}`}>

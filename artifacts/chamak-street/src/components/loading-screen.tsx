@@ -1,7 +1,34 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const SESSION_KEY = "firstpick_loaded";
-const TOTAL_DURATION = 2600;
+const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
+type BootStep = "Starting app" | "Loading store settings" | "Preparing fonts" | "Checking first page";
+
+function waitForWindowLoad() {
+  if (document.readyState === "complete") return Promise.resolve();
+  return new Promise<void>((resolve) => window.addEventListener("load", () => resolve(), { once: true }));
+}
+
+function waitForFonts() {
+  const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+  return fonts?.ready ? fonts.ready.then(() => undefined).catch(() => undefined) : Promise.resolve();
+}
+
+function waitForInitialRoute() {
+  if ((window as Window & { __firstpickRouteReady?: boolean }).__firstpickRouteReady) return Promise.resolve();
+  return new Promise<void>((resolve) => window.addEventListener("firstpick:route-ready", () => resolve(), { once: true }));
+}
+
+async function confirmSettingsReady() {
+  const [settingsResponse, operationalResponse] = await Promise.all([
+    fetch(`${BASE}/api/settings`, { credentials: "include", cache: "no-store" }),
+    fetch(`${BASE}/api/settings/operational`, { credentials: "include", cache: "no-store" }),
+  ]);
+  if ((!settingsResponse.ok && settingsResponse.status !== 304) || (!operationalResponse.ok && operationalResponse.status !== 304)) {
+    throw new Error("Store settings could not be loaded");
+  }
+}
 
 export function LoadingScreen() {
   const [skip] = useState(() => {
@@ -14,33 +41,56 @@ export function LoadingScreen() {
   const [exiting, setExiting] = useState(false);
   const [visible, setVisible] = useState(!skip);
   const [progress, setProgress] = useState(0);
-  const [phase, setPhase] = useState<"enter" | "logo" | "hold" | "exit">("enter");
-  const [counter, setCounter] = useState(0);
+  const [step, setStep] = useState<BootStep>("Starting app");
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (skip) return;
+    let cancelled = false;
+    let exitTimer: number | undefined;
+    const slowLoadTimer = window.setTimeout(() => {
+      if (!cancelled) setFailed(true);
+    }, 15_000);
 
-    const start = performance.now();
-    let raf: number;
-    const tick = (now: number) => {
-      const elapsed = now - start;
-      const pct = Math.min(100, Math.round((elapsed / TOTAL_DURATION) * 100));
-      setProgress(pct);
-      setCounter(pct);
-      if (pct < 100) raf = requestAnimationFrame(tick);
+    const complete = () => {
+      if (cancelled) return;
+      setProgress(100);
+      setStep("Checking first page");
+      requestAnimationFrame(() => setExiting(true));
+      exitTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
+        window.dispatchEvent(new Event("firstpick:boot-complete"));
+        setVisible(false);
+      }, 360);
     };
-    raf = requestAnimationFrame(tick);
 
-    const t0 = setTimeout(() => setPhase("logo"), 200);
-    const t1 = setTimeout(() => setPhase("hold"), 800);
-    const t2 = setTimeout(() => { setPhase("exit"); setExiting(true); }, TOTAL_DURATION);
-    const t3 = setTimeout(() => {
-      try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
-      window.dispatchEvent(new Event("firstpick:boot-complete"));
-      setVisible(false);
-    }, TOTAL_DURATION + 800);
+    const boot = async () => {
+      try {
+        setProgress(20);
+        setStep("Loading store settings");
+        const settingsReady = confirmSettingsReady();
 
-    return () => { cancelAnimationFrame(raf); clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+        setProgress(40);
+        setStep("Preparing fonts");
+        const fontsReady = waitForFonts();
+
+        setProgress(60);
+        setStep("Checking first page");
+        await Promise.all([settingsReady, fontsReady, waitForWindowLoad(), waitForInitialRoute()]);
+        window.clearTimeout(slowLoadTimer);
+        complete();
+      } catch {
+        if (!cancelled) setFailed(true);
+      }
+    };
+
+    void boot();
+    return () => {
+      cancelled = true;
+      if (exitTimer) window.clearTimeout(exitTimer);
+      window.clearTimeout(slowLoadTimer);
+    };
   }, [skip]);
 
   if (!visible) return null;
@@ -48,11 +98,6 @@ export function LoadingScreen() {
   return (
     <>
       <style>{`
-        @keyframes fpReveal {
-          0%   { opacity: 0; transform: scale(1.08) translateY(20px); filter: blur(20px); }
-          50%  { filter: blur(0px); }
-          100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0px); }
-        }
         @keyframes fpSub {
           from { opacity: 0; letter-spacing: 0.65em; transform: translateY(12px); }
           to   { opacity: 1; letter-spacing: 0.55em; transform: translateY(0); }
@@ -98,14 +143,6 @@ export function LoadingScreen() {
           from { opacity: 0; }
           to   { opacity: 0.04; }
         }
-        @keyframes fpCounter {
-          from { opacity: 0; transform: translateY(6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fpTagline {
-          from { opacity: 0; transform: translateX(-12px); }
-          to   { opacity: 0.35; transform: translateX(0); }
-        }
         @keyframes fpFlicker {
           0%,100% { opacity: 1; }
           92% { opacity: 1; }
@@ -122,7 +159,7 @@ export function LoadingScreen() {
           background: "#000",
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
-          animation: exiting ? "fpFadeOut 0.8s cubic-bezier(0.4,0,1,1) forwards" : undefined,
+          animation: exiting ? "fpFadeOut 0.36s cubic-bezier(0.4,0,1,1) forwards" : undefined,
           userSelect: "none",
           overflow: "hidden",
         }}
@@ -156,25 +193,20 @@ export function LoadingScreen() {
           pointerEvents: "none",
         }} />
 
-        {/* Scan line forward */}
-        {phase === "enter" || phase === "logo" ? (
-          <div style={{
-            position: "absolute", left: 0, right: 0, height: "1px",
-            background: "linear-gradient(90deg, transparent 0%, rgba(255,100,0,0.6) 40%, rgba(255,200,0,0.4) 60%, transparent 100%)",
-            animation: "fpScan 1.4s ease-in-out forwards",
-            pointerEvents: "none",
-            boxShadow: "0 0 12px rgba(255,102,0,0.5)",
-          }} />
-        ) : null}
-        {/* Scan line reverse */}
-        {phase === "logo" ? (
-          <div style={{
-            position: "absolute", left: 0, right: 0, height: "1px",
-            background: "linear-gradient(90deg, transparent 0%, rgba(255,200,0,0.2) 50%, transparent 100%)",
-            animation: "fpScan2 2s 0.6s ease-in-out forwards",
-            pointerEvents: "none",
-          }} />
-        ) : null}
+        {/* A small one-time readiness scan; completion itself is data-driven. */}
+        <div style={{
+          position: "absolute", left: 0, right: 0, height: "1px",
+          background: "linear-gradient(90deg, transparent 0%, rgba(255,100,0,0.6) 40%, rgba(255,200,0,0.4) 60%, transparent 100%)",
+          animation: "fpScan 1.4s ease-in-out forwards",
+          pointerEvents: "none",
+          boxShadow: "0 0 12px rgba(255,102,0,0.5)",
+        }} />
+        <div style={{
+          position: "absolute", left: 0, right: 0, height: "1px",
+          background: "linear-gradient(90deg, transparent 0%, rgba(255,200,0,0.2) 50%, transparent 100%)",
+          animation: "fpScan2 2s 0.6s ease-in-out forwards",
+          pointerEvents: "none",
+        }} />
 
         {/* Corner brackets — film reel markers */}
         {["topleft","topright","bottomleft","bottomright"].map((pos) => {
@@ -199,7 +231,6 @@ export function LoadingScreen() {
         {/* Logo wordmark */}
         <div style={{
           position: "relative", zIndex: 1,
-          animation: phase === "enter" ? undefined : "fpReveal 1.0s cubic-bezier(0.16,1,0.3,1) both",
           display: "flex", alignItems: "baseline", gap: 0,
         }}>
           <span style={{
@@ -207,7 +238,7 @@ export function LoadingScreen() {
             fontFamily: "'Arial Black','Impact','Franklin Gothic Heavy',sans-serif",
             fontWeight: 900, color: "#fff",
             letterSpacing: "-2px", lineHeight: 1,
-            animation: phase === "hold" ? "fpFlicker 4s 1s ease infinite" : undefined,
+            animation: "fpFlicker 4s 1s ease infinite",
           }}>FIRST</span>
           <span style={{
             fontSize: "clamp(56px, 12vw, 104px)",
@@ -215,7 +246,7 @@ export function LoadingScreen() {
             fontWeight: 900, letterSpacing: "-2px", lineHeight: 1,
             background: "linear-gradient(180deg, #ff5200 0%, #ffb300 100%)",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            animation: phase === "hold" ? "fpFlicker 4s 1.2s ease infinite" : undefined,
+            animation: "fpFlicker 4s 1.2s ease infinite",
           }}>PICK</span>
         </div>
 
@@ -237,7 +268,7 @@ export function LoadingScreen() {
         <div style={{
           display: "flex", gap: 8, marginTop: 28,
           position: "relative", zIndex: 1,
-          animation: "fpSub 0.6s 0.9s ease both", opacity: 0,
+          animation: "fpSub 0.6s 0.2s ease both", opacity: 0,
         }}>
           {[0, 0.18, 0.36].map((delay, i) => (
             <div key={i} style={{
@@ -248,17 +279,31 @@ export function LoadingScreen() {
           ))}
         </div>
 
-        {/* Percentage counter — bottom right */}
+        {/* Progress reflects completed readiness checks, not elapsed time. */}
         <div style={{
           position: "absolute", bottom: 32, right: 36,
           fontSize: "11px", fontWeight: 900, fontFamily: "monospace",
           color: "rgba(255,102,0,0.5)",
           letterSpacing: "0.1em",
-          animation: "fpCounter 0.5s 0.5s ease both",
-          opacity: 0, zIndex: 2,
+          opacity: 0.65, zIndex: 2,
         }}>
-          {String(counter).padStart(3, "0")}%
+          {failed ? "Still loading safely" : step}
         </div>
+
+        {failed && (
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              position: "absolute", bottom: 60, zIndex: 3,
+              border: "1px solid rgba(255,102,0,0.45)", background: "rgba(255,102,0,0.12)",
+              color: "#ffd1a4", borderRadius: "8px", padding: "9px 14px",
+              fontFamily: "monospace", fontSize: "10px", fontWeight: 900,
+              letterSpacing: "0.12em", textTransform: "uppercase", cursor: "pointer",
+            }}
+          >
+            Retry loading
+          </button>
+        )}
 
         {/* Version tag — bottom left */}
         <div style={{
@@ -266,10 +311,9 @@ export function LoadingScreen() {
           fontSize: "9px", fontWeight: 700, fontFamily: "monospace",
           color: "rgba(255,255,255,0.12)",
           letterSpacing: "0.15em", textTransform: "uppercase",
-          animation: "fpCounter 0.5s 0.5s ease both",
-          opacity: 0, zIndex: 2,
+          opacity: 0.45, zIndex: 2,
         }}>
-          Dubai · UAE
+          {progress}% ready
         </div>
 
         {/* Progress bar */}

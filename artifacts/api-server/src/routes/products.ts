@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, productsTable, categoriesTable, usersTable } from "@workspace/db";
 import { eq, ilike, and, inArray, ne, isNotNull, isNull, or, type SQL, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
+import { getOperationalSettings } from "../lib/operational-settings";
 import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 import { sendComingSoonReleasePush } from "../lib/push";
 
@@ -102,6 +103,12 @@ async function hasVerifiedAdminSession(req: { session?: Record<string, unknown> 
 
 router.get("/products", async (req, res) => {
   const isAdmin = await hasVerifiedAdminSession(req as any);
+  const collection = typeof req.query.collection === "string" ? req.query.collection : undefined;
+  if (!isAdmin && collection === "back_to_school" && !(await getOperationalSettings()).backToSchoolEnabled) {
+    res.setHeader("Cache-Control", "no-store");
+    res.json([]);
+    return;
+  }
   const cacheKey = isAdmin ? null : req.originalUrl;
   if (cacheKey) {
     const cached = productListCache.get(cacheKey);
@@ -111,7 +118,6 @@ router.get("/products", async (req, res) => {
   const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
   const search = typeof req.query.search === "string" ? req.query.search : undefined;
   const featured = req.query.featured === "true" ? true : req.query.featured === "false" ? false : undefined;
-  const collection = typeof req.query.collection === "string" ? req.query.collection : undefined;
 
   const conditions: SQL[] = [];
   if (!isAdmin) conditions.push(eq(productsTable.hidden, false));
@@ -166,7 +172,12 @@ router.get("/products", async (req, res) => {
 
   const filtered = isAdmin ? products : products.filter(p => isPublished(p as any));
   const result = filtered.map((product) => serializeProduct(product, { includeSourceUrl: isAdmin }));
-  if (cacheKey) { productListCache.set(cacheKey, result); setPublicReadCacheHeaders(res); }
+  if (collection === "back_to_school") {
+    res.setHeader("Cache-Control", "no-store");
+  } else if (cacheKey) {
+    productListCache.set(cacheKey, result);
+    setPublicReadCacheHeaders(res);
+  }
   res.json(result);
 });
 
@@ -286,7 +297,20 @@ router.get("/products/:id", async (req, res) => {
   const cacheKey = isAdmin ? null : req.originalUrl;
   if (cacheKey) {
     const cached = productDetailCache.get(cacheKey);
-    if (cached) { setPublicReadCacheHeaders(res); res.json(cached); return; }
+    if (cached) {
+      const cachedProduct = cached as { collection?: string | null };
+      if (cachedProduct.collection === "back_to_school") {
+        if (!(await getOperationalSettings()).backToSchoolEnabled) {
+          res.status(404).json({ error: "Not found" });
+          return;
+        }
+        res.setHeader("Cache-Control", "no-store");
+      } else {
+        setPublicReadCacheHeaders(res);
+      }
+      res.json(cached);
+      return;
+    }
   }
 
   const [product] = await db
@@ -328,9 +352,23 @@ router.get("/products/:id", async (req, res) => {
     .where(eq(productsTable.id, id));
 
   if (!product) { res.status(404).json({ error: "Not found" }); return; }
+  const isSchoolProduct = product.collection === "back_to_school";
+  if (!isAdmin && isSchoolProduct) {
+    if (!(await getOperationalSettings()).backToSchoolEnabled) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+  }
   if (!isAdmin && !isPublished(product as any)) { res.status(404).json({ error: "Not found" }); return; }
   const result = serializeProduct(product, { includeSourceUrl: isAdmin });
-  if (cacheKey) { productDetailCache.set(cacheKey, result); setPublicReadCacheHeaders(res); }
+  if (cacheKey) {
+    if (isSchoolProduct) {
+      res.setHeader("Cache-Control", "no-store");
+    } else {
+      productDetailCache.set(cacheKey, result);
+      setPublicReadCacheHeaders(res);
+    }
+  }
   res.json(result);
 });
 

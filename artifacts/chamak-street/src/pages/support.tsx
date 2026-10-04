@@ -40,7 +40,7 @@ export default function SupportPage() {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
 
-  const waLink = `https://wa.me/${phone}?text=${encodeURIComponent("Hi! I need help with my FirstPick order.")}`;
+  const waLink = `https://wa.me/${phone}?text=${encodeURIComponent("Hi, I need help with my order.")}`;
 
   return (
     <PageTransition>
@@ -188,7 +188,7 @@ export default function SupportPage() {
                 className="w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-[#25D366]/20 transition-all"
                 style={{ background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)" }}>
                 <MessageCircle className="h-5 w-5" />
-                Chat with FirstPick Support
+                Chat with IMAGINATE Support
               </motion.button>
             </a>
           </motion.div>

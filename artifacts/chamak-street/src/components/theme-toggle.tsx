@@ -30,8 +30,8 @@ export function ThemeToggle() {
         isGlass={isGlass}
         label="Chamak"
         icon={<MoonIcon />}
-        activeGlow={isGlass ? undefined : "rgba(255,102,0,0.25)"}
-        activeColor={isGlass ? undefined : "#ff6600"}
+        activeGlow={isGlass ? undefined : "rgba(124,58,237,0.25)"}
+        activeColor={isGlass ? undefined : "#7c3aed"}
       />
       <Segment
         active={isGlass}
@@ -73,10 +73,10 @@ function Segment({
         background: active
           ? isGlass
             ? "rgba(255,255,255,0.55)"
-            : "rgba(255,102,0,0.15)"
+          : "rgba(124,58,237,0.15)"
           : "transparent",
         color: active
-          ? (activeColor ?? (isGlass ? "#007AFF" : "#ff6600"))
+          ? (activeColor ?? (isGlass ? "#007AFF" : "#7c3aed"))
           : isGlass
             ? "rgba(50,60,100,0.45)"
             : "rgba(255,255,255,0.3)",

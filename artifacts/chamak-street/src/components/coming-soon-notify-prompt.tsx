@@ -29,7 +29,7 @@ export function ComingSoonNotifyPrompt({ productName, onClose }: Props) {
       if (typeof Notification === "undefined" || !("serviceWorker" in navigator)) {
         toast({
           title: "Add to Home Screen first",
-          description: "Open FirstPick in Safari → Share → Add to Home Screen, then try again.",
+          description: "Open IMAGINATE in Safari → Share → Add to Home Screen, then try again.",
           variant: "destructive",
         });
         setLoading(false);
@@ -89,7 +89,7 @@ export function ComingSoonNotifyPrompt({ productName, onClose }: Props) {
         {/* Orange aurora glow */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-80 h-40 rounded-full"
-            style={{ background: "radial-gradient(ellipse, rgba(255,102,0,0.12) 0%, transparent 70%)", filter: "blur(20px)" }} />
+            style={{ background: "radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%)", filter: "blur(20px)" }} />
         </div>
 
         <div className="relative p-6">
@@ -115,7 +115,7 @@ export function ComingSoonNotifyPrompt({ productName, onClose }: Props) {
               <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border"
-                    style={{ background: "rgba(255,102,0,0.12)", borderColor: "rgba(255,102,0,0.25)" }}>
+                    style={{ background: "rgba(124,58,237,0.12)", borderColor: "rgba(124,58,237,0.25)" }}>
                     <Bell className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -134,7 +134,7 @@ export function ComingSoonNotifyPrompt({ productName, onClose }: Props) {
                   onClick={subscribe}
                   disabled={loading}
                   className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wide text-white flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity"
-                  style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", boxShadow: "0 8px 32px rgba(255,102,0,0.35)", touchAction: "manipulation" }}>
+                  style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)", boxShadow: "0 8px 32px rgba(124,58,237,0.3)", touchAction: "manipulation" }}>
                   {loading ? (
                     <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
                       className="w-5 h-5 border-2 border-white border-t-transparent rounded-full" />

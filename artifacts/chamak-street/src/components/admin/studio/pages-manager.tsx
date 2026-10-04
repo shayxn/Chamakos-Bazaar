@@ -131,7 +131,7 @@ export function PagesManager({ access }: { access: Access }) {
   const openSystemPage = async (seed: SystemPageSeed, existing?: Page) => {
     if (existing) { setSelectedId(existing.id); return; }
     if (!access.isOwner) {
-      toast({ title: "Owner approval needed", description: "Only the Owner can start editing a built-in FirstPick page.", variant: "destructive" });
+      toast({ title: "Owner approval needed", description: "Only the Owner can start editing a built-in IMAGINATE page.", variant: "destructive" });
       return;
     }
     try {
@@ -164,7 +164,7 @@ export function PagesManager({ access }: { access: Access }) {
       {/* Sidebar: Page List */}
       <aside className="w-16 sm:w-64 shrink-0 flex-col border-r border-white/5 bg-[#0a0a0a] flex h-full">
         <div className="flex items-center justify-center sm:justify-between p-4 border-b border-white/5 shrink-0">
-          <h2 className="hidden sm:block text-xs font-black uppercase tracking-widest text-gray-400">All FirstPick Pages</h2>
+          <h2 className="hidden sm:block text-xs font-black uppercase tracking-widest text-gray-400">All IMAGINATE Pages</h2>
           <Button size="icon" variant="ghost" className="h-6 w-6 rounded-md hover:bg-white/10 hover:text-white" onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4" />
           </Button>

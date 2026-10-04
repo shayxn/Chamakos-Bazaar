@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, siteSettingsTable } from "@workspace/db";
 import { sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
+import { getOperationalSettings, invalidateOperationalSettings } from "../lib/operational-settings";
 import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 
 const router = Router();
@@ -9,6 +10,7 @@ const settingsCache = createTtlCache<Record<string, string>>(30_000);
 
 function invalidateSettings() {
   settingsCache.clear();
+  invalidateOperationalSettings();
 }
 
 router.get("/settings", async (_req, res) => {
@@ -22,6 +24,11 @@ router.get("/settings", async (_req, res) => {
   settingsCache.set("all", map);
   setPublicReadCacheHeaders(res);
   res.json(map);
+});
+
+router.get("/settings/operational", async (_req, res) => {
+  res.setHeader("Cache-Control", "no-store, max-age=0");
+  res.json(await getOperationalSettings());
 });
 
 router.put("/settings/:key", requireAdmin, async (req, res) => {

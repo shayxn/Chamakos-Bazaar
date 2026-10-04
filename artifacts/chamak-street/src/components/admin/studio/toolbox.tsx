@@ -35,8 +35,8 @@ const ELEMENT_PRESETS: ToolboxEntry[] = [
   { type: "badge", label: "Badge", category: "Text", description: "A small highlighted label", icon: Tag, default: { text: "NEW ARRIVAL", animation: { preset: "pop-in", duration: 0.38 } } },
   { type: "button", label: "Button", category: "Buttons", description: "A clear call to action", icon: MousePointerClick, default: { text: "EXPLORE", href: "/shop", animation: { preset: "fade", duration: 0.42 } } },
   { type: "image", label: "Image", category: "Media", description: "Add a media-library or HTTPS image", icon: ImageIcon, default: { imageUrl: "", animation: { preset: "zoom-in", duration: 0.55 } } },
-  { type: "video", label: "Video", category: "Media", description: "Add a FirstPick or HTTPS video", icon: Video, default: { url: "", animation: { preset: "fade", duration: 0.5 } } },
-  { type: "product", label: "Product Spotlight", category: "Products", description: "Bind a real FirstPick product ID", icon: Package, default: { productId: "", animation: { preset: "slide-up", duration: 0.45 } } },
+  { type: "video", label: "Video", category: "Media", description: "Add a store-path or HTTPS video", icon: Video, default: { url: "", animation: { preset: "fade", duration: 0.5 } } },
+  { type: "product", label: "Product Spotlight", category: "Products", description: "Bind a real catalog product ID", icon: Package, default: { productId: "", animation: { preset: "slide-up", duration: 0.45 } } },
   { type: "divider", label: "Divider", category: "Layout", description: "Create visual breathing room", icon: CircleDot, default: { animation: { preset: "fade", duration: 0.32 } } },
 ];
 
@@ -79,7 +79,7 @@ export function Toolbox({
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-[#0a0a0a]">
       <div className="p-4 border-b border-white/5 bg-black shrink-0">
-        <h3 className="text-xs font-black uppercase tracking-wider text-white">FirstPick Toolbox</h3>
+        <h3 className="text-xs font-black uppercase tracking-wider text-white">IMAGINATE Toolbox</h3>
         <p className="text-[10px] text-gray-500 mt-1">Click or drag a block onto the page.</p>
         <div className="relative mt-3">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-500" />

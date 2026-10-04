@@ -111,7 +111,7 @@ export function SpotlightBanner() {
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         style={{
           top: "20%", left: "-5%", width: "55%", height: "60%",
-          background: "radial-gradient(ellipse, rgba(255,102,0,0.12) 0%, transparent 65%)",
+          background: "radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 65%)",
         }}
       />
 
@@ -127,7 +127,7 @@ export function SpotlightBanner() {
             height: 6 + i * 4,
             left: `${12 + i * 8}%`,
             top: `${30 + i * 12}%`,
-            background: "#ff6600",
+            background: "#7c3aed",
             filter: "blur(2px)",
           }}
         />
@@ -143,17 +143,17 @@ export function SpotlightBanner() {
             transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
             style={{
-              background: "rgba(255,102,0,0.15)",
-              border: "1px solid rgba(255,102,0,0.4)",
+              background: "rgba(124,58,237,0.15)",
+              border: "1px solid rgba(124,58,237,0.4)",
               backdropFilter: "blur(8px)",
             }}
           >
             <motion.span
               animate={{ opacity: [1, 0.4, 1] }}
               transition={{ duration: 1.8, repeat: Infinity }}
-              className="w-2 h-2 rounded-full bg-[#ff6600] shrink-0"
+              className="w-2 h-2 rounded-full bg-[#7c3aed] shrink-0"
             />
-            <Star className="h-3.5 w-3.5 fill-[#ff6600] text-[#ff6600]" />
+            <Star className="h-3.5 w-3.5 fill-[#7c3aed] text-[#7c3aed]" />
             <span className="text-[11px] font-black uppercase tracking-widest text-[#ff9944]">
               Featured Product
             </span>
@@ -189,7 +189,7 @@ export function SpotlightBanner() {
             transition={{ duration: 0.5, delay: 0.3, ease: EASE }}
             className="text-2xl font-black mb-6"
             style={{
-              background: "linear-gradient(135deg, #ff6600, #ffcc00)",
+              background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
@@ -206,7 +206,7 @@ export function SpotlightBanner() {
               className="mb-6"
             >
               <div className="flex items-center gap-2 mb-3">
-                <Clock className="h-3.5 w-3.5 text-[#ff6600]" />
+                <Clock className="h-3.5 w-3.5 text-[#7c3aed]" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-white/45">
                   {spotlight.preOrderLabel || "Available In"}
                 </span>
@@ -222,8 +222,8 @@ export function SpotlightBanner() {
                     <div
                       className="w-14 h-14 rounded-xl flex items-center justify-center font-black text-xl text-white"
                       style={{
-                        background: "rgba(255,102,0,0.12)",
-                        border: "1px solid rgba(255,102,0,0.25)",
+                        background: "rgba(124,58,237,0.12)",
+                        border: "1px solid rgba(124,58,237,0.25)",
                         backdropFilter: "blur(8px)",
                       }}
                     >
@@ -245,10 +245,10 @@ export function SpotlightBanner() {
           >
             <Link href={`/product/${spotlight.id}`}>
               <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0 8px 40px rgba(255,102,0,0.5)" }}
+                whileHover={{ scale: 1.05, boxShadow: "0 8px 40px rgba(124,58,237,0.4)" }}
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-2.5 px-8 py-4 rounded-full font-black uppercase tracking-widest text-sm text-white transition-shadow"
-                style={{ background: "linear-gradient(135deg, #ff6600 0%, #ffcc00 100%)" }}
+                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)" }}
               >
                 <ShoppingBag className="h-4 w-4" />
                 Shop Now
@@ -288,7 +288,7 @@ export function SpotlightBanner() {
                   alt={spotlight.name}
                   className="h-[62vh] w-auto object-contain relative z-10"
                   style={{
-                    filter: "drop-shadow(0 0 48px rgba(255,102,0,0.55)) drop-shadow(0 32px 48px rgba(0,0,0,0.7))",
+                    filter: "drop-shadow(0 0 48px rgba(124,58,237,0.45)) drop-shadow(0 32px 48px rgba(0,0,0,0.7))",
                   }}
                 />
               </motion.div>
@@ -301,7 +301,7 @@ export function SpotlightBanner() {
                 style={{
                   width: "55%",
                   height: 20,
-                  background: "radial-gradient(ellipse, rgba(255,102,0,0.5) 0%, transparent 80%)",
+                  background: "radial-gradient(ellipse, rgba(124,58,237,0.5) 0%, transparent 80%)",
                   filter: "blur(10px)",
                 }}
               />
@@ -310,7 +310,7 @@ export function SpotlightBanner() {
               <div
                 className="absolute inset-0 pointer-events-none -z-10"
                 style={{
-                  background: "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(255,102,0,0.13) 0%, transparent 70%)",
+                  background: "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(124,58,237,0.13) 0%, transparent 70%)",
                 }}
               />
             </motion.div>

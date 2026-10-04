@@ -43,7 +43,7 @@ export default function MaintenancePage() {
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
             className="text-white/60 text-base font-medium leading-relaxed"
           >
-            FirstPick is currently undergoing maintenance.
+            IMAGINATE is currently undergoing maintenance.
             We're working hard to get things back online for you.
           </motion.p>
         </div>

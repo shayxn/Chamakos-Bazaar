@@ -141,7 +141,7 @@ async function requireOwner(req: Request, res: Response, next: NextFunction): Pr
   await requireOwnerStudio(req, res, async () => {
     const access = await getAccess(req);
     if (!access.isOwner) {
-      res.status(403).json({ error: "Only the FirstPick Owner can change Owner Studio settings" });
+      res.status(403).json({ error: "Only the IMAGINATE owner can change Owner Studio settings" });
       return;
     }
     next();
@@ -184,7 +184,7 @@ function safeStudioPath(value: unknown): string | undefined {
   if (typeof value !== "string" || !value.trim()) return undefined;
   const path = value.trim();
   if (path.startsWith("/") || /^https:\/\//i.test(path)) return path.slice(0, 1200);
-  throw new Error("Studio links must be a FirstPick path or HTTPS URL.");
+  throw new Error("Studio links must be a store path or HTTPS URL.");
 }
 
 function normalizeStudioEvents(value: unknown): SafeStudioEvent[] {
@@ -220,7 +220,7 @@ function normalizeStudioEvents(value: unknown): SafeStudioEvent[] {
       }
       if (type === "play-sound") {
         output.soundUrl = safeStudioPath(action.soundUrl);
-        if (!output.soundUrl) throw new Error("Play sound actions need an HTTPS or FirstPick audio URL.");
+        if (!output.soundUrl) throw new Error("Play sound actions need an HTTPS or store audio URL.");
       }
       if (type === "trigger-animation") {
         const targetId = String(action.targetId ?? "").trim().slice(0, 120);
@@ -249,7 +249,7 @@ function normalizeContent(value: unknown): StudioContent {
         if (typeof raw !== "string" || !raw.trim()) continue;
         const url = raw.trim();
         const safe = url.startsWith("/") || /^https:\/\//i.test(url);
-        if (!safe) throw new Error(`${field} must be a FirstPick path or HTTPS URL.`);
+        if (!safe) throw new Error(`${field} must be a store path or HTTPS URL.`);
       }
     }
   }
@@ -375,7 +375,7 @@ router.get("/owner-studio/pages", requireOwnerStudio, async (_req, res): Promise
 router.get("/owner-studio/system-page", async (req, res): Promise<void> => {
   const route = String(req.query.route ?? "").trim().slice(0, 180);
   if (!SYSTEM_PAGE_ROUTES.has(route)) {
-    res.status(404).json({ error: "FirstPick page layer not found" });
+    res.status(404).json({ error: "IMAGINATE page layer not found" });
     return;
   }
   const published = await db.select().from(ownerStudioPagesTable)
@@ -423,7 +423,7 @@ router.post("/owner-studio/pages", requireOwnerStudio, async (req, res): Promise
     return;
   }
   if (PROTECTED_SLUGS.has(slug)) {
-    res.status(400).json({ error: "That URL is reserved for a protected FirstPick page" });
+    res.status(400).json({ error: "That URL is reserved for a protected store page" });
     return;
   }
   const [page] = await db.insert(ownerStudioPagesTable).values({
@@ -588,7 +588,7 @@ router.delete("/owner-studio/pages/:id", requireOwner, async (req, res): Promise
     .from(ownerStudioPagesTable).where(eq(ownerStudioPagesTable.id, id)).limit(1);
   if (!page) { res.status(404).json({ error: "Page not found" }); return; }
   if (PROTECTED_SLUGS.has(page.slug)) {
-    res.status(400).json({ error: "Protected FirstPick pages cannot be deleted" });
+    res.status(400).json({ error: "Protected store pages cannot be deleted" });
     return;
   }
   await db.delete(ownerStudioPagesTable).where(eq(ownerStudioPagesTable.id, id));
@@ -701,14 +701,14 @@ router.post("/owner-studio/validate-code", requireOwnerStudio, async (req, res):
   const blockedPatterns: Array<[RegExp, string]> = [
     [/\b(import|require|process|child_process|eval|Function)\b/i, "Modules, runtime access, and dynamic evaluation are not allowed."],
     [/\b(document\.cookie|localStorage|sessionStorage|indexedDB)\b/i, "Browser storage and cookies are not available to custom items."],
-    [/\b(fetch|XMLHttpRequest|WebSocket)\b/i, "Network access is not available; use the documented FirstPick API."],
+    [/\b(fetch|XMLHttpRequest|WebSocket)\b/i, "Network access is not available; use the documented IMAGINATE API."],
     [/\b(password|secret|authorization|payment|database|shell)\b/i, "Sensitive systems and credentials are not available to custom items."],
   ];
   for (const [pattern, message] of blockedPatterns) {
     if (pattern.test(code)) errors.push(message);
   }
   if (/<script\b/i.test(code)) errors.push("Script tags are not supported in visual custom items.");
-  if (code.trim() && !code.includes("FirstPick")) warnings.push("Prefer the documented FirstPick API for navigation, notifications, sounds, and animation triggers.");
+  if (code.trim() && !code.includes("IMAGINATE")) warnings.push("Prefer the documented IMAGINATE API for navigation, notifications, sounds, and animation triggers.");
   res.json({ valid: errors.length === 0, errors, warnings });
 });
 

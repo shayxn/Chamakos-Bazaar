@@ -257,7 +257,7 @@ export function PageEditor({
   const addQuickText = () => {
     const textElement = {
       type: "heading",
-      text: "Add FirstPick text",
+      text: "Add IMAGINATE text",
       fontFamily: "firstpick" as const,
       animation: { preset: "slide-up", phase: "in" as const, duration: 0.45 },
     };
@@ -269,7 +269,7 @@ export function PageEditor({
     const elementId = `el-${Date.now()}`;
     handleContentChange({
       ...content,
-      sections: [...content.sections, { id: sectionId, type: "content", label: "FirstPick Text", elements: [{ id: elementId, ...textElement }] }],
+      sections: [...content.sections, { id: sectionId, type: "content", label: "IMAGINATE Text", elements: [{ id: elementId, ...textElement }] }],
     });
     handleSelect(elementId, "element");
   };
@@ -346,8 +346,8 @@ export function PageEditor({
           <Button variant="ghost" size="icon" onClick={handleUndo} disabled={!undoStack.length} title="Undo" className="text-gray-400 hover:text-white disabled:opacity-30 shrink-0"><Undo2 className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" onClick={handleRedo} disabled={!redoStack.length} title="Redo" className="text-gray-400 hover:text-white disabled:opacity-30 shrink-0"><Redo2 className="h-4 w-4" /></Button>
            <Button variant="ghost" size="icon" onClick={handleRevertChanges} disabled={!hasUnsavedChanges} title="Revert unsaved changes" className="text-gray-400 hover:text-white disabled:opacity-30 shrink-0"><RotateCcw className="h-4 w-4" /></Button>
-           <Button variant="ghost" size="icon" onClick={addQuickText} title="Add FirstPick text" className="text-primary hover:text-primary shrink-0"><Type className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" onClick={() => setRightPanel("toolbox")} title="Open FirstPick Toolbox" className="text-primary hover:text-primary shrink-0"><Plus className="h-4 w-4" /></Button>
+           <Button variant="ghost" size="icon" onClick={addQuickText} title="Add IMAGINATE text" className="text-primary hover:text-primary shrink-0"><Type className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => setRightPanel("toolbox")} title="Open IMAGINATE Toolbox" className="text-primary hover:text-primary shrink-0"><Plus className="h-4 w-4" /></Button>
            <Button variant="ghost" size="icon" onClick={() => setRightPanel("animations")} title="Open Animations" className="text-primary hover:text-primary shrink-0"><Clapperboard className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" onClick={handleDuplicate} className="text-gray-400 hover:text-white shrink-0"><Copy className="h-4 w-4" /></Button>
           {isOwner && <Button variant="ghost" size="icon" onClick={handleDelete} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 shrink-0"><Trash2 className="h-4 w-4" /></Button>}

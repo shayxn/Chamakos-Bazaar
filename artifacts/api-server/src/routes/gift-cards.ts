@@ -139,7 +139,7 @@ router.post("/gift-cards/purchase", async (req, res) => {
     const zBody = {
       amount: zinaAmount,
       currency_code: process.env.ZIINA_CURRENCY_CODE ?? "AED",
-      message: `FirstPick Gift Card — AED ${amountNum}`,
+      message: `IMAGINATE Gift Card — AED ${amountNum}`,
       success_url: successUrl,
       cancel_url:  cancelUrl,
       failure_url: cancelUrl,

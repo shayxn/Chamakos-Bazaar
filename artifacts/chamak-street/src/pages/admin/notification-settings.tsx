@@ -32,7 +32,7 @@ const EVENT_DEFS = [
   {
     key: "notif_new_visitors" as keyof NotifSettings,
     label: "New Visitors",
-    description: "Receive a notification when a new customer opens FirstPick.",
+    description: "Receive a notification when a new customer opens IMAGINATE.",
     icon: Wifi,
     color: "text-blue-400",
     bg: "bg-blue-400/10",
@@ -215,7 +215,7 @@ export default function AdminNotificationSettings() {
             <ol className="text-white/70 space-y-1 list-none">
               <li><span className="text-primary font-black">1.</span> Tap the <strong className="text-white/90">Share</strong> button <span className="text-white/90">⎙</span> at the bottom of Safari</li>
               <li><span className="text-primary font-black">2.</span> Tap <strong className="text-white/90">"Add to Home Screen"</strong></li>
-              <li><span className="text-primary font-black">3.</span> Open the <strong className="text-white/90">FirstPick</strong> icon from your Home Screen and come back to this page</li>
+              <li><span className="text-primary font-black">3.</span> Open the <strong className="text-white/90">IMAGINATE</strong> icon from your Home Screen and come back to this page</li>
             </ol>
           </div>
         )}

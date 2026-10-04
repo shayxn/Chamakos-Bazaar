@@ -1,0 +1,1592 @@
+==========================================================
+IMAGINATE — COMPLETE ADMIN, STORE CONTROL & EXPERIENCE PASS
+==========================================================
+
+This is an ADDITION to the existing Imaginate redesign.
+
+DO NOT restart the project.
+DO NOT rebuild working systems unnecessarily.
+DO NOT remove good functionality already implemented.
+
+Instead, inspect the current project and ADD/IMPROVE the following systems.
+
+THIS IS IMAGINATE.
+
+There should be NO visible FirstPick identity remaining anywhere.
+
+==========================================================
+ABSOLUTELY REMOVE FIRSTPICK IDENTITY
+==========================================================
+
+This project originated from FirstPick, but it is now a COMPLETE redesign into a completely different brand:
+
+IMAGINATE.
+
+Customers should have absolutely no indication that this project was previously FirstPick.
+
+Search the ENTIRE project again for:
+
+FirstPick
+FIRSTPICK
+First Pick
+firstpick
+old FirstPick logos
+orange branding
+yellow branding
+orange gradients
+old FirstPick slogans
+FirstPick metadata
+FirstPick page titles
+FirstPick favicons
+FirstPick email templates
+FirstPick loading screens
+FirstPick Admin branding
+FirstPick notification text
+FirstPick product categories
+FirstPick placeholder products
+FirstPick footer information
+FirstPick SEO information
+FirstPick social metadata
+old FirstPick assets
+
+Remove/replace all visible legacy branding.
+
+IMPORTANT:
+
+Do not destroy useful backend functionality just because it originated from FirstPick.
+
+Keep useful CODE and systems.
+
+Remove the old BRAND.
+
+Imaginate's visual identity is:
+
+BLACK
+DARK CHARCOAL
+WHITE
+IMAGINATE PURPLE
+
+NO ORANGE THEME.
+
+NO YELLOW FIRSTPICK THEME.
+
+Purple should match the supplied Imaginate logo.
+
+==========================================================
+ADMIN SYSTEM
+==========================================================
+
+The Imaginate Admin system should be extremely powerful while remaining EXTREMELY EASY TO USE.
+
+I should not need to edit code to perform normal store operations.
+
+Common operations should take as few clicks as reasonably possible.
+
+Admin should be able to control almost everything about the store.
+
+==========================================================
+ADMIN ROLES
+==========================================================
+
+Create a proper Admin role system.
+
+At minimum:
+
+OWNER
+ADMIN
+
+OWNER is the highest role.
+
+The OWNER has complete control.
+
+Admins can manage the store based on their permissions.
+
+CRITICAL:
+
+ONLY THE OWNER can:
+
+ADD ADMINS
+REMOVE ADMINS
+CHANGE ADMIN PERMISSIONS
+PROMOTE USERS TO ADMIN
+DEMOTE ADMINS
+MANAGE ADMIN ACCESS
+TRANSFER OWNERSHIP
+
+A normal Admin must NEVER be able to remove the Owner.
+
+A normal Admin must NEVER be able to promote themselves to Owner.
+
+A normal Admin must NEVER be able to modify their own permissions to gain Owner access.
+
+Enforce this SERVER-SIDE.
+
+Do not rely on hiding buttons.
+
+==========================================================
+ADMIN TEAM MANAGEMENT
+==========================================================
+
+Create:
+
+ADMIN → SETTINGS → ADMIN TEAM
+
+Owner sees:
+
+ADMIN TEAM
+
+Each person shows:
+
+Name
+Username/email
+Role
+Status
+Last login if available
+
+Actions:
+
+ADD ADMIN
+EDIT PERMISSIONS
+REMOVE ADMIN
+
+Owner account should display:
+
+OWNER
+
+and should not have a normal Remove button.
+
+==========================================================
+ADD ADMIN
+==========================================================
+
+Owner clicks:
+
++ ADD ADMIN
+
+Allow:
+
+Name
+Email/username
+Role
+Permissions
+
+Possible permissions:
+
+Products
+Inventory
+Orders
+Customers
+Categories
+Discounts
+Pre-Orders
+Homepage
+Banners
+Countdowns
+Media
+Support
+Newsletter
+Analytics
+Store Settings
+
+The Owner automatically has all permissions.
+
+==========================================================
+REMOVE ADMIN
+==========================================================
+
+Only Owner can do this.
+
+Require confirmation:
+
+REMOVE ADMIN?
+
+[ CANCEL ]
+[ REMOVE ]
+
+Removing an Admin should revoke their Admin sessions/access.
+
+Do not delete historical actions/orders/data associated with that Admin.
+
+==========================================================
+ADMIN ACTIVITY LOG
+==========================================================
+
+Create an Admin activity log.
+
+Record important actions such as:
+
+Product created
+Product deleted
+Product edited
+Price changed
+Stock changed
+Order status changed
+Discount created
+Discount removed
+Category created
+Category deleted
+Pre-order enabled
+Banner changed
+Countdown enabled
+Store disabled
+Admin added
+Admin removed
+Permissions changed
+
+Show:
+
+Admin
+Action
+Date/time
+
+Only Owner should have access to sensitive administrative/security activity.
+
+==========================================================
+ADMIN OVERVIEW
+==========================================================
+
+Make Admin Overview genuinely useful.
+
+Show:
+
+TODAY'S SALES
+TOTAL SALES
+ORDERS
+CUSTOMERS
+PRODUCTS
+LOW STOCK
+PRE-ORDERS
+
+Then:
+
+Recent Orders
+Best Selling Products
+Low Stock Products
+Recent Customers
+Current Store Status
+Current Countdown Status
+Current Banner
+Active Discounts
+
+Do not invent data.
+
+==========================================================
+EXTREMELY EASY PRODUCT MANAGEMENT
+==========================================================
+
+Adding/removing/editing products should be EXTREMELY EASY.
+
+An Admin should not need technical knowledge.
+
+ADMIN → PRODUCTS
+
+Top:
+
+PRODUCTS
+
+Search products...
+
+Filters
+
+[ + ADD PRODUCT ]
+
+Each product row/card shows:
+
+Image
+Name
+Category
+Price
+Stock
+Status
+
+Quick actions:
+
+EDIT
+STOCK
+DUPLICATE
+ARCHIVE
+
+==========================================================
+ADD PRODUCT
+==========================================================
+
+Create a clean guided product editor.
+
+BASIC:
+
+Product Name
+Price
+Optional Compare-at Price
+Description
+
+MEDIA:
+
+Drag photos here
+
+Upload images
+Upload video
+Reorder media
+
+CATEGORY:
+
+Select category
+
+or
+
++ CREATE CATEGORY
+
+OPTIONS:
+
+Colors
+Sizes
+
+INVENTORY:
+
+Stock for every variant
+
+STATUS:
+
+Draft
+Active
+Coming Soon
+Pre-Order
+Sold Out
+Archived
+
+OPTIONAL:
+
+Featured
+New
+Discount
+Size Guide
+SEO
+
+Then:
+
+SAVE DRAFT
+
+PREVIEW
+
+PUBLISH
+
+Do not overwhelm Admin with technical fields.
+
+Advanced options can be collapsed.
+
+==========================================================
+DELETE / ARCHIVE PRODUCTS
+==========================================================
+
+Prefer Archive for products that may be needed in order history.
+
+If permanently deleting something could damage historical orders, warn the Admin and prevent unsafe deletion.
+
+==========================================================
+CATEGORY MANAGEMENT
+==========================================================
+
+THIS IS IMPORTANT.
+
+Admins must be able to CREATE THEIR OWN CATEGORIES.
+
+Do NOT hardcode categories permanently.
+
+ADMIN → CATEGORIES
+
+Show:
+
+Category Name
+Products
+Visibility
+Order
+
+Buttons:
+
++ ADD CATEGORY
+
+EDIT
+
+HIDE
+
+DELETE
+
+REORDER
+
+Example categories might be:
+
+HOODIES
+SHIRTS
+PANTS
+SWIMWEAR
+ACCESSORIES
+
+BUT THESE ARE ONLY EXAMPLES.
+
+I should be able to create:
+
+JACKETS
+
+or ANY future category without changing code.
+
+==========================================================
+CREATE CATEGORY
+==========================================================
+
+Fields:
+
+Category Name
+URL Slug
+Description optional
+Category Image optional
+Visible / Hidden
+Featured on Homepage toggle
+
+Allow drag-and-drop ordering.
+
+If category has products and Admin attempts deletion:
+
+warn them.
+
+Offer:
+
+Move products to another category
+
+or
+
+Hide category
+
+==========================================================
+PRE-ORDER SYSTEM
+==========================================================
+
+Admins need a REAL PRE-ORDER system.
+
+For any product:
+
+PRE-ORDER:
+ON / OFF
+
+When ON:
+
+Admin can configure:
+
+Pre-order price
+Normal price
+Pre-order start
+Pre-order end
+Estimated shipping/delivery information
+Maximum pre-order quantity optional
+Pre-order stock limit optional
+Custom message
+
+Customer product page should clearly display:
+
+PRE-ORDER
+
+Do NOT make it look like normal in-stock inventory.
+
+Show configured information clearly before purchase.
+
+Order should be marked:
+
+PRE-ORDER
+
+inside Admin.
+
+==========================================================
+PRE-ORDER ADMIN
+==========================================================
+
+Create:
+
+ADMIN → PRE-ORDERS
+
+Show:
+
+Active Pre-Orders
+Upcoming
+Ended
+
+For each:
+
+Product
+Orders
+Units
+Revenue
+Start
+End
+Status
+
+Admins can edit.
+
+==========================================================
+DISCOUNT DEALS
+==========================================================
+
+Admins should easily create deals.
+
+ADMIN → DISCOUNTS
+
++ CREATE DISCOUNT
+
+Types:
+
+PERCENTAGE OFF
+
+FIXED AED OFF
+
+SALE PRICE
+
+PRODUCT DISCOUNT
+
+CATEGORY DISCOUNT
+
+ORDER DISCOUNT
+
+Optional:
+
+BUY X GET Y
+
+Admin configures:
+
+Name
+Code if applicable
+Discount
+Products/categories
+Minimum spend
+Start
+End
+Usage limit
+Customer usage limit
+Active/Inactive
+
+Backend must validate discounts.
+
+==========================================================
+SALE DISPLAY
+==========================================================
+
+If product is discounted:
+
+Show:
+
+AED 149
+AED 119
+
+with original price clearly crossed out.
+
+Optional small:
+
+SALE
+
+Do not make sale styling cheap or aggressive.
+
+Keep Imaginate premium.
+
+==========================================================
+TOP WEBSITE BANNER
+==========================================================
+
+Admins need complete control over a banner at the VERY TOP of the website.
+
+ADMIN → WEBSITE → BANNER
+
+Controls:
+
+BANNER ENABLED
+ON / OFF
+
+TEXT
+
+Example:
+
+FREE UAE DELIVERY ON ORDERS OVER AED XXX
+
+or:
+
+LIVE OCTOBER 27
+
+or:
+
+NEW DROP AVAILABLE NOW
+
+Optional link.
+
+Optional button.
+
+Optional start date/time.
+
+Optional end date/time.
+
+Style:
+
+Default dark
+Purple accent
+Urgent
+
+Do not allow ugly random styling.
+
+Keep it within Imaginate's design system.
+
+Admin can preview before publishing.
+
+==========================================================
+MULTIPLE BANNERS
+==========================================================
+
+Optionally support multiple scheduled banners.
+
+Only one primary banner should normally display at once unless designed otherwise.
+
+Admin can schedule them.
+
+==========================================================
+MASTER STORE CONTROL
+==========================================================
+
+THIS IS VERY IMPORTANT.
+
+Create:
+
+ADMIN → WEBSITE → STORE CONTROL
+
+This should be extremely simple.
+
+Show two major controls:
+
+STORE
+
+[ ON / OFF ]
+
+COUNTDOWN MODE
+
+[ ON / OFF ]
+
+And clearly display:
+
+CURRENT WEBSITE MODE:
+
+STORE LIVE
+
+or
+
+COUNTDOWN
+
+or
+
+MAINTENANCE
+
+==========================================================
+MODE 1 — STORE ON
+==========================================================
+
+STORE:
+ON
+
+COUNTDOWN:
+OFF
+
+Normal Imaginate website is accessible.
+
+Customers can:
+
+browse
+search
+view products
+add to bag
+checkout
+use accounts
+track orders
+
+==========================================================
+MODE 2 — MAINTENANCE
+==========================================================
+
+STORE:
+OFF
+
+COUNTDOWN:
+OFF
+
+Customers should NOT see the normal store.
+
+Instead show a beautiful full-screen Imaginate maintenance page.
+
+BLACK BACKGROUND.
+
+IMAGINATE LOGO.
+
+Text:
+
+THE WEBSITE IS IN MAINTENANCE,
+PLEASE HOLD ON!
+
+Use correct polished typography.
+
+Optional subtle animation.
+
+Do NOT expose products/store pages to normal visitors while maintenance mode is enabled.
+
+ADMIN LOGIN MUST STILL WORK.
+
+Authenticated Admin/Owner should have a safe way to preview/manage the website.
+
+==========================================================
+MODE 3 — COUNTDOWN
+==========================================================
+
+COUNTDOWN:
+ON
+
+IMPORTANT:
+
+WHEN COUNTDOWN MODE IS TURNED ON:
+
+STORE MUST AUTOMATICALLY TURN OFF.
+
+The Admin should not need to turn Store off separately.
+
+Countdown mode takes priority.
+
+Example:
+
+Admin presses:
+
+COUNTDOWN → ON
+
+System automatically changes:
+
+STORE → OFF
+
+CURRENT WEBSITE MODE:
+
+COUNTDOWN
+
+Customers see the countdown experience instead of the normal store.
+
+==========================================================
+TURNING COUNTDOWN OFF
+==========================================================
+
+IMPORTANT SAFETY:
+
+Do NOT automatically turn Store ON when countdown is disabled.
+
+Example:
+
+COUNTDOWN ON
+STORE OFF
+
+Admin turns Countdown OFF.
+
+Result:
+
+COUNTDOWN OFF
+STORE OFF
+
+Website becomes:
+
+MAINTENANCE MODE
+
+Then Admin deliberately chooses when to press:
+
+STORE ON.
+
+This prevents accidentally opening the store.
+
+==========================================================
+COUNTDOWN ADMIN PAGE
+==========================================================
+
+When Countdown is enabled, provide a dedicated:
+
+ADMIN → COUNTDOWN
+
+or
+
+ADMIN → WEBSITE → COUNTDOWN
+
+page.
+
+Make creating a countdown extremely easy.
+
+Fields:
+
+COUNTDOWN ENABLED
+
+TOP TEXT
+(optional)
+
+Example:
+
+IMAGINATE PRESENTS
+
+MAIN TEXT
+(optional)
+
+Example:
+
+THE DROP BEGINS IN
+
+COUNTDOWN END DATE
+
+COUNTDOWN END TIME
+
+TIMEZONE
+
+IMAGE BELOW COUNTDOWN
+(optional)
+
+Admin can:
+
+UPLOAD IMAGE
+
+or choose from Media Library.
+
+Optional:
+
+Background image/video
+
+Optional:
+
+Text after countdown finishes
+
+Optional:
+
+Button after countdown finishes
+
+==========================================================
+COUNTDOWN DURATION
+==========================================================
+
+Admin should be able to configure the countdown naturally.
+
+Either:
+
+choose exact end date/time
+
+OR
+
+choose duration such as:
+
+Days
+Hours
+Minutes
+
+Store the final end timestamp reliably on the server.
+
+Countdown must NOT restart when customer refreshes the page.
+
+Every visitor should see countdown toward the same event time.
+
+==========================================================
+COUNTDOWN PAGE DESIGN
+==========================================================
+
+Customer countdown page should be AMAZING.
+
+Not generic.
+
+Full screen.
+
+Black background.
+
+Imaginate logo.
+
+Optional Admin-configured top text.
+
+Large countdown:
+
+02
+DAYS
+
+14
+HOURS
+
+32
+MINUTES
+
+08
+SECONDS
+
+Use premium editorial typography.
+
+Purple accents should match Imaginate logo.
+
+Do not put every number in a cheap glowing card.
+
+Below countdown:
+
+Admin-configured image.
+
+Image can reveal subtly as user scrolls.
+
+If no image is configured:
+
+do not show an empty placeholder.
+
+==========================================================
+COUNTDOWN RESPONSIVE DESIGN
+==========================================================
+
+Desktop:
+
+Large horizontal countdown.
+
+Mobile:
+
+Properly resize/rearrange.
+
+Do not squeeze desktop countdown into phone width.
+
+Countdown must remain easy to read.
+
+==========================================================
+COUNTDOWN FINISH BEHAVIOR
+==========================================================
+
+Admin must choose what happens at zero.
+
+Options:
+
+1. STAY ON COUNTDOWN FINISHED SCREEN
+
+2. SWITCH TO MAINTENANCE
+
+3. OPEN STORE AUTOMATICALLY
+
+For safety, default should NOT automatically open the store unless Admin explicitly selects that option.
+
+==========================================================
+COUNTDOWN PREVIEW
+==========================================================
+
+Admin should have:
+
+PREVIEW COUNTDOWN
+
+before enabling it publicly.
+
+Preview should not affect customers.
+
+==========================================================
+STORE PREVIEW
+==========================================================
+
+Owner/Admin with correct permission should be able to preview the store while:
+
+STORE OFF
+
+or
+
+COUNTDOWN ON
+
+without exposing it publicly.
+
+==========================================================
+SEARCH — MAKE IT EXCELLENT
+==========================================================
+
+Search is EXTREMELY IMPORTANT.
+
+Do not create a basic tiny search box.
+
+Make Imaginate Search feel premium and FAST.
+
+Clicking Search should open a beautiful search interface.
+
+Desktop:
+
+Large overlay/dropdown.
+
+Mobile:
+
+Full-screen search.
+
+At top:
+
+SEARCH IMAGINATE
+
+Large input.
+
+As user types:
+
+results should appear quickly.
+
+==========================================================
+SMART SEARCH RESULTS
+==========================================================
+
+Search should match:
+
+Product name
+Category
+Description
+Tags
+Color
+Relevant keywords
+
+Show:
+
+Product image
+Product name
+Category
+Price
+Availability
+
+If discounted:
+
+show sale price.
+
+If pre-order:
+
+show PRE-ORDER.
+
+If sold out:
+
+show SOLD OUT.
+
+==========================================================
+SEARCH SUGGESTIONS
+==========================================================
+
+Before typing, optionally show:
+
+POPULAR
+NEW
+RECENTLY VIEWED
+
+Only use real/configured data.
+
+Do not fake popularity.
+
+==========================================================
+SEARCH TYPO TOLERANCE
+==========================================================
+
+Where practical, support reasonable fuzzy search.
+
+Example:
+
+"hoodi"
+
+should still find:
+
+HOODIE
+
+Do not require customers to know exact product names.
+
+==========================================================
+SEARCH PERFORMANCE
+==========================================================
+
+Search should feel nearly instant.
+
+Debounce requests appropriately.
+
+Do not query the entire database inefficiently on every keystroke.
+
+==========================================================
+NO RESULTS
+==========================================================
+
+If nothing matches:
+
+NO RESULTS FOR "_____"
+
+Then:
+
+CHECK THE SPELLING OR EXPLORE THE SHOP.
+
+[ SHOP ALL ]
+
+==========================================================
+ENGAGING BUT EASY SHOPPING
+==========================================================
+
+The website needs to be ENGAGING.
+
+But engaging does NOT mean complicated.
+
+Customers should enjoy looking through Imaginate.
+
+Use:
+
+excellent photography
+large product visuals
+smooth hover effects
+small scroll reveals
+premium transitions
+product storytelling
+subtle purple details
+high-quality typography
+
+But ALWAYS make buying obvious.
+
+At any product page, customers should immediately understand:
+
+WHAT IT IS
+
+HOW MUCH IT COSTS
+
+WHAT COLORS EXIST
+
+WHAT SIZES EXIST
+
+WHETHER IT IS AVAILABLE
+
+HOW TO ADD IT TO BAG
+
+==========================================================
+PRODUCT DISCOVERY
+==========================================================
+
+Make browsing enjoyable.
+
+Support:
+
+NEW ARRIVALS
+FEATURED
+CATEGORIES
+RELATED PRODUCTS
+RECENTLY VIEWED
+
+Only show sections when relevant.
+
+==========================================================
+QUICK SHOPPING
+==========================================================
+
+Reduce unnecessary steps.
+
+Customer should be able to go:
+
+Homepage
+→ Product
+→ Size
+→ Add to Bag
+→ Checkout
+
+quickly.
+
+Do not force:
+
+account creation
+multiple confirmation pages
+unnecessary popups
+
+==========================================================
+ADMIN EASE OF USE
+==========================================================
+
+EVERY ADMIN FEATURE SHOULD BE SIMPLE.
+
+An Admin should not need instructions to:
+
+Add product
+Remove product
+Change price
+Add images
+Change stock
+Add size
+Add color
+Create category
+Create discount
+Start pre-order
+Create banner
+Enable countdown
+Disable store
+Process order
+
+Use clear buttons.
+
+Use clear labels.
+
+Use previews.
+
+Use confirmation only when needed.
+
+==========================================================
+QUICK ADMIN ACTIONS
+==========================================================
+
+Add useful Quick Actions to Admin Overview:
+
++ ADD PRODUCT
+
++ CREATE CATEGORY
+
++ CREATE DISCOUNT
+
++ CREATE BANNER
+
++ CREATE COUNTDOWN
+
+VIEW ORDERS
+
+UPDATE INVENTORY
+
+STORE CONTROL
+
+==========================================================
+GLOBAL ADMIN SEARCH
+==========================================================
+
+Admin should have a powerful search bar.
+
+Search:
+
+Products
+Orders
+Customers
+Categories
+
+Example:
+
+Admin types:
+
+IMG-1024
+
+→ order appears.
+
+Admin types:
+
+Purple Hoodie
+
+→ product appears.
+
+==========================================================
+ADMIN COMMAND SAFETY
+==========================================================
+
+Important actions should confirm.
+
+Examples:
+
+TURN STORE OFF?
+
+ENABLE COUNTDOWN?
+This will automatically disable the store.
+
+DELETE CATEGORY?
+
+REMOVE ADMIN?
+
+CANCEL ORDER?
+
+Do not confirm harmless actions unnecessarily.
+
+==========================================================
+WEBSITE LOADING EXPERIENCE
+==========================================================
+
+AFTER the Admin/store systems are complete, improve the CUSTOMER loading experience.
+
+Imaginate needs an AMAZING loading screen.
+
+But it must be FAST.
+
+The loading screen must NEVER exist just to artificially delay the customer.
+
+==========================================================
+IMAGINATE LOADING SCREEN
+==========================================================
+
+When a real initial load requires a moment:
+
+Start with pure black.
+
+Imaginate logo appears centered.
+
+The EXACT supplied Imaginate logo.
+
+Do NOT recreate it.
+
+Do NOT replace it with text.
+
+Behind the logo:
+
+very subtle purple atmospheric glow.
+
+Then create a sophisticated animation.
+
+Possible sequence:
+
+1. Black screen.
+
+2. Tiny purple light appears.
+
+3. Light softly travels behind/through the logo.
+
+4. Imaginate logo reveals smoothly.
+
+5. A very thin loading line appears beneath it.
+
+6. Line fills smoothly using Imaginate purple.
+
+7. When the important page assets are ready, logo slightly scales forward.
+
+8. Loading screen fades/reveals the actual website.
+
+Make the transition feel like the loading screen transforms INTO the website rather than abruptly disappearing.
+
+==========================================================
+LOADING PROGRESS
+==========================================================
+
+Do NOT show fake percentages such as:
+
+23%
+68%
+100%
+
+unless they represent actual loading progress.
+
+A simple animated/progress line is better.
+
+==========================================================
+LOADING SCREEN SPEED
+==========================================================
+
+CRITICAL:
+
+If the website is already ready:
+
+DO NOT force users to watch a 3-second intro.
+
+The loader should disappear immediately/smoothly once critical content is ready.
+
+The purpose is to MASK real loading, not CREATE loading.
+
+==========================================================
+RETURN VISITS
+==========================================================
+
+Do not replay an unnecessarily long loading sequence on every internal page navigation.
+
+Full loading experience should primarily be for initial entry/real loading situations.
+
+Internal navigation should use extremely fast subtle transitions.
+
+==========================================================
+LOADING PRODUCT IMAGES
+==========================================================
+
+Do not use the full-screen logo loader every time one product image loads.
+
+Use elegant dark skeleton/image placeholders.
+
+==========================================================
+LOADING ADMIN
+==========================================================
+
+Admin does NOT need the cinematic customer loader every time.
+
+Admin should prioritize SPEED.
+
+Use simple loading states/skeletons.
+
+==========================================================
+MAINTENANCE PAGE QUALITY
+==========================================================
+
+Maintenance mode should still look like Imaginate.
+
+Do not use:
+
+"Site under construction 🚧"
+
+or a generic Replit maintenance page.
+
+Use:
+
+Imaginate logo
+
+THE WEBSITE IS IN MAINTENANCE,
+PLEASE HOLD ON!
+
+Minimal black/purple design.
+
+==========================================================
+OWNER EMERGENCY ACCESS
+==========================================================
+
+Even if:
+
+STORE OFF
+
+COUNTDOWN ON
+
+MAINTENANCE ACTIVE
+
+the Owner must still be able to securely access Admin.
+
+Never let a storefront mode lock the Owner out of Admin.
+
+==========================================================
+FINAL ADMIN TEST
+==========================================================
+
+Before considering this complete, test:
+
+Owner login
+
+Admin login
+
+Add Admin
+
+Remove Admin as Owner
+
+Attempt remove Owner as Admin → MUST FAIL
+
+Attempt permission escalation → MUST FAIL
+
+Create product
+
+Edit product
+
+Archive product
+
+Create category
+
+Edit category
+
+Create pre-order
+
+Create discount
+
+Create banner
+
+Enable banner
+
+Disable banner
+
+Turn Store OFF
+
+Verify maintenance page
+
+Turn Store ON
+
+Verify normal store
+
+Enable Countdown
+
+Verify Store automatically turns OFF
+
+Configure countdown
+
+Upload countdown image
+
+Preview countdown
+
+Verify public countdown
+
+Disable Countdown
+
+Verify Store remains OFF and maintenance appears
+
+Manually turn Store ON
+
+Verify normal store
+
+Search products
+
+Test typo search
+
+Add product to cart
+
+Checkout test flow
+
+==========================================================
+FINAL BRAND TEST
+==========================================================
+
+Search the entire customer-facing website AND Admin again.
+
+There must be:
+
+NO FIRSTPICK LOGO
+
+NO FIRSTPICK NAME
+
+NO FIRSTPICK ORANGE THEME
+
+NO FIRSTPICK YELLOW THEME
+
+NO FIRSTPICK MARKETING TEXT
+
+NO OLD FIRSTPICK LOADING SCREEN
+
+NO FIRSTPICK FAVICON
+
+NO FIRSTPICK PAGE TITLE
+
+NO FIRSTPICK CUSTOMER EMAIL BRANDING
+
+NO FIRSTPICK ADMIN BRANDING
+
+This is not "FirstPick Purple Edition."
+
+This is:
+
+IMAGINATE.
+
+A new identity.
+
+A new customer experience.
+
+A new design.
+
+The only things that should remain from FirstPick are useful underlying technical systems that have been properly adapted to Imaginate.
+
+==========================================================
+FINAL GOAL
+==========================================================
+
+I want to be able to run almost the entire Imaginate online store from Admin without touching code.
+
+I should be able to:
+
+ADD PRODUCTS
+REMOVE/ARCHIVE PRODUCTS
+EDIT PRODUCTS
+CHANGE PRICES
+CHANGE STOCK
+CREATE SIZES
+CREATE COLORS
+CREATE CATEGORIES
+REMOVE/HIDE CATEGORIES
+CREATE PRE-ORDERS
+CREATE DISCOUNTS
+CREATE SALES
+CREATE BANNERS
+SCHEDULE BANNERS
+CREATE COUNTDOWNS
+UPLOAD COUNTDOWN IMAGES
+TURN THE STORE ON
+TURN THE STORE OFF
+PUT THE WEBSITE INTO MAINTENANCE
+MANAGE ORDERS
+MANAGE CUSTOMERS
+MANAGE INVENTORY
+MANAGE SUPPORT
+MANAGE MEDIA
+MANAGE HOMEPAGE CONTENT
+MANAGE THE LIVE EVENT
+MANAGE NEWSLETTER
+MANAGE ADMINS
+VIEW ADMIN ACTIVITY
+
+BUT:
+
+ONLY THE OWNER can manage who has Admin access and their permissions.
+
+The CUSTOMER experience should remain incredibly simple.
+
+They should see a beautiful, engaging, extremely fast Imaginate website where finding and buying clothing is obvious.
+
+The ADMIN experience should be powerful but extremely easy.
+
+Do not finish by simply telling me which features are missing.
+
+Implement them, test them, and fix the problems you find.

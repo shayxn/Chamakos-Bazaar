@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Check, X } from "lucide-react";
-import { ChamakLogo } from "./chamak-logo";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
@@ -110,7 +109,7 @@ export default function AdminNamePrompt() {
             initial={{ scale: 0.88, y: 24, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.88, y: 24, opacity: 0 }}
             transition={SPRING}
             className="w-full max-w-sm rounded-3xl border border-white/10 p-8 text-center space-y-6"
-            style={{ background: "rgba(10,10,10,0.98)", backdropFilter: "blur(40px)", boxShadow: "0 0 80px rgba(255,102,0,0.15), 0 25px 50px rgba(0,0,0,0.85)" }}
+            style={{ background: "rgba(10,10,10,0.98)", backdropFilter: "blur(40px)", boxShadow: "0 0 80px rgba(124,58,237,0.15), 0 25px 50px rgba(0,0,0,0.85)" }}
           >
             {/* ── STEP: name ──────────────────────────────────────────── */}
             {step === "name" && (
@@ -118,8 +117,8 @@ export default function AdminNamePrompt() {
                 {/* Logo */}
                 <div className="flex justify-center">
                   <div className="px-5 py-3 rounded-2xl border border-primary/20 bg-primary/8"
-                    style={{ background: "rgba(255,102,0,0.07)" }}>
-                    <ChamakLogo size="md" />
+                    style={{ background: "rgba(124,58,237,0.07)" }}>
+                    <img src="/imaginate-icon-192.png" alt="IMAGINATE" className="h-12 w-12 object-contain" />
                   </div>
                 </div>
 
@@ -155,8 +154,8 @@ export default function AdminNamePrompt() {
                 {/* Logo */}
                 <div className="flex justify-center">
                   <div className="px-5 py-3 rounded-2xl border border-primary/20"
-                    style={{ background: "rgba(255,102,0,0.07)" }}>
-                    <ChamakLogo size="md" />
+                    style={{ background: "rgba(124,58,237,0.07)" }}>
+                    <img src="/imaginate-icon-192.png" alt="IMAGINATE" className="h-12 w-12 object-contain" />
                   </div>
                 </div>
 

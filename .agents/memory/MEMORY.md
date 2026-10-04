@@ -3,6 +3,7 @@
 - [Import logic](import-logic.md) — all imported products are rep:true; featured alternates half/half by import index (even=featured).
 - [Splash popup](splash-popup.md) — mini card modal using IMG_0054 (box art) + IMG_0055 (packaging), sessionStorage gate, 6s auto-dismiss with progress bar.
 - [Loading screen gate](loading-screen-gate.md) — first-visit boot uses `firstpick_loaded`; visual follow-ups should wait for its completion event, not guess a delay.
+- [Emergency shutdown](emergency-shutdown.md) — customer pause is server-enforced and operational settings must never use stale or instance-local cache.
 - [Back to School animation](back-to-school-animation.md) — the automatic backpack reveal starts after boot; reduced-motion visitors see a static visible card instead.
 - [Missing routes pattern](missing-routes.md) — several API routers (events, games, abandoned-carts, refund-requests, product-requests) and frontend pages (returns, request-product, games, game-detail) existed but were never registered; always check routes/index.ts and App.tsx when adding new pages.
 - [Hero floating product](hero-floating-product.md) — xl-screen only; uses featuredProducts[0] from the DB query already in home.tsx. Shows levitating product image with shine, shadow glow, and a product tag chip.
@@ -40,7 +41,6 @@
 - [Support page](support-page.md) — /support is a full FAQ + agent hero + WhatsApp CTA; headphones icon in mobile header; Support link in account sidebar; phone loaded from support_whatsapp setting via ref to avoid closure bug.
 - [Order delay/cancel flow](order-delay-cancel.md) — status "delayed"/"cancelled" open modal (reason + date); sends customer push via sendCustomerStatusPush(); logs to admin_activity_log; customer_push_log col prevents duplicates.
 - [Customer push subscriptions](customer-push-subs.md) — separate customer_push_subscriptions table (endpoint+phone+email); POST /api/push/customer-subscribe; GET /api/push/vapid-public-key; account page has onboarding banner.
-- [Maintenance mode key](maintenance-mode-key.md) — site_settings key: maintenance_mode="true"/"false"; MaintenanceGate component reads /api/settings; admin toggle in site-settings.tsx.
 - [Admin activity log](admin-activity-log.md) — admin_activity_log table; GET /api/admin/activity-log; SSE at /api/admin/activity-log/stream; logAdminActivity() exported from admin-activity.ts; called on every order status change.
 - [Coupon system](coupon-system.md) — coupons table created via SQL in routes/coupons.ts; POST /coupons/validate (public), CRUD under requireAdmin; applyCoupon() exported helper; orders store coupon_code + discount_amount (added via ensureOrderColumns migration).
 - [Wishlist system](wishlist-system.md) — wishlists table (session_id+product_id unique); GET/POST/DELETE /wishlist + GET /wishlist/ids; session-based via req.session.wishlistId; /wishlist page uses AnimatePresence grid. useWishlist hook in hooks/use-wishlist.ts (React Query, optimistic updates); heart button on shop/home/product-detail.

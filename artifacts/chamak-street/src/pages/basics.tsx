@@ -83,7 +83,7 @@ export default function Basics() {
 
         {/* ── Hero header ── */}
         <div className="relative overflow-hidden border-b border-white/8"
-          style={{ background: "linear-gradient(180deg, rgba(255,102,0,0.06) 0%, transparent 100%)" }}>
+          style={{ background: "linear-gradient(180deg, rgba(124,58,237,0.06) 0%, transparent 100%)" }}>
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 pt-12 pb-8">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -92,18 +92,18 @@ export default function Basics() {
             >
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.22em] text-primary/70 border border-primary/30 px-2.5 py-1 rounded-full"
-                  style={{ background: "rgba(255,102,0,0.08)" }}>
+                  style={{ background: "rgba(124,58,237,0.08)" }}>
                   Collection
                 </span>
               </div>
               <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter text-white mb-2">
                 <span style={{ color: "rgba(255,255,255,0.95)" }}>FIRSTPICK</span>{" "}
-                <span style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                <span style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                   BASICS
                 </span>
               </h1>
               <p className="text-white/40 text-sm max-w-md">
-                Essential streetwear, simplified. Clean cuts and everyday pieces curated for the FirstPick lifestyle.
+                Essential clothing, simplified. Everyday pieces selected by IMAGINATE.
               </p>
             </motion.div>
           </div>
@@ -192,7 +192,7 @@ export default function Basics() {
               className="text-center py-28 max-w-xs mx-auto"
             >
               <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-5"
-                style={{ border: "1px solid rgba(255,102,0,0.15)" }}>
+                style={{ border: "1px solid rgba(124,58,237,0.15)" }}>
                 <span className="text-2xl">🧢</span>
               </div>
               <h3 className="text-xl font-black uppercase tracking-wider text-white mb-2">
@@ -229,7 +229,7 @@ export default function Basics() {
                     <motion.div key={product.id} variants={cardVariants} layout>
                       <div className="group cursor-pointer">
                         {/* Image */}
-                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(255,102,0,0.2)]">
+                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(124,58,237,0.2)]">
                           <Link href={`/product/${product.id}`} className="block w-full h-full">
                             {primaryMedia ? (
                               primaryMedia.type === "video" ? (
@@ -254,14 +254,14 @@ export default function Basics() {
                           {/* Badges */}
                           <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none">
                             <span className="text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm"
-                              style={{ background: "rgba(255,102,0,0.85)", color: "#000" }}>
+                              style={{ background: "rgba(124,58,237,0.85)", color: "#fff" }}>
                               Basics
                             </span>
                             {product.featured && (
                               <span className="bg-primary/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Featured</span>
                             )}
                             {(product as any).sellingFast && (
-                              <span className="bg-orange-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">🔥 Hot</span>
+                              <span className="bg-violet-500/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Hot</span>
                             )}
                           </div>
 

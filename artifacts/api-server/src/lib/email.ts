@@ -19,7 +19,7 @@ function verificationHtml(code: string): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FirstPick Verification</title>
+<title>IMAGINATE Verification</title>
 </head>
 <body style="margin:0;padding:0;background:#000000;font-family:Arial,Helvetica,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#000000;padding:48px 16px;">
@@ -36,7 +36,7 @@ function verificationHtml(code: string): string {
   <tr>
     <td style="padding:32px 40px 40px;">
       <h1 style="margin:0 0 10px;color:#ffffff;font-size:26px;font-weight:900;text-align:center;">Verify your email</h1>
-      <p style="margin:0 0 32px;color:rgba(255,255,255,0.45);font-size:14px;text-align:center;line-height:1.65;">Enter this code in the app to finish creating your FirstPick account.</p>
+      <p style="margin:0 0 32px;color:rgba(255,255,255,0.45);font-size:14px;text-align:center;line-height:1.65;">Enter this code in the app to finish creating your IMAGINATE account.</p>
       <div style="background:rgba(255,102,0,0.07);border:1.5px solid rgba(255,102,0,0.28);border-radius:16px;padding:32px 24px;text-align:center;margin-bottom:24px;">
         <div style="color:rgba(255,255,255,0.3);font-size:10px;letter-spacing:4px;text-transform:uppercase;margin-bottom:14px;">Your verification code</div>
         <div style="font-size:56px;font-weight:900;letter-spacing:16px;color:#ff6600;font-family:'Courier New',Courier,monospace;">${code}</div>
@@ -47,7 +47,7 @@ function verificationHtml(code: string): string {
   </tr>
   <tr>
     <td style="padding:18px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
-      <p style="margin:0;color:rgba(255,255,255,0.18);font-size:11px;">&copy; 2025 FirstPick &middot; Dubai, UAE</p>
+      <p style="margin:0;color:rgba(255,255,255,0.18);font-size:11px;">IMAGINATE &middot; UAE</p>
     </td>
   </tr>
 </table>
@@ -72,9 +72,9 @@ export async function sendVerificationEmail(to: string, code: string): Promise<b
 
   try {
     await transporter.sendMail({
-      from: `FirstPick <${from}>`,
+      from: `IMAGINATE <${from}>`,
       to,
-      subject: `${code} is your FirstPick verification code`,
+      subject: `${code} is your IMAGINATE verification code`,
       html: verificationHtml(code),
     });
     console.log(`[EMAIL] Verification code sent to ${to}`);

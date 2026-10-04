@@ -1,0 +1,2125 @@
+CONTINUE THE IMAGINATE REDESIGN — COMPLETE POLISH, ADMIN, ANIMATIONS, MOBILE, QA & PRODUCTION PASS
+
+You have already been given the main instructions for transforming my existing FirstPick project into IMAGINATE.
+
+DO NOT restart the project.
+DO NOT rebuild everything from scratch.
+DO NOT undo working functionality from the previous redesign.
+DO NOT bring back FirstPick branding.
+
+This prompt is the SECOND STAGE.
+
+Your job now is to take the existing Imaginate redesign and bring it from a working redesign to a highly polished, production-quality streetwear ecommerce website.
+
+Before changing anything:
+
+1. Inspect the current project.
+2. Run the current site.
+3. Review every existing page.
+4. Review the mobile layout.
+5. Review the admin dashboard.
+6. Review existing animations.
+7. Review the database and backend.
+8. Identify what from the previous Imaginate redesign is already working.
+9. Preserve good existing work.
+10. Fix and improve weak/incomplete areas.
+
+DO NOT blindly replace working components.
+
+==================================================
+IMAGINATE DESIGN DIRECTION
+==================================================
+
+The entire website should feel like a REAL premium fashion/streetwear brand.
+
+Imaginate should NOT feel like:
+
+- a dropshipping store
+- a Shopify starter theme
+- an AI-generated website
+- a SaaS dashboard
+- a gaming website
+- a crypto website
+- a cheap neon website
+- a marketplace
+- FirstPick with purple colors
+
+The experience should feel:
+
+CINEMATIC
+DARK
+PREMIUM
+MINIMAL
+FAST
+EDITORIAL
+MODERN
+CONFIDENT
+HIGH-END
+
+Core palette:
+
+BLACK
+VERY DARK CHARCOAL
+WHITE
+IMAGINATE PURPLE
+
+Purple is an ACCENT.
+
+Do NOT make the whole website purple.
+
+Do NOT use purple gradients everywhere.
+
+Do NOT put everything inside glowing purple boxes.
+
+Black should dominate.
+
+White typography should provide contrast.
+
+Purple should appear strategically in:
+
+hover states
+active states
+small lighting effects
+important indicators
+LIVE elements
+selected sizes
+progress elements
+subtle borders
+small details
+
+==================================================
+VISUAL REFERENCE
+==================================================
+
+If I provide screenshots/mockups/reference images with this prompt:
+
+STUDY THEM CAREFULLY.
+
+Treat those images as visual direction for:
+
+layout
+spacing
+hierarchy
+scale
+image placement
+typography
+navigation
+section proportions
+product presentation
+admin layout
+mobile composition
+
+Do not merely extract the text from the image.
+
+Understand the actual visual design.
+
+If the reference conflicts with an old FirstPick design, follow the NEW Imaginate reference.
+
+Do not alter the Imaginate logo.
+
+Use my supplied logo exactly.
+
+==================================================
+HOME PAGE POLISH
+==================================================
+
+Revisit the entire homepage.
+
+The homepage must NOT look like:
+
+NAVBAR
+BIG IMAGE
+4 PRODUCT CARDS
+NEWSLETTER
+FOOTER
+
+That is too generic.
+
+It should feel like scrolling through an Imaginate campaign.
+
+The homepage should have rhythm.
+
+Some sections should be huge and cinematic.
+
+Some should be minimal.
+
+Some should focus entirely on one product.
+
+Some can use typography as the main visual.
+
+Photography should have room to breathe.
+
+==================================================
+HERO
+==================================================
+
+The hero should occupy approximately the full initial viewport.
+
+Campaign image/video fills the area.
+
+Imaginate logo/navigation above.
+
+Strong headline.
+
+Minimal text.
+
+Primary CTA.
+
+Make sure text placement works with the actual photography.
+
+Do not cover important parts of the model/product.
+
+Desktop and mobile should support different positioning.
+
+The hero should not look like a rectangular banner placed inside a container.
+
+It should feel immersive.
+
+==================================================
+SCROLL TRANSITION
+==================================================
+
+As the user begins scrolling:
+
+Allow the hero to transition naturally into the next section.
+
+Possible techniques:
+
+slight image scale
+subtle opacity movement
+text movement
+masked reveal
+parallax
+
+Keep it subtle.
+
+Do NOT create scroll-jacking.
+
+Users must retain normal scrolling control.
+
+==================================================
+PRODUCT STORYTELLING
+==================================================
+
+Do not show every product using identical cards repeatedly.
+
+Create moments where one hoodie/product gets the entire screen or a large section.
+
+Example:
+
+LEFT:
+huge product/model image
+
+RIGHT:
+PRODUCT NAME
+small description
+AED price
+SHOP NOW
+
+Then alternate layout for another product.
+
+This creates an editorial fashion feel.
+
+==================================================
+LIVE OCTOBER 27
+==================================================
+
+The October 27 LIVE announcement is extremely important.
+
+Create a dedicated cinematic section.
+
+BLACK.
+
+Very subtle purple light.
+
+Small uppercase:
+
+IMAGINATE PRESENTS
+
+Then huge:
+
+LIVE
+
+Then:
+
+OCTOBER 27
+
+Then:
+
+THE COUNTDOWN BEGINS.
+
+If event time is configured:
+
+Show actual countdown:
+
+02 DAYS
+14 HOURS
+32 MINUTES
+08 SECONDS
+
+Numbers should be large.
+
+Do not put countdown numbers inside cheesy glowing boxes.
+
+Use typography and spacing.
+
+When countdown reaches zero:
+
+automatically switch state to:
+
+LIVE NOW
+
+Show a subtle animated red/purple LIVE indicator.
+
+Show:
+
+WATCH LIVE
+
+using the Admin-configured destination.
+
+Do NOT invent a streaming URL.
+
+==================================================
+LIVE PAGE
+==================================================
+
+Create a dedicated route:
+
+/live
+
+UPCOMING MODE:
+
+Imaginate logo
+LIVE OCTOBER 27
+Countdown
+Campaign visual/video
+Optional event description
+Email reminder/signup
+
+LIVE MODE:
+
+LIVE NOW
+Configured livestream embed/link
+Products featured during live
+SHOP THE DROP
+
+ENDED MODE:
+
+EVENT ENDED
+
+Optional:
+WATCH REPLAY
+
+Only if Admin provides replay URL.
+
+==================================================
+SHOP EXPERIENCE
+==================================================
+
+Revisit /shop.
+
+Make product browsing visually premium.
+
+Desktop:
+
+Large clean grid.
+
+Do not squeeze 5–6 tiny products across the screen.
+
+Prefer approximately 3 products per row depending on viewport.
+
+Allow some featured items to span larger grid areas if appropriate.
+
+Mobile:
+
+2 columns where comfortable.
+
+For very image-heavy presentation, selected areas may use one large product per row.
+
+Keep consistent spacing.
+
+==================================================
+PRODUCT HOVER
+==================================================
+
+Desktop product card:
+
+Default:
+front product image.
+
+Hover:
+smooth transition to alternate/back/model image.
+
+Product information remains stable.
+
+Do not make text jump.
+
+Optional subtle image zoom:
+
+approximately 1.02–1.04.
+
+No ridiculous zoom.
+
+==================================================
+QUICK ADD
+==================================================
+
+Desktop:
+
+Hover can reveal:
+
+QUICK ADD
+
+Click:
+
+small elegant size selector.
+
+S
+M
+L
+XL
+
+Selecting an available size adds product.
+
+Unavailable sizes disabled.
+
+Mobile:
+
+Do not rely on hover.
+
+Use product page or tap-based Quick Add.
+
+==================================================
+PRODUCT PAGE PREMIUM PASS
+==================================================
+
+Revisit every product page.
+
+The product page should feel like the product is important.
+
+Desktop:
+
+Large gallery approximately 60–65%.
+
+Product controls approximately 35–40%.
+
+Product controls can remain sticky while gallery scrolls.
+
+Images should be BIG.
+
+Avoid tiny thumbnail-heavy layouts.
+
+Product information:
+
+NAME
+
+AED PRICE
+
+COLOR
+
+SIZE
+
+SIZE GUIDE
+
+ADD TO BAG
+
+Details
+
+Fit
+
+Materials
+
+Shipping
+
+Returns
+
+Do not show information that has not been configured.
+
+==================================================
+SIZE SELECTOR
+==================================================
+
+Size buttons should be simple.
+
+Example:
+
+S   M   L   XL
+
+Selected:
+
+subtle Imaginate purple treatment.
+
+Unavailable:
+
+muted and visibly unavailable.
+
+Do not allow unavailable variant submission through frontend or backend.
+
+==================================================
+ADD TO BAG ANIMATION
+==================================================
+
+When Add to Bag succeeds:
+
+Button can briefly change:
+
+ADD TO BAG
+
+→
+
+ADDED ✓
+
+Then cart drawer opens smoothly.
+
+Do not use annoying popup alerts.
+
+==================================================
+CART DRAWER
+==================================================
+
+Premium side drawer desktop.
+
+Smooth mobile drawer.
+
+Dark background.
+
+Product image.
+
+Product name.
+
+Size.
+
+Quantity.
+
+Price.
+
+Subtotal.
+
+CHECKOUT.
+
+VIEW BAG.
+
+Use clear close control.
+
+Support keyboard/escape.
+
+Trap focus appropriately while open.
+
+==================================================
+EMPTY CART
+==================================================
+
+Do not show a blank page.
+
+Display:
+
+YOUR BAG IS EMPTY.
+
+[ SHOP IMAGINATE ]
+
+Optionally show 2–3 configured recommended products.
+
+==================================================
+SEARCH EXPERIENCE
+==================================================
+
+Search should feel immediate.
+
+Opening search:
+
+navigation transitions into a large search interface.
+
+Input:
+
+SEARCH IMAGINATE
+
+As user types:
+
+show matching products instantly.
+
+Product thumbnail
+Name
+AED price
+
+If nothing:
+
+NO RESULTS FOR "_____"
+
+Then suggest:
+
+VIEW ALL PRODUCTS
+
+==================================================
+ABOUT PAGE
+==================================================
+
+Make About editorial.
+
+Do not use:
+
+ABOUT US
+Lorem ipsum...
+three icon cards.
+
+Instead:
+
+large campaign image.
+
+Huge:
+
+IMAGINATE
+
+Then:
+
+FOUNDED IN THE UAE.
+
+Then editable brand story.
+
+Alternate text and photography.
+
+Use large typography.
+
+==================================================
+ACCOUNT EXPERIENCE
+==================================================
+
+Make authentication pages match Imaginate.
+
+No generic white authentication card on a gray background.
+
+Black page.
+
+Imaginate logo.
+
+Simple form.
+
+LOGIN
+
+Email
+Password
+
+LOGIN
+
+Forgot password
+Create account
+
+Forms should feel integrated into the brand.
+
+==================================================
+ORDER TRACKING
+==================================================
+
+Make tracking visually satisfying.
+
+Example:
+
+ORDER #IMG-XXXX
+
+ORDER PLACED
+      ↓
+CONFIRMED
+      ↓
+PREPARING
+      ↓
+SHIPPED
+      ↓
+OUT FOR DELIVERY
+      ↓
+DELIVERED
+
+Completed states:
+bright.
+
+Current:
+Imaginate purple accent.
+
+Future:
+muted.
+
+Show timestamps when available.
+
+Do not invent timestamps.
+
+==================================================
+404 PAGE
+==================================================
+
+Create custom 404.
+
+Black.
+
+Huge:
+
+404
+
+Then:
+
+NOTHING HERE.
+
+Button:
+
+RETURN TO IMAGINATE
+
+Subtle visual effect allowed.
+
+==================================================
+ADMIN — COMPLETE PROFESSIONAL PASS
+==================================================
+
+Now deeply review Admin.
+
+The Admin dashboard is NOT customer-facing.
+
+It can be more information-dense.
+
+Still use:
+
+black
+dark gray
+white
+purple accents
+
+Admin sidebar:
+
+OVERVIEW
+
+ORDERS
+
+PRODUCTS
+
+INVENTORY
+
+CUSTOMERS
+
+DISCOUNTS
+
+LIVE EVENT
+
+HOMEPAGE
+
+MEDIA
+
+SUPPORT
+
+NEWSLETTER
+
+SETTINGS
+
+LOG OUT
+
+Desktop:
+sidebar.
+
+Mobile/tablet:
+collapsible menu.
+
+==================================================
+ADMIN OVERVIEW
+==================================================
+
+At the top:
+
+IMAGINATE ADMIN
+
+Cards:
+
+TODAY'S SALES
+TOTAL SALES
+ORDERS
+CUSTOMERS
+
+Then:
+
+Sales chart.
+
+Recent orders.
+
+Low stock.
+
+Top products.
+
+Live Event status.
+
+Do not create fake statistics.
+
+If there are no orders:
+
+AED 0
+
+and proper empty state.
+
+Never create fake sales to make dashboard look populated.
+
+==================================================
+ADMIN ORDER NOTIFICATIONS
+==================================================
+
+When a new order exists:
+
+Show a visible Admin notification.
+
+Example:
+
+NEW ORDER
+#IMG-1042
+AED 149
+
+Allow notification to be marked read.
+
+If browser notifications are implemented, request permission correctly.
+
+Do not spam.
+
+==================================================
+ORDER MANAGEMENT
+==================================================
+
+Make order processing extremely easy.
+
+Click an order.
+
+Display:
+
+Order ID
+Customer
+Phone
+Email
+Address
+Products
+Images
+Variants
+Quantity
+Subtotal
+Delivery
+Discount
+Total
+Payment
+Date
+Customer note
+Internal notes
+
+Large status control.
+
+Status workflow:
+
+ORDER PLACED
+CONFIRMED
+PREPARING
+SHIPPED
+OUT FOR DELIVERY
+DELIVERED
+
+Other:
+
+DELAYED
+CANCELLED
+RETURN REQUESTED
+RETURNED
+
+Every status change should save properly.
+
+Store timestamp/history.
+
+==================================================
+ADMIN PRODUCTS
+==================================================
+
+Product management should feel like a proper commerce system.
+
+Products list:
+
+Image
+Name
+Category
+Price
+Stock
+Status
+
+Search.
+
+Filter.
+
+Sort.
+
+ADD PRODUCT.
+
+Editing:
+
+General
+Media
+Variants
+Inventory
+Description
+Shipping
+SEO
+
+Support autosave carefully OR explicit SAVE CHANGES.
+
+Show save status.
+
+Do not silently lose edits.
+
+==================================================
+PRODUCT VARIANTS
+==================================================
+
+Support combinations such as:
+
+BLACK / S
+BLACK / M
+BLACK / L
+BLACK / XL
+
+Each variant can have:
+
+SKU
+stock
+availability
+optional variant image
+
+Make variant management easy.
+
+==================================================
+INVENTORY WARNINGS
+==================================================
+
+Admin can configure low-stock threshold.
+
+Example:
+
+5 units.
+
+If inventory <= 5:
+
+LOW STOCK
+
+If 0:
+
+SOLD OUT
+
+Dashboard should surface low stock.
+
+==================================================
+INVENTORY SAFETY
+==================================================
+
+Do not only validate inventory in browser.
+
+Backend must verify stock when order is placed.
+
+Prevent overselling where practical.
+
+Use atomic transaction/database-safe inventory changes if supported by current stack.
+
+==================================================
+MEDIA MANAGER
+==================================================
+
+Create proper Media area.
+
+Upload.
+
+Preview.
+
+Search.
+
+Delete unused assets with confirmation.
+
+Copy/use asset.
+
+Show:
+
+Images
+Videos
+
+Optimize uploads where appropriate.
+
+Do not destroy original quality unnecessarily.
+
+==================================================
+HOMEPAGE BUILDER
+==================================================
+
+Admin should be able to control homepage without code.
+
+Sections displayed as reorderable blocks.
+
+Example:
+
+☰ HERO
+☰ NEW DROP
+☰ CAMPAIGN
+☰ LIVE EVENT
+☰ FEATURED
+☰ BRAND STATEMENT
+☰ NEWSLETTER
+
+Admin can:
+
+enable
+disable
+edit
+reorder
+
+Do not build an overcomplicated Wix clone.
+
+Just enough control for Imaginate.
+
+==================================================
+HERO ADMIN
+==================================================
+
+Editable:
+
+Desktop media
+Mobile media
+Headline
+Subheading
+CTA text
+CTA URL
+Text position
+Overlay strength
+Enabled
+
+==================================================
+ANNOUNCEMENT BAR
+==================================================
+
+Admin controls:
+
+Enabled
+Text
+Link optional
+
+Example:
+
+LIVE OCTOBER 27
+
+Do not hardcode promotional messages.
+
+==================================================
+LIVE EVENT ADMIN
+==================================================
+
+Make this extremely easy.
+
+Event enabled toggle.
+
+Mode:
+
+UPCOMING
+LIVE
+ENDED
+
+Event name.
+
+Date.
+
+Time.
+
+Timezone.
+
+Countdown.
+
+Hero/background media.
+
+Live destination.
+
+Replay destination.
+
+Featured products.
+
+Announcement text.
+
+Save.
+
+Provide preview.
+
+==================================================
+DISCOUNTS
+==================================================
+
+Admin discount creation:
+
+CODE
+
+TYPE:
+Percentage
+Fixed AED
+
+VALUE
+
+MINIMUM SPEND
+
+MAX USES
+
+USES PER CUSTOMER
+
+START
+
+END
+
+PRODUCTS/COLLECTIONS
+
+ACTIVE
+
+Backend must validate discount.
+
+Do not rely on frontend calculation.
+
+==================================================
+SUPPORT DASHBOARD
+==================================================
+
+Requests table:
+
+Ticket
+Customer
+Category
+Date
+Status
+
+Statuses:
+
+OPEN
+IN PROGRESS
+RESOLVED
+
+Ticket detail.
+
+Internal notes.
+
+Customer message.
+
+==================================================
+NEWSLETTER
+==================================================
+
+Subscriber table.
+
+Email
+Signup date
+Source
+
+Export CSV.
+
+Do not expose publicly.
+
+==================================================
+SITE SETTINGS
+==================================================
+
+Admin settings should control:
+
+Imaginate logo
+Favicon
+Contact email
+Social URLs
+Currency
+Shipping
+Returns
+Terms
+Privacy
+Order status settings
+Low stock threshold
+Analytics integrations where applicable
+
+==================================================
+ANIMATIONS — COMPLETE PASS
+==================================================
+
+Now inspect the entire website and add high-quality motion.
+
+Animations must have purpose.
+
+Use a consistent motion language.
+
+Recommended:
+
+Fast microinteraction:
+150–250ms
+
+Normal UI transition:
+250–450ms
+
+Large cinematic reveal:
+500–900ms
+
+Avoid making ordinary UI feel slow.
+
+==================================================
+TEXT REVEALS
+==================================================
+
+Large campaign headings can reveal using:
+
+masked upward movement
+opacity
+small translate
+
+Do NOT animate every paragraph.
+
+==================================================
+IMAGE REVEALS
+==================================================
+
+Campaign images can enter using:
+
+clip/mask
+opacity
+small scale
+
+Keep smooth.
+
+==================================================
+SCROLL ANIMATION
+==================================================
+
+Use IntersectionObserver or appropriate animation tooling.
+
+Avoid constantly calculating expensive scroll operations.
+
+Animations should only run when needed.
+
+==================================================
+PAGE TRANSITIONS
+==================================================
+
+When navigating:
+
+small fade/transition.
+
+Do not make user wait through a full animation every page.
+
+==================================================
+BUTTON INTERACTIONS
+==================================================
+
+Buttons should feel responsive.
+
+Hover:
+small visual change.
+
+Press:
+tiny scale reduction.
+
+Focus:
+visible accessible focus state.
+
+==================================================
+NAVIGATION
+==================================================
+
+Desktop navbar:
+
+transparent initially if hero supports it.
+
+On scroll:
+
+dark blurred background.
+
+Transition smoothly.
+
+Do not use excessive blur.
+
+==================================================
+MOBILE MENU
+==================================================
+
+Menu button opens full-screen black panel.
+
+Imaginate logo.
+
+Large links.
+
+SHOP
+NEW
+HOODIES
+ABOUT
+
+Then smaller:
+
+ACCOUNT
+TRACK ORDER
+SUPPORT
+
+Social links near bottom.
+
+Animate links with stagger.
+
+Close button clearly visible.
+
+==================================================
+MOBILE-FIRST QA
+==================================================
+
+THIS IS ONE OF THE MOST IMPORTANT PARTS.
+
+Test every page at multiple mobile widths.
+
+Specifically check:
+
+320px
+360px
+375px
+390px
+393px
+414px
+430px
+
+Also tablets.
+
+No horizontal scrolling.
+
+No cut-off buttons.
+
+No text outside viewport.
+
+No modal wider than device.
+
+No fixed element covering checkout controls.
+
+No giant headings becoming unreadable.
+
+No product images distorted.
+
+No navigation overlap.
+
+==================================================
+TOUCH TARGETS
+==================================================
+
+Interactive controls should generally have comfortable touch areas around 44px when appropriate.
+
+Do not create tiny close buttons.
+
+==================================================
+MOBILE PRODUCT PAGE
+==================================================
+
+Prioritize:
+
+image
+name
+price
+size
+Add to Bag
+
+Do not make customers scroll through huge descriptions before buying.
+
+==================================================
+MOBILE CART
+==================================================
+
+Make checkout CTA obvious.
+
+If appropriate, sticky checkout control can be used.
+
+Do not cover cart content.
+
+==================================================
+MOBILE CHECKOUT
+==================================================
+
+Forms:
+
+one clear column.
+
+Correct input types.
+
+Phone keyboard for phone.
+
+Email keyboard for email.
+
+Address fields readable.
+
+Do not create unnecessary steps.
+
+==================================================
+PERFORMANCE PASS
+==================================================
+
+Measure and improve performance.
+
+Review:
+
+Largest Contentful Paint
+Cumulative Layout Shift
+Interaction responsiveness
+
+Optimize images.
+
+Use responsive srcset/sizes where supported.
+
+Use WebP/AVIF where appropriate.
+
+Do not load enormous desktop video on mobile unnecessarily.
+
+==================================================
+VIDEO
+==================================================
+
+Campaign video should:
+
+autoplay muted only when appropriate
+playsinline
+loop if designed to
+have poster image
+not block page loading
+
+Respect reduced motion/data considerations where possible.
+
+==================================================
+FONT PERFORMANCE
+==================================================
+
+Do not load ten font families.
+
+Use a small typography system.
+
+Preload only critical fonts.
+
+Use font-display appropriately.
+
+==================================================
+LOADING STATES
+==================================================
+
+Every asynchronous action needs a proper state.
+
+Examples:
+
+ADD TO BAG
+→ ADDING...
+→ ADDED
+
+CHECKOUT
+→ PROCESSING...
+
+LOGIN
+→ LOGGING IN...
+
+SAVE
+→ SAVING...
+→ SAVED
+
+Prevent accidental double submission.
+
+==================================================
+SKELETONS
+==================================================
+
+For product loading:
+
+use subtle dark skeleton placeholders where useful.
+
+No bright gray generic skeletons that clash with design.
+
+==================================================
+ERROR HANDLING
+==================================================
+
+User-facing errors should be understandable.
+
+Bad:
+
+ERROR 500 QUERY FAILED
+
+Good:
+
+SOMETHING WENT WRONG.
+PLEASE TRY AGAIN.
+
+Log technical details server-side where appropriate.
+
+==================================================
+SECURITY AUDIT
+==================================================
+
+Perform a serious security pass.
+
+Check:
+
+Admin authorization
+Authentication
+Sessions
+CSRF protections where relevant
+Input validation
+Rate limiting
+Database access
+Payment endpoints
+Order endpoints
+Discount endpoints
+Inventory endpoints
+File uploads
+
+Never trust client-provided:
+
+price
+discount amount
+order total
+stock
+admin role
+
+Recalculate/validate server-side.
+
+==================================================
+ADMIN SECURITY
+==================================================
+
+Trying to manually navigate to:
+
+/admin
+
+without authorization must NOT expose admin content.
+
+Frontend hiding is NOT security.
+
+Server/backend must protect admin resources.
+
+==================================================
+UPLOAD SECURITY
+==================================================
+
+Validate:
+
+file type
+file size
+allowed extensions/content
+
+Do not allow arbitrary executable uploads.
+
+==================================================
+PAYMENT SECURITY
+==================================================
+
+Never store:
+
+raw card number
+CVV
+sensitive payment credentials
+
+Use the configured payment provider correctly.
+
+Do not create a fake payment system.
+
+==================================================
+DATA PRIVACY
+==================================================
+
+Customers must never be able to retrieve another customer's:
+
+address
+phone
+email
+orders
+
+Order tracking must require sufficient verification.
+
+==================================================
+ACCESSIBILITY PASS
+==================================================
+
+Test keyboard navigation.
+
+Logical tab order.
+
+Visible focus.
+
+Accessible dialogs.
+
+Escape closes overlays where appropriate.
+
+Images support alt text.
+
+Buttons have meaningful labels.
+
+Do not rely solely on color for status.
+
+==================================================
+REDUCED MOTION
+==================================================
+
+If prefers-reduced-motion is enabled:
+
+reduce/remove:
+
+parallax
+large transitions
+continuous decorative motion
+
+Core functionality must remain identical.
+
+==================================================
+SEO PASS
+==================================================
+
+Every important page:
+
+unique title
+description
+OpenGraph information
+
+Products:
+
+product structured data where appropriate.
+
+Generate/update sitemap.
+
+Canonical URLs.
+
+Robots configuration.
+
+Do not index Admin.
+
+Do not index private account/order pages.
+
+==================================================
+SOCIAL SHARING
+==================================================
+
+Product links should produce attractive previews.
+
+Use product image.
+
+Product name.
+
+Imaginate branding.
+
+==================================================
+URL QUALITY
+==================================================
+
+Use:
+
+/shop
+/products/name
+/about
+/support
+/track
+/live
+
+Avoid ugly query-based URLs for primary pages.
+
+==================================================
+FIRSTPICK CLEANUP — SECOND AUDIT
+==================================================
+
+Search the ENTIRE project again for:
+
+FirstPick
+FIRST PICK
+firstpick
+old orange values
+old yellow values
+old logos
+old metadata
+old email templates
+old notification names
+old database display labels
+old page titles
+
+Do not blindly delete database fields simply because they have legacy names if doing so could break data.
+
+Refactor safely.
+
+CUSTOMERS SHOULD NEVER SEE FIRSTPICK.
+
+==================================================
+EMAIL / ORDER COMMUNICATION
+==================================================
+
+If transactional email infrastructure exists:
+
+update branding to Imaginate.
+
+Potential emails:
+
+Order confirmed
+Order shipped
+Out for delivery
+Delivered
+Password reset
+
+Use:
+
+Imaginate logo
+clean black/white styling
+order information
+
+Do not send fake emails in production testing.
+
+Use test/sandbox mode where available.
+
+==================================================
+ORDER NUMBER FORMAT
+==================================================
+
+If safe with existing backend, use readable public order references such as:
+
+IMG-1001
+
+IMG-1002
+
+etc.
+
+But keep internal database IDs separate if needed.
+
+Do not weaken security by using predictable order IDs alone for private tracking.
+
+==================================================
+EMPTY STATES
+==================================================
+
+Design ALL empty states.
+
+Admin no orders:
+
+NO ORDERS YET.
+
+Admin no products:
+
+NO PRODUCTS YET.
+[ ADD PRODUCT ]
+
+Customer no orders:
+
+YOU HAVEN'T ORDERED YET.
+[ SHOP ]
+
+Wishlist empty:
+
+NOTHING SAVED YET.
+
+==================================================
+CONFIRMATION DIALOGS
+==================================================
+
+Require confirmation for destructive actions:
+
+Delete product?
+Cancel order?
+Delete media?
+Remove customer data?
+
+Buttons:
+
+CANCEL
+CONFIRM
+
+Make dangerous action visually clear.
+
+==================================================
+TOAST NOTIFICATIONS
+==================================================
+
+Use small premium notifications.
+
+Examples:
+
+PRODUCT SAVED
+
+ORDER UPDATED
+
+COPIED
+
+ADDED TO BAG
+
+Do not use browser alert().
+
+==================================================
+ADMIN SEARCH
+==================================================
+
+Allow fast searching across:
+
+Orders
+Products
+Customers
+
+Search should be forgiving.
+
+==================================================
+ADMIN RESPONSIVENESS
+==================================================
+
+Admin should work on iPad/tablet and phone when needed.
+
+Do not assume Admin is always desktop.
+
+Order status should be easy to update from a phone.
+
+==================================================
+ANALYTICS
+==================================================
+
+If analytics are configured:
+
+use REAL data.
+
+Potential useful metrics:
+
+Sessions
+Product views
+Add-to-cart rate
+Conversion
+Sales
+
+If analytics aren't configured:
+
+do NOT invent numbers.
+
+Show setup/empty state.
+
+==================================================
+EVENT ANALYTICS
+==================================================
+
+Track useful ecommerce interactions where analytics system exists:
+
+view_product
+select_size
+add_to_cart
+begin_checkout
+purchase
+live_event_click
+
+Respect privacy requirements.
+
+==================================================
+LAUNCH MODE
+==================================================
+
+Review launch mode.
+
+Admin should be able to turn it ON/OFF.
+
+Launch mode can enable:
+
+LIVE OCTOBER 27
+countdown
+announcement bar
+coming soon
+special hero
+
+Turning launch mode OFF must return site to normal store behavior.
+
+No code edit required.
+
+==================================================
+PRE-LAUNCH MODE
+==================================================
+
+Optional controlled pre-launch screen.
+
+BLACK.
+
+Imaginate logo.
+
+COMING SOON.
+
+LIVE OCTOBER 27.
+
+Countdown if configured.
+
+Email signup.
+
+Social links.
+
+Admin bypass.
+
+Allow Admin to disable instantly.
+
+==================================================
+AFTER OCTOBER 27
+==================================================
+
+Do NOT permanently hardcode the site around October 27.
+
+October 27 is an event.
+
+Afterward I must be able to:
+
+turn it off
+replace it
+add another event
+show replay
+return to normal homepage
+
+without rewriting code.
+
+==================================================
+PRODUCT NOTIFICATION SYSTEM
+==================================================
+
+For Coming Soon/Sold Out products:
+
+NOTIFY ME
+
+Collect email.
+
+Store:
+
+product
+variant if applicable
+email
+date
+
+Admin can see notification requests.
+
+Do not automatically implement mass emailing unless a proper email provider is configured.
+
+==================================================
+FINAL VISUAL REVIEW
+==================================================
+
+Look at the website as a DESIGNER, not just a programmer.
+
+Ask:
+
+Does this look expensive?
+
+Does this look like a real clothing brand?
+
+Is there too much text?
+
+Are images large enough?
+
+Is purple overused?
+
+Is spacing consistent?
+
+Are sections repetitive?
+
+Does mobile feel intentional?
+
+Does anything look like an AI template?
+
+If yes:
+
+fix it.
+
+==================================================
+FINAL TECHNICAL REVIEW
+==================================================
+
+Then look at it as an ENGINEER.
+
+Check:
+
+broken links
+broken routes
+console errors
+API errors
+missing images
+auth bugs
+inventory bugs
+cart bugs
+checkout bugs
+admin bugs
+mobile overflow
+race conditions where practical
+bad loading states
+missing validation
+unsafe endpoints
+
+Fix problems.
+
+==================================================
+FULL TEST FLOW — CUSTOMER
+==================================================
+
+Test:
+
+Homepage
+
+→ Shop
+
+→ Product
+
+→ choose size
+
+→ Add to Bag
+
+→ Cart
+
+→ Checkout
+
+→ Order creation using safe test flow
+
+→ Confirmation
+
+→ Tracking
+
+Verify each step.
+
+==================================================
+FULL TEST FLOW — ADMIN
+==================================================
+
+Test:
+
+Admin login
+
+→ Add product
+
+→ upload images
+
+→ variants
+
+→ inventory
+
+→ publish
+
+→ confirm product appears
+
+→ edit product
+
+→ change stock
+
+→ receive/view test order
+
+→ update status
+
+→ verify customer tracking reflects status
+
+→ Live Event
+
+→ update event
+
+→ verify storefront
+
+→ homepage editor
+
+→ change content
+
+→ verify storefront
+
+==================================================
+DO NOT FAKE SUCCESS
+==================================================
+
+If something cannot work because:
+
+API key is missing
+payment provider isn't configured
+email provider isn't configured
+external service is missing
+
+DO NOT fake it.
+
+Build the integration properly up to the configuration point.
+
+Then clearly identify what configuration is required.
+
+==================================================
+DO NOT DESTROY WORKING FEATURES
+==================================================
+
+This is a polish/production pass.
+
+Do not casually rewrite working backend systems.
+
+Make targeted improvements.
+
+Before large refactors:
+
+understand dependencies.
+
+==================================================
+CODE QUALITY
+==================================================
+
+Reduce unnecessary duplication.
+
+Use reusable components.
+
+Use clear naming.
+
+Remove dead UI code when safe.
+
+Keep separation between:
+
+UI
+business logic
+database
+authentication
+payments
+
+==================================================
+FINAL RESULT
+==================================================
+
+The completed project should feel like:
+
+IMAGINATE IS A REAL UAE STREETWEAR BRAND LAUNCHING A SERIOUS ONLINE STORE.
+
+A visitor should NOT think:
+
+"This was generated from a template."
+
+They should see:
+
+premium campaign imagery
+clean products
+smooth movement
+excellent mobile experience
+strong brand identity
+professional checkout
+professional account system
+
+And I should have:
+
+a powerful Admin dashboard
+inventory control
+product control
+order control
+homepage control
+LIVE event control
+support management
+customer management
+discount management
+newsletter management
+
+without editing code for normal store operations.
+
+==================================================
+FINAL INSTRUCTION
+==================================================
+
+START BY INSPECTING WHAT THE FIRST IMAGINATE REDESIGN ALREADY IMPLEMENTED.
+
+Make a short internal checklist of what is:
+
+COMPLETE
+PARTIAL
+MISSING
+BROKEN
+
+Then work through the missing/broken items systematically.
+
+DO NOT stop after making the homepage look better.
+
+This pass covers:
+
+STOREFRONT
+PRODUCTS
+CART
+CHECKOUT
+ACCOUNTS
+TRACKING
+LIVE EVENT
+ADMIN
+MOBILE
+ANIMATIONS
+SECURITY
+PERFORMANCE
+ACCESSIBILITY
+SEO
+FINAL QA
+
+When finished, run the project and test it again.
+
+Do not claim functionality works unless it actually works.
+
+The goal is a polished, functional, production-quality IMAGINATE ecommerce platform.

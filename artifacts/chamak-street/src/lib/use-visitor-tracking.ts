@@ -1,5 +1,5 @@
 /**
- * FirstPick — Visitor Tracking
+ * IMAGINATE — Visitor Tracking
  *
  * Provides:
  *  • useVisitorTracking() hook — call once at app root to initialise tracking

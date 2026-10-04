@@ -527,7 +527,7 @@ export default function AdminChatPage() {
                 <Video className="h-7 w-7" />
               </motion.div>
               <p className="mt-6 text-lg font-bold text-white">Ready to call your team?</p>
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">Start one secure room for every available FirstPick admin. The live call will open here with its participant panel and in-call chat.</p>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">Start one secure room for every available IMAGINATE admin. The live call will open here with its participant panel and in-call chat.</p>
               <motion.button whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.96 }} type="button" onClick={start} className="mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-[#ff6600] px-5 text-sm font-bold text-black transition-colors hover:bg-[#ff8126]">
                 <Video className="h-4 w-4" /> Start video call
               </motion.button>

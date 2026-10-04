@@ -77,7 +77,7 @@ export default function GiftCardsPage() {
               <span className="text-xs font-bold uppercase tracking-widest text-primary/70">Digital Gift Card</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight">
-              Give the Gift of <span className="text-primary">FirstPick</span>
+              Give the Gift of <span className="text-primary">IMAGINATE</span>
             </h1>
             <p className="text-white/40 text-sm mt-2 max-w-md mx-auto">
               A premium digital gift card — instantly delivered, never expires on what matters.
@@ -187,13 +187,13 @@ export default function GiftCardsPage() {
               {!me ? (
                 <div className="rounded-xl border border-white/10 p-4 text-center space-y-3"
                   style={{ background: "rgba(255,255,255,0.02)" }}>
-                  <p className="text-sm text-white/50">Sign in to purchase a FirstPick Gift Card</p>
+                  <p className="text-sm text-white/50">Sign in to purchase an IMAGINATE gift card</p>
                   <motion.button whileTap={{ scale: 0.97 }}
                     onClick={() => setLocation("/account/login?redirect=/gift-cards")}
                     style={{ touchAction: "manipulation" }}
                     className="w-full py-3 rounded-xl text-sm font-black uppercase tracking-wide text-white"
                     // @ts-ignore
-                    style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #ff6600, #ffaa00)" }}>
+                    style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #5b21b6, #a78bfa)" }}>
                     Sign In to Buy
                   </motion.button>
                 </div>
@@ -202,7 +202,7 @@ export default function GiftCardsPage() {
                   style={{ touchAction: "manipulation" }}
                   className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wide text-white flex items-center justify-center gap-2 disabled:opacity-60"
                   // @ts-ignore
-                  style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #ff6600, #ffaa00)", boxShadow: "0 8px 32px rgba(255,102,0,0.3)" }}>
+                  style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #5b21b6, #a78bfa)", boxShadow: "0 8px 32px rgba(124,58,237,0.3)" }}>
                   {loading ? (
                     <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
                   ) : (

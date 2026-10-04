@@ -32,9 +32,9 @@ type DeliveryOptionDef = {
 };
 
 const BASE_DELIVERY_OPTIONS: DeliveryOptionDef[] = [
-  { id: "standard", label: "Standard Delivery", detail: "2–4 business days", price: 25, icon: Truck, badge: null },
-  { id: "express",  label: "Express Delivery",  detail: "1–2 business days", price: 30, icon: Clock, badge: null },
-  { id: "priority", label: "FirstPick Priority", detail: "Same Day / Next Day", price: 40, icon: Zap, badge: "FASTEST" },
+  { id: "standard", label: "Standard Delivery", detail: "United Arab Emirates", price: 25, icon: Truck, badge: null },
+  { id: "express",  label: "Express Delivery",  detail: "United Arab Emirates", price: 30, icon: Clock, badge: null },
+  { id: "priority", label: "Priority Delivery", detail: "United Arab Emirates", price: 40, icon: Zap, badge: null },
 ];
 
 type DeliveryMethod = "standard" | "express" | "priority";

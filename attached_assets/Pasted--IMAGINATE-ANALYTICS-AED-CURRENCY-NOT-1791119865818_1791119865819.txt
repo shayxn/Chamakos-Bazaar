@@ -1,0 +1,1178 @@
+==========================================================
+IMAGINATE — ANALYTICS, AED CURRENCY & NOTIFICATION SYSTEM
+==========================================================
+
+Add the following systems to the EXISTING Imaginate project.
+
+DO NOT rebuild the website.
+DO NOT remove working functionality.
+DO NOT bring back FirstPick branding.
+
+These features should integrate into the existing Imaginate Admin and customer website.
+
+==========================================================
+CURRENCY — UAE DIRHAMS / AED
+==========================================================
+
+Imaginate is a UAE brand.
+
+The primary store currency is:
+
+AED — UAE DIRHAMS
+
+All customer-facing prices should use AED consistently.
+
+Examples:
+
+AED 119
+AED 149
+AED 299
+
+Admin analytics should also use AED.
+
+Examples:
+
+TODAY'S SALES
+AED 1,240
+
+TOTAL SALES
+AED 18,420
+
+AVERAGE ORDER VALUE
+AED 137
+
+Do NOT display:
+
+USD
+$
+EUR
+£
+
+unless a future currency-conversion feature is deliberately enabled by the Owner.
+
+Checkout, discounts, orders, analytics, refunds, delivery charges, product prices and Admin reports should all use AED.
+
+==========================================================
+ADMIN ANALYTICS
+==========================================================
+
+I want a REALLY GOOD ANALYTICS area inside Admin.
+
+Create:
+
+ADMIN
+→ ANALYTICS
+
+This should look premium and modern while remaining extremely easy to understand.
+
+Do NOT make it look like a complicated financial terminal.
+
+Use the Imaginate Admin design:
+
+Black
+Dark charcoal
+White
+Imaginate purple accents
+
+==========================================================
+ANALYTICS TOP BAR
+==========================================================
+
+At the top, create a beautiful analytics summary bar.
+
+Show important metrics such as:
+
+TOTAL SALES
+
+TODAY'S SALES
+
+ORDERS
+
+CUSTOMERS
+
+AVERAGE ORDER VALUE
+
+CONVERSION RATE
+
+PRODUCT VIEWS
+
+ADD TO CARTS
+
+PRE-ORDERS
+
+Use REAL data only.
+
+Do not create fake numbers.
+
+If no data exists:
+
+show 0 or a proper empty state.
+
+==========================================================
+ANALYTICS DATE RANGE
+==========================================================
+
+Allow Owner/Admin with Analytics permission to select:
+
+TODAY
+
+7 DAYS
+
+30 DAYS
+
+3 MONTHS
+
+6 MONTHS
+
+1 YEAR
+
+ALL TIME
+
+CUSTOM RANGE
+
+All charts and metrics should update to the selected period.
+
+==========================================================
+SALES CHART
+==========================================================
+
+Create a large beautiful chart showing sales over time.
+
+Y-axis:
+
+AED revenue.
+
+X-axis:
+
+time/date.
+
+Allow useful hover/tap information.
+
+Example:
+
+OCT 24
+
+SALES
+AED 1,320
+
+ORDERS
+9
+
+Keep charts smooth and readable.
+
+Do not overload them with animation.
+
+==========================================================
+ORDERS ANALYTICS
+==========================================================
+
+Show:
+
+TOTAL ORDERS
+
+COMPLETED
+
+PREPARING
+
+SHIPPED
+
+DELIVERED
+
+CANCELLED
+
+PRE-ORDERS
+
+Allow clicking relevant statistics to view matching orders.
+
+==========================================================
+PRODUCT ANALYTICS
+==========================================================
+
+Show:
+
+BEST SELLING PRODUCTS
+
+MOST VIEWED PRODUCTS
+
+MOST ADDED TO BAG
+
+LOW CONVERSION PRODUCTS
+
+SOLD OUT PRODUCTS
+
+LOW STOCK PRODUCTS
+
+For each:
+
+Image
+Product
+Views
+Orders
+Units Sold
+Revenue in AED
+
+==========================================================
+CUSTOMER ANALYTICS
+==========================================================
+
+Show useful information such as:
+
+NEW CUSTOMERS
+
+RETURNING CUSTOMERS
+
+TOTAL CUSTOMERS
+
+REPEAT PURCHASE RATE
+
+Only show metrics that can be calculated accurately from real data.
+
+==========================================================
+FUNNEL
+==========================================================
+
+Create a simple shopping funnel:
+
+PRODUCT VIEWS
+
+↓
+
+ADD TO BAG
+
+↓
+
+CHECKOUT STARTED
+
+↓
+
+ORDER COMPLETED
+
+Show percentages.
+
+This helps me understand where customers stop buying.
+
+==========================================================
+REAL-TIME / RECENT ACTIVITY
+==========================================================
+
+Where practical, create a recent activity area.
+
+Examples:
+
+NEW ORDER
+AED 149
+
+PRODUCT VIEWED
+
+PRODUCT ADDED TO BAG
+
+PRE-ORDER PLACED
+
+Do not expose sensitive customer information unnecessarily.
+
+Do not claim something is "live" unless the implementation genuinely supports real-time or near-real-time updates.
+
+==========================================================
+ANALYTICS PERFORMANCE
+==========================================================
+
+Analytics must NOT make the customer website slow.
+
+Customer interactions should be tracked efficiently.
+
+Analytics collection should never block:
+
+page loading
+Add to Bag
+checkout
+payment
+navigation
+
+==========================================================
+NOTIFICATION SYSTEM
+==========================================================
+
+Create a COMPLETE notification system for:
+
+1. ADMINS
+2. CUSTOMERS
+
+Use standards-based Web Push / PWA capabilities where supported.
+
+IMPORTANT:
+
+Do not fake notifications.
+
+Do not simply create visual notifications inside the website and claim they are device push notifications.
+
+Implement proper push notification infrastructure using:
+
+Service Worker
+Push API
+Notifications API
+secure HTTPS deployment
+server-side push subscription storage
+appropriate push credentials/keys
+
+If an external service/provider is needed, implement the correct integration point and explain what configuration is required.
+
+==========================================================
+PWA / HOME SCREEN SUPPORT
+==========================================================
+
+Configure Imaginate properly as an installable web app/PWA where supported.
+
+Include:
+
+Web App Manifest
+Imaginate name
+Imaginate icons
+Imaginate theme
+Imaginate splash/icon behavior where supported
+Service Worker
+HTTPS-compatible setup
+
+NO FIRSTPICK ICONS.
+
+NO FIRSTPICK NAME.
+
+NO ORANGE FIRSTPICK SPLASH SCREEN.
+
+The installed experience should be:
+
+IMAGINATE.
+
+==========================================================
+ADMIN NOTIFICATIONS
+==========================================================
+
+Create:
+
+ADMIN
+→ NOTIFICATIONS
+
+This page should contain:
+
+NOTIFICATION STATUS
+
+DEVICE SETUP
+
+ADMIN ALERT SETTINGS
+
+CUSTOMER NOTIFICATIONS
+
+SCHEDULED NOTIFICATIONS
+
+SENT NOTIFICATIONS
+
+==========================================================
+ADMIN DEVICE SETUP
+==========================================================
+
+When Admin opens Notifications, detect the current platform/browser where possible.
+
+If notifications are already enabled:
+
+Show:
+
+NOTIFICATIONS
+
+● ENABLED
+
+If not configured:
+
+show clear setup instructions.
+
+For iPhone/iPad when Home Screen installation is required, show something similar to:
+
+ENABLE IMAGINATE ADMIN NOTIFICATIONS
+
+1. Open this page in Safari.
+
+2. Tap the SHARE button.
+
+3. Tap ADD TO HOME SCREEN.
+
+4. Name it whatever you want, or keep "Imaginate".
+
+5. Tap ADD.
+
+6. Open Imaginate from your Home Screen.
+
+7. Return to:
+ADMIN → NOTIFICATIONS.
+
+8. Press:
+ALLOW NOTIFICATIONS.
+
+Then request permission from that explicit button press.
+
+Do NOT automatically trigger notification permission when the page loads.
+
+==========================================================
+OTHER DEVICES
+==========================================================
+
+If the current browser supports notifications without requiring Home Screen installation:
+
+do NOT show irrelevant iPhone instructions.
+
+Instead show the correct setup.
+
+Example:
+
+ENABLE NOTIFICATIONS
+
+[ ALLOW NOTIFICATIONS ]
+
+Use feature detection rather than assuming every device works identically.
+
+==========================================================
+ADMIN NOTIFICATION SETTINGS
+==========================================================
+
+Allow each Admin to choose which operational notifications they receive.
+
+Examples:
+
+NEW ORDER
+
+PRE-ORDER RECEIVED
+
+ORDER CANCELLED
+
+LOW STOCK
+
+PRODUCT SOLD OUT
+
+SUPPORT REQUEST
+
+RETURN REQUEST
+
+COUNTDOWN STARTING
+
+COUNTDOWN ENDED
+
+STORE OPENED
+
+STORE DISABLED
+
+Do not send every Admin every notification if they disabled that category.
+
+==========================================================
+NEW ORDER — ADMIN
+==========================================================
+
+When a real new order is successfully created:
+
+send authorized Admin devices a push notification if they enabled New Order alerts.
+
+Example:
+
+NEW IMAGINATE ORDER
+
+Order #IMG-1042
+AED 149
+
+Tap notification:
+
+open the correct order inside Admin after authentication.
+
+Do not expose private customer information on the lock screen unnecessarily.
+
+==========================================================
+LOW STOCK
+==========================================================
+
+Example:
+
+IMAGINATE — LOW STOCK
+
+Purple Hoodie / M has 4 remaining.
+
+Tap:
+
+open Inventory.
+
+==========================================================
+SOLD OUT
+==========================================================
+
+Example:
+
+IMAGINATE
+
+Purple Hoodie / L is now sold out.
+
+==========================================================
+SUPPORT
+==========================================================
+
+Example:
+
+NEW SUPPORT REQUEST
+
+A customer sent a new support request.
+
+Tap:
+
+open Support.
+
+==========================================================
+CUSTOMER NOTIFICATIONS
+==========================================================
+
+Customers should also be able to enable notifications.
+
+Do NOT force notifications.
+
+Do NOT immediately show an annoying browser permission popup when somebody first enters Imaginate.
+
+Instead create a tasteful prompt at an appropriate point:
+
+WANT NOTIFICATIONS?
+
+Get updates about your orders, drops, deals and Imaginate news.
+
+[ SET UP ]
+
+[ NOT NOW ]
+
+==========================================================
+CUSTOMER SETUP — iPHONE / iPAD
+==========================================================
+
+If the customer needs to install Imaginate to their Home Screen for web push:
+
+show a beautiful instruction screen.
+
+Example:
+
+GET IMAGINATE NOTIFICATIONS
+
+1. Tap SHARE in Safari.
+
+2. Tap ADD TO HOME SCREEN.
+
+3. Name it "Imaginate" or whatever you prefer.
+
+4. Tap ADD.
+
+5. Open Imaginate from your Home Screen.
+
+6. Come back here.
+
+7. Press ALLOW NOTIFICATIONS.
+
+Do not ask for permission until the customer explicitly presses the button.
+
+==========================================================
+RETURNING AFTER INSTALL
+==========================================================
+
+When they open the installed Imaginate web app:
+
+make it easy to continue setup.
+
+Show:
+
+YOU'RE ALMOST DONE.
+
+Enable notifications to receive Imaginate updates.
+
+[ ALLOW NOTIFICATIONS ]
+
+[ NOT NOW ]
+
+==========================================================
+FIRST SUCCESS NOTIFICATION
+==========================================================
+
+Immediately after push permission and subscription are successfully enabled, send ONE welcome/test notification.
+
+Title:
+
+IMAGINATE
+
+Message:
+
+Notifications are on! You'll receive updates about discounts, deals, and your current or future orders. Have fun!
+
+Do not repeatedly send this notification.
+
+Send it only when the notification setup is successfully completed for that subscription.
+
+==========================================================
+CUSTOMER NOTIFICATION SETTINGS
+==========================================================
+
+Create:
+
+ACCOUNT
+→ NOTIFICATIONS
+
+Allow customers to control:
+
+ORDER UPDATES
+ON/OFF
+
+DROPS & RELEASES
+ON/OFF
+
+DISCOUNTS & DEALS
+ON/OFF
+
+IMAGINATE NEWS
+ON/OFF
+
+Important transactional/order updates should be clearly distinguished from optional marketing notifications.
+
+Respect customer choices.
+
+==========================================================
+ORDER NOTIFICATION — ORDER PLACED
+==========================================================
+
+When a customer's order is successfully created:
+
+Title:
+
+THANKS FOR ORDERING!
+
+Message:
+
+We'll send you another notification soon regarding your order.
+
+Tap:
+
+open that customer's order/tracking page securely.
+
+==========================================================
+ORDER CONFIRMED
+==========================================================
+
+Title:
+
+ORDER CONFIRMED
+
+Message:
+
+Your Imaginate order has been confirmed. We're getting it ready.
+
+==========================================================
+PREPARING
+==========================================================
+
+Title:
+
+YOUR ORDER IS BEING PREPARED
+
+Message:
+
+We're preparing your Imaginate order.
+
+==========================================================
+SHIPPED
+==========================================================
+
+Title:
+
+YOUR ORDER HAS SHIPPED
+
+Message:
+
+Your Imaginate order is on the way.
+
+Tap:
+
+TRACK ORDER.
+
+==========================================================
+OUT FOR DELIVERY
+==========================================================
+
+Title:
+
+OUT FOR DELIVERY
+
+Message:
+
+Your Imaginate order is out for delivery.
+
+==========================================================
+DELIVERED
+==========================================================
+
+Title:
+
+DELIVERED
+
+Message:
+
+Your Imaginate order has been delivered. Enjoy it!
+
+==========================================================
+PRE-ORDER CONFIRMATION
+==========================================================
+
+Title:
+
+PRE-ORDER CONFIRMED
+
+Message:
+
+Your Imaginate pre-order is confirmed. We'll keep you updated.
+
+==========================================================
+ORDER DELAY
+==========================================================
+
+If Admin marks an order delayed:
+
+Title:
+
+ORDER UPDATE
+
+Message:
+
+There's an update regarding your Imaginate order. Tap to view the latest status.
+
+Do not expose unnecessary details on the lock screen.
+
+==========================================================
+CUSTOMER ORDER OWNERSHIP
+==========================================================
+
+CRITICAL:
+
+Only send order-specific notifications to the customer associated with that order.
+
+Never send Customer A information about Customer B's order.
+
+Subscriptions must be securely associated with the correct customer/device/session.
+
+==========================================================
+ADMIN — SEND CUSTOMER NOTIFICATION
+==========================================================
+
+Inside:
+
+ADMIN → NOTIFICATIONS
+
+create:
+
++ NEW NOTIFICATION
+
+Make this VERY EASY.
+
+Fields:
+
+NOTIFICATION NAME / TITLE
+
+Example:
+NEW DROP
+
+MESSAGE
+
+Example:
+The latest Imaginate hoodies are available now.
+
+SEND TO:
+
+All opted-in customers
+
+or optionally:
+
+Specific audience
+Customers
+Pre-order customers
+Selected segment if implemented safely
+
+LINK / DESTINATION
+optional
+
+Example:
+
+/shop
+
+WHEN SHOULD IT SEND?
+
+○ SEND NOW
+
+○ SCHEDULE
+
+If Schedule:
+
+DATE
+
+TIME
+
+TIMEZONE
+
+Then:
+
+PREVIEW
+
+SEND / SCHEDULE
+
+==========================================================
+NOTIFICATION PREVIEW
+==========================================================
+
+Before sending:
+
+show a phone-style preview.
+
+Example:
+
+IMAGINATE
+
+NEW DROP
+
+The latest Imaginate hoodies are available now.
+
+Admin then presses:
+
+SEND NOW
+
+or:
+
+SCHEDULE
+
+==========================================================
+SEND CONFIRMATION
+==========================================================
+
+Before a broadcast notification goes to many customers:
+
+require confirmation.
+
+Example:
+
+SEND NOTIFICATION?
+
+This will be sent to 248 opted-in customers.
+
+[ CANCEL ]
+
+[ SEND ]
+
+Do not make it easy to accidentally send a push to every customer.
+
+==========================================================
+SCHEDULED NOTIFICATIONS
+==========================================================
+
+ADMIN → NOTIFICATIONS → SCHEDULED
+
+Show:
+
+Title
+Audience
+Date
+Time
+Status
+
+Admin can:
+
+EDIT
+
+CANCEL
+
+DUPLICATE
+
+==========================================================
+SENT NOTIFICATIONS
+==========================================================
+
+Create history:
+
+Title
+Message
+Audience
+Sent time
+Sent by
+Delivered count if provider/API supports accurate delivery information
+
+Do NOT invent delivery/open statistics if they are unavailable.
+
+==========================================================
+NOTIFICATION ANALYTICS
+==========================================================
+
+If accurately available, show:
+
+SENT
+
+DELIVERED
+
+OPENED
+
+CLICKED
+
+If the infrastructure cannot reliably determine one of these:
+
+do not fake it.
+
+==========================================================
+DISCOUNT NOTIFICATIONS
+==========================================================
+
+Admin could create:
+
+Title:
+
+20% OFF TODAY
+
+Message:
+
+A new Imaginate deal just dropped. Shop before it ends.
+
+Destination:
+
+specific sale/category/product.
+
+Only send marketing pushes to customers who opted into deals/marketing notifications.
+
+==========================================================
+DROP NOTIFICATIONS
+==========================================================
+
+Example:
+
+IMAGINATE
+
+THE DROP IS LIVE.
+
+Tap to shop.
+
+==========================================================
+COUNTDOWN NOTIFICATIONS
+==========================================================
+
+Admin may optionally schedule:
+
+IMAGINATE
+
+1 HOUR TO GO.
+
+or:
+
+IMAGINATE
+
+THE COUNTDOWN HAS BEGUN.
+
+Do NOT automatically spam these.
+
+Admin decides whether they are enabled/scheduled.
+
+==========================================================
+NOTIFICATION DEEP LINKS
+==========================================================
+
+Tapping notifications should take the user somewhere useful.
+
+Examples:
+
+Order notification
+→ secure order tracking
+
+Drop
+→ product/collection
+
+Deal
+→ sale/product
+
+Countdown
+→ countdown
+
+Support Admin notification
+→ Admin support ticket
+
+New order Admin notification
+→ Admin order
+
+==========================================================
+NOTIFICATION ICON
+==========================================================
+
+Use the proper Imaginate notification/app icon where supported.
+
+NO FIRSTPICK.
+
+NO ORANGE.
+
+==========================================================
+PERMISSION DENIED
+==========================================================
+
+If someone denies notifications:
+
+do not repeatedly nag them.
+
+Show in settings:
+
+NOTIFICATIONS DISABLED
+
+with appropriate instructions if browser/device settings must be changed manually.
+
+Do not pretend the website can override a browser-level denial.
+
+==========================================================
+UNSUBSCRIBE / DISABLE
+==========================================================
+
+Customers must be able to disable optional push categories easily.
+
+Admins must be able to disable their Admin notifications.
+
+Remove/expire invalid push subscriptions appropriately.
+
+==========================================================
+PRIVACY
+==========================================================
+
+Push subscriptions are sensitive operational data.
+
+Store them securely.
+
+Do not expose subscription endpoints publicly.
+
+Do not expose one customer's subscription to another.
+
+Do not use notifications for unrelated spam.
+
+==========================================================
+ADMIN NOTIFICATION CREATION SHOULD FEEL THIS SIMPLE
+==========================================================
+
+ADMIN
+
+↓
+
+NOTIFICATIONS
+
+↓
+
++ NEW NOTIFICATION
+
+↓
+
+TITLE
+
+↓
+
+MESSAGE
+
+↓
+
+WHO GETS IT?
+
+↓
+
+WHEN?
+
+↓
+
+PREVIEW
+
+↓
+
+SEND
+
+DONE.
+
+Do not make sending a normal notification complicated.
+
+==========================================================
+FINAL TESTING
+==========================================================
+
+Test:
+
+Admin PWA installation.
+
+Customer PWA installation.
+
+iPhone/iPad instructions.
+
+Supported desktop/browser permission flow.
+
+Allow Notifications.
+
+Deny Notifications.
+
+Welcome notification.
+
+New order Admin notification.
+
+Customer order confirmation notification.
+
+Preparing notification.
+
+Shipped notification.
+
+Out for delivery notification.
+
+Delivered notification.
+
+Pre-order notification.
+
+Low-stock Admin notification.
+
+Manual Admin broadcast.
+
+Scheduled broadcast.
+
+Cancel scheduled notification.
+
+Notification deep links.
+
+Marketing opt-out.
+
+Order notification privacy.
+
+Multiple customer accounts.
+
+Expired subscriptions.
+
+No notification permission.
+
+==========================================================
+FINAL RESULT
+==========================================================
+
+Imaginate Admin should now have a beautiful ANALYTICS system using AED/dirhams.
+
+It should also have a complete NOTIFICATIONS section.
+
+Admins can receive operational notifications.
+
+Customers can choose to receive notifications.
+
+Customers can receive automatic updates about their OWN orders.
+
+Admins can create and schedule Imaginate notifications for opted-in customers.
+
+The setup experience should clearly guide iPhone/iPad customers through:
+
+SHARE
+→ ADD TO HOME SCREEN
+→ OPEN IMAGINATE
+→ ALLOW NOTIFICATIONS
+
+when that flow is required.
+
+Everything must use:
+
+IMAGINATE branding.
+
+BLACK.
+
+WHITE.
+
+IMAGINATE PURPLE.
+
+AED.
+
+Absolutely no FirstPick branding or orange FirstPick styling.

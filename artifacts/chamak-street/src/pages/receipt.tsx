@@ -9,7 +9,7 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 const DELIVERY_LABEL: Record<string, string> = {
   standard: "Standard Delivery (2–4 days)",
   express: "Express Delivery (1–2 days)",
-  priority: "FirstPick Priority (Same/Next Day)",
+  priority: "Priority Delivery",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -325,13 +325,13 @@ function ReceiptContent({
       {/* Footer */}
       <div style={{ paddingTop: "24px", borderTop: `1px solid ${borderColor}`, textAlign: "center" }}>
         <div style={{ fontWeight: 900, fontSize: "13px", color: accentColor, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "6px" }}>
-          Thank you for shopping with FirstPick!
+          Thank you for shopping with IMAGINATE.
         </div>
         <div style={{ fontSize: "11px", color: mutedColor }}>
-          Questions? Reach us on WhatsApp or Instagram @firstpick.ae
+          Questions? Visit Support for help with your order.
         </div>
         <div style={{ fontSize: "10px", color: mutedColor, marginTop: "16px", opacity: 0.6 }}>
-          FirstPick · Dubai, UAE · Generated {new Date().toLocaleDateString("en-AE")}
+          IMAGINATE · UAE · Generated {new Date().toLocaleDateString("en-AE")}
         </div>
       </div>
     </div>

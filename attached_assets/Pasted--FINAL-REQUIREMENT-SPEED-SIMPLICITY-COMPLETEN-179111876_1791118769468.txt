@@ -1,0 +1,628 @@
+==================================================
+FINAL REQUIREMENT — SPEED, SIMPLICITY & COMPLETENESS
+==================================================
+
+This requirement is EXTREMELY IMPORTANT.
+
+Imaginate must look visually impressive, but PERFORMANCE AND EASE OF USE COME FIRST.
+
+I do NOT want a website that looks amazing but is:
+
+slow
+laggy
+confusing
+difficult to navigate
+over-animated
+heavy
+unresponsive
+hard to shop on
+hard to manage from Admin
+
+The finished website should feel FAST, SMOOTH, SIMPLE and PREMIUM.
+
+==================================================
+PERFORMANCE
+==================================================
+
+Optimize the entire website for speed.
+
+Audit every page for unnecessary:
+
+JavaScript
+libraries
+animations
+API calls
+database queries
+large images
+large videos
+fonts
+background effects
+DOM elements
+
+Remove or optimize anything that unnecessarily slows down the website.
+
+Do not install a huge library just to create one simple effect if the same result can be achieved efficiently.
+
+Use lightweight CSS animations where appropriate.
+
+Use GPU-friendly transform and opacity animations.
+
+Avoid expensive continuous blur, filters, shadows and scroll calculations.
+
+Animations should NEVER make scrolling lag.
+
+Target smooth scrolling and approximately 60fps animation on capable devices.
+
+==================================================
+IMAGES
+==================================================
+
+Product images must remain high quality while loading efficiently.
+
+Use:
+
+responsive image sizes
+modern image formats where appropriate
+lazy loading below the fold
+proper image dimensions
+compression without visibly destroying quality
+preloading only where genuinely useful
+
+Do NOT download enormous desktop images when a customer is using a phone.
+
+Prevent layout shifts while images load.
+
+==================================================
+VIDEO
+==================================================
+
+Campaign videos must be optimized.
+
+Do not load enormous video files unnecessarily.
+
+Use:
+
+compressed web-friendly formats
+poster images
+mobile-appropriate versions where possible
+lazy loading when appropriate
+
+A decorative video must NEVER make the entire store slow.
+
+If necessary, prioritize performance over an unnecessary video effect.
+
+==================================================
+ANIMATIONS
+==================================================
+
+Keep the premium Imaginate animations, but make them efficient.
+
+If an animation causes noticeable lag:
+
+OPTIMIZE IT.
+
+If it still causes lag:
+
+SIMPLIFY IT.
+
+If it still causes lag:
+
+REMOVE IT.
+
+Performance is more important than showing off an animation.
+
+==================================================
+FAST NAVIGATION
+==================================================
+
+Navigation should feel immediate.
+
+When customers click:
+
+SHOP
+PRODUCT
+CART
+ACCOUNT
+SEARCH
+TRACK ORDER
+
+the website should respond immediately.
+
+Show a proper loading state if data genuinely takes time to load.
+
+Never leave the customer wondering whether their click worked.
+
+==================================================
+FAST CART
+==================================================
+
+ADD TO BAG should feel nearly instant.
+
+Quantity changes should feel immediate.
+
+Opening the cart should be smooth.
+
+Do not unnecessarily reload the entire page.
+
+Do not make customers wait for animations before interacting.
+
+==================================================
+FAST CHECKOUT
+==================================================
+
+Checkout is one of the most important parts of the website.
+
+Keep it SIMPLE.
+
+Do not add unnecessary screens.
+
+Do not ask customers for information we do not need.
+
+Make forms easy to complete on a phone.
+
+Use appropriate autofill/autocomplete attributes.
+
+Clearly show:
+
+what they are buying
+quantity
+delivery
+discount
+total
+payment method
+
+Do not hide important information.
+
+==================================================
+EASY TO USE
+==================================================
+
+A new customer should understand the website immediately without instructions.
+
+They should be able to:
+
+find a product
+see the price
+choose a size
+add it to their bag
+checkout
+track their order
+contact support
+
+without confusion.
+
+Do not sacrifice usability for unusual design.
+
+==================================================
+NO ANNOYING UI
+==================================================
+
+Do NOT create:
+
+constant popups
+unnecessary confirmation screens
+excessive newsletter popups
+multiple overlays at once
+confusing navigation
+tiny buttons
+hidden important controls
+animations that prevent clicking
+long loading intros
+scroll hijacking
+fake loading screens
+
+The website should feel premium because it is SIMPLE and polished.
+
+==================================================
+ADMIN MUST ALSO BE FAST
+==================================================
+
+The Admin dashboard must be extremely practical.
+
+I should be able to quickly:
+
+add a product
+edit a product
+upload photos
+change a price
+change stock
+see orders
+process an order
+change delivery status
+manage customers
+create discounts
+edit homepage content
+control the LIVE event
+read support requests
+manage newsletter subscribers
+change website settings
+
+Do not bury common actions under five menus.
+
+Important actions should be easy to find.
+
+==================================================
+ADMIN PRODUCT CREATION
+==================================================
+
+Adding a product should be straightforward.
+
+I should be able to enter:
+
+Name
+Price
+Description
+Category
+Images/video
+Colors
+Sizes
+Stock
+SKU
+Status
+Size guide
+
+and publish.
+
+Do not require unnecessary technical information.
+
+==================================================
+ADMIN ORDER PROCESSING
+==================================================
+
+When an order arrives, I should immediately understand:
+
+WHO ordered
+WHAT they ordered
+SIZE
+COLOR
+QUANTITY
+HOW MUCH they paid
+PAYMENT STATUS
+WHERE it needs to go
+CURRENT ORDER STATUS
+
+Updating the order should require only a few clicks.
+
+==================================================
+DATABASE PERFORMANCE
+==================================================
+
+Review database access.
+
+Avoid:
+
+N+1 queries
+repeated identical queries
+loading entire tables unnecessarily
+unindexed searches on important large datasets
+fetching information that the page does not need
+
+Use pagination where appropriate.
+
+Optimize commonly used queries.
+
+Do not over-engineer for millions of customers, but build the foundation correctly.
+
+==================================================
+API PERFORMANCE
+==================================================
+
+Do not repeatedly request the same information unnecessarily.
+
+Cache safe public information where appropriate.
+
+Do NOT cache sensitive customer information incorrectly.
+
+Do not expose secrets through API responses.
+
+Keep responses focused on the data the page actually needs.
+
+==================================================
+MOBILE PERFORMANCE
+==================================================
+
+PRIORITIZE MOBILE.
+
+Many Imaginate customers will arrive from social media using phones.
+
+Test the website on slower/mobile conditions.
+
+The mobile website should not feel like a reduced desktop website.
+
+Optimize:
+
+images
+videos
+navigation
+animations
+product gallery
+cart
+checkout
+
+specifically for phones.
+
+==================================================
+SLOW CONNECTIONS
+==================================================
+
+The website should remain usable on slower connections.
+
+Show useful loading states.
+
+Load important information before decorative content.
+
+Product:
+
+name
+price
+image
+size
+Add to Bag
+
+is more important than a decorative background animation.
+
+==================================================
+NO BROKEN BUTTONS
+==================================================
+
+Audit EVERY interactive element.
+
+Every:
+
+button
+link
+menu item
+product
+filter
+size selector
+Add to Bag
+checkout button
+account button
+search control
+tracking control
+Admin action
+
+must either work correctly or intentionally be disabled with a clear reason.
+
+There should be NO buttons that do nothing.
+
+==================================================
+EVERYTHING THE STORE NEEDS
+==================================================
+
+Before considering Imaginate complete, verify that the store has everything required for normal operation.
+
+CUSTOMER SIDE:
+
+Home
+Shop
+Collections/categories
+Product pages
+Product gallery
+Size selection
+Color selection
+Size guide
+Inventory availability
+Search
+Filters
+Sorting
+Cart
+Quantity controls
+Checkout
+Order confirmation
+Order tracking
+Customer accounts
+Saved products/wishlist
+Support/contact
+Shipping information
+Returns information
+About Imaginate
+Privacy Policy
+Terms
+Newsletter
+Coming Soon products
+Sold Out products
+Notify Me
+LIVE event/countdown
+Responsive mobile navigation
+Footer
+Social links
+
+ADMIN SIDE:
+
+Secure login
+Dashboard
+Sales information
+Orders
+Order details
+Order status management
+Products
+Add product
+Edit product
+Archive/delete product
+Product media
+Categories
+Collections
+Variants
+Sizes
+Colors
+Inventory
+Low-stock warnings
+Customers
+Discount codes
+Homepage editor
+LIVE event controls
+Announcement bar
+Media library
+Support tickets
+Newsletter subscribers
+Shipping settings
+Returns settings
+Store settings
+Logo/favicon
+Social links
+SEO controls
+
+SYSTEM SIDE:
+
+Authentication
+Authorization
+Secure Admin
+Database
+Inventory validation
+Order creation
+Payment integration structure
+Discount validation
+Order status history
+Responsive design
+Error handling
+Loading states
+Security
+Performance
+SEO
+Accessibility
+Analytics integration support
+Transactional email integration support
+
+If an essential ecommerce feature is missing, IMPLEMENT IT.
+
+If it requires an external service/API/account that I have not configured, build the correct integration point and tell me what needs to be connected.
+
+DO NOT fake external services.
+
+==================================================
+SIMPLIFY WHERE POSSIBLE
+==================================================
+
+Do not confuse "more features" with "better."
+
+If two features accomplish essentially the same thing, simplify them.
+
+Every feature should have a reason to exist.
+
+The customer-facing website should remain extremely clean even though the backend/Admin is powerful.
+
+==================================================
+REAL DEVICE TESTING
+==================================================
+
+Test responsive layouts at common desktop, tablet and phone sizes.
+
+Pay special attention to iPhone-sized screens.
+
+Test:
+
+portrait
+landscape where relevant
+touch interaction
+keyboard opening over forms
+mobile navigation
+product gallery
+cart
+checkout
+
+Make sure fixed/sticky elements do not cover important controls.
+
+==================================================
+PERFORMANCE TEST
+==================================================
+
+Run an actual performance audit using the tools available in this environment.
+
+Look for:
+
+slow initial loading
+large assets
+render-blocking resources
+layout shifts
+slow interactions
+unnecessary JavaScript
+memory-heavy effects
+
+Fix meaningful issues instead of merely reporting them.
+
+==================================================
+FINAL SIMPLICITY TEST
+==================================================
+
+Pretend you are a customer who has NEVER heard of Imaginate.
+
+Can you enter the website and buy a hoodie without needing instructions?
+
+If not:
+
+simplify it.
+
+Pretend you are the store owner receiving 20 orders.
+
+Can you quickly see what needs to be packed and update each order?
+
+If not:
+
+simplify Admin.
+
+==================================================
+FINAL COMPLETENESS AUDIT
+==================================================
+
+Before saying the project is finished:
+
+Go through the ENTIRE website.
+
+Create an internal checklist of every page and major feature.
+
+Mark each:
+
+WORKING
+BROKEN
+MISSING
+NEEDS IMPROVEMENT
+
+Fix everything marked BROKEN.
+
+Implement essential things marked MISSING.
+
+Improve important things marked NEEDS IMPROVEMENT.
+
+Then test again.
+
+Do NOT simply tell me what is wrong.
+
+FIX what you can.
+
+==================================================
+FINAL PRIORITY ORDER
+==================================================
+
+If there is ever a conflict between priorities, use this order:
+
+1. SECURITY
+2. CHECKOUT / ORDER CORRECTNESS
+3. USABILITY
+4. PERFORMANCE
+5. MOBILE EXPERIENCE
+6. RELIABILITY
+7. VISUAL QUALITY
+8. ANIMATION
+
+The website can still look incredible.
+
+But Imaginate should NEVER sacrifice a customer's ability to easily buy something just to create a visual effect.
+
+FINAL GOAL:
+
+I want Imaginate to feel FAST.
+
+I want Imaginate to feel EASY.
+
+I want Imaginate to feel PREMIUM.
+
+I want Imaginate to feel PROFESSIONAL.
+
+I want customers to immediately understand how to shop.
+
+I want Admin to be simple enough that I can manage the store without touching code.
+
+And I want the website to contain everything genuinely necessary to run Imaginate as a real ecommerce clothing brand.
+
+Do a complete final audit and make sure that is true before considering the project finished.

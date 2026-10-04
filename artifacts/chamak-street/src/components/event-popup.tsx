@@ -27,7 +27,7 @@ export function EventPopup() {
 
   if (!currentEvent) return null;
 
-  const color = currentEvent.bannerColor || "#ff6600";
+  const color = currentEvent.bannerColor || "#7c3aed";
   const textColor = currentEvent.textColor || "#ffffff";
 
   return (

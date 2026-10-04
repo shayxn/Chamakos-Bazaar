@@ -31,7 +31,7 @@ function NotificationDeniedBanner({ onDismiss }: { onDismiss: () => void }) {
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   const isMac = /macintosh/i.test(navigator.userAgent);
 
-  let instructions = "Open your browser settings → find FirstPick → set Notifications to Allow.";
+  let instructions = "Open your browser settings → find IMAGINATE → set Notifications to Allow.";
   if (isIOS) {
     instructions = "On iPhone/iPad: Open the Settings app → scroll to Safari → Advanced → Website Data, or add this site to your Home Screen first, then enable Notifications.";
   } else if (isSafari && isMac) {
@@ -361,7 +361,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     const timer = window.setTimeout(() => {
-      toast({ title: `Welcome back, ${user.username}`, description: "Your FirstPick workspace is ready." });
+      toast({ title: `Welcome back, ${user.username}`, description: "Your IMAGINATE workspace is ready." });
     }, 450);
     return () => window.clearTimeout(timer);
   }, [user?.id, user?.isAdmin, user?.username, toast]);
@@ -382,12 +382,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 rounded-full border-2 border-transparent border-t-orange-500"
+              className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary"
             />
             <motion.div
               animate={{ rotate: -360 }}
               transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-1.5 rounded-full border border-transparent border-t-yellow-400"
+              className="absolute inset-1.5 rounded-full border border-transparent border-t-violet-300"
             />
           </div>
           <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">Loading…</p>
@@ -404,7 +404,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
     { href: "/admin/products", label: "Products", icon: Package },
-    { href: "/admin/basics", label: "FP Basics", icon: Layers },
+    { href: "/admin/basics", label: "Basics", icon: Layers },
     { href: "/admin/categories", label: "Categories", icon: Tag },
     { href: "/admin/visitors", label: "Live Customers", icon: Users },
     { href: "/admin/chat", label: "Chats", icon: MessageCircle },
@@ -438,7 +438,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg, #ff6600, #ffcc00)" }}>
+              style={{ background: "linear-gradient(135deg, #5b21b6, #a78bfa)" }}>
                   <BellRing className="h-5 w-5 text-white" />
                 </div>
                 <div className="space-y-1 min-w-0">
@@ -559,14 +559,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <div className="flex items-center justify-between px-5 pb-4 pt-[max(1.25rem,env(safe-area-inset-top))]">
                 <div className="flex items-center gap-2.5">
-                  <div className="text-orange-500">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14 2L4 14H13L11 22L21 10H12L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
+                  <img src="/imaginate-icon-192.png" alt="" className="h-8 w-8 object-contain" />
                   <div className="leading-none">
-                    <div className="text-sm font-bold tracking-wide text-white">FIRSTPICK</div>
-                    <div className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#ff6600]">Admin</div>
+                    <div className="text-sm font-bold tracking-wide text-white">IMAGINATE</div>
+                    <div className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a78bfa]">Admin</div>
                   </div>
                 </div>
                 <button type="button" onClick={() => setMobileNavOpen(false)} className="rounded-lg p-2 text-gray-400 hover:bg-[#161616] hover:text-white" aria-label="Close menu">
@@ -586,7 +582,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link key={link.href} href={link.href}>
                       <div
                         onClick={() => setMobileNavOpen(false)}
-                        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-medium transition-colors ${active ? "bg-[#ff6600]/10 text-[#ff6600]" : "text-gray-400 hover:bg-[#111] hover:text-gray-200"}`}
+                        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-medium transition-colors ${active ? "bg-[#7c3aed]/10 text-[#c4b5fd]" : "text-gray-400 hover:bg-[#111] hover:text-gray-200"}`}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         <span>{link.label}</span>
@@ -596,7 +592,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 })}
               </nav>
               <button type="button" onClick={() => { setMobileNavOpen(false); setShowSessions(true); }} className="m-4 flex items-center gap-3 rounded-xl border border-[#222] bg-[#111] px-3 py-3 text-left">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500/20 text-xs font-bold text-orange-500">{user.username.slice(0, 2).toUpperCase()}</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/15 text-xs font-bold text-violet-200">{user.username.slice(0, 2).toUpperCase()}</span>
                 <span><span className="block text-xs font-bold text-white">{user.username}</span><span className="block text-[10px] text-gray-500">Manage devices</span></span>
               </button>
             </motion.aside>
@@ -630,14 +626,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Header */}
         <div className="p-5 pb-4">
           <div className="flex items-center gap-2.5 mb-6">
-            <div className="text-orange-500">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14 2L4 14H13L11 22L21 10H12L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+            <img src="/imaginate-icon-192.png" alt="" className="h-8 w-8 object-contain" />
             <div className="leading-none">
-              <div className="text-white font-bold text-sm tracking-wide">FIRSTPICK</div>
-              <div className="text-[#ff6600] text-[9px] font-bold tracking-[0.2em] uppercase mt-0.5">Admin</div>
+              <div className="text-white font-bold text-sm tracking-wide">IMAGINATE</div>
+              <div className="text-[#a78bfa] text-[9px] font-bold tracking-[0.2em] uppercase mt-0.5">Admin</div>
             </div>
             <a href="/" target="_blank" rel="noopener noreferrer" className="ml-auto text-gray-500 hover:text-white transition-colors">
               <Globe className="w-4 h-4" />
@@ -664,7 +656,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link key={link.href} href={link.href}>
                 <div
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wide cursor-pointer transition-colors ${
-                    isActive ? "text-[#ff6600] bg-[#ff6600]/10" : "text-gray-400 hover:text-gray-200 hover:bg-[#111]"
+                    isActive ? "text-[#c4b5fd] bg-[#7c3aed]/10" : "text-gray-400 hover:text-gray-200 hover:bg-[#111]"
                   }`}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
@@ -679,7 +671,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-4 border-t border-[#1a1a1a]">
           <div className="flex items-center justify-between cursor-pointer hover:bg-[#111] p-2 -mx-2 rounded-xl transition-colors" onClick={() => setShowSessions(true)}>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-xs">
+              <div className="w-8 h-8 rounded-full bg-violet-500/15 text-violet-200 flex items-center justify-center font-bold text-xs">
                 {user.username.slice(0, 2).toUpperCase()}
               </div>
               <div>

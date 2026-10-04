@@ -61,8 +61,8 @@ function NotificationOnboarding({ customer }: { customer: Customer }) {
 
       // Send welcome notification via service worker
       const reg2 = await navigator.serviceWorker.ready;
-      reg2.showNotification("FirstPick 🔔", {
-        body: "Notifications are on!\nWe'll keep you updated on your orders, deliveries, exclusive drops, and important FirstPick updates.",
+      reg2.showNotification("IMAGINATE", {
+        body: "Notifications are on. We’ll keep you updated about your orders and account.",
         icon: "/icon-192.png",
         badge: "/icon-192.png",
       });
@@ -90,7 +90,7 @@ function NotificationOnboarding({ customer }: { customer: Customer }) {
                 <Smartphone className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="font-black text-sm">Add FirstPick to your Home Screen</p>
+                <p className="font-black text-sm">Add IMAGINATE to your Home Screen</p>
                 <p className="text-xs text-muted-foreground mt-0.5">For the best experience and order notifications, add us to your home screen first.</p>
               </div>
             </div>
@@ -99,7 +99,7 @@ function NotificationOnboarding({ customer }: { customer: Customer }) {
                 { n: "1", t: 'Tap the Share button (⬆️) at the bottom of Safari' },
                 { n: "2", t: 'Scroll down and tap "Add to Home Screen"' },
                 { n: "3", t: 'Tap "Add" in the top right corner' },
-                { n: "4", t: 'Open FirstPick from your Home Screen' },
+                { n: "4", t: "Open IMAGINATE from your Home Screen" },
               ].map(s => (
                 <div key={s.n} className="flex items-start gap-2.5">
                   <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">{s.n}</span>
@@ -150,8 +150,8 @@ const STATUS_STYLE: Record<string, { cls: string; label: string; dot: string }> 
   confirmed:        { cls: "text-blue-400 bg-blue-500/10 border-blue-500/30",        label: "Confirmed",        dot: "#60a5fa" },
   preparing:        { cls: "text-purple-400 bg-purple-500/10 border-purple-500/30",  label: "Preparing",        dot: "#c084fc" },
   packed:           { cls: "text-purple-400 bg-purple-500/10 border-purple-500/30",  label: "Packed",           dot: "#c084fc" },
-  shipped:          { cls: "text-primary bg-primary/10 border-primary/30",           label: "Shipped",          dot: "#ff6600" },
-  out_for_delivery: { cls: "text-orange-400 bg-orange-500/10 border-orange-500/30",  label: "Out for Delivery", dot: "#fb923c" },
+  shipped:          { cls: "text-primary bg-primary/10 border-primary/30",           label: "Shipped",          dot: "#7c3aed" },
+  out_for_delivery: { cls: "text-violet-300 bg-violet-500/10 border-violet-400/30",  label: "Out for Delivery", dot: "#a78bfa" },
   delivered:        { cls: "text-green-400 bg-green-500/10 border-green-500/30",     label: "Delivered",        dot: "#4ade80" },
   cancelled:        { cls: "text-red-400 bg-red-500/10 border-red-500/30",           label: "Cancelled",        dot: "#f87171" },
 };

@@ -1,0 +1,1776 @@
+PROJECT: COMPLETE FIRSTPICK → IMAGINATE REDESIGN
+
+I already have an existing project called FirstPick. I want you to transform/redesign this existing project into my new UAE clothing/streetwear brand called IMAGINATE.
+
+IMPORTANT:
+DO NOT make this look like a generic AI-generated ecommerce website.
+DO NOT simply change the FirstPick name to Imaginate.
+DO NOT just recolor the existing website.
+This is a COMPLETE visual and structural redesign.
+
+Keep useful working backend systems, database logic, authentication, product/order infrastructure, admin functionality, routing, and other functional code from FirstPick where appropriate, but completely redesign the customer-facing experience and update the admin system for Imaginate.
+
+Before deleting working functionality, inspect the existing FirstPick project and understand what it does. Reuse solid functionality instead of unnecessarily rebuilding everything.
+
+==================================================
+BRAND
+==================================================
+
+Brand name:
+IMAGINATE
+
+Imaginate is a UAE-based clothing/streetwear brand.
+
+The website should feel premium, cinematic, minimal, futuristic and extremely polished.
+
+PRIMARY VISUAL DIRECTION:
+
+- Black
+- Very dark charcoal
+- White
+- Purple as the main accent
+- Occasional purple glow
+- Premium typography
+- Large photography
+- Lots of controlled negative space
+- Smooth animation
+- Subtle glass effects where appropriate
+
+The website should feel like a combination of:
+
+- premium fashion campaign
+- Apple-level product presentation
+- modern streetwear
+- cinematic product advertising
+- high-end ecommerce
+
+DO NOT make it look like:
+- a gaming website
+- a crypto website
+- a neon cyberpunk template
+- a dropshipping website
+- a generic Shopify template
+- an AI startup
+- a cheap marketplace
+- the old FirstPick website
+
+Purple should be an ACCENT.
+
+Do not cover everything in purple gradients.
+
+Most backgrounds should be true black or extremely dark charcoal.
+
+==================================================
+NEW LOGO
+==================================================
+
+I will provide the NEW IMAGINATE LOGO.
+
+Remove the FirstPick logo and FirstPick branding everywhere.
+
+Replace it with the supplied Imaginate logo.
+
+Do not attempt to redraw, regenerate, reinterpret or modify my logo.
+
+Use the exact supplied logo asset.
+
+Make sure the logo remains sharp and correctly proportioned.
+
+If different versions are needed for dark/light backgrounds, use appropriate supplied assets or CSS treatment WITHOUT changing the logo design itself.
+
+==================================================
+GLOBAL EXPERIENCE
+==================================================
+
+The site must feel extremely smooth.
+
+Desktop AND mobile must both feel intentionally designed.
+
+Do not design desktop first and simply stack everything vertically on mobile.
+
+Build a real responsive experience.
+
+Animations should run smoothly at 60fps where possible.
+
+Use GPU-friendly transforms and opacity animations.
+
+Avoid unnecessary heavy animation libraries if CSS/Framer Motion can accomplish the same effect efficiently.
+
+Animations should feel expensive rather than excessive.
+
+Examples:
+
+- smooth page transitions
+- image reveals
+- masked text reveals
+- subtle parallax
+- hover movement
+- scale transitions
+- product image crossfades
+- smooth drawers
+- smooth cart animations
+- magnetic-feeling buttons where appropriate
+- subtle purple glow responding to hover
+- animated navigation
+- scroll-triggered sections
+- elegant loading states
+
+DO NOT animate every single element.
+
+The website should still feel calm and premium.
+
+==================================================
+PRELOADER
+==================================================
+
+Create a short premium loading sequence.
+
+Black screen.
+
+Imaginate logo appears in the center.
+
+Very subtle purple light/glow passes behind it.
+
+Loading completes.
+
+Logo slightly scales/fades.
+
+Homepage reveals smoothly.
+
+Keep this short.
+
+Do NOT make customers sit through a long intro every time they visit.
+
+==================================================
+NAVIGATION
+==================================================
+
+Desktop navigation:
+
+LEFT:
+Imaginate logo
+
+CENTER:
+SHOP
+NEW
+HOODIES
+ABOUT
+
+RIGHT:
+SEARCH
+ACCOUNT
+BAG
+
+Keep navigation minimal.
+
+Transparent over hero initially.
+
+As the user scrolls, transition it into a slightly blurred dark/glass navigation bar.
+
+Do not make the glass effect excessively transparent.
+
+Navigation must remain readable.
+
+Mobile:
+
+Imaginate logo
+Bag icon
+Menu button
+
+Menu opens as a premium full-screen black overlay.
+
+Menu links should animate in individually.
+
+Include:
+
+SHOP
+NEW
+HOODIES
+ABOUT
+ACCOUNT
+SUPPORT
+
+==================================================
+HOME PAGE
+==================================================
+
+This is the most important page.
+
+The homepage must feel like a campaign, not a product grid.
+
+SECTION 1 — HERO
+
+Full viewport hero.
+
+Use a high-quality Imaginate campaign image/video.
+
+Dark cinematic composition.
+
+Large text.
+
+Possible structure:
+
+IMAGINATE
+
+THE WORLD HAS LIMITS.
+IMAGINATE DOESN'T.
+
+[ SHOP NOW ]
+
+Do not place unnecessary paragraphs over the hero.
+
+Use extremely strong typography.
+
+Hero media should fill the screen properly.
+
+On mobile, use a mobile-specific crop.
+
+Subtle movement/parallax is allowed.
+
+CTA should have a premium hover animation.
+
+==================================================
+SECTION 2 — NEW DROP
+==================================================
+
+After scrolling from the hero:
+
+Small heading:
+THE LATEST
+
+Large heading:
+NEW DROP
+
+Show the current Imaginate hoodies.
+
+Use huge product photography.
+
+Do not immediately make this look like Amazon with tiny cards.
+
+Products should have space.
+
+For each product:
+
+Product image
+Product name
+Price in AED
+Available colors if applicable
+
+Hover desktop:
+product image can transition to alternate/back image.
+
+Mobile:
+allow swipeable imagery where appropriate.
+
+Clicking the product opens its product page.
+
+==================================================
+SECTION 3 — CAMPAIGN MOMENT
+==================================================
+
+Create a full-width cinematic section.
+
+Use one of the Imaginate campaign/model images.
+
+Minimal text.
+
+For example:
+
+MADE TO BE IMAGINED.
+
+or another configurable campaign heading.
+
+Large image.
+
+Text can reveal as the user scrolls.
+
+This section is primarily visual.
+
+==================================================
+SECTION 4 — LIVE EVENT
+==================================================
+
+VERY IMPORTANT.
+
+Imaginate has a LIVE EVENT beginning:
+
+OCTOBER 27
+
+Create a cinematic homepage section announcing this.
+
+Black background.
+
+Very subtle purple ambient lighting.
+
+Small text:
+
+IMAGINATE PRESENTS
+
+Huge text:
+
+LIVE
+OCTOBER 27
+
+Below:
+
+THE COUNTDOWN BEGINS.
+
+Add an actual countdown component IF an exact event time has been configured in Admin.
+
+If an exact time has not been configured, display the date without inventing a time.
+
+Admin must be able to configure:
+
+event title
+date
+time
+timezone
+description
+CTA
+enabled/disabled
+background media
+
+When the event begins, the section should be capable of changing from:
+
+COUNTDOWN
+
+to:
+
+WE'RE LIVE
+
+with a configurable live URL/button.
+
+After the event, admin should be able to hide the section or change it to another campaign.
+
+==================================================
+SECTION 5 — FEATURED PRODUCTS
+==================================================
+
+Create a premium horizontal product showcase.
+
+Not a boring four-column template.
+
+Desktop can use horizontal movement or an elegant grid.
+
+Mobile should support natural swiping.
+
+Product cards:
+
+Large image
+Product title
+AED price
+
+Optional:
+NEW
+SOLD OUT
+LOW STOCK
+
+Keep badges small and tasteful.
+
+==================================================
+SECTION 6 — BRAND STATEMENT
+==================================================
+
+Large typography on black.
+
+Example:
+
+THE WORLD HAS LIMITS.
+IMAGINATE DOESN'T.
+
+The text should occupy a large portion of the screen.
+
+Animate individual lines subtly as they enter viewport.
+
+==================================================
+SECTION 7 — NEWSLETTER / DROP ACCESS
+==================================================
+
+Heading:
+
+DON'T MISS WHAT'S NEXT.
+
+Email field.
+
+JOIN
+
+Keep this minimal.
+
+Store subscribers in the database.
+
+Admin should be able to view/export subscriber emails.
+
+==================================================
+FOOTER
+==================================================
+
+Black.
+
+Imaginate logo.
+
+Sections:
+
+SHOP
+New
+Hoodies
+All Products
+
+HELP
+Contact
+Shipping
+Returns
+Size Guide
+Order Tracking
+
+INFO
+About Imaginate
+Privacy
+Terms
+
+SOCIAL
+Instagram
+TikTok
+YouTube
+
+Include:
+
+© IMAGINATE
+
+Do not clutter the footer.
+
+==================================================
+SHOP PAGE
+==================================================
+
+Route:
+
+/shop
+
+Large heading:
+
+SHOP
+
+Products should be the focus.
+
+Filtering:
+
+ALL
+NEW
+HOODIES
+SHIRTS
+PANTS
+SWIMWEAR
+
+Only show categories that actually contain products or are enabled by Admin.
+
+Do NOT launch empty categories unless Admin deliberately enables a "Coming Soon" state.
+
+Filters:
+
+SIZE
+COLOR
+PRICE
+AVAILABILITY
+SORT
+
+Sort options:
+
+Featured
+Newest
+Price: Low to High
+Price: High to Low
+
+Desktop filters can appear as a refined toolbar/drawer.
+
+Mobile filters should open in a bottom sheet/full-screen drawer.
+
+==================================================
+PRODUCT CARDS
+==================================================
+
+Cards must be minimal.
+
+NO huge bordered boxes.
+
+Image should dominate.
+
+Image ratio should remain consistent.
+
+Information underneath:
+
+Product name
+AED price
+
+Optional small status:
+NEW
+SOLD OUT
+
+On desktop hover:
+front → back image transition.
+
+Quick Add can appear subtly.
+
+==================================================
+PRODUCT PAGE
+==================================================
+
+This page needs to feel extremely premium.
+
+Desktop:
+
+LEFT approximately 60%:
+large product gallery.
+
+RIGHT approximately 40%:
+sticky product information.
+
+Mobile:
+gallery first
+information underneath
+
+Information:
+
+PRODUCT NAME
+
+PRICE AED XXX
+
+Color
+
+Size selector:
+S
+M
+L
+XL
+etc.
+
+Size guide link.
+
+Availability.
+
+ADD TO BAG
+
+Optional BUY NOW.
+
+Expandable information:
+
+DETAILS
+FIT
+MATERIALS
+SHIPPING
+RETURNS
+
+If a size is sold out, visibly disable it.
+
+Do not allow purchase of unavailable inventory.
+
+==================================================
+PRODUCT GALLERY
+==================================================
+
+Support:
+
+Front
+Back
+Details
+Model
+Campaign images
+Video
+
+Allow zoom.
+
+Desktop images can be displayed as a premium scrolling gallery.
+
+Mobile can use swipeable gallery.
+
+Images must load efficiently.
+
+Use lazy loading where appropriate.
+
+==================================================
+SIZE GUIDE
+==================================================
+
+Create a clean modal/page.
+
+Measurements configurable from Admin.
+
+Do not hardcode one size chart for every product.
+
+Products can use different size guides.
+
+==================================================
+ADD TO BAG EXPERIENCE
+==================================================
+
+When customer clicks ADD TO BAG:
+
+Do NOT immediately redirect them.
+
+Open a smooth cart drawer from the right on desktop.
+
+On mobile use a polished bottom/full-height drawer.
+
+Show:
+
+Product image
+Product
+Size
+Color
+Quantity
+Price
+
+Subtotal
+
+CHECKOUT
+
+VIEW BAG
+
+Continue Shopping
+
+Animate product addition subtly.
+
+==================================================
+CART
+==================================================
+
+Route:
+
+/cart
+
+Clean page.
+
+Show:
+
+Product image
+Name
+Size
+Color
+Quantity controls
+Remove
+Price
+
+Order summary:
+
+Subtotal
+Delivery
+Total
+
+Prices in AED.
+
+Do not surprise users with unclear charges.
+
+==================================================
+CHECKOUT
+==================================================
+
+Use the safest, appropriate payment/checkout integration supported by the existing project and whatever payment provider I configure.
+
+DO NOT build fake payment processing.
+
+DO NOT store raw card details.
+
+Checkout information:
+
+Name
+Email
+Phone
+Delivery address
+Emirate
+Area
+Building/Villa
+Apartment optional
+Delivery notes optional
+
+Order summary.
+
+Discount/promo code.
+
+Payment method based on configured provider.
+
+After successful payment/order creation:
+
+Generate unique order number.
+
+Show confirmation page.
+
+==================================================
+ORDER CONFIRMATION
+==================================================
+
+Premium success screen.
+
+THANK YOU.
+
+YOUR IMAGINATE ORDER IS CONFIRMED.
+
+Order number.
+
+Products.
+
+Total.
+
+Delivery details.
+
+TRACK ORDER button.
+
+==================================================
+ORDER TRACKING
+==================================================
+
+Route:
+
+/track
+
+Customer enters:
+
+Order number
+Email or phone verification if appropriate
+
+Then show a beautiful status timeline.
+
+Statuses:
+
+ORDER PLACED
+CONFIRMED
+PREPARING
+SHIPPED
+OUT FOR DELIVERY
+DELIVERED
+
+Additional states:
+
+DELAYED
+CANCELLED
+RETURN REQUESTED
+RETURNED
+
+Do not expose private customer/order information simply from guessing an order number.
+
+==================================================
+SEARCH
+==================================================
+
+Clicking search should open a large premium overlay.
+
+Black background.
+
+Large input.
+
+SEARCH IMAGINATE
+
+Live search products.
+
+Show image + product + price.
+
+Keyboard accessible.
+
+==================================================
+ACCOUNT SYSTEM
+==================================================
+
+Customers can create accounts.
+
+Pages:
+
+Login
+Create Account
+Forgot Password
+Account Dashboard
+
+Dashboard:
+
+Orders
+Addresses
+Profile
+Saved Items
+Logout
+
+Allow guest checkout if possible.
+
+Do not force account creation before purchasing.
+
+==================================================
+SAVED / WISHLIST
+==================================================
+
+Heart/save products.
+
+If logged in:
+persist in database.
+
+If guest:
+persist locally and optionally migrate when account created.
+
+==================================================
+ABOUT IMAGINATE
+==================================================
+
+Do NOT write a fake corporate story.
+
+Build the page structure so I can edit the content from Admin.
+
+Visual direction:
+
+Large campaign image/video.
+
+IMAGINATE
+
+Founded in the UAE.
+
+Large editorial typography.
+
+Sections for:
+
+Brand story
+Design philosophy
+Campaign imagery
+
+Keep text editable.
+
+==================================================
+CONTACT / SUPPORT
+==================================================
+
+Create:
+
+/support
+
+Options:
+
+ORDER HELP
+SHIPPING
+RETURNS
+PRODUCT QUESTIONS
+OTHER
+
+Contact form:
+
+Name
+Email
+Order number optional
+Category
+Message
+
+Store support requests in Admin.
+
+==================================================
+SHIPPING PAGE
+==================================================
+
+Editable from Admin.
+
+Clearly explain:
+
+UAE delivery
+estimated delivery periods
+costs
+processing time
+
+Do not invent shipping prices or promises.
+
+Use admin-configured values.
+
+==================================================
+RETURNS PAGE
+==================================================
+
+Fully editable.
+
+Do not invent a returns policy.
+
+Admin must configure it.
+
+==================================================
+ADMIN
+==================================================
+
+THIS IS EXTREMELY IMPORTANT.
+
+I need a REAL PRIVATE ADMIN DASHBOARD.
+
+Do NOT expose Admin links publicly.
+
+Admin routes must require secure authentication and server-side authorization.
+
+Never rely on hiding a button as security.
+
+Reuse secure existing FirstPick admin authentication if it is good.
+
+Remove FirstPick-specific admin branding.
+
+New admin design:
+
+Black/dark interface.
+Imaginate branding.
+Clean dashboard.
+Purple accent.
+
+==================================================
+ADMIN DASHBOARD
+==================================================
+
+Dashboard overview:
+
+TODAY'S SALES
+TOTAL SALES
+ORDERS
+CUSTOMERS
+AVERAGE ORDER VALUE
+
+Recent orders.
+
+Low stock.
+
+Best sellers.
+
+Sales chart.
+
+Traffic data if analytics integration exists.
+
+Do not generate fake analytics.
+
+If there is no data, show a proper empty state.
+
+==================================================
+ADMIN — PRODUCTS
+==================================================
+
+I should be able to:
+
+ADD PRODUCT
+EDIT PRODUCT
+DELETE/ARCHIVE PRODUCT
+DUPLICATE PRODUCT
+FEATURE PRODUCT
+
+Fields:
+
+Product name
+Description
+Price
+Compare-at price optional
+Category
+Collection
+Colors
+Sizes
+Inventory per size/color
+SKU
+Images
+Videos
+Product status
+Tags
+Size guide
+SEO title
+SEO description
+
+Status:
+
+DRAFT
+ACTIVE
+SCHEDULED
+SOLD OUT
+ARCHIVED
+
+Allow drag-and-drop image ordering.
+
+==================================================
+ADMIN — INVENTORY
+==================================================
+
+Inventory table.
+
+Example:
+
+Product
+Black / S: 12
+Black / M: 8
+Black / L: 4
+Black / XL: 0
+
+Low stock warning.
+
+Allow stock adjustment.
+
+Keep an inventory history if practical.
+
+Prevent stock from going negative because of concurrent orders.
+
+==================================================
+ADMIN — ORDERS
+==================================================
+
+Order list.
+
+Filters:
+
+NEW
+CONFIRMED
+PREPARING
+SHIPPED
+OUT FOR DELIVERY
+DELIVERED
+CANCELLED
+RETURNED
+
+Order detail:
+
+Order number
+Customer
+Contact
+Address
+Products
+Sizes
+Quantity
+Payment status
+Fulfillment status
+Total
+Date
+Notes
+
+Buttons/actions:
+
+CONFIRM
+START PREPARING
+MARK SHIPPED
+OUT FOR DELIVERY
+MARK DELIVERED
+CANCEL
+
+Require confirmation for destructive actions.
+
+Store status history.
+
+==================================================
+ADMIN — CUSTOMERS
+==================================================
+
+Customer list.
+
+Customer detail:
+
+Name
+Email
+Phone
+Orders
+Lifetime spend
+Account creation date
+
+Do not expose passwords.
+
+Never store plain-text passwords.
+
+==================================================
+ADMIN — DISCOUNTS
+==================================================
+
+Create promo codes.
+
+Fields:
+
+Code
+Percentage OR fixed AED discount
+Minimum spend
+Usage limit
+Start
+End
+Specific products/collections
+Enabled
+
+Example:
+
+IMAGINATE10
+
+But DO NOT create real discounts unless I configure them.
+
+==================================================
+ADMIN — HOMEPAGE
+==================================================
+
+I want to modify homepage content WITHOUT editing code.
+
+Admin controls:
+
+Hero media
+Hero headline
+Hero subheading
+Hero CTA
+Featured products
+Section ordering
+Campaign image
+Campaign text
+Brand statement
+Newsletter visibility
+Live Event section
+Announcement bar
+
+Allow sections to be enabled/disabled.
+
+==================================================
+ADMIN — LIVE EVENT
+==================================================
+
+Dedicated area.
+
+Fields:
+
+Enabled
+Event name
+Date
+Time
+Timezone
+Headline
+Description
+Background image/video
+Countdown enabled
+Live URL
+Button text
+
+Modes:
+
+UPCOMING
+LIVE
+ENDED
+
+If UPCOMING:
+show countdown.
+
+If LIVE:
+show pulsing LIVE indicator and WATCH LIVE button.
+
+If ENDED:
+hide or show replay depending on configuration.
+
+==================================================
+ADMIN — SITE SETTINGS
+==================================================
+
+Editable:
+
+Logo
+Favicon
+Social links
+Contact email
+Support details
+Currency
+Delivery settings
+Free delivery threshold
+Returns content
+Terms
+Privacy
+Announcement bar
+
+Default currency:
+AED
+
+==================================================
+ADMIN — MEDIA LIBRARY
+==================================================
+
+Create a place to manage uploaded:
+
+Product photos
+Campaign images
+Videos
+Logos
+
+Allow reuse instead of repeatedly uploading the same asset.
+
+==================================================
+ADMIN — SUPPORT
+==================================================
+
+Display submitted support requests.
+
+Statuses:
+
+OPEN
+IN PROGRESS
+RESOLVED
+
+Allow internal notes.
+
+==================================================
+ADMIN — NEWSLETTER
+==================================================
+
+View subscribers.
+
+Search.
+
+Export CSV.
+
+Do not expose subscriber emails publicly.
+
+==================================================
+COMING SOON SYSTEM
+==================================================
+
+Products/collections should support:
+
+COMING SOON
+
+This should NOT allow purchasing.
+
+Display:
+
+COMING SOON
+
+Optionally allow:
+NOTIFY ME
+
+Customer enters email.
+
+Store notification request.
+
+When product becomes available, I should be able to export/use this list through an appropriate email provider.
+
+==================================================
+SOLD OUT
+==================================================
+
+Sold-out products remain visible unless Admin hides them.
+
+Replace Add to Bag with:
+
+SOLD OUT
+
+Optionally:
+
+NOTIFY ME
+
+==================================================
+MICROINTERACTIONS
+==================================================
+
+Add premium interactions.
+
+Buttons:
+slight scale/transition.
+
+Images:
+smooth reveal.
+
+Navigation:
+animated underline or subtle transition.
+
+Cart:
+smooth slide.
+
+Product image:
+gentle hover zoom.
+
+Purple lighting:
+very subtle.
+
+Cursor:
+keep normal unless a custom cursor genuinely improves usability.
+
+DO NOT sacrifice usability for animation.
+
+==================================================
+MOBILE EXPERIENCE
+==================================================
+
+This is CRITICAL.
+
+Most social-media customers may arrive on mobile.
+
+Test specifically around:
+
+390×844
+393×852
+430×932
+
+and other common sizes.
+
+Mobile homepage must look intentional.
+
+Full-screen hero.
+
+Large imagery.
+
+Readable typography.
+
+Buttons large enough to tap.
+
+No horizontal overflow.
+
+No microscopic product information.
+
+Cart easy to use.
+
+Checkout extremely straightforward.
+
+==================================================
+ACCESSIBILITY
+==================================================
+
+Maintain good contrast.
+
+Keyboard navigation.
+
+Visible focus states.
+
+Semantic HTML.
+
+ARIA labels where necessary.
+
+Alt text support for images.
+
+Respect prefers-reduced-motion.
+
+==================================================
+PERFORMANCE
+==================================================
+
+Do not destroy performance with effects.
+
+Optimize:
+
+Images
+Videos
+Fonts
+JavaScript
+Animation
+
+Use modern formats where appropriate.
+
+Lazy-load below-the-fold imagery.
+
+Do not lazy-load critical hero assets in a way that causes ugly layout shifts.
+
+Prevent CLS.
+
+Use responsive image sizes.
+
+==================================================
+SEO
+==================================================
+
+Support:
+
+Unique page titles
+Meta descriptions
+Open Graph images
+Product structured data where appropriate
+Canonical URLs
+Sitemap
+robots.txt
+
+Product URLs should be readable.
+
+Example:
+
+/products/product-name
+
+NOT:
+
+/product?id=3928201
+
+==================================================
+ERROR STATES
+==================================================
+
+Design proper states for:
+
+404
+500/error
+Empty cart
+No search results
+No orders
+No products
+Sold out
+Network error
+Payment failure
+
+404 example:
+
+NOTHING HERE.
+RETURN TO IMAGINATE.
+
+==================================================
+SECURITY
+==================================================
+
+Do not expose:
+
+database credentials
+API secrets
+payment secrets
+admin credentials
+
+Use environment variables.
+
+Validate inputs server-side.
+
+Sanitize user-generated input.
+
+Rate-limit sensitive endpoints where appropriate.
+
+Protect admin endpoints.
+
+Use secure password hashing.
+
+Use proper sessions/authentication.
+
+Prevent customers from changing product prices through frontend requests.
+
+Recalculate order totals server-side.
+
+Do not trust cart totals sent from the browser.
+
+==================================================
+MIGRATING FIRSTPICK
+==================================================
+
+Because this project used to be FIRSTPICK:
+
+Search the ENTIRE codebase for:
+
+FirstPick
+FIRSTPICK
+firstpick
+old logos
+old orange/yellow branding
+old metadata
+old favicon
+old page titles
+old product categories
+old marketing copy
+
+Remove or replace all visible FirstPick branding.
+
+Do not accidentally leave:
+
+"FirstPick"
+orange FirstPick colors
+FirstPick logo
+FirstPick browser title
+FirstPick emails
+FirstPick footer text
+FirstPick metadata
+
+anywhere in the Imaginate production experience.
+
+HOWEVER:
+
+Do NOT blindly delete working backend functionality simply because it came from FirstPick.
+
+Refactor and reuse useful systems.
+
+==================================================
+DATABASE MIGRATION
+==================================================
+
+Inspect the existing database before making changes.
+
+Do not destroy existing data without understanding it.
+
+If schema changes are needed:
+
+create safe migrations.
+
+Preserve data that is useful.
+
+If FirstPick test/demo products should not appear on the Imaginate storefront, mark/archive them appropriately instead of risking database corruption.
+
+==================================================
+DEVELOPMENT APPROACH
+==================================================
+
+DO NOT attempt to rewrite the entire project blindly in one operation.
+
+Work systematically.
+
+PHASE 1:
+Audit existing FirstPick project.
+
+Identify:
+
+frontend framework
+backend
+database
+authentication
+admin system
+product system
+cart
+orders
+payments
+storage
+existing integrations
+
+PHASE 2:
+Create new Imaginate design system.
+
+PHASE 3:
+Rebuild global navigation/footer/layout.
+
+PHASE 4:
+Build homepage.
+
+PHASE 5:
+Rebuild catalog/product experience.
+
+PHASE 6:
+Cart/checkout/orders.
+
+PHASE 7:
+Rebuild admin.
+
+PHASE 8:
+Live event system.
+
+PHASE 9:
+Mobile optimization.
+
+PHASE 10:
+Security/performance/accessibility.
+
+PHASE 11:
+Full QA.
+
+==================================================
+DESIGN SYSTEM
+==================================================
+
+Create reusable design tokens.
+
+Example conceptual palette:
+
+Background:
+#000000
+
+Elevated background:
+very dark neutral gray
+
+Primary text:
+near-white
+
+Secondary text:
+muted neutral gray
+
+Accent:
+Imaginate purple derived from supplied branding.
+
+Do not blindly use random bright purple values.
+
+Typography:
+
+Use a clean modern sans-serif suitable for fashion.
+
+Large display headings should feel bold and editorial.
+
+Body typography should remain extremely readable.
+
+Use consistent:
+
+spacing
+radius
+button heights
+input heights
+grid
+container widths
+typographic scale
+
+==================================================
+BUTTON DESIGN
+==================================================
+
+Primary:
+
+White background
+Black text
+
+Hover:
+subtle scale/fade.
+
+Secondary:
+
+Transparent/dark
+white border/text
+
+Accent button may use purple sparingly.
+
+Do NOT make every button purple.
+
+==================================================
+CARDS
+==================================================
+
+Avoid excessive rounded rectangles.
+
+Fashion websites should let photography breathe.
+
+Do not put every piece of information inside a floating glass card.
+
+Glass should be reserved for areas where it genuinely improves hierarchy, such as navigation/drawers.
+
+==================================================
+PHOTOGRAPHY
+==================================================
+
+My supplied Imaginate product/campaign photography is extremely important.
+
+DO NOT replace it with random stock clothing photography.
+
+DO NOT generate fake hoodies.
+
+Use placeholders only temporarily if an asset is genuinely missing, and make it easy for me to replace them in Admin.
+
+Never permanently invent a product image.
+
+==================================================
+PRODUCT INFORMATION
+==================================================
+
+DO NOT invent:
+
+prices
+materials
+stock
+sizes
+delivery times
+discounts
+return promises
+
+If information isn't available yet, make it configurable from Admin.
+
+==================================================
+LAUNCH EXPERIENCE
+==================================================
+
+This website is being prepared around an Imaginate launch campaign.
+
+The site should support a launch mode.
+
+Admin setting:
+
+LAUNCH MODE ON/OFF
+
+When ON, optionally show:
+
+announcement bar
+event countdown
+Coming Soon products
+launch messaging
+
+When OFF:
+normal store behavior.
+
+DO NOT lock me permanently into a launch theme.
+
+After launch, the same website should function as the permanent Imaginate store.
+
+==================================================
+OPTIONAL PASSWORD / PRE-LAUNCH PAGE
+==================================================
+
+Create an optional pre-launch mode.
+
+When enabled, normal visitors see:
+
+black screen
+Imaginate logo
+
+IMAGINATE
+
+COMING SOON
+
+LIVE OCTOBER 27
+
+email signup
+
+social links
+
+Admin login remains accessible securely.
+
+I should be able to disable pre-launch mode instantly from Admin.
+
+==================================================
+FINAL QUALITY STANDARD
+==================================================
+
+When you believe the redesign is complete:
+
+DO NOT immediately tell me "done."
+
+Test it.
+
+Check every route.
+
+Check mobile.
+
+Check desktop.
+
+Check cart.
+
+Check inventory.
+
+Check login.
+
+Check admin authorization.
+
+Check product creation.
+
+Check product editing.
+
+Check order management.
+
+Check countdown.
+
+Check search.
+
+Check filters.
+
+Check broken images.
+
+Check missing FirstPick branding.
+
+Check console errors.
+
+Check responsive overflow.
+
+Check loading states.
+
+Check empty states.
+
+Check accessibility.
+
+Then fix problems you find.
+
+The final website should feel like an actual premium fashion brand that could launch publicly, NOT a prototype.
+
+==================================================
+MOST IMPORTANT RULES
+==================================================
+
+1. Completely transform FirstPick into IMAGINATE.
+2. Use my NEW supplied Imaginate logo exactly.
+3. Preserve useful working FirstPick backend functionality.
+4. Remove old FirstPick customer-facing branding.
+5. Black/dark visual identity with controlled purple accents.
+6. Premium fashion design, NOT generic ecommerce.
+7. Extremely polished mobile experience.
+8. Full product/inventory/order/admin management.
+9. Prices displayed in AED.
+10. Build the October 27 LIVE event system.
+11. Do not invent business information.
+12. Make important content editable from Admin.
+13. Do not use fake analytics/data.
+14. Do not expose admin functionality or secrets.
+15. Keep the site fast despite the animations.
+16. Use my real product imagery.
+17. Do not create random stock products.
+18. Test everything before considering the redesign complete.
+
+START BY AUDITING THE CURRENT FIRSTPICK CODEBASE.
+
+Then create a concise implementation plan based on what is ACTUALLY already in the project.
+
+After that, begin transforming the project into Imaginate.
+
+Do not ask me to manually rebuild functionality that already exists and can be safely reused.
+
+This is not a mockup.
+
+Build it as a functional production-quality ecommerce website.

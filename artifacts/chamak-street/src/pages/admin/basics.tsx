@@ -66,7 +66,7 @@ const BULK_ACTIONS = [
 ];
 
 /* ── Animated Toggle ── */
-function Toggle({ checked, onChange, color = "#ff6600" }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
+function Toggle({ checked, onChange, color = "#7c3aed" }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
   return (
     <motion.button
       type="button"
@@ -231,19 +231,19 @@ function MediaZone({ items, onChange, uploading, onUpload }: {
   return (
     <div className="space-y-3">
       <motion.div
-        animate={{ borderColor: dragging ? "rgba(255,102,0,0.7)" : uploading ? "rgba(255,102,0,0.4)" : "rgba(255,255,255,0.12)" }}
+        animate={{ borderColor: dragging ? "rgba(124,58,237,0.7)" : uploading ? "rgba(124,58,237,0.4)" : "rgba(255,255,255,0.12)" }}
         onDragOver={e => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
         className="relative rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2.5 py-8 cursor-pointer transition-colors"
-        style={{ background: dragging ? "rgba(255,102,0,0.06)" : uploading ? "rgba(255,102,0,0.04)" : "rgba(255,255,255,0.02)" }}
+        style={{ background: dragging ? "rgba(124,58,237,0.06)" : uploading ? "rgba(124,58,237,0.04)" : "rgba(255,255,255,0.02)" }}
       >
         <motion.div
           animate={uploading ? { rotate: 360 } : { rotate: 0 }}
           transition={uploading ? { duration: 1.2, repeat: Infinity, ease: "linear" } : {}}
           className="w-10 h-10 rounded-xl flex items-center justify-center"
-          style={{ background: "rgba(255,102,0,0.12)", border: "1px solid rgba(255,102,0,0.25)" }}
+          style={{ background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.25)" }}
         >
           {uploading ? <Upload className="h-5 w-5 text-primary" /> : <ImageIcon className="h-5 w-5 text-primary/60" />}
         </motion.div>
@@ -526,9 +526,9 @@ export default function AdminBasics() {
       <div className="flex flex-wrap gap-3 items-start">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1 flex-wrap">
-            <h1 className="text-3xl font-black uppercase tracking-tighter">FirstPick Basics</h1>
+            <h1 className="text-3xl font-black uppercase tracking-tighter">IMAGINATE Basics</h1>
             <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border"
-              style={{ background: "rgba(255,102,0,0.1)", borderColor: "rgba(255,102,0,0.3)", color: "#ff6600" }}>
+              style={{ background: "rgba(124,58,237,0.1)", borderColor: "rgba(124,58,237,0.3)", color: "#a78bfa" }}>
               Collection
             </span>
           </div>
@@ -637,10 +637,10 @@ export default function AdminBasics() {
 
                   {/* Badges */}
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
-                    <span className="bg-orange-500/90 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Basics</span>
+                    <span className="bg-violet-500/90 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Basics</span>
                     {product.featured && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Featured</span>}
                     {product.isPreOrder && <span className="bg-yellow-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
-                    {product.sellingFast && <span className="bg-orange-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">🔥 Hot</span>}
+                    {product.sellingFast && <span className="bg-violet-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Hot</span>}
                     {product.spotlight && <span className="bg-yellow-400 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">⭐ Spotlight</span>}
                   </div>
 
@@ -699,7 +699,7 @@ export default function AdminBasics() {
         <div className="text-center py-20 text-muted-foreground">
           <Package className="h-10 w-10 mx-auto mb-3 opacity-20" />
           <p className="font-bold">{searchQuery ? `No Basics products matching "${searchQuery}"` : "No Basics products yet"}</p>
-          <p className="text-xs mt-1 opacity-60">Products added here appear on the FirstPick Basics storefront</p>
+          <p className="text-xs mt-1 opacity-60">Products added here appear on the IMAGINATE Basics storefront</p>
         </div>
       )}
 
@@ -789,7 +789,7 @@ export default function AdminBasics() {
                   {editingId ? "Edit Basics Product" : "New Basics Product"}
                 </SheetTitle>
                 <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(255,102,0,0.15)", color: "#ff6600", border: "1px solid rgba(255,102,0,0.3)" }}>
+                  style={{ background: "rgba(124,58,237,0.15)", color: "#a78bfa", border: "1px solid rgba(124,58,237,0.3)" }}>
                   Basics
                 </span>
               </div>
@@ -809,7 +809,7 @@ export default function AdminBasics() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-black transition-all disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", boxShadow: "0 4px 16px rgba(255,102,0,0.35)" }}
+                style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)", boxShadow: "0 4px 16px rgba(124,58,237,0.3)" }}
               >
                 {isPending ? (
                   <><motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} className="inline-block w-3 h-3 border-2 border-black/30 border-t-black rounded-full" /> Saving…</>
@@ -824,7 +824,7 @@ export default function AdminBasics() {
           <form id="basics-product-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
 
             {/* Media */}
-            <Section title="Product Media" icon={ImageIcon} accent="rgba(255,102,0,0.18)">
+            <Section title="Product Media" icon={ImageIcon} accent="rgba(124,58,237,0.18)">
               <MediaZone items={mediaItems} onChange={handleMediaChange} uploading={uploading} onUpload={handleUpload} />
             </Section>
 
@@ -894,7 +894,7 @@ export default function AdminBasics() {
             <Section title="Badges & Flags" icon={Sparkles} accent="rgba(251,191,36,0.18)">
               <div className="grid grid-cols-2 gap-2">
                 <PillToggle checked={formData.featured ?? false} onChange={v => set({ featured: v })}
-                  label="Featured" icon={Star} color="#ff6600" />
+                  label="Featured" icon={Star} color="#7c3aed" />
                 <PillToggle checked={formData.sellingFast ?? false} onChange={v => set({ sellingFast: v })}
                   label="Selling Fast" icon={Flame} color="#f97316" />
                 <PillToggle checked={formData.spotlight ?? false} onChange={v => set({ spotlight: v })}

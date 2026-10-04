@@ -6,7 +6,7 @@ export function useEventBadge(): { text: string; color: string; textColor: strin
   if (!evt) return null;
   return {
     text: evt.badgeText!,
-    color: evt.bannerColor || "#ff6600",
+    color: evt.bannerColor || "#7c3aed",
     textColor: evt.textColor || "#ffffff",
   };
 }

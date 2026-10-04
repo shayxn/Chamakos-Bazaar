@@ -80,7 +80,7 @@ async function generateReceiptDataUrl(order: Order): Promise<string> {
   // Header title
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 22px 'Courier New', Courier, monospace";
-  ctx.fillText("CHAMAK STREET", PAD, 40);
+  ctx.fillText("IMAGINATE", PAD, 40);
 
   ctx.font = "12px 'Courier New', Courier, monospace";
   ctx.fillStyle = "rgba(255,255,255,0.8)";
@@ -238,7 +238,7 @@ async function generateReceiptDataUrl(order: Order): Promise<string> {
         resolve();
       };
       img.onerror = () => resolve();
-      img.src = "/chamak-logo.png";
+      img.src = "/imaginate-logo.png";
     });
   } catch { /* ignore */ }
 
@@ -251,7 +251,7 @@ async function generateReceiptDataUrl(order: Order): Promise<string> {
   ctx.stroke();
   ctx.fillStyle = "#aaaaaa";
   ctx.font = "10px 'Courier New', Courier, monospace";
-  ctx.fillText("Thank you for shopping with Chamak Street", PAD, y);
+  ctx.fillText("Thank you for shopping with IMAGINATE", PAD, y);
 
   return canvas.toDataURL("image/png");
 }
@@ -468,7 +468,7 @@ export default function AdminOrders() {
       return;
     }
     const message =
-      `Hi ${order.customerName}! Thank you for ordering from Chamak Street. ` +
+      `Hi ${order.customerName}! Thank you for ordering from IMAGINATE. ` +
       `Please reply 'YES' to confirm your order. Once confirmed, we will begin preparing it.`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
   }, [toast]);

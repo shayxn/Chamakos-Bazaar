@@ -94,14 +94,14 @@ export function PropertiesPanel({
 
   const saveSectionToToolbox = async () => {
     if (selectedType !== "section") return;
-    const title = window.prompt("Name this reusable FirstPick Toolbox block", itemToEdit.label || itemToEdit.type);
+    const title = window.prompt("Name this reusable IMAGINATE Studio block", itemToEdit.label || itemToEdit.type);
     if (!title?.trim()) return;
     try {
       await fetchApi("/api/owner-studio/toolbox", {
         method: "POST",
         body: JSON.stringify({ title: title.trim(), section: itemToEdit }),
       });
-      window.alert("Saved to FirstPick Toolbox.");
+      window.alert("Saved to IMAGINATE Studio.");
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Could not save this Toolbox block.");
     }
@@ -228,13 +228,13 @@ function ElementProperties({ element, onChange }: { element: StudioElement, onCh
 
       {(t === "text" || t === "heading" || t === "subheading" || t === "button" || t === "badge") && (
         <div className="space-y-1.5">
-          <label className="text-[10px] font-black uppercase tracking-wider text-gray-500">FirstPick font</label>
+          <label className="text-[10px] font-black uppercase tracking-wider text-gray-500">IMAGINATE font</label>
           <select value={element.fontFamily || "firstpick"} onChange={(event) => onChange({ fontFamily: event.target.value })} className="w-full rounded-lg border border-white/10 bg-black px-3 py-2 text-xs text-white outline-none focus:border-primary/60">
-            <option value="firstpick">FirstPick / Space Grotesk</option>
-            <option value="mono">FirstPick Mono / Space Mono</option>
+            <option value="firstpick">IMAGINATE / Space Grotesk</option>
+            <option value="mono">Space Mono</option>
             <option value="system">System Sans</option>
           </select>
-          <p className="text-[9px] leading-3 text-gray-500">New Toolbox text uses the FirstPick font automatically.</p>
+          <p className="text-[9px] leading-3 text-gray-500">New Toolbox text uses the IMAGINATE typeface automatically.</p>
         </div>
       )}
 
@@ -275,15 +275,15 @@ function ElementProperties({ element, onChange }: { element: StudioElement, onCh
       )}
 
       {t === "product" && (
-        <div className="space-y-1.5 p-3 border border-orange-500/30 bg-orange-500/5 rounded-lg">
-          <label className="text-[10px] font-black uppercase tracking-wider text-orange-400">Bind Product ID</label>
+        <div className="space-y-1.5 p-3 border border-violet-500/30 bg-violet-500/5 rounded-lg">
+          <label className="text-[10px] font-black uppercase tracking-wider text-violet-300">Bind Product ID</label>
           <input 
             value={element.productId || ""} 
             onChange={(e) => onChange({ productId: e.target.value })}
             placeholder="e.g. prod_123"
-            className="w-full rounded-md border border-orange-500/20 bg-black px-3 py-2 text-xs text-white outline-none focus:border-orange-500 mt-2"
+            className="w-full rounded-md border border-violet-500/20 bg-black px-3 py-2 text-xs text-white outline-none focus:border-violet-400 mt-2"
           />
-          <p className="text-[9px] text-orange-200/50 mt-1">Input the ID of the product to feature here.</p>
+          <p className="text-[9px] text-violet-200/50 mt-1">Input the ID of the product to feature here.</p>
         </div>
       )}
 
@@ -341,7 +341,7 @@ function ElementProperties({ element, onChange }: { element: StudioElement, onCh
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-wider text-primary">Scroll animation</p>
-              <p className="mt-0.5 text-[9px] leading-3 text-gray-500">Set a start and end state. FirstPick fills in the movement.</p>
+              <p className="mt-0.5 text-[9px] leading-3 text-gray-500">Set a start and end state; the editor fills in the movement.</p>
             </div>
             <Switch checked={scroll.enabled === true} onCheckedChange={(enabled) => updateScroll({ enabled })} />
           </div>

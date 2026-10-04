@@ -33,31 +33,31 @@ function Wheel({ cx, cy, r = 16 }: { cx: number; cy: number; r?: number }) {
       {/* Inner hub ring */}
       <circle cx={cx} cy={cy} r={r * 0.45} fill="#111" stroke="#333" strokeWidth="1" />
       {/* Hub cap */}
-      <circle cx={cx} cy={cy} r={r * 0.2} fill="#ff6600" />
+      <circle cx={cx} cy={cy} r={r * 0.2} fill="#a78bfa" />
     </g>
   );
 }
 
-// ── 2D side-view truck with FirstPick branding ───────────────────────────────
+// ── 2D side-view truck with IMAGINATE branding ───────────────────────────────
 function TruckSVG() {
   return (
     <svg width="340" height="115" viewBox="0 0 340 115" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Ground shadow */}
-      <ellipse cx="170" cy="112" rx="150" ry="5" fill="rgba(255,102,0,0.12)" />
+      <ellipse cx="170" cy="112" rx="150" ry="5" fill="rgba(124,58,237,0.12)" />
 
       {/* ── Trailer body ── */}
-      <rect x="4" y="18" width="225" height="76" rx="5" fill="#0d0d0d" stroke="#ff6600" strokeWidth="1.5" />
+      <rect x="4" y="18" width="225" height="76" rx="5" fill="#0d0d0d" stroke="#7c3aed" strokeWidth="1.5" />
       {/* Corrugation lines */}
       {[30, 60, 90, 120, 150, 180, 200].map((x) => (
         <line key={x} x1={x} y1="20" x2={x} y2="92" stroke="rgba(255,102,0,0.15)" strokeWidth="1" />
       ))}
-      {/* FirstPick logo text on trailer */}
-      <text x="115" y="54" textAnchor="middle" fontSize="16" fontWeight="900" fill="#ff6600"
-        fontFamily="'Arial Black', Impact, sans-serif" letterSpacing="1">FIRST</text>
-      <text x="115" y="74" textAnchor="middle" fontSize="16" fontWeight="900" fill="#ff6600"
-        fontFamily="'Arial Black', Impact, sans-serif" letterSpacing="1">PICK</text>
+      {/* IMAGINATE logo text on trailer */}
+      <text x="115" y="53" textAnchor="middle" fontSize="13" fontWeight="900" fill="#a78bfa"
+        fontFamily="'Arial Black', Impact, sans-serif" letterSpacing="1">IMAGINATE</text>
+      <text x="115" y="73" textAnchor="middle" fontSize="13" fontWeight="900" fill="#a78bfa"
+        fontFamily="'Arial Black', Impact, sans-serif" letterSpacing="1">DELIVERY</text>
       {/* ⚡ bolt icon */}
-      <text x="116" y="90" textAnchor="middle" fontSize="10" fill="rgba(255,102,0,0.6)">⚡ PRIORITY</text>
+      <text x="116" y="90" textAnchor="middle" fontSize="10" fill="rgba(167,139,250,0.7)">PRIORITY</text>
       {/* Trailer rear wall */}
       <rect x="4" y="18" width="10" height="76" rx="0" fill="#1a1a1a" />
       {/* Rear lights */}
@@ -68,19 +68,19 @@ function TruckSVG() {
       <rect x="226" y="72" width="12" height="8" rx="2" fill="#333" />
 
       {/* ── Cab ── */}
-      <path d="M236 28 L305 28 L322 58 L322 94 L236 94 Z" fill="#111" stroke="#ff6600" strokeWidth="1.5" />
+      <path d="M236 28 L305 28 L322 58 L322 94 L236 94 Z" fill="#111" stroke="#7c3aed" strokeWidth="1.5" />
       {/* Cab roof fairing */}
-      <path d="M236 28 L285 20 L305 28 Z" fill="#0d0d0d" stroke="#ff6600" strokeWidth="1" />
+      <path d="M236 28 L285 20 L305 28 Z" fill="#0d0d0d" stroke="#7c3aed" strokeWidth="1" />
       {/* Windshield */}
-      <path d="M242 35 L295 35 L310 58 L242 58 Z" fill="rgba(26,58,92,0.85)" stroke="rgba(255,102,0,0.3)" strokeWidth="1" />
+      <path d="M242 35 L295 35 L310 58 L242 58 Z" fill="rgba(26,58,92,0.85)" stroke="rgba(124,58,237,0.3)" strokeWidth="1" />
       {/* Windshield shine */}
       <path d="M246 38 L272 38 L280 50 L246 50 Z" fill="white" opacity="0.06" />
       {/* Door panel */}
-      <rect x="242" y="62" width="65" height="26" rx="3" fill="rgba(255,102,0,0.05)" stroke="rgba(255,102,0,0.25)" strokeWidth="0.8" />
+      <rect x="242" y="62" width="65" height="26" rx="3" fill="rgba(124,58,237,0.05)" stroke="rgba(124,58,237,0.25)" strokeWidth="0.8" />
       {/* Door handle */}
       <rect x="293" y="72" width="10" height="3" rx="1.5" fill="#333" />
       {/* Orange cab stripe */}
-      <rect x="236" y="90" width="86" height="4" rx="0" fill="rgba(255,102,0,0.4)" />
+      <rect x="236" y="90" width="86" height="4" rx="0" fill="rgba(124,58,237,0.4)" />
       {/* Headlight */}
       <rect x="313" y="62" width="8" height="14" rx="2" fill="#ffffcc" opacity="0.9" />
       {/* Grill */}
@@ -175,9 +175,9 @@ export function PriorityOrderAnimation({ onComplete }: PriorityOrderAnimationPro
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, type: "spring", stiffness: 400, damping: 28 }}
         className="mb-4 px-4 py-1.5 rounded-full font-black text-[11px] uppercase tracking-[0.3em] text-primary border border-primary/40"
-        style={{ background: "rgba(255,102,0,0.1)" }}
+            style={{ background: "rgba(124,58,237,0.1)" }}
       >
-        ⚡ FirstPick Priority
+        Priority Delivery
       </motion.div>
 
       {/* Main headline — word-by-word spring */}
@@ -189,7 +189,7 @@ export function PriorityOrderAnimation({ onComplete }: PriorityOrderAnimationPro
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ delay: WORD_DELAYS[i], type: "spring", stiffness: 360, damping: 28 }}
             className="text-4xl font-black uppercase tracking-tight text-white"
-            style={word === "Way!" ? { color: "#ff6600" } : {}}
+            style={word === "Way!" ? { color: "#a78bfa" } : {}}
           >
             {word}
           </motion.span>
@@ -226,7 +226,7 @@ export function PriorityOrderAnimation({ onComplete }: PriorityOrderAnimationPro
         transition={{ delay: 1.8 }}
         className="mt-8 text-xs font-bold text-muted-foreground uppercase tracking-widest"
       >
-        Estimated: Same Day / Next Day
+        Priority delivery selected.
       </motion.p>
 
       {/* Progress bar */}

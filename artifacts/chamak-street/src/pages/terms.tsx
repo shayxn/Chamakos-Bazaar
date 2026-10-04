@@ -10,7 +10,7 @@ type ContentPage = {
 };
 
 function renderContent(content: string) {
-  return content.split(/\n{2,}/).map((block, index) => {
+  return content.replace(/first[\s_-]?pick/gi, "IMAGINATE").split(/\n{2,}/).map((block, index) => {
     const trimmed = block.trim();
     if (trimmed.startsWith("## ")) {
       return (
@@ -38,27 +38,33 @@ function renderContent(content: string) {
 
 export default function Terms() {
   const [page, setPage] = useState<ContentPage | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetch(`${BASE}/api/content/terms`, { credentials: "include" })
       .then((response) => response.json())
       .then((data: ContentPage) => setPage(data))
-      .catch(() => setPage(null));
+      .catch(() => setPage(null))
+      .finally(() => setIsLoading(false));
   }, []);
 
   return (
     <div className="container mx-auto px-4 py-16 max-w-4xl">
       <div className="mb-10">
         <p className="text-primary font-bold uppercase tracking-[0.3em] text-sm mb-3">
-          FirstPick
+          IMAGINATE
         </p>
         <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight">
-          {page?.title ?? "Terms of Policy"}
+          {page?.title ?? "Terms of Service"}
         </h1>
       </div>
 
       <div className="space-y-5 text-muted-foreground leading-7">
-        {page ? renderContent(page.content) : <p>Loading policy...</p>}
+        {isLoading
+          ? <p>Loading policy...</p>
+          : page?.content?.trim()
+          ? renderContent(page.content)
+          : <p>Terms of service have not been published yet. Please contact <a href={`${BASE}/support`} className="underline underline-offset-4">Support</a> with questions.</p>}
       </div>
     </div>
   );

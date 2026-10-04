@@ -77,7 +77,7 @@ function useConfetti() {
 const DELIVERY_LABEL: Record<string, string> = {
   standard: "Standard (2–4 days)",
   express:  "Express (1–2 days)",
-  priority: "FirstPick Priority — Same / Next Day",
+  priority: "Priority Delivery",
 };
 
 /* ── Main component ─────────────────────────────────────────────────────── */
@@ -116,7 +116,7 @@ export default function OrderConfirmation() {
   const orderNumber   = `FP${String(order.id).padStart(4, "0")}`;
   const wa            = (settings.support_whatsapp ?? "").replace(/\D/g, "");
   const waText        = encodeURIComponent(
-    `Hi FirstPick! 👋\n\nI just placed an order and wanted to confirm.\n\nOrder: *#${orderNumber}*\nName: ${order.customerName}\nPhone: ${order.customerPhone}\n\nThank you! 🙏`
+    `Hi IMAGINATE. I just placed an order and wanted to confirm.\n\nOrder: *#${orderNumber}*\nName: ${order.customerName}\nPhone: ${order.customerPhone}`
   );
 
   const SPRING = { type: "spring" as const, stiffness: 260, damping: 26 };

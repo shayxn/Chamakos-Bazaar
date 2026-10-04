@@ -46,7 +46,7 @@ function LayerElement({ element }: { element: Element }) {
     return <motion.video {...props} src={element.url} controls className="max-h-[70vh] w-full rounded-2xl border border-white/10 object-cover" />;
   }
   if (element.type === "heading") return <motion.h2 {...props} style={textStyle} className="text-3xl font-black uppercase leading-[0.9] tracking-[-0.05em] sm:text-5xl">{element.text || element.label}</motion.h2>;
-  if (element.type === "badge") return <motion.span {...props} style={textStyle} className="inline-flex rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-orange-200">{element.text || element.label}</motion.span>;
+  if (element.type === "badge") return <motion.span {...props} style={textStyle} className="inline-flex rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-violet-200">{element.text || element.label}</motion.span>;
   if (element.type === "button" || element.type === "link") {
     return <motion.div {...props}><Link href={element.href || element.url || "/shop"} className="inline-flex rounded-full bg-primary px-5 py-3 text-xs font-black uppercase tracking-[0.16em] text-black transition-transform hover:scale-[1.02]">{element.text || element.label || "Explore"}</Link></motion.div>;
   }
@@ -83,9 +83,9 @@ export function SystemStudioLayer({ route, admin = false }: { route: string; adm
     <div data-firstpick-studio-layer="true">
       {sections.map((section, index) => (
         <section key={section.id} className={`relative overflow-hidden px-5 py-14 sm:px-8 sm:py-20 ${section.type === "hero" || section.type === "full-screen" ? "min-h-[55vh] flex items-center" : ""}`}>
-          <div className="pointer-events-none absolute inset-0" style={{ background: index % 2 ? "radial-gradient(circle at 80% 20%, rgba(255,102,0,0.12), transparent 36%)" : "radial-gradient(circle at 15% 25%, rgba(255,190,40,0.10), transparent 34%)" }} />
+          <div className="pointer-events-none absolute inset-0" style={{ background: index % 2 ? "radial-gradient(circle at 80% 20%, rgba(124,58,237,0.12), transparent 36%)" : "radial-gradient(circle at 15% 25%, rgba(167,139,250,0.10), transparent 34%)" }} />
           <div className="relative mx-auto w-full max-w-5xl space-y-5">
-            {section.label && <p className="text-[10px] font-black uppercase tracking-[0.28em] text-orange-300/80">{section.label}</p>}
+            {section.label && <p className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-300/80">{section.label}</p>}
             {(section.elements ?? []).map((element) => <LayerElement key={element.id} element={element} />)}
           </div>
         </section>

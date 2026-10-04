@@ -20,7 +20,7 @@ export function AnnouncementBanner() {
 
   const active = settings.announcement_active === "true";
   const text = settings.announcement_text as string | undefined;
-  const color = (settings.announcement_color as string | undefined) ?? "#ff6600";
+  const color = (settings.announcement_color as string | undefined) ?? "#7c3aed";
   const url = settings.announcement_url as string | undefined;
 
   const instagram = settings.contact_instagram as string | undefined;

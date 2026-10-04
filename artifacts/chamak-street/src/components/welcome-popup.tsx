@@ -48,7 +48,7 @@ export function WelcomePopup() {
               border: "1px solid rgba(255,255,255,0.10)",
               borderRadius: "18px",
               boxShadow:
-                "0 4px 40px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(255,102,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08)",
+                "0 4px 40px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(124,58,237,0.12), inset 0 1px 0 rgba(255,255,255,0.08)",
               padding: "14px 16px 14px 18px",
               display: "flex",
               alignItems: "center",
@@ -61,8 +61,8 @@ export function WelcomePopup() {
                 width: 36,
                 height: 36,
                 borderRadius: "10px",
-                background: "linear-gradient(135deg, rgba(255,102,0,0.25), rgba(255,200,0,0.12))",
-                border: "1px solid rgba(255,102,0,0.3)",
+                background: "linear-gradient(135deg, rgba(124,58,237,0.25), rgba(167,139,250,0.12))",
+                border: "1px solid rgba(124,58,237,0.3)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -82,7 +82,7 @@ export function WelcomePopup() {
                 letterSpacing: "0.01em",
                 lineHeight: 1.3,
               }}>
-                Welcome to FirstPick
+                Welcome to IMAGINATE
               </p>
               <p style={{
                 fontSize: "11px",
@@ -104,7 +104,7 @@ export function WelcomePopup() {
                   display: "flex",
                   alignItems: "center",
                   gap: "6px",
-                  background: "linear-gradient(135deg, #ff6600, #ff9900)",
+                  background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
                   color: "#fff",
                   border: "none",
                   borderRadius: "10px",
@@ -116,7 +116,7 @@ export function WelcomePopup() {
                   cursor: "pointer",
                   flexShrink: 0,
                   whiteSpace: "nowrap",
-                  boxShadow: "0 4px 16px rgba(255,102,0,0.3)",
+                  boxShadow: "0 4px 16px rgba(124,58,237,0.3)",
                 }}
               >
                 Shop

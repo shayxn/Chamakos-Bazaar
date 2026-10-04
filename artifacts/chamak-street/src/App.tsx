@@ -68,11 +68,12 @@ class ErrorBoundary extends React.Component<
 import { Layout } from "@/components/layout";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useMobile } from "@/lib/use-mobile";
-import { useSettings } from "@/lib/use-settings";
+import { useOperationalSettings, useSettings } from "@/lib/use-settings";
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useVisitorTracking } from "@/lib/use-visitor-tracking";
 import { useSmoothScroll, ScrollProgressBar } from "@/components/smooth-scroll";
 import { LoadingScreen } from "@/components/loading-screen";
+import { EmergencyShutdownOverlay } from "@/components/emergency-shutdown-overlay";
 import { CartFlyProvider } from "@/components/cart-fly-context";
 import { WelcomePopup } from "@/components/welcome-popup";
 // AccountProvider kept eager — it's a root context provider
@@ -105,6 +106,7 @@ const GameDetail = lazy(() => import("@/pages/game-detail"));
 const Receipt = lazy(() => import("@/pages/receipt"));
 const WishlistPage = lazy(() => import("@/pages/wishlist"));
 const MaintenancePage = lazy(() => import("@/pages/maintenance"));
+const AboutPage = lazy(() => import("@/pages/about"));
 const BackToSchool = lazy(() => import("@/pages/back-to-school"));
 const CustomStorePage = lazy(() => import("@/pages/custom-store-page"));
 
@@ -192,6 +194,7 @@ function CustomerLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useMobile();
   useVisitorTracking();
   const settings = useSettings();
+  const { backToSchoolEnabled } = useOperationalSettings();
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
   const [location, navigate] = useLocation();
 
@@ -206,10 +209,26 @@ function CustomerLayout({ children }: { children: React.ReactNode }) {
     }
   }, [settings.maintenance_mode, user?.isAdmin, location]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Dynamic SEO title from site settings
+  // A hidden seasonal collection has no customer route or blank placeholder.
+  useEffect(() => {
+    if (!backToSchoolEnabled && location === "/back-to-school") {
+      navigate("/shop");
+    }
+  }, [backToSchoolEnabled, location, navigate]);
+
+  // Dynamic SEO metadata from site settings
   useEffect(() => {
     if (settings.site_title) document.title = settings.site_title;
-  }, [settings.site_title]);
+    const setMeta = (selector: string, value: string) => {
+      const element = document.querySelector<HTMLMetaElement>(selector);
+      if (element && value) element.content = value;
+    };
+    setMeta('meta[name="description"]', settings.site_meta_description);
+    setMeta('meta[property="og:title"]', settings.site_title);
+    setMeta('meta[property="og:description"]', settings.site_meta_description);
+    setMeta('meta[name="twitter:title"]', settings.site_title);
+    setMeta('meta[name="twitter:description"]', settings.site_meta_description);
+  }, [settings.site_title, settings.site_meta_description]);
 
   return isMobile ? <MobileLayout>{children}</MobileLayout> : <Layout>{children}</Layout>;
 }
@@ -232,6 +251,7 @@ function MainRouter() {
             <Route path="/terms" component={Terms} />
             <Route path="/privacy" component={Privacy} />
             <Route path="/shipping" component={Shipping} />
+            <Route path="/about" component={AboutPage} />
             <Route path="/account" component={AccountPage} />
             <Route path="/account/login" component={AccountLogin} />
             <Route path="/account/register" component={AccountRegister} />
@@ -253,6 +273,17 @@ function MainRouter() {
       </Route>
     </Switch>
   );
+}
+
+function InitialRouteReadySignal() {
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      (window as Window & { __firstpickRouteReady?: boolean }).__firstpickRouteReady = true;
+      window.dispatchEvent(new Event("firstpick:route-ready"));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return null;
 }
 
 /** Boots Lenis + scroll progress bar — rendered once at app root */
@@ -281,9 +312,11 @@ function App() {
                 <CustomerOverlays />
                 <LoadingScreen />
                 <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                  <EmergencyShutdownOverlay />
                   <ErrorBoundary>
                     <Suspense fallback={<PageSkeleton />}>
                       <MainRouter />
+                      <InitialRouteReadySignal />
                     </Suspense>
                   </ErrorBoundary>
                 </WouterRouter>

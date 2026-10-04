@@ -1,4 +1,4 @@
-// FirstPick — Push Notification Service Worker v4
+// IMAGINATE — Push Notification Service Worker v4
 // Derive base path from this file's own URL so click-through URLs work in both
 // dev (/chamak-street/sw.js → base=/chamak-street) and prod (/sw.js → base=)
 const BASE_PATH = self.location.pathname.replace(/\/sw\.js$/, "");
@@ -11,7 +11,7 @@ self.addEventListener("push", (event) => {
 
   let payload;
   try { payload = event.data.json(); }
-  catch { payload = { title: "FirstPick", body: event.data.text(), type: "GENERIC" }; }
+  catch { payload = { title: "IMAGINATE", body: event.data.text(), type: "GENERIC" }; }
 
   const { title, body, type, data } = payload;
   const baseSafeUrl = (candidate) => {
@@ -57,10 +57,10 @@ self.addEventListener("push", (event) => {
       // Notify any open admin tab so it can play a sound / update state
       clients.forEach((client) => client.postMessage({ type, data }));
 
-      return self.registration.showNotification(title || "FirstPick", {
+      return self.registration.showNotification(title || "IMAGINATE", {
         body: body || "",
-        icon: "/chamak-logo.png",
-        badge: "/chamak-logo.png",
+        icon: "/imaginate-icon-192.png",
+        badge: "/imaginate-icon-192.png",
         tag,
         requireInteraction,
         vibrate: type === "NEW_ORDER" ? [200, 100, 200, 100, 200] : [100, 50, 100],

@@ -43,7 +43,7 @@ async function generateOrderNumber(): Promise<string> {
 const DELIVERY_LABELS: Record<string, string> = {
   standard: "Standard Delivery",
   express: "Express Delivery",
-  priority: "FirstPick Priority",
+  priority: "Priority Delivery",
 };
 
 function serializeOrder(order: typeof ordersTable.$inferSelect, items: Array<typeof orderItemsTable.$inferSelect>) {
@@ -305,7 +305,7 @@ router.post("/orders", async (req, res) => {
       customerName: fullOrder.customerName ?? "Customer",
       total: fullOrder.total,
       deliveryMethod: fullOrder.deliveryMethod ?? "standard",
-      deliveryCharge: fullOrder.deliveryCharge ?? 20,
+      deliveryCharge: fullOrder.deliveryCharge ?? 25,
       tip: fullOrder.tip ?? 0,
       items: fullOrder.items.map((i) => ({ productName: i.productName, quantity: i.quantity })),
       createdAt: fullOrder.createdAt,

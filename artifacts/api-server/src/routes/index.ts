@@ -29,11 +29,13 @@ import adminActivityRouter from "./admin-activity";
 import couponsRouter from "./coupons";
 import wishlistRouter from "./wishlist";
 import ownerStudioRouter from "./owner-studio";
+import { emergencyShutdownGuard } from "../lib/operational-settings";
 
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(emergencyShutdownGuard);
 router.use(authRouter);
 router.use(customerAccountsRouter);
 router.use(categoriesRouter);

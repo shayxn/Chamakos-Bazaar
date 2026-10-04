@@ -99,7 +99,7 @@ export default function ClaimPage() {
               transition={{ type: "spring", stiffness: 200, damping: 18 }}
               className="text-6xl mb-4">🎁</motion.div>
             <h1 className="text-2xl sm:text-3xl font-black">
-              You've Got a <span className="text-primary">FirstPick Gift!</span>
+              You've Got an <span className="text-primary">IMAGINATE Gift!</span>
             </h1>
             {card?.senderName && (
               <p className="text-white/50 text-sm mt-2">
@@ -143,7 +143,7 @@ export default function ClaimPage() {
               style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               AED {card?.amount}
             </div>
-            <div className="text-xs text-white/30 mt-1">Add to your FirstPick account and shop anything</div>
+            <div className="text-xs text-white/30 mt-1">Add it to your IMAGINATE account and use it at checkout.</div>
           </div>
 
           {/* CTA */}

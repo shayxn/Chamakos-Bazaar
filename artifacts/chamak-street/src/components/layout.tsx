@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout, useListCategories, getListCategoriesQueryKey } from "@workspace/api-client-react";
+import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout } from "@workspace/api-client-react";
 import { ShoppingCart, User, Search, LogOut, Settings, MessageCircle, Headphones } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
@@ -11,7 +11,6 @@ import { SmartSearchModal } from "./smart-search";
 import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
 import { BackToTop } from "./back-to-top";
-import { ChamakLogo } from "./chamak-logo";
 import { SystemStudioLayer } from "./system-studio-layer";
 
 
@@ -21,7 +20,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const settings = useSettings();
   const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 15_000 } });
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
-  const { data: categories } = useListCategories({ query: { queryKey: getListCategoriesQueryKey(), staleTime: 60_000 } });
   const logout = useLogout();
 
   const cartCount = (cart?.items ?? []).reduce((acc, item) => acc + item.quantity, 0) || 0;
@@ -37,24 +35,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
     logout.mutate(undefined, { onSuccess: () => { window.location.reload(); } });
   };
 
-  const rawLogoUrl = settings.logo_url || "";
-  const logoUrl = (!rawLogoUrl || rawLogoUrl === "/chamak-logo.png" || rawLogoUrl === "/chamak-logo-transparent.png") ? "/firstpick-logo.svg" : rawLogoUrl;
-  const logoHeight = Number(settings.logo_height ?? 52) || 52;
-  const logoBgColor = settings.logo_bg_color || "transparent";
-  const logoOpacity = Number(settings.logo_opacity ?? 1) || 1;
-  const logoBlur = Number(settings.logo_blur ?? 0) || 0;
-  const logoBlendMode = settings.logo_blend_mode || "normal";
-  const logoPadding = Number(settings.logo_padding ?? 0) || 0;
-  const logoBorderRadius = Number(settings.logo_border_radius ?? 0) || 0;
-  const logoBrightness = Number(settings.logo_brightness ?? 1) || 1;
-  const logoContrast = Number(settings.logo_contrast ?? 1) || 1;
-
   const navCategories = [
-    { href: "/shop", label: "All Products" },
-    ...(settings.back_to_school_enabled !== "false" ? [{ href: "/back-to-school", label: "Back To School" }] : []),
-    { href: "/basics", label: "FP Basics" },
-    ...(categories ?? []).slice(0, 6).map((c) => ({ href: `/shop?cat=${c.id}`, label: c.name })),
-    { href: "/shop?new=1", label: "Latest Arrivals" },
+    { href: "/shop", label: "Shop all" },
+    { href: "/shop?new=1", label: "New" },
+    { href: "/shop?search=hoodie", label: "Hoodies" },
+    { href: "/about", label: "About" },
   ];
 
   return (
@@ -62,7 +47,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header
         className="sticky top-0 z-50 w-full glass-nav transition-all duration-300"
         style={{
-          borderBottom: scrolled ? "1px solid rgba(255,102,0,0.18)" : "1px solid rgba(255,255,255,0.06)",
+           borderBottom: scrolled ? "1px solid rgba(167,139,250,0.18)" : "1px solid rgba(255,255,255,0.06)",
           boxShadow: scrolled ? "0 4px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10)" : undefined,
         }}
       >
@@ -79,25 +64,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               animate={{ scale: scrolled ? 0.88 : 1 }}
               transition={{ duration: 0.35, ease: EASE }}
             >
-              {logoUrl === "/firstpick-logo.svg" ? (
-                <ChamakLogo size="md" />
-              ) : (
-                <img
-                  src={logoUrl}
-                  alt="FirstPick"
-                  style={{
-                    height: `${logoHeight}px`,
-                    width: "auto",
-                    objectFit: "contain",
-                    backgroundColor: logoBgColor,
-                    opacity: logoOpacity,
-                    filter: `blur(${logoBlur}px) brightness(${logoBrightness}) contrast(${logoContrast})`,
-                    mixBlendMode: logoBlendMode as React.CSSProperties["mixBlendMode"],
-                    padding: `${logoPadding}px`,
-                    borderRadius: `${logoBorderRadius}px`,
-                  }}
-                />
-              )}
+              <img src="/imaginate-logo.png" alt="IMAGINATE" className="h-[128px] w-[128px] object-contain" />
             </motion.div>
           </Link>
 
@@ -160,7 +127,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Row 2: Category nav */}
         <div className="hidden md:block border-t border-white/8">
           <div className="max-w-[1440px] mx-auto px-6">
-            <div className="flex items-center justify-start md:justify-center gap-4 md:gap-8 h-10 overflow-x-auto scrollbar-none">
+            <div className="flex items-center justify-start xl:justify-center gap-4 md:gap-8 h-10 overflow-x-auto scrollbar-none">
               {[...navCategories, { href: "/order-tracking", label: "Track Order" }].map((link) => {
                 const isActive = link.href === "/shop"
                   ? location === "/shop" && !location.includes("?")
@@ -201,41 +168,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Footer */}
       <footer className="relative mt-20 border-t border-white/[0.07]" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
 
-        {/* Trust row — staggered reveal */}
-        <div className="border-b border-white/6">
-          <div className="max-w-[1440px] mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { icon: "🚚", title: "Fast Delivery", desc: "UAE-wide, 1-3 days" },
-              { icon: "💳", title: "Cash on Delivery", desc: "Pay when it arrives" },
-              { icon: "🔒", title: "Secure Orders", desc: "Your info is safe" },
-              { icon: "✅", title: "100% Authentic", desc: "Genuine products only" },
-            ].map(({ icon, title, desc }, i) => (
-              <motion.div
-                key={title}
-                className="flex items-center gap-3 group"
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.5 }}
-                transition={{ duration: 0.5, delay: i * 0.08, ease: EASE }}
-              >
-                <motion.span
-                  className="text-xl shrink-0"
-                  whileInView={{ scale: [0.4, 1.25, 1] }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.55, delay: i * 0.08 + 0.12, ease: EASE }}
-                  whileHover={{ scale: 1.3, rotate: [0, -8, 8, 0] }}
-                >
-                  {icon}
-                </motion.span>
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wider text-white/70 group-hover:text-white/90 transition-colors duration-200">{title}</p>
-                  <p className="text-[10px] text-white/30">{desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
         <div className="max-w-[1440px] mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-8">
           <motion.div
             className="col-span-1 md:col-span-2"
@@ -244,26 +176,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.6, ease: EASE }}
           >
-            {logoUrl === "/firstpick-logo.svg" ? (
-              <div style={{ marginBottom: "14px", opacity: 0.65 }}>
-                <ChamakLogo size="sm" />
-              </div>
-            ) : (
-              <img
-                src={logoUrl}
-                alt="FirstPick"
-                style={{
-                  height: "38px",
-                  width: "auto",
-                  objectFit: "contain",
-                  opacity: 0.65,
-                  filter: `brightness(${logoBrightness}) contrast(${logoContrast})`,
-                  marginBottom: "14px",
-                }}
-              />
-            )}
+            <img src="/imaginate-logo.png" alt="IMAGINATE" className="mb-2 -ml-4 h-[108px] w-[136px] object-contain" />
             <p className="text-white/40 text-sm max-w-sm">
-              {settings.footer_description || "Premium streetwear for those who walk their own path."}
+              {settings.footer_description || "A UAE-based clothing and streetwear label."}
             </p>
             <div className="flex flex-wrap gap-3 mt-5">
               {settings.contact_instagram && (
@@ -340,8 +255,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </motion.div>
         </div>
         <div className="max-w-[1440px] mx-auto px-6 pb-8 pt-6 border-t border-white/8 flex flex-wrap items-center justify-between gap-2 text-xs text-white/25">
-          <span className="font-black tracking-widest uppercase text-white/40">FirstPick</span>
-          <span className="text-right">{settings.footer_copyright || `© ${new Date().getFullYear()} All rights reserved. Authentic Products — Dubai`}</span>
+          <span className="font-black tracking-widest uppercase text-white/40">IMAGINATE</span>
+          <span className="text-right">{settings.footer_copyright || `© ${new Date().getFullYear()} IMAGINATE. All rights reserved.`}</span>
         </div>
       </footer>
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, Redirect } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, Award, Backpack, BookOpen, Calculator, Check, ChevronRight,
@@ -10,7 +10,7 @@ import {
 import type { Product } from "@workspace/api-client-react";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
-import { useSettings } from "@/lib/use-settings";
+import { useOperationalSettings } from "@/lib/use-settings";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -70,8 +70,7 @@ function SchoolProductPhoto({ product, alt, className, loading = "lazy" }: {
 }
 
 export default function BackToSchool() {
-  const settings = useSettings();
-  const isEnabled = settings.back_to_school_enabled !== "false";
+  const { backToSchoolEnabled: isEnabled } = useOperationalSettings();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Essentials");
   const [animationRun, setAnimationRun] = useState(0);
@@ -162,21 +161,7 @@ export default function BackToSchool() {
   };
 
   if (!isEnabled) {
-    return (
-      <PageTransition>
-        <main className="flex min-h-[62vh] items-center justify-center bg-black px-5 text-center text-white">
-          <div className="max-w-md">
-            <Backpack className="mx-auto h-12 w-12 text-orange-300/60" />
-            <p className="mt-5 text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Seasonal collection</p>
-            <h1 className="mt-2 text-3xl font-black uppercase tracking-tighter">Back to School is taking a break</h1>
-            <p className="mt-3 text-sm leading-relaxed text-white/45">The collection is currently hidden. Browse the full FirstPick store instead.</p>
-            <Link href="/shop" className="mt-6 inline-flex items-center gap-2 rounded-lg bg-orange-400 px-5 py-3 text-xs font-black uppercase tracking-wider text-black">
-              Shop all products <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </main>
-      </PageTransition>
-    );
+    return <Redirect href="/shop" />;
   }
 
   return (

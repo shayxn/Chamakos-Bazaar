@@ -1,17 +1,17 @@
 {
-  "name": "FirstPick",
-  "short_name": "FirstPick",
-  "description": "FirstPick — Authentic premium streetwear. Dubai.",
+  "name": "IMAGINATE",
+  "short_name": "IMAGINATE",
+  "description": "IMAGINATE — UAE-based clothing and streetwear.",
   "start_url": ".",
   "scope": "./",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#ff6600",
+  "theme_color": "#08070c",
   "orientation": "portrait-primary",
   "categories": ["shopping", "business"],
   "icons": [
-    { "src": "/firstpick-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/firstpick-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/imaginate-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/imaginate-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "screenshots": [],
   "share_target": null

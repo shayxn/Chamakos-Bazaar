@@ -44,14 +44,14 @@ function StudioElementPreview({ element }: { element: StudioElement }) {
   }
   
   if (type === "badge") {
-    return <motion.span {...motionProps} style={textStyle} className="inline-flex rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">{element.text || element.label || "Badge"}</motion.span>;
+    return <motion.span {...motionProps} style={textStyle} className="inline-flex rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-violet-200">{element.text || element.label || "Badge"}</motion.span>;
   }
   
   if (type === "product") {
     return (
-      <motion.div {...motionProps} className="p-4 border border-dashed border-orange-500/30 bg-orange-500/5 rounded-xl text-center">
-        <p className="text-[10px] font-black uppercase tracking-widest text-orange-400">Product Spotlight</p>
-        <p className="text-xs text-orange-200/50 mt-1">{element.productId ? `Bound to: ${element.productId}` : "No product selected"}</p>
+      <motion.div {...motionProps} className="p-4 border border-dashed border-violet-500/30 bg-violet-500/5 rounded-xl text-center">
+        <p className="text-[10px] font-black uppercase tracking-widest text-violet-300">Product Spotlight</p>
+        <p className="text-xs text-violet-200/50 mt-1">{element.productId ? `Bound to: ${element.productId}` : "No product selected"}</p>
       </motion.div>
     );
   }
@@ -117,10 +117,10 @@ export function CanvasPreview({
             </div>
 
             <section className={`relative overflow-hidden px-5 py-16 sm:px-8 sm:py-24 ${section.type === "hero" || section.type === "full-screen" ? "min-h-[72vh] flex items-center" : ""} ${section.hidden ? "opacity-30" : ""}`}>
-              <div className="absolute inset-0 pointer-events-none" style={{ background: index % 2 ? "radial-gradient(circle at 80% 20%, rgba(255,102,0,0.12), transparent 36%)" : "radial-gradient(circle at 15% 25%, rgba(255,190,40,0.10), transparent 34%)" }} />
+              <div className="absolute inset-0 pointer-events-none" style={{ background: index % 2 ? "radial-gradient(circle at 80% 20%, rgba(124,58,237,0.12), transparent 36%)" : "radial-gradient(circle at 15% 25%, rgba(167,139,250,0.10), transparent 34%)" }} />
               
               <div className={`relative mx-auto w-full ${section.type === "full-screen" ? "max-w-6xl" : "max-w-5xl"} space-y-5 pointer-events-none`}>
-                {section.label && <p className="text-[10px] font-black uppercase tracking-[0.28em] text-orange-300/80">{section.label}</p>}
+                {section.label && <p className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-300/80">{section.label}</p>}
                 
                 {(section.elements || []).map((element) => {
                   const isElSelected = selectedId === element.id;

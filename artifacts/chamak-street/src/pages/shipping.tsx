@@ -1,68 +1,35 @@
 import { PageTransition } from "@/components/page-transition";
-import { Truck, Clock, MapPin, Package } from "lucide-react";
-
-const shippingZones = [
-  { zone: "Dubai", eta: "1–2 business days", fee: "AED 25" },
-  { zone: "Abu Dhabi", eta: "2–3 business days", fee: "AED 25" },
-  { zone: "Sharjah / Ajman", eta: "1–2 business days", fee: "AED 25" },
-  { zone: "Other Emirates", eta: "3–5 business days", fee: "AED 25" },
-];
+import { Truck } from "lucide-react";
+import { useSettings } from "@/lib/use-settings";
 
 export default function Shipping() {
+  const settings = useSettings();
+  const standardFee = Number(settings.delivery_standard_price || 25);
+
   return (
     <PageTransition>
-      <div className="container mx-auto px-4 py-20 max-w-3xl">
-        <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 gradient-text">Shipping & Delivery</h1>
-        <p className="text-muted-foreground text-sm mb-10 uppercase tracking-widest font-bold">UAE Delivery Only</p>
+      <main className="min-h-[70vh] bg-[#111113] px-6 py-20 text-[#f4f2f7] sm:px-10 sm:py-28">
+        <div className="mx-auto max-w-3xl">
+          <p className="mb-5 text-[10px] uppercase tracking-[.28em] text-[#bba4f4]">IMAGINATE / Delivery</p>
+          <h1 className="text-[clamp(2.8rem,8vw,5.8rem)] font-medium uppercase leading-[.9] tracking-[-.07em]">Shipping<br /><span className="text-white/40">within the UAE.</span></h1>
 
-        <div className="grid gap-4 mb-12 sm:grid-cols-2">
-          {[
-            { icon: Truck, title: "Free Delivery", desc: "On orders above AED 200" },
-            { icon: Clock, title: "Fast Dispatch", desc: "Same-day for orders before 3 PM" },
-            { icon: MapPin, title: "UAE Wide", desc: "All 7 Emirates covered" },
-            { icon: Package, title: "Cash on Delivery", desc: "Pay when you receive" },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="bg-card border border-border rounded-xl p-5 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Icon className="h-5 w-5 text-primary" />
-              </div>
+          <div className="mt-12 border-y border-white/10 py-7">
+            <div className="flex items-start gap-4">
+              <Truck className="mt-1 h-5 w-5 shrink-0 text-[#bba4f4]" strokeWidth={1.5} />
               <div>
-                <p className="font-black text-sm uppercase tracking-wider text-foreground mb-1">{title}</p>
-                <p className="text-sm text-muted-foreground">{desc}</p>
+                <h2 className="text-sm font-medium uppercase tracking-[.16em]">Delivery options at checkout</h2>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-white/55">
+                  Delivery is currently available within the United Arab Emirates. The standard delivery fee is AED {Number.isFinite(standardFee) ? standardFee.toFixed(2) : "25.00"}. Any other available option and its price are shown before you place your order.
+                </p>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <h2 className="text-xl font-black uppercase tracking-wider mb-4">Delivery Zones</h2>
-        <div className="bg-card border border-border rounded-xl overflow-hidden mb-10">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/40">
-                <th className="text-left p-4 font-black uppercase tracking-widest text-xs text-muted-foreground">Zone</th>
-                <th className="text-left p-4 font-black uppercase tracking-widest text-xs text-muted-foreground">Estimated Time</th>
-                <th className="text-right p-4 font-black uppercase tracking-widest text-xs text-muted-foreground">Fee</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shippingZones.map((z, i) => (
-                <tr key={z.zone} className={i < shippingZones.length - 1 ? "border-b border-border/50" : ""}>
-                  <td className="p-4 font-bold">{z.zone}</td>
-                  <td className="p-4 text-muted-foreground">{z.eta}</td>
-                  <td className="p-4 text-right font-mono font-black text-primary">{z.fee}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="bg-primary/10 border border-primary/30 rounded-xl p-6">
-          <h3 className="font-black uppercase tracking-wider text-sm text-primary mb-2">Pre-Order Shipping</h3>
-          <p className="text-sm text-muted-foreground">
-            Pre-order items ship on their listed estimated date. You will receive a WhatsApp notification once your pre-order has been dispatched. Standard delivery fees apply.
+          <p className="mt-7 max-w-xl text-xs leading-6 text-white/40">
+            For questions about an existing order, use the Support page or the contact details shown there.
           </p>
         </div>
-      </div>
+      </main>
     </PageTransition>
   );
 }

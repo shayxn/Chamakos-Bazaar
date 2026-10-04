@@ -1,731 +1,229 @@
 import { useListProducts, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { motion, useInView, AnimatePresence, useScroll } from "@/lib/motion-noop";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Flame, Zap, Star, ShoppingBag, Heart } from "lucide-react";
-import { useRef, useEffect, useState, useCallback, useMemo } from "react";
-
-import { PageTransition, RevealSection, RevealList, revealItem } from "@/components/page-transition";
+import { ArrowDown, ArrowRight, Heart } from "lucide-react";
+import { useMemo } from "react";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
-import { useMobile } from "@/lib/use-mobile";
-import { TrustSection } from "@/components/trust-section";
-import { TiktokSection } from "@/components/tiktok-section";
-import { ReviewsSection } from "@/components/reviews-section";
-import { EventHomepageBanner } from "@/components/event-homepage-banner";
-import { SpotlightBanner } from "@/components/spotlight-banner";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { formatPrice } from "@/lib/currency";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-
-/* ── 3D Tilt Card — desktop only, disabled on touch ── */
-function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
-  const isMobile = useMobile();
-
-  const rafRef = useRef<number | null>(null);
-
-  // Cancel any pending RAF on unmount so we never call setState after teardown
-  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (isMobile) return;
-    const { clientX, clientY } = e;
-    if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = null;
-      if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      const x = ((clientX - rect.left) / rect.width - 0.5) * 16;
-      const y = ((clientY - rect.top) / rect.height - 0.5) * -16;
-      setTilt({ x, y });
-    });
-  }, [isMobile]);
-
-  const handleMouseLeave = useCallback(() => { setTilt({ x: 0, y: 0 }); setIsHovered(false); }, []);
-
+function ProductTile({ product, index, wished, onWish }: {
+  product: any;
+  index: number;
+  wished: boolean;
+  onWish: (id: number) => void;
+}) {
+  const media = getPrimaryProductMedia(product.imageUrl);
   return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={isMobile ? undefined : () => setIsHovered(true)}
-      onMouseLeave={isMobile ? undefined : handleMouseLeave}
-      animate={isMobile ? {} : { rotateY: tilt.x, rotateX: tilt.y }}
-      transition={{ type: "spring", stiffness: 280, damping: 26 }}
-      style={isMobile ? undefined : { transformStyle: "preserve-3d", perspective: 1100 }}
-      className={className}
-      data-hovered={isHovered}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/* ── Stat item — count-up on entry ── */
-function StatItem({ value, suffix, label, color = "#ff6600" }: { value: number; suffix: string; label: string; color?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
-  const [display, setDisplay] = useState(0);
-
-  useEffect(() => {
-    if (!isInView) return;
-    const duration = 1400;
-    const startTime = performance.now();
-    let raf: number;
-    const tick = (now: number) => {
-      const t = Math.min((now - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
-      setDisplay(Math.round(eased * value));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [isInView, value]);
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 28, scale: 0.85 }}
-      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.65, ease: EASE }}
-      className="flex flex-col items-center gap-2 px-6 py-6 relative"
-    >
-      <motion.span
-        className="text-5xl md:text-6xl font-black tabular-nums leading-none"
-        style={{ color, textShadow: `0 0 40px ${color}44` }}
-        animate={isInView ? { textShadow: [`0 0 10px ${color}22`, `0 0 60px ${color}66`, `0 0 40px ${color}44`] } : {}}
-        transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
-      >
-        {display}{suffix}
-      </motion.span>
-      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">{label}</span>
-    </motion.div>
-  );
-}
-
-/* ── Quote word reveal ── */
-function GlitchWord({ text, delay = 0 }: { text: string; delay?: number }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
-  return (
-    <motion.span
-      ref={ref}
-      className="inline-block"
-      initial={{ opacity: 0, y: 12 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.55, delay, ease: EASE }}
-    >
-      {text}
-    </motion.span>
-  );
-}
-
-
-
-/* ── Viewport-aware autoplay video ── */
-function ViewportVideo({ src }: { src: string }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          video.play().catch(() => {});
-        } else {
-          video.pause();
-        }
-      },
-      { threshold: 0.25 }
-    );
-    observer.observe(video);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <section className="relative overflow-hidden bg-black">
-      {/* Top gradient */}
-      <div className="absolute inset-x-0 top-0 z-10 pointer-events-none"
-        style={{ height: 80, background: "linear-gradient(to bottom, #000, transparent)" }} />
-      {/* Bottom gradient */}
-      <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
-        style={{ height: 80, background: "linear-gradient(to top, #000, transparent)" }} />
-      {/* Side vignettes */}
-      <div className="absolute inset-y-0 left-0 z-10 pointer-events-none"
-        style={{ width: 120, background: "linear-gradient(to right, rgba(0,0,0,0.5), transparent)" }} />
-      <div className="absolute inset-y-0 right-0 z-10 pointer-events-none"
-        style={{ width: 120, background: "linear-gradient(to left, rgba(0,0,0,0.5), transparent)" }} />
-      {/* Orange glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
-        style={{ width: "50%", height: 80, background: "rgba(255,102,0,0.12)", filter: "blur(40px)" }} />
-
-      <video
-        ref={videoRef}
-        src={src}
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        disablePictureInPicture
-        className="w-full block"
-        style={{ maxHeight: "85vh", objectFit: "cover", display: "block" }}
-      />
-    </section>
-  );
-}
-
-function SectionDivider({ accent = true }: { accent?: boolean }) {
-  return (
-    <div className="relative flex items-center justify-center py-3 overflow-hidden">
-      <motion.div
-        className="absolute left-0 right-0 h-px"
-        style={{
-          background: accent
-            ? "linear-gradient(to right, transparent 5%, rgba(255,102,0,0.45) 35%, rgba(255,204,0,0.28) 65%, transparent 95%)"
-            : "linear-gradient(to right, transparent 10%, rgba(255,255,255,0.05) 50%, transparent 90%)",
-          transformOrigin: "center",
-        }}
-        initial={{ scaleX: 0 }}
-        whileInView={{ scaleX: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-      />
-      {accent && (
-        <div className="relative z-10 flex items-center gap-2">
-          <div className="w-1 h-1 rotate-45 bg-primary/50" />
-          <div className="w-1.5 h-1.5 rotate-45 bg-primary/70" />
-          <div className="w-1 h-1 rotate-45 bg-primary/50" />
+    <article className="group" data-testid={`card-product-${product.id}`}>
+      <div className="relative overflow-hidden bg-[#19191c]">
+        <Link href={`/product/${product.id}`} className="block">
+          <div className="aspect-[4/5] overflow-hidden">
+            {media ? (
+              media.type === "video" ? (
+                <video src={media.url} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]" muted playsInline preload="metadata" />
+              ) : (
+                <img src={media.url} alt={product.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]" loading="lazy" />
+              )
+            ) : (
+              <div className="flex h-full items-center justify-center bg-[#17171a] text-[10px] uppercase tracking-[.3em] text-white/35">Imaginate / {String(index + 1).padStart(2, "0")}</div>
+            )}
+          </div>
+        </Link>
+        <button
+          type="button"
+          aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+          aria-pressed={wished}
+          data-testid={`button-wishlist-${product.id}`}
+          onClick={() => onWish(product.id)}
+          className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/35 text-white backdrop-blur-md transition-colors hover:border-white/60 hover:bg-black/60"
+        >
+          <Heart className={`h-4 w-4 ${wished ? "fill-[#bda4ff] text-[#bda4ff]" : ""}`} strokeWidth={1.5} />
+        </button>
+        {product.isPreOrder && (
+          <span className="absolute bottom-3 left-3 bg-black/65 px-2.5 py-1 text-[9px] uppercase tracking-[.2em] text-white backdrop-blur">Pre-order</span>
+        )}
+      </div>
+      <div className="flex items-start justify-between gap-4 pt-4">
+        <div className="min-w-0">
+          {product.categoryName && <p className="mb-1 text-[9px] uppercase tracking-[.22em] text-white/45">{product.categoryName}</p>}
+          <Link href={`/product/${product.id}`} className="text-sm font-medium leading-snug text-white transition-colors hover:text-[#c4adff]" data-testid={`link-product-${product.id}`}>
+            {product.name}
+          </Link>
         </div>
-      )}
-    </div>
+        <span className="shrink-0 pt-0.5 text-xs tabular-nums text-white/75">{formatPrice(product.price)}</span>
+      </div>
+    </article>
   );
 }
-
 
 export default function Home() {
   const settings = useSettings();
-  const isMobile = useMobile();
-  const { data: featuredProducts } = useListProducts(
+  const { data: featured, isLoading: featuredLoading, isError: featuredError } = useListProducts(
     { featured: true },
     { query: { queryKey: getListProductsQueryKey({ featured: true }), staleTime: 30_000 } }
   );
+  const { data: catalog, isLoading: catalogLoading, isError: catalogError } = useListProducts(
+    {},
+    { query: { queryKey: getListProductsQueryKey({}), staleTime: 30_000 } }
+  );
   const { ids: wishlistIds, toggle: toggleWishlist } = useWishlist();
-  const heroTitle = settings.hero_title || "Ignite the";
-  const heroSubtitle = settings.hero_subtitle || "Streets.";
-  const heroDescription = settings.hero_description || "Bold aesthetic. Unmatched drip. Dress like you own the block.";
-  const heroCtaText = settings.hero_cta_text || "Shop Now";
-  const HD = (typeof sessionStorage !== "undefined" && !sessionStorage.getItem("firstpick_loaded")) ? 5.1 : 0.1;
 
-  /* ── Hero images carousel ── */
-  const heroImages = useMemo<string[]>(() => {
-    try {
-      const parsed = JSON.parse(settings.hero_images || "[]");
-      if (Array.isArray(parsed) && parsed.filter(Boolean).length > 0) return parsed.filter(Boolean);
-    } catch {}
-    if (settings.hero_image) return [settings.hero_image];
-    return [isMobile ? "/firstpick-hero-portrait.png" : "/firstpick-hero.png"];
-  }, [settings.hero_images, settings.hero_image, isMobile]);
+  const heroImage = useMemo(() => {
+    const tryImages = (value?: string) => {
+      try {
+        const parsed: unknown = JSON.parse(value || "");
+        if (Array.isArray(parsed)) return parsed.find((item) => typeof item === "string" && item.trim()) as string | undefined;
+      } catch { /* A single configured URL is also supported. */ }
+      return undefined;
+    };
+    return tryImages(settings.hero_images) ??
+      (settings.hero_image && settings.hero_image !== "/chamako-hero.png" ? settings.hero_image : undefined);
+  }, [settings.hero_images, settings.hero_image]);
 
-  /* ── Portrait (mobile) variants — parallel array, optional per slide ── */
-  const heroPortraits = useMemo<string[]>(() => {
-    try {
-      const parsed = JSON.parse(settings.hero_images_portrait || "[]");
-      if (Array.isArray(parsed)) return parsed;
-    } catch {}
-    return [];
-  }, [settings.hero_images_portrait]);
-
-  // Track which hero image indices have failed to load → swap in fallback
-  const [heroImgFailed, setHeroImgFailed] = useState<Record<number, boolean>>({});
-  const defaultFallback = isMobile ? "/firstpick-hero-portrait.png" : "/firstpick-hero.png";
-  const heroSrc = useCallback((i: number) => {
-    if (heroImgFailed[i]) return defaultFallback;
-    // On mobile use portrait version when available for this slide
-    if (isMobile && heroPortraits[i]) return heroPortraits[i];
-    return heroImages[i];
-  }, [heroImages, heroPortraits, heroImgFailed, defaultFallback, isMobile]);
-
-  const slideInterval = Math.max(2000, Number(settings.hero_slide_interval || 5000));
-  const [slideIdx, setSlideIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const slideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const goToSlide = useCallback((idx: number) => {
-    setSlideIdx(((idx % heroImages.length) + heroImages.length) % heroImages.length);
-  }, [heroImages.length]);
-
-  useEffect(() => {
-    if (heroImages.length <= 1 || paused) return;
-    slideTimerRef.current = setTimeout(() => {
-      setSlideIdx((prev) => (prev + 1) % heroImages.length);
-    }, slideInterval);
-    return () => { if (slideTimerRef.current) clearTimeout(slideTimerRef.current); };
-  }, [slideIdx, heroImages.length, slideInterval, paused]);
+  const liveEnabled = settings.live_event_enabled === "true";
+  const liveDate = settings.live_event_date?.trim() || "October 27";
+  const liveTime = settings.live_event_time?.trim();
+  const liveCtaUrl = settings.live_event_live_url?.trim() || settings.live_event_cta_url?.trim();
+  const eventDateLabel = /^\d{4}-\d{2}-\d{2}$/.test(liveDate)
+    ? new Intl.DateTimeFormat("en-AE", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${liveDate}T00:00:00`))
+    : liveDate;
+  const products = featured?.length ? featured.slice(0, 4) : (catalog ?? []).slice(0, 4);
+  const productsLoading = featuredLoading || catalogLoading;
+  const productsError = featuredError && catalogError;
 
   return (
-    <PageTransition>
-      <div className="w-full">
+    <main className="min-h-[100dvh] overflow-hidden bg-[#111113] text-[#f4f2f7]">
+      <section className="relative isolate flex min-h-[calc(100svh-72px)] items-end overflow-hidden bg-[#111113] sm:min-h-[calc(100svh-84px)]" aria-label="Imaginate campaign">
+        {heroImage && (
+          <>
+            <img src={heroImage} alt="" aria-hidden="true" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-center opacity-55" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/30 to-black/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#111113] via-transparent to-black/15" />
+          </>
+        )}
+        {!heroImage && (
+          <>
+            <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(ellipse_at_72%_30%,rgba(102,72,162,.2),transparent_36%),linear-gradient(130deg,#171719_0%,#111113_54%,#1b1820_100%)]" />
+            <div aria-hidden="true" className="absolute right-[-10%] top-[12%] h-[68vw] w-[68vw] rounded-full border border-white/[.045] sm:right-[4%] sm:top-[4%] sm:h-[46vw] sm:w-[46vw]" />
+            <div aria-hidden="true" className="absolute right-[2%] top-[22%] h-[52vw] w-[52vw] rounded-full border border-[#b7a1e8]/[.13] sm:right-[13%] sm:top-[14%] sm:h-[34vw] sm:w-[34vw]" />
+          </>
+        )}
+        <div className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-col px-6 pb-16 pt-32 sm:px-10 sm:pb-20 lg:px-[8vw] lg:pb-[9vh]">
+          <div className="max-w-4xl">
+            <div className="mb-8 flex items-center gap-4">
+              <span className="h-px w-9 bg-[#bba4f4]" />
+              <p className="text-[9px] uppercase tracking-[.34em] text-white/70 sm:text-[10px]">Independent expression / UAE</p>
+            </div>
+            <h1 className="max-w-4xl text-[clamp(3.3rem,10.7vw,9.5rem)] font-semibold uppercase leading-[.81] tracking-[-.085em]">
+              Wear the<br /><span className="text-[#c6b2f0]">unwritten.</span>
+            </h1>
+            <div className="mt-9 flex flex-col gap-7 sm:mt-12 sm:flex-row sm:items-end sm:justify-between">
+              <p className="max-w-[340px] text-sm leading-6 text-white/65 sm:text-base">
+                IMAGINATE is a point of view in motion. A new language for the streets, made to be yours.
+              </p>
+              <Link href="/shop" data-testid="link-hero-shop" className="group inline-flex w-fit items-center gap-5 border-b border-white/55 pb-3 text-[10px] uppercase tracking-[.24em] text-white transition-colors hover:border-[#c6b2f0] hover:text-[#c6b2f0]">
+                Explore the collection <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </div>
+          <div className="mt-16 flex items-end justify-between border-t border-white/15 pt-4 sm:mt-20">
+            <p className="text-[9px] uppercase tracking-[.2em] text-white/45">IMAGINATE — Dubai, UAE</p>
+            <a href="#collection" aria-label="Scroll to collection" className="flex items-center gap-2 text-[9px] uppercase tracking-[.2em] text-white/55 hover:text-white">
+              Discover <ArrowDown className="h-3.5 w-3.5" />
+            </a>
+          </div>
+        </div>
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#111113] to-transparent" />
+      </section>
 
-        {/* ══════════════ HERO ══════════════ */}
-        <section
-          className="relative w-full flex items-center overflow-hidden"
-          style={{ background: "#000" }}
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-        >
-          {/* ── Image carousel: natural height, full image visible ── */}
-          {/* Ghost image drives the section height (invisible, just for layout) */}
-          <img
-            src={heroSrc(slideIdx)}
-            alt=""
-            aria-hidden="true"
-            onError={() => setHeroImgFailed(prev => ({ ...prev, [slideIdx]: true }))}
-            style={{
-              width: "100%",
-              height: isMobile ? "78vh" : "auto",
-              display: "block",
-              visibility: "hidden",
-              minHeight: isMobile ? "70vh" : "60vh",
-              maxHeight: isMobile ? "82vh" : "90vh",
-              objectFit: isMobile ? "cover" : "contain",
-            }}
-          />
-
-          {/* Actual crossfade slides — absolutely positioned over the ghost */}
-          {heroImages.map((_src, i) => {
-            const isActive = i === slideIdx;
-            const src = heroSrc(i);
-            const isVideo = /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(src);
-            const style: React.CSSProperties = {
-              position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: isMobile ? "cover" : "contain",
-              objectPosition: isMobile ? "center top" : "center",
-              opacity: isActive ? 1 : 0,
-              transition: "opacity 1s cubic-bezier(0.22,1,0.36,1)",
-              pointerEvents: isActive ? "auto" : "none",
-              zIndex: isActive ? 1 : 0,
-            };
-            return isVideo ? (
-              // Only autoplay the active slide; inactive slides stay paused and don't load
-              <video key={i} src={src} style={style}
-                autoPlay={isActive} loop playsInline muted
-                preload={isActive ? "auto" : "none"}
-              />
-            ) : (
-              <img
-                key={i}
-                src={src}
-                alt="FirstPick"
-                style={style}
-                loading={i === 0 ? "eager" : "lazy"}
-                onError={() => setHeroImgFailed(prev => ({ ...prev, [i]: true }))}
-              />
-            );
-          })}
-
-          {/* Subtle bottom fade into page */}
-          <div className="absolute inset-x-0 bottom-0 h-40 z-10 pointer-events-none" style={{ background: "linear-gradient(to top, hsl(var(--background)) 5%, transparent)" }} />
-
-          {/* ── Slide dots + arrows ── */}
-          {heroImages.length > 1 && (
-            <motion.div
-              className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: HD + 1.0 }}
-            >
-              {/* Arrows + dots row */}
-              <div className="flex items-center gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.15, backgroundColor: "rgba(255,102,0,0.2)" }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => goToSlide(slideIdx - 1)}
-                  className="w-11 h-11 rounded-full border border-white/20 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white transition-colors"
-                  aria-label="Previous slide"
-                >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </motion.button>
-
-                <div className="flex items-center gap-2">
-                  {heroImages.map((_, i) => (
-                    <motion.button
-                      key={i}
-                      onClick={() => goToSlide(i)}
-                      animate={{
-                        width: i === slideIdx ? 24 : 8,
-                        backgroundColor: i === slideIdx ? "#ff6600" : "rgba(255,255,255,0.3)",
-                        boxShadow: i === slideIdx ? "0 0 10px rgba(255,102,0,0.8)" : "none",
-                      }}
-                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      className="h-2 rounded-full cursor-pointer"
-                      style={{ minWidth: 8 }}
-                      aria-label={`Go to slide ${i + 1}`}
-                    />
-                  ))}
-                </div>
-
-                <motion.button
-                  whileHover={{ scale: 1.15, backgroundColor: "rgba(255,102,0,0.2)" }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => goToSlide(slideIdx + 1)}
-                  className="w-11 h-11 rounded-full border border-white/20 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white transition-colors"
-                  aria-label="Next slide"
-                >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2L8.5 6L4.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </motion.button>
-              </div>
-
-              {/* Progress bar for current slide */}
-              <div className="w-32 h-px bg-white/10 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-primary rounded-full"
-                  key={slideIdx}
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: slideInterval / 1000, ease: "linear" }}
-                />
-              </div>
-            </motion.div>
+      {liveEnabled && (
+        <section className="relative isolate overflow-hidden border-y border-white/10 bg-[#17161a]" aria-label="IMAGINATE Live">
+          {settings.live_event_background && (
+            <>
+              <img src={settings.live_event_background} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-20" loading="lazy" />
+              <div aria-hidden="true" className="absolute inset-0 bg-[#111113]/75" />
+            </>
           )}
-
-          {/* Scroll indicator */}
-          <motion.div
-            className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: HD + 1.1 }}
-          >
-            <motion.p
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 2.2, repeat: Infinity }}
-              className="text-[9px] font-black uppercase tracking-[0.45em] text-muted-foreground/40"
-            >Scroll</motion.p>
-            <motion.div
-              animate={{ y: [0, 9, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-              className="w-5 h-9 border border-muted-foreground/20 rounded-full flex justify-center pt-1.5"
-            >
-              <motion.div
-                animate={{ opacity: [1, 0, 1], y: [0, 12, 0] }}
-                transition={{ duration: 1.6, repeat: Infinity }}
-                className="w-1 h-2 rounded-full bg-primary"
-              />
-            </motion.div>
-          </motion.div>
-        </section>
-
-        {/* ── SPOTLIGHT BANNER ── */}
-        <SpotlightBanner />
-
-        {/* ══════════════ FEATURED PRODUCTS ══════════════ */}
-        <section className="py-12 md:py-20 overflow-hidden relative">
-          <div className="container mx-auto px-4 relative z-10">
-            <RevealSection className="mb-12">
-              <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.35em] text-primary/70 mb-2">Handpicked For You</p>
-                  <h2 className="text-2xl sm:text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none">
-                    Heat <span className="gradient-text-animate">Check</span>
-                  </h2>
-                </div>
-                <Link href="/shop" className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary hover:opacity-80 transition-opacity shrink-0">
-                  View All <ArrowRight className="h-4 w-4" />
-                </Link>
+          <div className="relative mx-auto flex max-w-[1600px] flex-col gap-7 px-6 py-9 sm:px-10 md:flex-row md:items-center md:justify-between lg:px-[8vw]">
+            <div className="flex items-start gap-5">
+              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#c3a9ff]" />
+              <div>
+                <p className="mb-2 text-[9px] uppercase tracking-[.3em] text-[#c3a9ff]">IMAGINATE Live</p>
+                <h2 className="text-2xl font-medium tracking-[-.04em] sm:text-3xl">{settings.live_event_title || "A moment in the making."}</h2>
+                {settings.live_event_description && <p className="mt-2 max-w-xl text-sm leading-6 text-white/55">{settings.live_event_description}</p>}
               </div>
-            </RevealSection>
-
-            <RevealList className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 md:gap-8" stagger={0.09}>
-              {featuredProducts?.map((product, idx) => {
-                const primaryMedia = getPrimaryProductMedia(product.imageUrl);
-                return (
-                  <motion.div key={product.id} variants={revealItem} style={{ perspective: 1100 }}>
-                    <Link href={`/product/${product.id}`}>
-                      <TiltCard className="group cursor-pointer">
-                        <motion.div
-                          className="product-img-frame relative aspect-[4/5] mb-4 overflow-hidden rounded-2xl glass-card group-hover:border-primary/40 transition-all duration-400"
-                          whileHover={{ boxShadow: "0 36px 90px rgba(255,102,0,0.35), 0 0 0 1px rgba(255,102,0,0.18)" }}
-                          transition={{ duration: 0.35 }}
-                        >
-                          {primaryMedia ? (
-                            primaryMedia.type === "video" ? (
-                              <video src={primaryMedia.url} className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-108" muted playsInline preload="metadata" />
-                            ) : (
-                              <motion.img
-                                src={primaryMedia.url}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                                whileHover={{ scale: 1.08 }}
-                                transition={{ duration: 0.6, ease: EASE }}
-                                loading="lazy"
-                              />
-                            )
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground font-mono text-sm">No Image</div>
-                          )}
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden rounded-2xl">
-                            <motion.div
-                              className="absolute top-0 bottom-0"
-                              animate={{ x: ["-120%", "220%"] }}
-                              transition={{ duration: 1.1, ease: "easeInOut", repeat: Infinity, repeatDelay: 2 }}
-                              style={{ width: "50%", background: "linear-gradient(105deg, transparent 15%, rgba(255,160,0,0.22) 50%, transparent 85%)" }}
-                            />
-                          </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
-                          <button
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWishlist(product.id); }}
-                            className={`absolute top-3 right-3 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all border backdrop-blur-sm ${wishlistIds.has(product.id) ? "bg-rose-500/20 border-rose-400/40" : "bg-black/40 border-white/10 hover:border-rose-400/30"}`}
-                          >
-                            <Heart className={`h-3.5 w-3.5 transition-colors ${wishlistIds.has(product.id) ? "fill-rose-400 text-rose-400" : "text-white/25 hover:text-rose-400"}`} />
-                          </button>
-                          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-                            {product.isPreOrder && (
-                              <span className="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm shadow-lg">Pre-Order</span>
-                            )}
-                            <motion.span
-                              animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 16px rgba(255,102,0,0.95)", "0 0 0px rgba(255,102,0,0)"] }}
-                              transition={{ duration: 2.8, repeat: Infinity, delay: idx * 0.4 }}
-                              className="bg-primary text-primary-foreground text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
-                            >
-                              ★ Featured
-                            </motion.span>
-                            {product.sellingFast && (
-                              <motion.span
-                                animate={{ scale: [1, 1.07, 1], opacity: [0.85, 1, 0.85] }}
-                                transition={{ duration: 1.0, repeat: Infinity }}
-                                className="bg-orange-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm"
-                              >
-                                🔥 Hot
-                              </motion.span>
-                            )}
-                          </div>
-                          <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-4 z-10 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-350">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white bg-black/60 backdrop-blur-md px-5 py-1.5 rounded-full border border-white/12">
-                              View Product →
-                            </span>
-                          </div>
-                        </motion.div>
-                        <div className="space-y-1.5 px-0.5">
-                          <p className="text-[9px] text-muted-foreground/60 uppercase tracking-[0.25em]">{product.categoryName}</p>
-                          <h3 className="font-bold text-base leading-snug group-hover:text-primary transition-colors duration-200">{product.name}</h3>
-                          <div className="flex items-center justify-between pt-1">
-                            <p className="font-mono text-primary font-black text-lg">AED {product.price.toFixed(2)}</p>
-                            <motion.div
-                              className="h-7 w-7 rounded-full border border-primary/30 bg-primary/8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-250"
-                              whileHover={{ scale: 1.3, backgroundColor: "rgba(255,102,0,0.25)" }}
-                            >
-                              <ArrowRight className="h-3 w-3 text-primary" />
-                            </motion.div>
-                          </div>
-                        </div>
-                      </TiltCard>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-
-              {(!featuredProducts || featuredProducts.length === 0) && (
-                <div className="col-span-full py-16 text-center text-muted-foreground">
-                  No featured products yet. <Link href="/shop" className="text-primary hover:underline">Check out the full shop.</Link>
-                </div>
+            </div>
+            <div className="flex shrink-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-8">
+              {(liveDate || liveTime) && (
+                <p className="text-[10px] uppercase tracking-[.17em] text-white/65">
+                  {eventDateLabel}{liveTime ? ` · ${liveTime}${settings.live_event_timezone ? ` ${settings.live_event_timezone}` : ""}` : ""}
+                </p>
               )}
-            </RevealList>
+              {liveCtaUrl && (
+                <a href={liveCtaUrl} className="group inline-flex items-center gap-3 text-[10px] uppercase tracking-[.2em] text-white hover:text-[#c6b2f0]" data-testid="link-live-event">
+                  {settings.live_event_cta_text || "Discover the event"} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </a>
+              )}
+            </div>
           </div>
         </section>
+      )}
 
-        {/* ── EVENT HOMEPAGE BANNER ── */}
-        <RevealSection amount={0.1} className="container mx-auto px-4 mt-6">
-          <EventHomepageBanner />
-        </RevealSection>
-
-        {/* ══════════════ MARQUEE ══════════════ */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.55 }}
-          className="fire-gradient py-4 overflow-hidden relative"
-        >
-          <motion.div
-            animate={{ x: [0, -1600] }}
-            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-            className="flex items-center gap-10 whitespace-nowrap font-black uppercase tracking-[0.3em] text-black text-sm"
-            style={{ width: "max-content", willChange: "transform" }}
-          >
-            {[...Array(12)].map((_, i) => (
-              <span key={i} className="flex items-center gap-10">
-                <span>FirstPick</span>
-                <Flame className="h-4 w-4 inline-block" />
-                <span>New Drop</span>
-                <span>★</span>
-                <span>Stay Dripped</span>
-                <Zap className="h-4 w-4 inline-block" />
-                <span>Dubai Exclusive</span>
-                <span>✦</span>
-              </span>
-            ))}
-          </motion.div>
-        </motion.div>
-
-        {/* ── REVERSE MARQUEE ── */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.55 }}
-          className="bg-background border-y border-primary/15 py-3.5 overflow-hidden"
-        >
-          <motion.div
-            animate={{ x: [-1600, 0] }}
-            transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
-            className="flex items-center gap-10 whitespace-nowrap font-black uppercase tracking-[0.28em] text-sm"
-            style={{ width: "max-content", willChange: "transform" }}
-          >
-            {[...Array(12)].map((_, i) => (
-              <span key={i} className="flex items-center gap-10 text-muted-foreground/50">
-                <span className="gradient-text">Dubai Drip</span>
-                <span>✦</span>
-                <span>Limited Edition</span>
-                <span className="gradient-text">✦</span>
-                <span>Exclusive Drops</span>
-                <span>✦</span>
-                <span className="gradient-text">Street Culture</span>
-                <span>✦</span>
-                <span className="gradient-text">Authentic Drops</span>
-                <span>✦</span>
-              </span>
-            ))}
-          </motion.div>
-        </motion.div>
-
-        {/* ══════════════ STATS STRIP ══════════════ */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.6 }}
-          className="py-12 relative overflow-hidden border-y border-border/30"
-        >
-          {/* Animated background glow */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            animate={{ opacity: [0.15, 0.35, 0.15] }}
-            transition={{ duration: 5, repeat: Infinity }}
-            style={{ background: "radial-gradient(ellipse at 50% 100%, rgba(255,102,0,0.12), transparent 60%)" }}
-          />
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4">
-              {[
-                { value: 500, suffix: "+", label: "Products", color: "#ff6600" },
-                { value: 3, suffix: "", label: "Top Brands", color: "#ffcc00" },
-                { value: 100, suffix: "%", label: "Authentic", color: "#ff9933" },
-                { value: 1, suffix: " Day", label: "UAE Delivery", color: "#ff6600" },
-              ].map((stat, i) => (
-                <div key={i} className="relative">
-                  {i > 0 && <div className="absolute left-0 top-4 bottom-4 w-px" style={{ background: "linear-gradient(to bottom, transparent, rgba(255,102,0,0.2), transparent)" }} />}
-                  <StatItem {...stat} />
-                </div>
-              ))}
-            </div>
+      <section id="collection" className="mx-auto max-w-[1600px] px-6 pb-24 pt-24 sm:px-10 sm:pb-32 sm:pt-32 lg:px-[8vw]">
+        <div className="mb-10 flex flex-col justify-between gap-5 sm:mb-14 sm:flex-row sm:items-end">
+          <div>
+            <p className="mb-4 text-[9px] uppercase tracking-[.3em] text-[#bba4f4]">Selected for you</p>
+            <h2 className="text-4xl font-medium uppercase leading-none tracking-[-.07em] sm:text-6xl">The collection<span className="text-[#bba4f4]">.</span></h2>
           </div>
-        </motion.section>
+          <Link href="/shop" className="group inline-flex items-center gap-3 text-[10px] uppercase tracking-[.2em] text-white/65 transition-colors hover:text-white" data-testid="link-view-collection">
+            View all pieces <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
 
-        {/* ── TRUST ── */}
-        <TrustSection />
+        {productsLoading ? (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-6 md:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse bg-white/[.055]" />)}
+          </div>
+        ) : productsError ? (
+          <div role="status" className="border-y border-white/10 py-12 text-sm text-white/60">
+            The collection could not be loaded right now. <button className="ml-2 underline underline-offset-4 hover:text-white" onClick={() => window.location.reload()}>Try again</button>
+          </div>
+        ) : products.length ? (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-6 md:grid-cols-4">
+            {products.map((product, index) => (
+              <ProductTile key={product.id} product={product} index={index} wished={wishlistIds.has(product.id)} onWish={toggleWishlist} />
+            ))}
+          </div>
+        ) : (
+          <div className="border-y border-white/10 py-12 text-sm text-white/55">The collection is taking shape. Check back soon.</div>
+        )}
+      </section>
 
-        <SectionDivider />
+      <section className="relative overflow-hidden border-y border-white/10 bg-[#17161a] px-6 py-24 sm:px-10 sm:py-36">
+        <div aria-hidden="true" className="absolute -right-20 top-1/2 h-[440px] w-[440px] -translate-y-1/2 rounded-full border border-[#bba4f4]/10 sm:right-[8%]" />
+        <div aria-hidden="true" className="absolute -right-5 top-1/2 h-[320px] w-[320px] -translate-y-1/2 rounded-full border border-white/[.06] sm:right-[14%]" />
+        <div className="relative mx-auto max-w-[1600px] lg:px-[8vw]">
+          <p className="mb-6 text-[9px] uppercase tracking-[.3em] text-[#bba4f4]">A different kind of statement</p>
+          <h2 className="max-w-5xl text-[clamp(2.8rem,8vw,7.6rem)] font-medium uppercase leading-[.88] tracking-[-.075em]">
+            Not made to fit in.<br /><span className="text-white/38">Made to feel like you.</span>
+          </h2>
+          <div className="mt-10 flex flex-col justify-between gap-8 sm:flex-row sm:items-end">
+            <p className="max-w-sm text-sm leading-6 text-white/55">We believe what you wear should leave room for who you are becoming. IMAGINATE starts there.</p>
+            <img src="/imaginate-logo.png" alt="Imaginate" className="h-auto w-40 object-contain sm:w-52" loading="lazy" />
+          </div>
+        </div>
+      </section>
 
-        {/* ── TIKTOK ── */}
-        <TiktokSection />
-
-        <SectionDivider />
-
-        {/* ── REVIEWS ── */}
-        <ReviewsSection />
-
-        <SectionDivider />
-
-        {/* ══════════════ FEATURE VIDEO ══════════════ */}
-        <ViewportVideo src={settings.hero_middle_video || "/firstpick-video.mov"} />
-
-        <SectionDivider />
-
-        {/* ══════════════ QUOTE BANNER ══════════════ */}
-        <RevealSection amount={0.15} className="mx-4 mb-12">
-          <section className="py-28 md:py-36 rounded-3xl overflow-hidden relative">
-            {/* Multi-layer background */}
-            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(255,102,0,0.12) 0%, rgba(0,0,0,0) 50%, rgba(255,80,0,0.08) 100%)" }} />
-            <div className="absolute inset-0 rounded-3xl border border-primary/20" />
-
-            {/* Animated radial glow */}
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              animate={{ opacity: [0.3, 0.7, 0.3], scale: [1, 1.06, 1] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-              style={{ background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255,102,0,0.15), transparent 65%)" }}
-            />
-
-            {/* Decorative top line */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,102,0,0.5), transparent)" }} />
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,102,0,0.5), transparent)" }} />
-
-            <div className="container mx-auto px-4 text-center relative z-10">
-              <motion.p
-                className="text-[10px] font-black uppercase tracking-[0.5em] text-primary/60 mb-8"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                ✦ The FirstPick Promise ✦
-              </motion.p>
-
-              <div className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight md:tracking-tighter leading-[0.92] mb-6 overflow-hidden">
-                <div className="mb-2">
-                  <GlitchWord text='"Stay Dripped.' delay={0.05} />
-                </div>
-                <div>
-                  <GlitchWord text='Stay Dangerous."' delay={0.3} />
-                </div>
-              </div>
-
-              <motion.p
-                className="gradient-text text-lg md:text-2xl font-black uppercase tracking-[0.2em] mb-12"
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.6, duration: 0.6 }}
-              >
-                — FirstPick, Dubai
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 24, scale: 0.95 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.7, duration: 0.6, ease: EASE }}
-                className="inline-block"
-              >
-                <Link href="/shop">
-                  <motion.div
-                    whileHover={{ scale: 1.07, filter: "brightness(1.12)" }}
-                    whileTap={{ scale: 0.96 }}
-                    transition={{ type: "spring", stiffness: 380, damping: 20 }}
-                    className="inline-block"
-                  >
-                    <Button size="lg" className="font-black uppercase tracking-widest btn-cta h-14 px-12 shadow-[0_0_40px_rgba(255,102,0,0.45)] text-base md:text-lg">
-                      Shop The Collection <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </motion.div>
-                </Link>
-              </motion.div>
-            </div>
-          </section>
-        </RevealSection>
-
-      </div>
-    </PageTransition>
+      <section className="mx-auto flex max-w-[1600px] flex-col gap-7 px-6 py-16 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-20 lg:px-[8vw]">
+        <div>
+          <p className="mb-3 text-[9px] uppercase tracking-[.28em] text-[#bba4f4]">Find your expression</p>
+          <h2 className="text-3xl font-medium uppercase tracking-[-.06em] sm:text-5xl">Your next chapter starts here.</h2>
+        </div>
+        <Link href="/shop" className="group inline-flex w-fit items-center gap-5 border-b border-white/55 pb-3 text-[10px] uppercase tracking-[.22em] transition-colors hover:border-[#c6b2f0] hover:text-[#c6b2f0]" data-testid="link-final-shop">
+          Enter the collection <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Link>
+      </section>
+    </main>
   );
 }

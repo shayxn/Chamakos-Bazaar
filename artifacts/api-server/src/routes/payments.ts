@@ -113,7 +113,7 @@ async function createZiinaIntent(req: Request, order: OrderForPayment): Promise<
   const body = {
     amount,
     currency_code: process.env.ZIINA_CURRENCY_CODE ?? "AED",
-    message: `FirstPick order #${order.id.toString().padStart(6, "0")}`,
+    message: `IMAGINATE order #${order.id.toString().padStart(6, "0")}`,
     success_url: `${orderUrl}?payment=ziina-success&payment_intent_id={PAYMENT_INTENT_ID}`,
     cancel_url: `${orderUrl}?payment=ziina-cancelled&payment_intent_id={PAYMENT_INTENT_ID}`,
     failure_url: `${orderUrl}?payment=ziina-failed&payment_intent_id={PAYMENT_INTENT_ID}`,
@@ -165,7 +165,7 @@ router.post("/payments/ziina-checkout", async (req, res) => {
   }
 
   const charges = await getDeliveryCharges();
-  const deliveryCharge = charges[parsed.deliveryMethod] ?? 20;
+  const deliveryCharge = charges[parsed.deliveryMethod] ?? 25;
   const tip = parsed.tip;
   const itemsSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const rawCouponCode = typeof req.body?.couponCode === "string" ? req.body.couponCode.trim() : "";

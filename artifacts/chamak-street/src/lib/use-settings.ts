@@ -1,15 +1,16 @@
 import { useGetAllSettings } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
 
 export const SETTING_DEFAULTS: Record<string, string> = {
-  hero_image: "/chamako-hero.png",
+  hero_image: "",
   hero_images: "",
   hero_slide_interval: "5000",
-  hero_title: "Ignite the",
-  hero_subtitle: "Streets.",
-  hero_description: "Bold aesthetic. Unmatched drip. Dress like you own the block.",
-  hero_cta_text: "Shop Now",
+  hero_title: "Wear the",
+  hero_subtitle: "unwritten.",
+  hero_description: "Clothing for a point of view in motion.",
+  hero_cta_text: "Explore the collection",
   hero_middle_video: "",
-  logo_url: "/firstpick-logo.svg",
+  logo_url: "/imaginate-logo.png",
   logo_bg_color: "transparent",
   logo_opacity: "1",
   logo_blur: "0",
@@ -19,40 +20,40 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   logo_brightness: "1",
   logo_contrast: "1",
   logo_height: "56",
-  trust_1_icon: "🚚",
-  trust_1_title: "Fast UAE Shipping",
-  trust_1_desc: "Fast delivery across the UAE.",
-  trust_1_visible: "true",
-  trust_2_icon: "🏆",
-  trust_2_title: "Premium Quality",
-  trust_2_desc: "Carefully selected products with excellent craftsmanship.",
-  trust_2_visible: "true",
-  trust_3_icon: "📦",
-  trust_3_title: "Secure Packaging",
-  trust_3_desc: "Every order is professionally packed to arrive in perfect condition.",
-  trust_3_visible: "true",
-  trust_4_icon: "⭐",
-  trust_4_title: "5-Star Support",
-  trust_4_desc: "Fast replies, order updates, and friendly customer service.",
-  trust_4_visible: "true",
+  trust_1_icon: "",
+  trust_1_title: "",
+  trust_1_desc: "",
+  trust_1_visible: "false",
+  trust_2_icon: "",
+  trust_2_title: "",
+  trust_2_desc: "",
+  trust_2_visible: "false",
+  trust_3_icon: "",
+  trust_3_title: "",
+  trust_3_desc: "",
+  trust_3_visible: "false",
+  trust_4_icon: "",
+  trust_4_title: "",
+  trust_4_desc: "",
+  trust_4_visible: "false",
   tiktok_section_title: "Follow Us on TikTok",
   tiktok_section_visible: "true",
   reviews_section_title: "What They Say",
   reviews_section_visible: "true",
-  site_name: "FirstPick",
-  site_tagline: "Authentic Streetwear — Dubai",
-  footer_description: "Premium authentic streetwear for those who walk their own path.",
+  site_name: "IMAGINATE",
+  site_tagline: "A UAE-based clothing and streetwear label.",
+  footer_description: "A UAE-based clothing and streetwear label.",
   contact_email: "",
   contact_phone: "",
   contact_instagram: "",
   contact_tiktok: "",
-  shipping_text: "We ship across the UAE. Flat fee of AED 25. Cash on Delivery available.",
-  about_text: "Chamak Street is a premium Dubai-based streetwear brand inspired by the energy of the streets and the luxury of the desert.",
-  privacy_policy: "Your privacy is important to us. We only collect information necessary to process your order.",
+  shipping_text: "Delivery is currently available within the UAE. Available options and costs are shown at checkout.",
+  about_text: "IMAGINATE is a UAE-based clothing and streetwear label.",
+  privacy_policy: "",
   terms_of_service: "",
   faq_text: "",
-  primary_color: "#ff6600",
-  accent_color: "#ffcc00",
+  primary_color: "#7c3aed",
+  accent_color: "#a78bfa",
   whatsapp_number: "+971521142341",
   whatsapp_text: "Chat with Us",
   whatsapp_message: "Hello! I'm interested in one of your products.",
@@ -67,19 +68,97 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   recommended_mode: "auto",
   footer_copyright: "",
   footer_links: "",
-  site_title: "FirstPick — Premium Streetwear Dubai",
-  site_meta_description: "Premium authentic streetwear for those who walk their own path. Shop online, UAE delivery.",
+  site_title: "IMAGINATE — UAE Streetwear",
+  site_meta_description: "IMAGINATE is a UAE-based clothing and streetwear label.",
   site_og_image: "",
   maintenance_mode: "false",
-  back_to_school_enabled: "true",
+  emergency_shutdown: "false",
+  back_to_school_enabled: "false",
+  announcement_active: "false",
+  announcement_text: "",
+  announcement_color: "#7c3aed",
+  live_event_enabled: "true",
+  live_event_title: "IMAGINATE LIVE",
+  live_event_date: "2026-10-27",
+  live_event_time: "",
+  live_event_timezone: "",
+  live_event_description: "More details to come.",
+  live_event_cta_text: "",
+  live_event_cta_url: "",
+  live_event_live_url: "",
+  live_event_background: "",
+  delivery_standard_price: "25",
+  worldwide_shipping_enabled: "false",
 };
+
+function normalizeSettings(input?: Record<string, string>): Record<string, string> {
+  const resolved = { ...SETTING_DEFAULTS, ...(input ?? {}) };
+  const hasLegacyBrand = (value: string | undefined) => /first[\s_-]?pick|chamak(?:os| street)?/i.test(value ?? "");
+  for (const key of ["site_name", "site_tagline", "site_title", "site_meta_description", "footer_description", "footer_copyright", "about_text"]) {
+    if (hasLegacyBrand(resolved[key])) resolved[key] = SETTING_DEFAULTS[key] ?? "";
+  }
+  if (!resolved.logo_url || hasLegacyBrand(resolved.logo_url) || /chamak-logo/i.test(resolved.logo_url)) {
+    resolved.logo_url = SETTING_DEFAULTS.logo_url;
+  }
+  if (/chamako-hero|firstpick/i.test(resolved.hero_image)) resolved.hero_image = "";
+  resolved.hero_images = (resolved.hero_images ?? "").split("|").filter((image) => !hasLegacyBrand(image)).join("|");
+  if (hasLegacyBrand(resolved.announcement_text)) {
+    resolved.announcement_active = "false";
+    resolved.announcement_text = "";
+  }
+  if (["#ff6600", "#ffcc00"].includes((resolved.announcement_color ?? "").toLowerCase())) {
+    resolved.announcement_color = SETTING_DEFAULTS.announcement_color;
+  }
+  resolved.worldwide_shipping_enabled = "false";
+  if (["#ff6600", "#ffcc00"].includes(resolved.primary_color.toLowerCase()) || ["#ff6600", "#ffcc00"].includes((resolved.accent_color ?? "").toLowerCase())) {
+    resolved.primary_color = SETTING_DEFAULTS.primary_color;
+    resolved.accent_color = SETTING_DEFAULTS.accent_color;
+  }
+  resolved.footer_links = resolved.footer_links
+    .split("\n")
+    .filter((line) => !hasLegacyBrand(line))
+    .map((line) => line.replace(/\bFP Basics\b/gi, "Basics"))
+    .join("\n");
+  return resolved;
+}
 
 export function useSetting(key: string): string {
   const { data: settings } = useGetAllSettings({ query: { staleTime: 30_000, queryKey: ["settings", key] } });
-  return settings?.[key] ?? SETTING_DEFAULTS[key] ?? "";
+  return normalizeSettings(settings)?.[key] ?? SETTING_DEFAULTS[key] ?? "";
 }
 
 export function useSettings(): Record<string, string> {
   const { data: settings } = useGetAllSettings({ query: { staleTime: 30_000, queryKey: ["settings", "all"] } });
-  return { ...SETTING_DEFAULTS, ...(settings ?? {}) };
+  return normalizeSettings(settings);
+}
+
+type OperationalSettings = {
+  emergencyShutdown: boolean;
+  backToSchoolEnabled: boolean;
+};
+
+const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
+async function fetchOperationalSettings(): Promise<OperationalSettings> {
+  const response = await fetch(`${BASE}/api/settings/operational`, { credentials: "include", cache: "no-store" });
+  if (!response.ok) throw new Error("Could not load operational settings");
+  return response.json();
+}
+
+export function useOperationalSettings() {
+  const query = useQuery({
+    queryKey: ["operational-settings"],
+    queryFn: fetchOperationalSettings,
+    staleTime: 0,
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    retry: 1,
+  });
+
+  return {
+    emergencyShutdown: query.data?.emergencyShutdown ?? false,
+    backToSchoolEnabled: query.data?.backToSchoolEnabled ?? true,
+    isReady: query.isSuccess || query.isError,
+  };
 }

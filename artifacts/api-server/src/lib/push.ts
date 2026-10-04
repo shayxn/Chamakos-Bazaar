@@ -97,7 +97,7 @@ export async function sendTestPush(endpoint: string) {
   const subs = Array.isArray(result) ? result : (result as any).rows ?? [];
   if (!subs.length) throw new Error("This browser does not have an active push subscription.");
   const delivered = await deliver(subs, JSON.stringify({
-    title: "FirstPick Admin",
+    title: "IMAGINATE Admin",
     body: "This is a test notification from your admin dashboard.",
     type: "TEST_NOTIFICATION",
     data: { url: "/admin/notifications" },
@@ -132,7 +132,7 @@ export async function sendOrderPush(order: {
     const deliveryLabel = DELIVERY_LABEL_MAP[order.deliveryMethod ?? "standard"] ?? "Standard";
     const tipLine = (order.tip ?? 0) > 0 ? ` · Tip AED ${(order.tip ?? 0).toFixed(2)}` : "";
     const payload = JSON.stringify({
-      title: `🛒 FirstPick — New Order`,
+      title: `🛒 IMAGINATE — New Order`,
       body: `${order.customerName} · AED ${order.total.toFixed(2)} · ${deliveryLabel}${tipLine}\n${itemsSummary}`,
       type: "NEW_ORDER",
       data: {
@@ -177,15 +177,15 @@ export async function saveCustomerSubscription(endpoint: string, p256dh: string,
 
 // ── Customer order status push ────────────────────────────────────────────────
 const STATUS_PUSH_MESSAGES: Record<string, (orderNumber: string, extra?: Record<string, unknown>) => { title: string; body: string } | null> = {
-  confirmed: (n) => ({ title: "Order Placed 🛍️", body: `Your FirstPick order #${n} has been placed successfully. We'll keep you updated!` }),
-  preparing: (n) => ({ title: "Preparing 📦", body: `Good news! We're preparing your FirstPick order #${n}.` }),
-  shipped: (n) => ({ title: "Shipped 🚚", body: `Your FirstPick order #${n} has been shipped and is heading your way.` }),
-  out_for_delivery: (n) => ({ title: "On Its Way ⚡", body: `Not long now! Your FirstPick order #${n} is on its way to you.` }),
-  delivered: (n) => ({ title: "Delivered ✓", body: `Delivered! Your FirstPick order #${n} has arrived. Enjoy your order!` }),
-  delayed: (n, e) => ({ title: "Order Delayed ⚠️", body: `Your FirstPick order #${n} has been delayed.${e?.delayedUntil ? ` Expected by: ${e.delayedUntil}` : ""} Open FirstPick and go to My Orders to see more.` }),
+  confirmed: (n) => ({ title: "Order Placed 🛍️", body: `Your IMAGINATE order #${n} has been placed successfully. We'll keep you updated!` }),
+  preparing: (n) => ({ title: "Preparing 📦", body: `Good news! We're preparing your IMAGINATE order #${n}.` }),
+  shipped: (n) => ({ title: "Shipped 🚚", body: `Your IMAGINATE order #${n} has been shipped and is heading your way.` }),
+  out_for_delivery: (n) => ({ title: "On Its Way ⚡", body: `Your IMAGINATE order #${n} is on its way to you.` }),
+  delivered: (n) => ({ title: "Delivered ✓", body: `Your IMAGINATE order #${n} has arrived. Enjoy your order!` }),
+  delayed: (n, e) => ({ title: "Order Delayed ⚠️", body: `Your IMAGINATE order #${n} has been delayed.${e?.delayedUntil ? ` Expected by: ${e.delayedUntil}` : ""} Open the app and go to My Orders to see more.` }),
   cancelled: (n, e) => {
     const refundMsg = e?.refundInitiated ? " Your money will be refunded back to your original payment method shortly." : "";
-    return { title: "Order Cancelled", body: `Your FirstPick order #${n} has been cancelled.${refundMsg} Open FirstPick and go to My Orders to view the details.` };
+    return { title: "Order Cancelled", body: `Your IMAGINATE order #${n} has been cancelled.${refundMsg} Open the app and go to My Orders to view the details.` };
   },
 };
 
@@ -285,7 +285,7 @@ export async function sendAdminCallPush(callerName: string, callerAdminId: strin
     if (!subs.length) return;
     const payload = JSON.stringify({
       title: `📞 Incoming Call`,
-      body: `${callerName} is calling you on FirstPick Admin`,
+      body: `${callerName} is calling you on IMAGINATE Admin`,
       type: "ADMIN_CALL",
         data: { url: roomUrl },
     });
@@ -378,36 +378,36 @@ export async function sendActivityPush(type: string, data: Record<string, unknow
     const subs = await getAllSubscriptions();
     if (!subs.length) return;
 
-    let title = "FirstPick";
+    let title = "IMAGINATE";
     let body = "";
     let url = "/admin/visitors";
 
     switch (type) {
       case "NEW_VISITOR":
-        title = "FirstPick — New Visitor";
-        body = `A ${data.label ?? "visitor"} just opened FirstPick`;
+        title = "IMAGINATE — New Visitor";
+        body = `A ${data.label ?? "visitor"} just opened IMAGINATE`;
         break;
       case "CUSTOMER_SEARCH":
-        title = "FirstPick — Customer Search";
+        title = "IMAGINATE — Customer Search";
         body = `A customer searched for "${data.query}"`;
         break;
       case "CART_ADD":
-        title = "FirstPick — Added to Cart";
+        title = "IMAGINATE — Added to Cart";
         body = data.count
           ? `A customer has ${data.count} item${Number(data.count) !== 1 ? "s" : ""} in cart (AED ${Number(data.value ?? 0).toFixed(0)})`
           : "A customer added an item to their cart";
         break;
       case "CHECKOUT_STARTED":
-        title = "FirstPick — Checkout Started";
+        title = "IMAGINATE — Checkout Started";
         body = "A customer just started checkout";
         url = "/admin/orders";
         break;
       case "NEW_ACCOUNT":
-        title = "FirstPick — New Account";
+        title = "IMAGINATE — New Account";
         body = `New customer account created${data.email ? `: ${data.email}` : ""}`;
         break;
       default:
-        title = "FirstPick";
+        title = "IMAGINATE";
         body = String(data.body ?? "");
     }
 

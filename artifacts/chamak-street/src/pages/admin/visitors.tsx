@@ -295,7 +295,7 @@ export default function AdminVisitors() {
             <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
               <Users className="h-8 w-8 text-muted-foreground/30" />
               <p className="text-sm text-muted-foreground">No sessions yet.</p>
-              <p className="text-xs text-muted-foreground/50">Sessions appear automatically when customers visit FirstPick.</p>
+              <p className="text-xs text-muted-foreground/50">Sessions appear automatically when customers visit IMAGINATE.</p>
             </div>
           ) : (
             <div className="overflow-y-auto max-h-[70vh]">

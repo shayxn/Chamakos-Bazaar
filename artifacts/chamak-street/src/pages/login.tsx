@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { Flame, Smartphone } from "lucide-react";
+import { Sparkles, Smartphone } from "lucide-react";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -29,21 +29,21 @@ export default function Login() {
           className="absolute inset-0 pointer-events-none"
           animate={{ opacity: [0.04, 0.08, 0.04] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          style={{ background: "radial-gradient(ellipse at 50% 60%, #ff6600, transparent 70%)" }}
+          style={{ background: "radial-gradient(ellipse at 50% 60%, #7c3aed, transparent 70%)" }}
         />
         <motion.div
           initial={{ opacity: 0, y: 30, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-md bg-card border border-border/60 p-8 rounded-xl shadow-[0_0_60px_rgba(255,102,0,0.1)] relative z-10 text-center"
+          className="w-full max-w-md bg-card border border-border/60 p-8 rounded-xl shadow-[0_0_60px_rgba(124,58,237,0.1)] relative z-10 text-center"
         >
-          <div className="absolute top-0 left-0 right-0 h-0.5 fire-gradient rounded-t-xl" />
+          <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-gradient-to-r from-violet-700 via-violet-400 to-violet-700" />
           <motion.div
             animate={{ rotate: [0, -8, 8, -8, 0] }}
             transition={{ duration: 1.2, delay: 0.4 }}
-            className="w-16 h-16 rounded-2xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center mx-auto mb-6"
+            className="w-16 h-16 rounded-2xl bg-violet-500/15 border border-violet-400/30 flex items-center justify-center mx-auto mb-6"
           >
-            <Smartphone className="h-8 w-8 text-orange-500" />
+            <Smartphone className="h-8 w-8 text-violet-300" />
           </motion.div>
           <h2 className="text-xl font-black uppercase tracking-widest mb-3">Maximum Devices Reached</h2>
           <p className="text-muted-foreground text-sm mb-1">
@@ -87,15 +87,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Animated fire glow background */}
+      {/* Subtle brand-colored glow background */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         animate={{ opacity: [0.04, 0.09, 0.04] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        style={{ background: "radial-gradient(ellipse at 50% 60%, #ff6600, transparent 70%)" }}
+        style={{ background: "radial-gradient(ellipse at 50% 60%, #7c3aed, transparent 70%)" }}
       />
 
-      {/* Floating fire particles */}
+      {/* Floating brand-colored particles */}
       {[...Array(5)].map((_, i) => (
         <motion.div
           key={i}
@@ -105,8 +105,8 @@ export default function Login() {
             height: 4 + i * 2,
             left: `${20 + i * 15}%`,
             bottom: `${5 + i * 8}%`,
-            background: i % 2 === 0 ? "#ff6600" : "#ffcc00",
-            boxShadow: `0 0 10px ${i % 2 === 0 ? "#ff6600" : "#ffcc00"}`,
+            background: i % 2 === 0 ? "#7c3aed" : "#c4b5fd",
+            boxShadow: `0 0 10px ${i % 2 === 0 ? "#7c3aed" : "#c4b5fd"}`,
           }}
           animate={{ y: [0, -(80 + i * 30), 0], opacity: [0, 0.7, 0] }}
           transition={{ duration: 2.5 + i * 0.5, repeat: Infinity, delay: i * 0.6, ease: "easeOut" }}
@@ -117,22 +117,19 @@ export default function Login() {
         initial={{ opacity: 0, y: 30, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md bg-card border border-border/60 p-8 rounded-xl shadow-[0_0_60px_rgba(255,102,0,0.1)] relative z-10"
+        className="w-full max-w-md bg-card border border-border/60 p-8 rounded-xl shadow-[0_0_60px_rgba(124,58,237,0.1)] relative z-10"
       >
         {/* Top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 fire-gradient rounded-t-xl" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-gradient-to-r from-violet-700 via-violet-400 to-violet-700" />
 
         <div className="flex justify-center mb-8">
-          <div style={{ display: "flex", alignItems: "baseline", gap: "0px" }}>
-            <span style={{ fontSize: 36, fontFamily: "'Arial Black', Impact, sans-serif", fontWeight: 900, color: "#fff", letterSpacing: "-1px" }}>FIRST</span>
-            <span style={{ fontSize: 36, fontFamily: "'Arial Black', Impact, sans-serif", fontWeight: 900, letterSpacing: "-1px", background: "linear-gradient(135deg,#ff6600,#ffcc00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>PICK</span>
-          </div>
+          <img src="/imaginate-logo.png" alt="IMAGINATE" className="h-16 w-48 object-contain" />
         </div>
 
         <div className="flex items-center gap-2 justify-center mb-8">
-          <Flame className="h-4 w-4 text-primary" />
+          <Sparkles className="h-4 w-4 text-primary" />
           <h1 className="text-xl font-black uppercase tracking-[0.2em]">Admin Access</h1>
-          <Flame className="h-4 w-4 text-primary" />
+          <Sparkles className="h-4 w-4 text-primary" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -177,7 +174,7 @@ export default function Login() {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
               <Button
                 type="submit"
-                className="w-full h-13 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(255,102,0,0.3)] hover:shadow-[0_0_35px_rgba(255,102,0,0.5)] transition-all py-3"
+                className="w-full h-13 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(124,58,237,0.25)] hover:shadow-[0_0_35px_rgba(124,58,237,0.4)] transition-all py-3"
                 disabled={login.isPending}
                 data-testid="button-login"
               >

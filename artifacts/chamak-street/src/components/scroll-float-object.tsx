@@ -73,7 +73,7 @@ export function ScrollFloatObject() {
           className="absolute inset-0 pointer-events-none"
           animate={{ opacity: [0.45, 0.85, 0.45], scale: [1, 1.08, 1] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          style={{ background: "radial-gradient(ellipse 55% 55% at 50% 50%, rgba(255,102,0,0.22) 0%, transparent 68%)" }}
+          style={{ background: "radial-gradient(ellipse 55% 55% at 50% 50%, rgba(124,58,237,0.22) 0%, transparent 68%)" }}
         />
 
         {/* ── Slowly rotating conic ring ── */}
@@ -81,7 +81,7 @@ export function ScrollFloatObject() {
           className="absolute inset-0 pointer-events-none"
           animate={{ rotate: 360 }}
           transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-          style={{ background: "conic-gradient(from 0deg, transparent 68%, rgba(255,102,0,0.1) 82%, transparent 100%)" }}
+          style={{ background: "conic-gradient(from 0deg, transparent 68%, rgba(124,58,237,0.1) 82%, transparent 100%)" }}
         />
 
         {/* ── Secondary counter-rotating ring ── */}
@@ -96,13 +96,13 @@ export function ScrollFloatObject() {
         <div className="absolute inset-0 flex flex-col justify-center overflow-hidden pointer-events-none select-none">
           <motion.div
             className="whitespace-nowrap font-black uppercase leading-none mb-3"
-            style={{ fontSize: "clamp(4rem, 13vw, 11rem)", color: "rgba(255,102,0,0.055)", letterSpacing: "-0.02em", x: textX1 }}
+            style={{ fontSize: "clamp(4rem, 13vw, 11rem)", color: "rgba(124,58,237,0.055)", letterSpacing: "-0.02em", x: textX1 }}
           >
             CHAMAK&nbsp;STREET&nbsp;·&nbsp;NEW&nbsp;DROP&nbsp;·&nbsp;CHAMAK&nbsp;STREET&nbsp;·&nbsp;NEW&nbsp;DROP
           </motion.div>
           <motion.div
             className="whitespace-nowrap font-black uppercase leading-none"
-            style={{ fontSize: "clamp(4rem, 13vw, 11rem)", color: "rgba(255,102,0,0.055)", letterSpacing: "-0.02em", x: textX2 }}
+            style={{ fontSize: "clamp(4rem, 13vw, 11rem)", color: "rgba(124,58,237,0.055)", letterSpacing: "-0.02em", x: textX2 }}
           >
             DUBAI&nbsp;DRIP&nbsp;·&nbsp;STAY&nbsp;CHAMAK&nbsp;·&nbsp;DUBAI&nbsp;DRIP&nbsp;·&nbsp;STAY&nbsp;CHAMAK
           </motion.div>
@@ -168,7 +168,7 @@ export function ScrollFloatObject() {
                     className="h-[52vh] w-auto object-contain select-none"
                     draggable={false}
                     style={{
-                      filter: "drop-shadow(0 0 80px rgba(255,102,0,0.7)) drop-shadow(0 50px 70px rgba(0,0,0,0.95))",
+                      filter: "drop-shadow(0 0 80px rgba(124,58,237,0.55)) drop-shadow(0 50px 70px rgba(0,0,0,0.95))",
                     }}
                   />
                 </motion.div>
@@ -184,7 +184,7 @@ export function ScrollFloatObject() {
                   bottom: "-28px",
                   width: "55%",
                   height: 24,
-                  background: "radial-gradient(ellipse, rgba(255,102,0,0.7) 0%, transparent 75%)",
+                  background: "radial-gradient(ellipse, rgba(124,58,237,0.6) 0%, transparent 75%)",
                   filter: "blur(16px)",
                 }}
               />
@@ -204,17 +204,17 @@ export function ScrollFloatObject() {
                 <p className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white mb-2.5">{hero.name}</p>
                 <p
                   className="text-xl font-black mb-4"
-                  style={{ background: "linear-gradient(135deg,#ff6600,#ffcc00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+                  style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
                 >
                   AED {Number(hero.price).toFixed(2)}
                 </p>
                 <Link href={`/product/${hero.id}`}>
                   <motion.button
-                    whileHover={{ scale: 1.08, boxShadow: "0 10px 40px rgba(255,102,0,0.65)" }}
+                    whileHover={{ scale: 1.08, boxShadow: "0 10px 40px rgba(124,58,237,0.5)" }}
                     whileTap={{ scale: 0.94 }}
                     transition={{ type: "spring", stiffness: 380, damping: 22 }}
                     className="px-8 py-3 rounded-full font-black uppercase tracking-widest text-sm text-white"
-                    style={{ background: "linear-gradient(135deg,#ff6600,#ffcc00)", boxShadow: "0 6px 28px rgba(255,102,0,0.5)" }}
+                    style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", boxShadow: "0 6px 28px rgba(124,58,237,0.4)" }}
                   >
                     Shop Now →
                   </motion.button>

@@ -14,7 +14,7 @@ const PAGE_TEMPLATE = `{
       "label": "NEW CAMPAIGN",
       "elements": [
         { "id": "headline", "type": "heading", "text": "MAKE IT YOURS", "animation": { "preset": "slide-up", "duration": 0.45 } },
-        { "id": "copy", "type": "text", "text": "Build this page with FirstPick's safe page definition.", "animation": { "preset": "fade", "duration": 0.45, "delay": 0.1 } },
+        { "id": "copy", "type": "text", "text": "Build this page with IMAGINATE's safe page definition.", "animation": { "preset": "fade", "duration": 0.45, "delay": 0.1 } },
         { "id": "cta", "type": "button", "text": "SHOP NOW", "href": "/shop" }
       ]
     }
@@ -23,7 +23,7 @@ const PAGE_TEMPLATE = `{
 
 const EVENT_TEMPLATE = `{
   "actions": [
-    { "type": "show-notification", "message": "Welcome to FirstPick." }
+    { "type": "show-notification", "message": "Welcome to IMAGINATE." }
   ]
 }`;
 
@@ -103,7 +103,7 @@ export function CodeValidator({ isOwner }: { isOwner: boolean }) {
     const data = await fetchApi("/api/owner-studio/validate-code", { method: "POST", body: JSON.stringify({ code }) });
     setResult(data);
     if (!data.valid) throw new Error("Fix the validation errors before publishing.");
-    if (!parsed || typeof parsed !== "object") throw new Error("Enter a valid JSON FirstPick definition.");
+    if (!parsed || typeof parsed !== "object") throw new Error("Enter a valid JSON page definition.");
     return parsed as Record<string, unknown>;
   };
 
@@ -148,7 +148,7 @@ export function CodeValidator({ isOwner }: { isOwner: boolean }) {
       body: JSON.stringify({ content: { ...current.content, events: [...(current.content.events ?? []), event] }, version: current.version }),
     });
     if (isOwner) await fetchApi(`/api/owner-studio/pages/${target.id}/publish`, { method: "POST" });
-    toast({ title: isOwner ? "Event published" : "Event saved to draft", description: "It uses only safe FirstPick actions." });
+    toast({ title: isOwner ? "Event published" : "Event saved to draft", description: "It uses only approved store actions." });
     setFlow("choose");
     setCode("");
   };
@@ -171,7 +171,7 @@ export function CodeValidator({ isOwner }: { isOwner: boolean }) {
         <h2 className="text-xl sm:text-2xl font-black uppercase tracking-wide text-white flex items-center gap-3">
           <Code className="h-6 w-6 text-primary shrink-0" /> Add With Coding
         </h2>
-        <p className="text-xs text-gray-500 mt-1">Create pages and events with a safe FirstPick definition—no unrestricted scripts run in your store.</p>
+        <p className="text-xs text-gray-500 mt-1">Create pages and events with a safe IMAGINATE definition—no unrestricted scripts run in your store.</p>
       </div>
 
       {flow === "choose" ? (
@@ -184,7 +184,7 @@ export function CodeValidator({ isOwner }: { isOwner: boolean }) {
           <button onClick={() => begin("event")} className="group w-full max-w-sm rounded-2xl border border-white/10 bg-gradient-to-br from-orange-500/10 to-transparent p-7 text-left transition-all hover:-translate-y-1 hover:border-orange-400/60 hover:bg-orange-400/5">
             <Zap className="mb-7 h-8 w-8 text-orange-300 transition-transform group-hover:scale-110" />
             <p className="text-lg font-black uppercase tracking-tight text-white">Make New Event</p>
-            <p className="mt-2 text-sm leading-6 text-white/55">Attach a page-open or interaction event using only the approved FirstPick action set.</p>
+            <p className="mt-2 text-sm leading-6 text-white/55">Attach a page-open or interaction event using only the approved store action set.</p>
           </button>
         </div>
       ) : (
@@ -192,13 +192,13 @@ export function CodeValidator({ isOwner }: { isOwner: boolean }) {
         <div className="flex-1 flex flex-col border border-white/10 rounded-xl overflow-hidden bg-black shadow-xl min-h-[300px]">
           <div className="min-h-10 border-b border-white/10 bg-[#0a0a0a] flex items-center justify-between gap-3 px-4 py-2 shrink-0">
             <button onClick={() => setFlow("choose")} className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-gray-500 hover:text-white"><ArrowLeft className="h-3.5 w-3.5" /> Back</button>
-            <p className="text-[10px] font-mono text-gray-500">{flow === "page" ? "FirstPick Page Definition" : "FirstPick Event Definition"}</p>
+            <p className="text-[10px] font-mono text-gray-500">{flow === "page" ? "IMAGINATE Page Definition" : "IMAGINATE Event Definition"}</p>
           </div>
           <textarea
             value={code}
             onChange={e => setCode(e.target.value)}
             className="flex-1 p-4 bg-transparent outline-none text-sm font-mono text-gray-300 resize-none custom-scrollbar"
-            placeholder={flow === "page" ? "Paste a FirstPick page definition..." : "Paste a FirstPick event definition..."}
+            placeholder={flow === "page" ? "Paste an IMAGINATE page definition..." : "Paste an IMAGINATE event definition..."}
             spellCheck={false}
           />
         </div>
