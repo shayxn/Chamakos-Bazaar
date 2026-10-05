@@ -656,7 +656,7 @@ export default function Checkout() {
                     className="flex items-center gap-2 p-2.5 rounded-lg glass-orange"
                   >
                     <Zap className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <p className="text-xs text-primary font-bold">Priority delivery — same day or next day!</p>
+                    <p className="text-xs text-primary font-bold">Priority delivery selected. Contact us to confirm availability and timing.</p>
                   </motion.div>
                 )}
               </div>

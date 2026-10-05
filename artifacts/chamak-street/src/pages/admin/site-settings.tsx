@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2, Megaphone, Plus, Trash2, ChevronUp, ChevronDown, Images, Link2, Search, BookOpen, ExternalLink, ShieldAlert, Radio } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { SETTING_DEFAULTS } from "@/lib/use-settings";
+import { SETTING_DEFAULTS, cleanHeroImages, isLegacyHeroImage } from "@/lib/use-settings";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -529,8 +529,11 @@ export default function AdminSiteSettings() {
       if (!mergedSettings.logo_url || hasLegacyBrand(mergedSettings.logo_url) || /chamak-logo/i.test(mergedSettings.logo_url)) {
         mergedSettings.logo_url = "/imaginate-logo.png";
       }
-      if (/chamako-hero|firstpick/i.test(mergedSettings.hero_image ?? "")) mergedSettings.hero_image = "";
-      mergedSettings.hero_images = (mergedSettings.hero_images ?? "").split("|").filter((image) => !hasLegacyBrand(image)).join("|");
+      if (isLegacyHeroImage(mergedSettings.hero_image ?? "")) mergedSettings.hero_image = "";
+      if ([mergedSettings.hero_title, mergedSettings.hero_subtitle, mergedSettings.hero_description].some(hasLegacyBrand)) {
+        for (const key of ["hero_title", "hero_subtitle", "hero_description"]) mergedSettings[key] = SETTING_DEFAULTS[key];
+      }
+      mergedSettings.hero_images = cleanHeroImages(mergedSettings.hero_images);
       if (hasLegacyBrand(mergedSettings.announcement_text)) {
         mergedSettings.announcement_active = "false";
         mergedSettings.announcement_text = "";

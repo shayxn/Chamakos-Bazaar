@@ -1,5 +1,6 @@
 import { useGetAllSettings } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 export const SETTING_DEFAULTS: Record<string, string> = {
   hero_image: "",
@@ -91,6 +92,18 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   worldwide_shipping_enabled: "false",
 };
 
+export function isLegacyHeroImage(value: string): boolean {
+  return /chamako-hero|first[\s_-]?pick|chamak-logo|62482b8e985bece3a221c174\.png/i.test(value);
+}
+
+export function cleanHeroImages(value: string | undefined): string {
+  try {
+    const parsed: unknown = JSON.parse(value || "[]");
+    if (!Array.isArray(parsed)) return "";
+    return JSON.stringify(parsed.filter((image) => typeof image === "string" && !isLegacyHeroImage(image)));
+  } catch { return ""; }
+}
+
 function normalizeSettings(input?: Record<string, string>): Record<string, string> {
   const resolved = { ...SETTING_DEFAULTS, ...(input ?? {}) };
   const hasLegacyBrand = (value: string | undefined) => /first[\s_-]?pick|chamak(?:os| street)?/i.test(value ?? "");
@@ -100,8 +113,11 @@ function normalizeSettings(input?: Record<string, string>): Record<string, strin
   if (!resolved.logo_url || hasLegacyBrand(resolved.logo_url) || /chamak-logo/i.test(resolved.logo_url)) {
     resolved.logo_url = SETTING_DEFAULTS.logo_url;
   }
-  if (/chamako-hero|firstpick/i.test(resolved.hero_image)) resolved.hero_image = "";
-  resolved.hero_images = (resolved.hero_images ?? "").split("|").filter((image) => !hasLegacyBrand(image)).join("|");
+  if (isLegacyHeroImage(resolved.hero_image)) resolved.hero_image = "";
+  if ([resolved.hero_title, resolved.hero_subtitle, resolved.hero_description].some(hasLegacyBrand)) {
+    for (const key of ["hero_title", "hero_subtitle", "hero_description"]) resolved[key] = SETTING_DEFAULTS[key];
+  }
+  resolved.hero_images = cleanHeroImages(resolved.hero_images);
   if (hasLegacyBrand(resolved.announcement_text)) {
     resolved.announcement_active = "false";
     resolved.announcement_text = "";
@@ -123,13 +139,13 @@ function normalizeSettings(input?: Record<string, string>): Record<string, strin
 }
 
 export function useSetting(key: string): string {
-  const { data: settings } = useGetAllSettings({ query: { staleTime: 30_000, queryKey: ["settings", key] } });
+  const { data: settings } = useGetAllSettings({ query: { staleTime: 30_000, queryKey: ["settings", "all"] } });
   return normalizeSettings(settings)?.[key] ?? SETTING_DEFAULTS[key] ?? "";
 }
 
 export function useSettings(): Record<string, string> {
   const { data: settings } = useGetAllSettings({ query: { staleTime: 30_000, queryKey: ["settings", "all"] } });
-  return normalizeSettings(settings);
+  return useMemo(() => normalizeSettings(settings), [settings]);
 }
 
 type OperationalSettings = {
@@ -139,7 +155,7 @@ type OperationalSettings = {
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
-async function fetchOperationalSettings(): Promise<OperationalSettings> {
+export async function fetchOperationalSettings(): Promise<OperationalSettings> {
   const response = await fetch(`${BASE}/api/settings/operational`, { credentials: "include", cache: "no-store" });
   if (!response.ok) throw new Error("Could not load operational settings");
   return response.json();

@@ -416,6 +416,12 @@ export type ListProductsParams = {
 categoryId?: number;
 search?: string;
 featured?: boolean;
+/**
+ * Optional maximum number of products for small storefront sections.
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
 };
 
 export type TrackOrderParams = {

@@ -97,7 +97,7 @@ export default function Basics() {
                 </span>
               </div>
               <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter text-white mb-2">
-                <span style={{ color: "rgba(255,255,255,0.95)" }}>FIRSTPICK</span>{" "}
+                <span style={{ color: "rgba(255,255,255,0.95)" }}>IMAGINATE</span>{" "}
                 <span style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                   BASICS
                 </span>

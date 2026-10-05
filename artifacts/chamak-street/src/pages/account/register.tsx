@@ -144,11 +144,8 @@ export default function AccountRegister() {
             <motion.div key="form" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={SPRING}>
               {/* Logo */}
               <div className="flex justify-center mb-6">
-                <div className="px-5 py-3 rounded-2xl border border-primary/20" style={{ background: "rgba(255,102,0,0.07)" }}>
-                  <span className="font-black text-2xl tracking-tight">
-                    <span className="text-white">FIRST</span>
-                    <span className="text-primary">PICK</span>
-                  </span>
+                <div className="px-5 py-3 rounded-2xl border border-primary/20" style={{ background: "rgba(124,58,237,0.07)" }}>
+                  <img src={`${BASE}/imaginate-logo.png`} alt="IMAGINATE" className="h-auto w-36 object-contain" />
                 </div>
               </div>
 

@@ -147,10 +147,15 @@ export const DeleteCategoryResponse = zod.object({
 /**
  * @summary List products
  */
+export const listProductsQueryLimitMax = 100;
+
+
+
 export const ListProductsQueryParams = zod.object({
   "categoryId": zod.coerce.number().optional(),
   "search": zod.coerce.string().optional(),
-  "featured": zod.coerce.boolean().optional()
+  "featured": zod.coerce.boolean().optional(),
+  "limit": zod.coerce.number().min(1).max(listProductsQueryLimitMax).optional().describe('Optional maximum number of products for small storefront sections.')
 })
 
 export const ListProductsResponseItem = zod.object({

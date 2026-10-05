@@ -174,6 +174,13 @@ paths:
           in: query
           schema:
             type: boolean
+        - name: limit
+          in: query
+          description: Optional maximum number of products for small storefront sections.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
       responses:
         "200":
           description: List of products

@@ -1016,3 +1016,7 @@ input::selection, textarea::selection {
 }
 
 
+
+@keyframes imag-marquee { to { transform: translateX(-50%); } }
+.imag-marquee { animation: imag-marquee 40s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .imag-marquee { animation: none; } }

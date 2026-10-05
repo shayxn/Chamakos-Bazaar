@@ -72,13 +72,13 @@ function TiltCard({ children }: { children: React.ReactNode }) {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.96 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: EASE } },
-  exit: { opacity: 0, scale: 0.94, transition: { duration: 0.16 } },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.18, ease: EASE } },
+  exit: { opacity: 0, transition: { duration: 0 } },
 };
 
 const gridVariants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.045, delayChildren: 0.02 } },
+  show: { transition: { staggerChildren: 0, delayChildren: 0 } },
   exit: {},
 };
 
@@ -109,6 +109,11 @@ export default function Shop() {
   const { ids: wishlistIds, toggle } = useWishlist();
   const [notifyProduct, setNotifyProduct] = useState<{ id: number; name: string } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    setLocalSearch(new URLSearchParams(search).get("search") || "");
+  }, [search]);
+  useEffect(() => { setPage(1); }, [urlCatId, isNewest, debouncedSearch, sortKey]);
 
   const { data: categories } = useListCategories({
     query: { queryKey: getListCategoriesQueryKey(), staleTime: 60_000 }
@@ -137,6 +142,13 @@ export default function Shop() {
     }
     return list;
   }, [rawProducts, isNewest, sortKey]);
+  const pageCount = Math.max(1, Math.ceil((products?.length ?? 0) / 40));
+  const currentPage = Math.min(page, pageCount);
+  const pageProducts = products?.slice((currentPage - 1) * 40, currentPage * 40);
+  const changePage = (next: number) => {
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
 
   const allCategories = [
     { id: undefined as number | undefined, name: "All", href: "/shop" },
@@ -340,14 +352,14 @@ export default function Shop() {
           ) : (
             <AnimatePresence mode="wait">
               <motion.div
-                key={`${urlCatId}-${isNewest}-${debouncedSearch}-${sortKey}-${cols}`}
+                key={`${urlCatId}-${isNewest}-${debouncedSearch}-${sortKey}-${cols}-${currentPage}`}
                 variants={gridVariants}
                 initial="hidden"
                 animate="show"
                 exit="exit"
                 className={`grid ${gridCols} gap-3 sm:gap-4`}
               >
-                {products?.map((product) => {
+                {pageProducts?.map((product) => {
                   const primaryMedia = getPrimaryProductMedia(product.imageUrl);
                   return (
                     <motion.div key={product.id} variants={cardVariants} layout>
@@ -473,6 +485,13 @@ export default function Shop() {
             </AnimatePresence>
           )}
         </div>
+        {pageCount > 1 && (
+          <nav className="mt-10 flex items-center justify-center gap-4" aria-label="Product pages">
+            <button data-testid="catalog-previous-page" disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)} className="min-h-11 rounded-lg border border-white/15 px-4 text-sm text-white disabled:opacity-30 hover:enabled:bg-white/5">Previous</button>
+            <span className="text-sm tabular-nums text-white/60" aria-live="polite">{currentPage} / {pageCount}</span>
+            <button data-testid="catalog-next-page" disabled={currentPage === pageCount} onClick={() => changePage(currentPage + 1)} className="min-h-11 rounded-lg border border-white/15 px-4 text-sm text-white disabled:opacity-30 hover:enabled:bg-white/5">Next</button>
+          </nav>
+        )}
       </div>
       <RecentlyViewedSection />
       <QuickViewModal productId={quickViewId} onClose={() => setQuickViewId(null)} />

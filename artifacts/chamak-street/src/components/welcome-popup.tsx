@@ -91,7 +91,7 @@ export function WelcomePopup() {
                 marginTop: 2,
                 letterSpacing: "0.01em",
               }}>
-                Dubai streetwear · Premium reps · Fast UAE delivery
+                UAE clothing and streetwear
               </p>
             </div>
 

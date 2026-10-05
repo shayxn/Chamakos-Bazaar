@@ -1,6 +1,6 @@
 import { useListProducts, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
-import { ArrowDown, ArrowRight, Heart } from "lucide-react";
+import { ArrowRight, Heart } from "lucide-react";
 import { useMemo } from "react";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 import { useSettings } from "@/lib/use-settings";
@@ -59,15 +59,12 @@ function ProductTile({ product, index, wished, onWish }: {
 
 export default function Home() {
   const settings = useSettings();
-  const { data: featured, isLoading: featuredLoading, isError: featuredError } = useListProducts(
-    { featured: true },
-    { query: { queryKey: getListProductsQueryKey({ featured: true }), staleTime: 30_000 } }
-  );
-  const { data: catalog, isLoading: catalogLoading, isError: catalogError } = useListProducts(
-    {},
-    { query: { queryKey: getListProductsQueryKey({}), staleTime: 30_000 } }
+  const { data: catalog, isLoading: catalogLoading, isError: catalogError, refetch: refetchCatalog } = useListProducts(
+    { limit: 24 },
+    { query: { queryKey: getListProductsQueryKey({ limit: 24 }), staleTime: 30_000 } }
   );
   const { ids: wishlistIds, toggle: toggleWishlist } = useWishlist();
+  const featured = useMemo(() => (catalog ?? []).filter((product) => product.featured), [catalog]);
 
   const heroImage = useMemo(() => {
     const tryImages = (value?: string) => {
@@ -88,53 +85,58 @@ export default function Home() {
   const eventDateLabel = /^\d{4}-\d{2}-\d{2}$/.test(liveDate)
     ? new Intl.DateTimeFormat("en-AE", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${liveDate}T00:00:00`))
     : liveDate;
-  const products = featured?.length ? featured.slice(0, 4) : (catalog ?? []).slice(0, 4);
-  const productsLoading = featuredLoading || catalogLoading;
-  const productsError = featuredError && catalogError;
+  const products = featured?.length ? featured.slice(0, 8) : (catalog ?? []).slice(0, 8);
+  const productsLoading = catalogLoading;
+  const productsError = catalogError;
 
   return (
     <main className="min-h-[100dvh] overflow-hidden bg-[#111113] text-[#f4f2f7]">
-      <section className="relative isolate flex min-h-[calc(100svh-72px)] items-end overflow-hidden bg-[#111113] sm:min-h-[calc(100svh-84px)]" aria-label="Imaginate campaign">
-        {heroImage && (
-          <>
-            <img src={heroImage} alt="" aria-hidden="true" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-center opacity-55" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/30 to-black/10" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#111113] via-transparent to-black/15" />
-          </>
-        )}
-        {!heroImage && (
-          <>
-            <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(ellipse_at_72%_30%,rgba(102,72,162,.2),transparent_36%),linear-gradient(130deg,#171719_0%,#111113_54%,#1b1820_100%)]" />
-            <div aria-hidden="true" className="absolute right-[-10%] top-[12%] h-[68vw] w-[68vw] rounded-full border border-white/[.045] sm:right-[4%] sm:top-[4%] sm:h-[46vw] sm:w-[46vw]" />
-            <div aria-hidden="true" className="absolute right-[2%] top-[22%] h-[52vw] w-[52vw] rounded-full border border-[#b7a1e8]/[.13] sm:right-[13%] sm:top-[14%] sm:h-[34vw] sm:w-[34vw]" />
-          </>
-        )}
-        <div className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-col px-6 pb-16 pt-32 sm:px-10 sm:pb-20 lg:px-[8vw] lg:pb-[9vh]">
-          <div className="max-w-4xl">
-            <div className="mb-8 flex items-center gap-4">
-              <span className="h-px w-9 bg-[#bba4f4]" />
-              <p className="text-[9px] uppercase tracking-[.34em] text-white/70 sm:text-[10px]">Independent expression / UAE</p>
-            </div>
-            <h1 className="max-w-4xl text-[clamp(3.3rem,10.7vw,9.5rem)] font-semibold uppercase leading-[.81] tracking-[-.085em]">
-              Wear the<br /><span className="text-[#c6b2f0]">unwritten.</span>
+      <section className="relative isolate border-b border-white/10" aria-label="Imaginate campaign">
+        <div className="mx-auto grid max-w-[1600px] lg:min-h-[calc(100svh-120px)] lg:grid-cols-[1.05fr_.95fr]">
+          <div className="relative flex flex-col justify-end px-6 pb-10 pt-14 sm:px-10 lg:px-[5vw] lg:pb-14">
+            <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#7c3aed]/15 blur-3xl" />
+            <p className="relative mb-6 flex items-center gap-3 text-[10px] uppercase tracking-[.3em] text-white/65"><span className="h-px w-9 bg-[#a78bfa]" />UAE streetwear label</p>
+            <h1 className="relative text-[clamp(3.2rem,9vw,8.4rem)] font-semibold uppercase leading-[.84] tracking-[-.07em]" data-testid="text-hero-title">
+              {settings.hero_title?.trim() || "Wear the"}<br /><span className="text-[#b79cff]">{settings.hero_subtitle?.trim() || (settings.hero_title?.trim() ? "" : "unwritten.")}</span>
             </h1>
-            <div className="mt-9 flex flex-col gap-7 sm:mt-12 sm:flex-row sm:items-end sm:justify-between">
-              <p className="max-w-[340px] text-sm leading-6 text-white/65 sm:text-base">
-                IMAGINATE is a point of view in motion. A new language for the streets, made to be yours.
-              </p>
-              <Link href="/shop" data-testid="link-hero-shop" className="group inline-flex w-fit items-center gap-5 border-b border-white/55 pb-3 text-[10px] uppercase tracking-[.24em] text-white transition-colors hover:border-[#c6b2f0] hover:text-[#c6b2f0]">
-                Explore the collection <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <p className="relative mt-7 max-w-md text-sm leading-6 text-white/65 sm:text-base">
+              {settings.hero_description?.trim() || "IMAGINATE is a point of view in motion. A new language for the streets, made to be yours."}
+            </p>
+            <div className="relative mt-9 flex flex-wrap items-center gap-3">
+              <Link href="/shop" data-testid="link-hero-shop" className="group inline-flex items-center gap-4 bg-[#b79cff] px-7 py-4 text-[11px] font-semibold uppercase tracking-[.2em] text-[#111113] transition-colors hover:bg-white">
+                {settings.hero_cta_text?.trim() || "Shop the collection"} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
+              <Link href="/shop?new=1" className="inline-flex items-center border border-white/25 px-7 py-4 text-[11px] uppercase tracking-[.2em] transition-colors hover:border-white">New in</Link>
             </div>
           </div>
-          <div className="mt-16 flex items-end justify-between border-t border-white/15 pt-4 sm:mt-20">
-            <p className="text-[9px] uppercase tracking-[.2em] text-white/45">IMAGINATE — Dubai, UAE</p>
-            <a href="#collection" aria-label="Scroll to collection" className="flex items-center gap-2 text-[9px] uppercase tracking-[.2em] text-white/55 hover:text-white">
-              Discover <ArrowDown className="h-3.5 w-3.5" />
-            </a>
+          <div className="relative min-h-[420px] overflow-hidden border-t border-white/10 bg-[#19191c] lg:border-l lg:border-t-0">
+            {heroImage ? (
+              <>
+                <img src={heroImage} alt="" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover" />
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#111113]/70 via-transparent to-transparent" />
+              </>
+            ) : products.length >= 2 ? (
+              <div className="grid h-full grid-cols-2 gap-px bg-white/10">
+                {products.slice(0, 4).map((p, i) => {
+                  const m = getPrimaryProductMedia(p.imageUrl);
+                  return (
+                    <Link key={p.id} href={`/product/${p.id}`} className={`relative block overflow-hidden bg-[#19191c] ${i === 0 ? "row-span-2" : ""}`}>
+                      {m?.type === "image" && <img src={m.url} alt={p.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-105" loading={i ? "lazy" : "eager"} />}
+                      <span className="absolute bottom-3 left-3 bg-black/70 px-2 py-1 text-[9px] uppercase tracking-[.18em]">{p.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="absolute inset-0 grid place-items-center"><img src="/imaginate-logo.png" alt="Imaginate" className="w-48 opacity-90" /></div>
+            )}
           </div>
         </div>
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#111113] to-transparent" />
+        <div className="overflow-hidden border-t border-white/10 bg-[#0d0d0f] py-3" aria-hidden="true">
+          <div className="imag-marquee flex w-max gap-10 text-[10px] uppercase tracking-[.35em] text-white/45">
+            {Array.from({ length: 12 }).map((_, i) => <span key={i}>Imaginate / UAE / Streetwear</span>)}
+          </div>
+        </div>
       </section>
 
       {liveEnabled && (
@@ -183,11 +185,11 @@ export default function Home() {
 
         {productsLoading ? (
           <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-6 md:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse bg-white/[.055]" />)}
+            {Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-[4/5] animate-pulse bg-white/[.055]" />)}
           </div>
         ) : productsError ? (
           <div role="status" className="border-y border-white/10 py-12 text-sm text-white/60">
-            The collection could not be loaded right now. <button className="ml-2 underline underline-offset-4 hover:text-white" onClick={() => window.location.reload()}>Try again</button>
+            The collection could not be loaded right now. <button className="ml-2 underline underline-offset-4 hover:text-white" onClick={() => { void refetchCatalog(); }}>Try again</button>
           </div>
         ) : products.length ? (
           <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-6 md:grid-cols-4">

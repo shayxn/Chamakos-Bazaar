@@ -1082,12 +1082,13 @@ export default function AdminProducts() {
                         </Field>
                         <Field label="Expected Ship Date">
                           <Input value={formData.preOrderDate ?? ""} onChange={e => set({ preOrderDate: e.target.value })}
-                            placeholder="e.g. August 2025" className="glass-input text-white h-9 text-sm" />
+                            placeholder="Date text or YYYY-MM-DDTHH:mm:ss+04:00" className="glass-input text-white h-9 text-sm" />
+                          <p className="mt-1 text-[10px] text-white/45">A countdown requires a full date, time and time-zone offset. Date-only text is shown without a timer.</p>
                         </Field>
                       </div>
                       <Field label="Pre-Order Note">
                         <Input value={formData.preOrderNote ?? ""} onChange={e => set({ preOrderNote: e.target.value })}
-                          placeholder="Ships when available. No charge until shipped." className="glass-input text-white h-9 text-sm" />
+                          placeholder="Confirmed pre-order information" className="glass-input text-white h-9 text-sm" />
                       </Field>
                     </div>
                   </motion.div>

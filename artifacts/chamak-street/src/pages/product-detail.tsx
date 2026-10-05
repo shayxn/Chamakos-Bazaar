@@ -5,7 +5,7 @@ import { useCartFly } from "@/components/cart-fly-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Bell, Eye, Heart, TrendingUp, Check, Sparkles, Truck, Shield, RotateCcw, Share2 } from "lucide-react";
+import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Bell, Heart, Check, Sparkles, Truck, Shield, RotateCcw, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
@@ -15,42 +15,11 @@ import { QuickViewModal } from "@/components/quick-view-modal";
 import { useSettings } from "@/lib/use-settings";
 import { trackRecentlyViewed } from "@/components/recently-viewed";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { ProductPreorderDetails } from "@/components/product-preorder-details";
+import { useActiveEvents } from "@/components/event-banner";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
-
-function TrendingMeter({ productId }: { productId: number }) {
-  const views = 120 + (productId * 37) % 300;
-  const added = 18 + (productId * 13) % 80;
-  const sold = 5 + (productId * 7) % 40;
-  return (
-    <div className="flex flex-wrap gap-2">
-      {[
-        { icon: Eye, label: `${views} viewed today`, color: "text-blue-400", glow: "rgba(96,165,250,0.14)" },
-        { icon: Heart, label: `${added} added to cart`, color: "text-rose-400", glow: "rgba(251,113,133,0.14)" },
-        { icon: TrendingUp, label: `${sold} sold this week`, color: "text-emerald-400", glow: "rgba(52,211,153,0.14)" },
-      ].map(({ icon: Icon, label, color, glow }, i) => (
-        <motion.div
-          key={label}
-          className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground glass-sm px-2.5 py-1.5 rounded-full"
-          initial={{ opacity: 0, scale: 0.80, y: 8 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: i * 0.09, ease: [0.16,1,0.3,1] }}
-          whileHover={{ scale: 1.06, y: -2, boxShadow: `0 0 18px ${glow}` }}
-          style={{ cursor: "default" }}
-        >
-          <motion.div
-            animate={{ rotate: [0, -5, 5, 0] }}
-            transition={{ duration: 2, delay: i * 0.4 + 1, repeat: Infinity, repeatDelay: 4 }}
-          >
-            <Icon className={`h-3 w-3 ${color}`} />
-          </motion.div>
-          {label}
-        </motion.div>
-      ))}
-    </div>
-  );
-}
 
 function BackInStockAlert({ productId, productName }: { productId: number; productName: string }) {
   const [open, setOpen] = useState(false);
@@ -58,19 +27,21 @@ function BackInStockAlert({ productId, productName }: { productId: number; produ
   const [name, setName] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async () => {
     if (!phone.trim()) return;
     setLoading(true);
     try {
-      await fetch(`${BASE}/api/stock-alerts`, {
+      const response = await fetch(`${BASE}/api/stock-alerts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId, phone: phone.trim(), name: name.trim() }),
       });
+      if (!response.ok) throw new Error("Could not save stock alert");
       setSent(true);
     } catch {
-      setSent(true);
+      toast({ title: "Alert not saved", description: "Please try again.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -145,7 +116,7 @@ function MotionItem({ children, delay = 0, className = "" }: { children: React.R
     <motion.div
       initial={{ opacity: 0, y: 28 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay, ease: EASE }}
+      transition={{ duration: 0.2, delay: Math.min(delay, 0.08), ease: EASE }}
       className={className}
     >
       {children}
@@ -164,11 +135,14 @@ function useCompleteTheLook(productId: number) {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     if (!productId) return;
+    const controller = new AbortController();
     setLoading(true);
-    fetch(`${BASE}/api/products/complete-the-look?productId=${productId}`)
+    setItems([]);
+    fetch(`${BASE}/api/products/complete-the-look?productId=${productId}`, { signal: controller.signal })
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => { setItems(data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
   }, [productId]);
   return { items, loading };
 }
@@ -384,6 +358,7 @@ export default function ProductDetail() {
   });
 
   const settings = useSettings();
+  const events = useActiveEvents();
   const recVisible = settings.recommended_visible !== "false";
   const recTitle = settings.recommended_title || "You May Also Like";
   const recCount = Math.max(2, Math.min(12, Number(settings.recommended_count) || 6));
@@ -391,8 +366,8 @@ export default function ProductDetail() {
 
   const categoryId = product?.categoryId ?? undefined;
   const { data: relatedProducts } = useListProducts(
-    categoryId ? { categoryId } : undefined,
-    { query: { enabled: !!categoryId && recVisible, queryKey: getListProductsQueryKey(categoryId ? { categoryId } : undefined), staleTime: 30_000 } }
+    categoryId ? { categoryId, limit: 13 } : undefined,
+    { query: { enabled: !!categoryId && recVisible, queryKey: getListProductsQueryKey(categoryId ? { categoryId, limit: 13 } : undefined), staleTime: 30_000 } }
   );
   const related = (relatedProducts ?? []).filter((p) => p.id !== id).slice(0, recCount);
 
@@ -415,6 +390,12 @@ export default function ProductDetail() {
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
   const [scrolledPast, setScrolledPast] = useState(false);
   const { ids: wishlistIds, toggle: toggleWishlist } = useWishlist();
+  useEffect(() => {
+    setQuantity(1);
+    setSelectedSize("");
+    setSelectedMediaIndex(0);
+    setScrolledPast(false);
+  }, [id]);
 
   // Track recently viewed
   useEffect(() => {
@@ -432,8 +413,12 @@ export default function ProductDetail() {
     if (navigator.share) {
       await navigator.share({ title: product?.name ?? "", text: `Check out ${product?.name ?? ""} on IMAGINATE`, url }).catch(() => {});
     } else {
-      await navigator.clipboard.writeText(url).catch(() => {});
-      toast({ title: "Link copied!" });
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "Link copied!" });
+      } catch {
+        toast({ title: "Could not copy link", description: "Copy the address from your browser.", variant: "destructive" });
+      }
     }
   };
 
@@ -465,7 +450,7 @@ export default function ProductDetail() {
   }, [handleGalleryKey]);
 
   const handleAddToCart = () => {
-    if (!product) return;
+    if (!product || addToCart.isPending) return;
     if (sizes.length > 0 && !selectedSize) {
       toast({ title: "Select a size", description: "Please select a size before adding to cart.", variant: "destructive" });
       return;
@@ -527,7 +512,10 @@ export default function ProductDetail() {
     return <div className="container mx-auto px-4 py-20 text-center font-black text-2xl uppercase">Product not found</div>;
   }
 
-  const isOutOfStock = product.stock === 0;
+  const isPreOrder = product.isPreOrder === true;
+  const isOutOfStock = product.stock === 0 && !isPreOrder;
+  const productEvent = events.find((event) => event.countdownEnabled && event.ctaUrl?.replace(/\/$/, "").endsWith(`/product/${id}`));
+  const preorderDate = productEvent?.endAt || product.preOrderDate;
   // Sticky bar: only after scroll AND (no sizes OR size already chosen)
   const stickyVisible = scrolledPast && !isOutOfStock && (sizes.length === 0 || !!selectedSize);
   const selectedMedia = mediaItems[selectedMediaIndex] ?? mediaItems[0] ?? null;
@@ -558,7 +546,7 @@ export default function ProductDetail() {
               transition={{ duration: 0.75, ease: EASE }}
               className="product-img-frame relative aspect-square md:aspect-[4/5] bg-card rounded-lg overflow-hidden border border-border group"
             >
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="sync">
                 {selectedMedia ? (
                   selectedMedia.type === "video" ? (
                     <motion.video
@@ -715,7 +703,7 @@ export default function ProductDetail() {
                             layoutId="size-pill"
                             className="absolute inset-0 rounded-xl bg-primary"
                             transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
-                            style={{ borderRadius: 12 }}
+                        style={{ borderRadius: 12, pointerEvents: "none" }}
                           />
                         )}
                         {/* Idle border */}
@@ -724,7 +712,7 @@ export default function ProductDetail() {
                         )}
                         <span
                           className={`relative z-10 transition-colors duration-150 ${
-                            selectedSize === size ? "text-black" : "text-white/55 hover:text-white"
+                            selectedSize === size ? "text-white" : "text-white/55 hover:text-white"
                           }`}
                         >
                           {size}
@@ -749,24 +737,15 @@ export default function ProductDetail() {
                   >
                     <Minus className="h-4 w-4" />
                   </motion.button>
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={quantity}
-                      initial={{ opacity: 0, y: -10, scale: 0.8 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                      transition={{ duration: 0.18, ease: EASE }}
-                      className="flex-1 text-center font-black font-mono text-lg"
-                    >
+                    <span className="flex-1 text-center font-black font-mono text-lg tabular-nums">
                       {quantity}
-                    </motion.div>
-                  </AnimatePresence>
+                    </span>
                   <motion.button
                     whileTap={{ scale: 0.82 }}
                     whileHover={{ backgroundColor: "rgba(255,102,0,0.08)" }}
-                    onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+                    onClick={() => setQuantity((q) => Math.min(isPreOrder ? 99 : product.stock, q + 1))}
                     className="w-10 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
-                    disabled={isOutOfStock || quantity >= product.stock}
+                    disabled={isOutOfStock || quantity >= (isPreOrder ? 99 : product.stock)}
                     data-testid="button-quantity-plus"
                   >
                     <Plus className="h-4 w-4" />
@@ -783,14 +762,13 @@ export default function ProductDetail() {
                 )}
               </div>
 
-              {/* Trending meter */}
-              <TrendingMeter productId={id} />
+              {isPreOrder && <ProductPreorderDetails date={preorderDate} note={product.preOrderNote} label={product.preOrderLabel} />}
 
-              {/* Add to cart — slides down when sticky bar takes over */}
+              {/* Keep the purchase action visible below the pre-order details. */}
               <motion.div
-                animate={{ y: stickyVisible ? 18 : 0, opacity: stickyVisible ? 0 : 1 }}
+                animate={{ y: 0, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 420, damping: 36 }}
-                style={{ pointerEvents: stickyVisible ? "none" : "auto" }}
+                style={{ pointerEvents: "auto" }}
               >
               <motion.div
                 animate={addedPulse ? { scale: [1, 1.04, 1] } : {}}
@@ -806,23 +784,17 @@ export default function ProductDetail() {
                     className={`w-full h-14 text-lg font-black uppercase tracking-widest transition-all duration-300 ${
                       isOutOfStock
                         ? "opacity-50 cursor-not-allowed"
-                        : "fire-gradient border-none shadow-[0_0_24px_rgba(255,102,0,0.35)] hover:shadow-[0_0_48px_rgba(255,102,0,0.6)]"
+                        : "fire-gradient border-none hover:brightness-110"
                     }`}
                     disabled={isOutOfStock || addToCart.isPending}
                     onClick={handleAddToCart}
                     data-testid="button-add-to-cart"
                   >
-                    <AnimatePresence mode="wait">
-                      {addToCart.isPending ? (
-                        <motion.span key="loading" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>Adding...</motion.span>
-                      ) : isOutOfStock ? (
-                        <motion.span key="sold" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>Sold Out</motion.span>
-                      ) : (
-                        <motion.span key="add" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-2">
-                          <ShoppingCart className="h-5 w-5" /> Add to Cart
-                        </motion.span>
+                      {addToCart.isPending ? "Adding…" : isOutOfStock ? "Sold Out" : (
+                        <span className="flex items-center gap-2">
+                          <ShoppingCart className="h-5 w-5" /> {isPreOrder ? "Pre-order now" : "Add to Cart"}
+                        </span>
                       )}
-                    </AnimatePresence>
                   </Button>
                 </motion.div>
               </motion.div>
@@ -965,15 +937,15 @@ export default function ProductDetail() {
                 whileHover={{ scale: 1.03 }}
                 onClick={handleAddToCart}
                 disabled={addToCart.isPending}
-                className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-sm text-black disabled:opacity-60"
-                style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", boxShadow: "0 0 24px rgba(255,102,0,0.5), inset 0 1px 0 rgba(255,255,255,0.22)" }}
+                className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-sm text-white disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}
               >
                 <ShoppingCart className="h-4 w-4" />
                 <AnimatePresence mode="wait">
                   <motion.span key={addToCart.isPending ? "adding" : "add"}
                     initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.15 }}>
-                    {addToCart.isPending ? "Adding…" : "Add to Cart"}
+                    {addToCart.isPending ? "Adding…" : isPreOrder ? "Pre-order now" : "Add to Cart"}
                   </motion.span>
                 </AnimatePresence>
               </motion.button>

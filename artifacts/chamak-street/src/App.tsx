@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme-context";
+import { MotionConfig } from "framer-motion";
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -46,7 +47,7 @@ class ErrorBoundary extends React.Component<
             style={{
               marginTop: "8px",
               padding: "10px 28px",
-              background: "#ff6600",
+              background: "#7c3aed",
               color: "#fff",
               border: "none",
               borderRadius: "8px",
@@ -71,24 +72,23 @@ import { useMobile } from "@/lib/use-mobile";
 import { useOperationalSettings, useSettings } from "@/lib/use-settings";
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useVisitorTracking } from "@/lib/use-visitor-tracking";
-import { useSmoothScroll, ScrollProgressBar } from "@/components/smooth-scroll";
+import { ScrollProgressBar } from "@/components/smooth-scroll";
 import { LoadingScreen } from "@/components/loading-screen";
 import { EmergencyShutdownOverlay } from "@/components/emergency-shutdown-overlay";
 import { CartFlyProvider } from "@/components/cart-fly-context";
-import { WelcomePopup } from "@/components/welcome-popup";
 // AccountProvider kept eager — it's a root context provider
 import { AccountProvider } from "@/pages/account/index";
 import AccountPage from "@/pages/account/index";
 
 // ── Core customer pages (eagerly loaded — always needed) ──
 import Home from "@/pages/home";
-import Shop from "@/pages/shop";
-import ProductDetail from "@/pages/product-detail";
-import Cart from "@/pages/cart";
-import Checkout from "@/pages/checkout";
+const Shop = lazy(() => import("@/pages/shop"));
+const ProductDetail = lazy(() => import("@/pages/product-detail"));
+const Cart = lazy(() => import("@/pages/cart"));
+const Checkout = lazy(() => import("@/pages/checkout"));
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
-import Basics from "@/pages/basics";
+const Basics = lazy(() => import("@/pages/basics"));
 
 // ── Secondary customer pages (lazy — only loaded when visited) ──
 const SupportPage = lazy(() => import("@/pages/support"));
@@ -111,7 +111,7 @@ const BackToSchool = lazy(() => import("@/pages/back-to-school"));
 const CustomStorePage = lazy(() => import("@/pages/custom-store-page"));
 
 // ── Admin pages (lazy — customers never load these) ──
-import AdminLayout from "@/components/admin-layout";
+const AdminLayout = lazy(() => import("@/components/admin-layout"));
 const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const AdminProducts = lazy(() => import("@/pages/admin/products"));
 const AdminBasics = lazy(() => import("@/pages/admin/basics"));
@@ -286,18 +286,9 @@ function InitialRouteReadySignal() {
   return null;
 }
 
-/** Boots Lenis + scroll progress bar — rendered once at app root */
+/** Lightweight native scroll progress, rendered once at the app root. */
 function SiteEffects() {
-  useSmoothScroll();
   return <ScrollProgressBar />;
-}
-
-function CustomerOverlays() {
-  const path = window.location.pathname;
-  const isAdmin = path.startsWith(import.meta.env.BASE_URL + "admin") || path.startsWith("/admin");
-  const isLogin = path.includes("/login");
-  if (isAdmin || isLogin) return null;
-  return <WelcomePopup />;
 }
 
 function App() {
@@ -305,11 +296,11 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
+          <MotionConfig reducedMotion="user">
           <TooltipProvider>
             <AccountProvider>
               <CartFlyProvider>
                 <SiteEffects />
-                <CustomerOverlays />
                 <LoadingScreen />
                 <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
                   <EmergencyShutdownOverlay />
@@ -324,6 +315,7 @@ function App() {
               </CartFlyProvider>
             </AccountProvider>
           </TooltipProvider>
+          </MotionConfig>
         </QueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>

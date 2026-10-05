@@ -203,7 +203,7 @@ function ReceiptContent({
   const textColor = printMode ? "#000" : "#fff";
   const mutedColor = printMode ? "#555" : "rgba(255,255,255,0.5)";
   const borderColor = printMode ? "#ddd" : "rgba(255,255,255,0.08)";
-  const accentColor = "#ff6600";
+  const accentColor = printMode ? "#5b21b6" : "#a78bfa";
   const bgCard = printMode ? "#f9f9f9" : "rgba(255,255,255,0.03)";
 
   return (
@@ -212,7 +212,7 @@ function ReceiptContent({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "32px", paddingBottom: "24px", borderBottom: `1px solid ${borderColor}` }}>
         <div>
           <div style={{ fontSize: "28px", fontWeight: 900, letterSpacing: "-0.03em", color: accentColor }}>
-            FIRSTPICK
+            IMAGINATE
           </div>
           <div style={{ fontSize: "11px", color: mutedColor, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", marginTop: "2px" }}>
             Dubai Streetwear

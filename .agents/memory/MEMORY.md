@@ -19,7 +19,7 @@
 - [GitHub push setup](github-push-setup.md) — Remote is HTTPS github.com/shayxn/Chamakos-Bazaar; no SSH keys; no token in env. push-to-github.sh in repo root handles token-based push with force-with-lease. User needs GITHUB_TOKEN secret.
 - [Uploads lost on git push](uploads-git-warning.md) — uploads/ folder is not git-tracked; hero images and product images uploaded via admin are wiped on fresh clone/push. Always reset DB hero_image to static /chamako-hero.png as fallback.
 - [Vite Fast Refresh mixed exports](vite-fast-refresh-mixed.md) — files exporting both a React component AND a hook (useXxx) crash React on HMR; fix with `/* @refresh reset */` at top of file or split into two files.
-- [FirstPick rebrand](firstpick-rebrand.md) — brand renamed from Chamak Street to FirstPick; logos, session keys, admin labels, all visible text updated.
+- [IMAGINATE storefront rules](firstpick-rebrand.md) — preserve the supplied logo and real catalog; UAE-only/AED, no public worldwide shipping or invented claims and deadlines.
 - [Basics collection](basics-collection.md) — `collection` text col on products table; null=main store, 'basics'=Basics; API always filters by it; admin/basics.tsx + /basics route.
 - [Notification & real-time tracking](notification-realtime-tracking.md) — web-push VAPID, SSE stream, per-event toggles in site_settings, module-level tracker functions (trackSearch/trackCartUpdate/trackCheckout/trackOrder), admin /notifications page.
 - [Delivery, Tip & Receipt system](delivery-tip-receipt.md) — 3 delivery methods (standard/express/priority), optional tip, receipt page at /receipt/:id; total = itemsSubtotal + deliveryCharge + tip. Session auth: userId=admin, customerId=customer, lastOrderId=guest; GET /orders/:id enforces ownership.

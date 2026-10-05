@@ -61,7 +61,7 @@ export function GiftCardVisual({
         </div>
         <div className="shrink-0">
           <div className="text-[10px] font-black uppercase tracking-widest">
-            <span className="text-white">FIRST</span><span className="text-primary">PICK</span>
+            <span className="text-white">IMAGINATE</span>
           </div>
           <div className="text-[8px] text-primary/60 font-bold uppercase tracking-widest mt-0.5">• GIFT CARD •</div>
         </div>
@@ -113,7 +113,7 @@ export function GiftCardVisual({
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="text-base sm:text-lg font-black uppercase tracking-tight leading-none">
-                <span className="text-white">FIRST</span><span className="text-primary">PICK</span>
+                <span className="text-white">IMAGINATE</span>
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5"
                 style={{ color: "rgba(255,140,0,0.7)" }}>• GIFT CARD •</div>
@@ -174,11 +174,11 @@ export function GiftCardVisual({
               ))}
               <div className="relative z-10 text-center">
                 <div className="text-[11px] font-black leading-none">
-                  <span style={{ color: "rgba(255,255,255,0.85)" }}>FIRST</span>
+                  <span style={{ color: "rgba(255,255,255,0.85)" }}>IMAGINATE</span>
                 </div>
                 <div className="text-[11px] font-black leading-none -mt-0.5"
                   style={{ background: "linear-gradient(135deg,#ff6600,#ffaa00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  PICK
+                  GIFT CARD
                 </div>
               </div>
             </div>
@@ -233,7 +233,7 @@ export function GiftCardVisual({
             {[
               { icon: Shield, label: "100% SECURE" },
               { icon: ShoppingBag, label: "SHOP ANYTHING" },
-              { icon: Zap, label: "FIRSTPICK PROMISE" },
+              { icon: Zap, label: "IMAGINATE" },
             ].map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-center gap-1 text-[7px] sm:text-[8px] font-bold uppercase tracking-widest text-white/20">
                 <Icon className="w-2.5 h-2.5 text-primary/30" />

@@ -1,70 +1,22 @@
 ---
-name: FirstPick rebrand
-description: Chamak Street renamed to FirstPick — covers changed files, session keys, removed features, logo approach.
+name: IMAGINATE storefront constraints
+description: User requirements for the IMAGINATE identity, shipping, factual content, and redesign boundaries.
 ---
 
-## Summary
-Brand renamed "Chamak Street" → "FirstPick" (Aug 2026).
+Use the supplied IMAGINATE logo unchanged. Do not invent products, photography, metrics, policies, delivery promises, exchange rates, or event times.
 
-## Logo approach (important)
-- `chamak-logo.tsx` uses CSS gradient approach — FIRST as white span, PICK with WebkitBackgroundClip gradient span. NO SVG gradients. NO dot. NO underline.
-- Font: 'Arial Black','Impact','Franklin Gothic Heavy',sans-serif, weight 900
-- Gradient: linear-gradient(180deg, #ff5200 0%, #ffb300 100%)
-- `layout.tsx` and `mobile-layout.tsx` use `<ChamakLogo>` when logoUrl === "/firstpick-logo.svg" (default), otherwise show custom logo <img>
-- `firstpick-logo.svg` in public is a fallback SVG (used only if ChamakLogo component is unavailable)
+**Why:** The user rejected earlier storefront work and asked that the supplied prompts and logo be respected.
 
-## Session keys
-- Loading screen: `firstpick_loaded`
-- Welcome popup: `firstpick_welcome_v1`
-- Admin notif: `firstpick_notif_asked`
+**How to apply:** Use existing catalog media and verified information. A redesign is not permission to seed or directly change saved settings, catalog records, authentication, or existing orders.
 
-## Loading screen
-- Corner film-reel brackets, scan lines (forward + reverse), orange glow background, grid pattern
-- Percentage counter bottom-right, "DUBAI · UAE" tag bottom-left
-- "Authentic · Premium · Dubai" tagline, 3 animated dots
-- Orange gradient progress bar at bottom
+The storefront is UAE-only, with AED reporting. Worldwide shipping remains OFF and must not be advertised or discussed publicly.
 
-## Video section
-- `/firstpick-video.mov` in public folder (664K screen recording)
-- Added between ReviewsSection and TiktokSection in home.tsx
-- Full-bleed, cinematic bars top/bottom, side vignettes, orange glow beneath, muted+loop+autoplay
+**Why:** These are the user's stated shipping and reporting requirements.
 
-## Removed from home
-- `BrandsSection` (Shop by Brand + Shop by Category) — deleted from import and JSX
-- All "Chamak Street" references → "FirstPick"
-- "Rep Nation" → "Authentic Drops"
-- "100% Authentic Rep" stat → "100% Authentic"
-- "The Chamak Mantra" → "The FirstPick Promise"
-- "— Chamak Street, Dubai" → "— FirstPick, Dubai"
+**How to apply:** Keep customer copy and checkout consistent with UAE delivery. Do not expose a speculative worldwide option.
 
-## Removed admin pages (routes + sidebar links)
-- /admin/import, /admin/stock-alerts, /admin/abandoned-carts, /admin/sales-reports
+A shipping month or date-only string must not become a countdown with an invented time or time zone.
 
-## Glass system (index.css)
-- All glass classes upgraded to iOS 26 liquid glass (blur 40-60px, saturate 200-220%, brightness 1.08)
-- New: glass-card (product cards), glass-badge, glass-drawer
-- glass-card has hover state: orange border glow
+**Why:** Existing pre-order dates include free text, and the user prohibited invented event times.
 
-## Animation improvements
-- page-transition.tsx: reveals now include scale(0.975), blur + spring easing
-- scroll-reveal: willChange on all motion divs
-- Buttons: spring cubic-bezier(0.34,1.56,0.64,1) with overshot bounce
-- CSS: smooth scroll, overflow-x hidden, hardware-accelerated with will-change
-
-## Scroll-driven video (ScrollDrivenVideo component in home.tsx)
-- Uses `useScroll({ target: containerRef, offset: ["start end", "end start"] })` from framer-motion
-- Container is 300vh tall; video is `position: sticky; height: 100vh`
-- `scrollYProgress.on("change", v => video.currentTime = v * duration)` — maps 0→1 scroll to full video
-- No autoPlay — video is paused by default, only advances via scroll
-- Video src: `settings.hero_middle_video || "/firstpick-video.mov"` (admin-configurable)
-
-## Admin: Middle Feature Video (site-settings.tsx "Sections" tab)
-- Setting key: `hero_middle_video` (empty string = use default /firstpick-video.mov)
-- Toggle: Default / Custom Upload buttons
-- `VideoSettingInput` component added (same as `ImageSettingInput` but `accept="video/*"`)
-- SETTING_DEFAULTS: `hero_middle_video: ""`
-
-## Smoothness / performance
-- `overscroll-behavior-y: none` on body (prevents elastic bounce)
-- `[style*="position: sticky"]` selector adds `transform: translateZ(0)` for GPU compositing
-- Removed `contain: layout style` from all sections (breaks sticky positioning)
+**How to apply:** Only an explicitly configured precise deadline drives a countdown; otherwise show the supplied expected-date text. Keep enabled pre-orders purchasable through the existing cart flow.

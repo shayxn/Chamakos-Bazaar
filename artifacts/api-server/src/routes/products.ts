@@ -102,6 +102,11 @@ async function hasVerifiedAdminSession(req: { session?: Record<string, unknown> 
 }
 
 router.get("/products", async (req, res) => {
+  const limit = req.query.limit === undefined ? undefined : Number(req.query.limit);
+  if (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 100)) {
+    res.status(400).json({ error: "limit must be an integer between 1 and 100" });
+    return;
+  }
   const isAdmin = await hasVerifiedAdminSession(req as any);
   const collection = typeof req.query.collection === "string" ? req.query.collection : undefined;
   if (!isAdmin && collection === "back_to_school" && !(await getOperationalSettings()).backToSchoolEnabled) {
@@ -121,6 +126,9 @@ router.get("/products", async (req, res) => {
 
   const conditions: SQL[] = [];
   if (!isAdmin) conditions.push(eq(productsTable.hidden, false));
+  if (!isAdmin) {
+    conditions.push(or(isNull(productsTable.publishAt), sql`${productsTable.publishAt} <= now()`)!, or(isNull(productsTable.unpublishAt), sql`${productsTable.unpublishAt} > now()`)!);
+  }
   if (categoryId !== undefined) conditions.push(eq(productsTable.categoryId, categoryId));
   if (search) conditions.push(ilike(productsTable.name, `%${search}%`));
   if (featured !== undefined) conditions.push(eq(productsTable.featured, featured));
@@ -132,7 +140,7 @@ router.get("/products", async (req, res) => {
     conditions.push(isNull(productsTable.collection));
   }
 
-  const products = await db
+  const query = db
     .select({
       id: productsTable.id,
       name: productsTable.name,
@@ -168,7 +176,9 @@ router.get("/products", async (req, res) => {
     })
     .from(productsTable)
     .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
-    .where(conditions.length > 0 ? and(...conditions) : undefined);
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .$dynamic();
+  const products = await (limit === undefined ? query : query.limit(limit));
 
   const filtered = isAdmin ? products : products.filter(p => isPublished(p as any));
   const result = filtered.map((product) => serializeProduct(product, { includeSourceUrl: isAdmin }));

@@ -1,68 +1,32 @@
-import { useEffect, useState } from "react";
-import Lenis from "lenis";
+import { useEffect, useRef } from "react";
 
-/**
- * Initialises Lenis smooth scroll with an inertia feel.
- * Call once at app root — runs a RAF loop for the lifetime of the component.
- */
-export function useSmoothScroll() {
-  useEffect(() => {
-    const lenis = new (Lenis as any)({
-      lerp: 0.085,           // interpolation speed — lower = more dreamy
-      smoothWheel: true,
-      touchMultiplier: 2,    // amplify touch so mobile doesn't feel sluggish
-      infinite: false,
-    });
+// Native scrolling preserves touch momentum, browser gestures, and focus scrolling.
+export function useSmoothScroll() {}
 
-    let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
-    };
-  }, []);
-}
-
-/**
- * Thin orange progress bar pinned to the very top of the viewport.
- * Tracks scroll progress across the full page height.
- */
 export function ScrollProgressBar() {
-  const [pct, setPct] = useState(0);
-
+  const bar = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    let rafId = 0;
+    let frame = 0;
     const update = () => {
-      const total = document.documentElement.scrollHeight - window.innerHeight;
-      setPct(total > 0 ? Math.min(1, window.scrollY / total) : 0);
+      frame = 0;
+      const height = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = height > 0 ? Math.min(1, Math.max(0, window.scrollY / height)) : 0;
+      if (bar.current) bar.current.style.transform = `scaleX(${progress})`;
     };
-    const onScroll = () => {
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => { rafId = 0; update(); });
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const resize = new ResizeObserver(schedule);
+    resize.observe(document.body);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
     update();
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(rafId);
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
     };
   }, []);
-
-  return (
-    <div
-      aria-hidden="true"
-      className="fixed top-0 left-0 h-[2px] z-[9999] pointer-events-none origin-left"
-      style={{
-        width: `${pct * 100}%`,
-        background: "linear-gradient(90deg, #ff6600 0%, #ffaa00 100%)",
-        boxShadow: "0 0 10px rgba(255,102,0,0.8)",
-        transition: pct === 0 ? "none" : "width 60ms linear",
-      }}
-    />
-  );
+  return <div ref={bar} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-[9999] h-0.5 w-full origin-left bg-violet-400" style={{ transform: "scaleX(0)" }} />;
 }

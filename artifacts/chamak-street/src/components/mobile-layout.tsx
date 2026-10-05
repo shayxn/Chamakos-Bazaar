@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, MessageCircle, Menu, X, ArrowRight } from "lucide-react";
+import { ShoppingBag, Heart, MessageCircle, Menu, X, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe } from "@workspace/api-client-react";
 import { useSettings } from "@/lib/use-settings";
@@ -34,13 +34,16 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => setMenuOpen(false), [location]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white overflow-x-hidden">
+    <div className="min-h-[100dvh] flex flex-col bg-[#0d0d0f] text-white overflow-x-hidden">
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#09080c]/90 backdrop-blur-xl">
         <div className="flex h-[62px] items-center justify-between px-4">
           <Link href="/" aria-label="IMAGINATE home" className="flex h-full items-center">
-            <img src="/imaginate-logo.png" alt="IMAGINATE" className="h-[116px] w-[116px] object-contain" />
+            <img src="/imaginate-logo.png" alt="IMAGINATE" className="h-[92px] w-[92px] object-contain" />
           </Link>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center">
+            <Link href="/wishlist" aria-label="Wishlist" data-testid="link-nav-wishlist" className="grid h-11 w-11 place-items-center">
+              <Heart className="h-5 w-5 text-white/75" strokeWidth={1.5} />
+            </Link>
             <Link href="/cart" aria-label={`Shopping bag${cartCount ? `, ${cartCount} items` : ""}`} className="relative grid h-11 w-11 place-items-center">
               <motion.span
                 key={`cart-bounce-${cartBounceKey}`}
@@ -119,6 +122,8 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                 { href: "/shop?new=1", label: "New" },
                 { href: "/shop?search=hoodie", label: "Hoodies" },
                 { href: "/about", label: "About" },
+                { href: "/wishlist", label: "Wishlist" },
+                { href: "/order-tracking", label: "Track order" },
                 { href: "/account", label: "Account" },
                 { href: "/support", label: "Support" },
               ].map((item, index) => (
@@ -126,7 +131,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                   <Link
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
-                    className="group flex items-center justify-between border-b border-white/[.07] py-4 text-[clamp(2rem,10vw,3.1rem)] font-medium uppercase leading-none tracking-[-.065em] text-white/90 transition-colors hover:text-[#c6b2f0]"
+                    className="group flex items-center justify-between border-b border-white/[.07] py-3.5 text-[clamp(1.7rem,8vw,2.6rem)] font-medium uppercase leading-none tracking-[-.065em] text-white/90 transition-colors hover:text-[#c6b2f0]"
                   >
                     {item.label}
                     <ArrowRight className="h-5 w-5 text-white/25 transition-all group-hover:translate-x-1 group-hover:text-[#c6b2f0]" />

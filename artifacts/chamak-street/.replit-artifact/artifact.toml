@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Chamak Street"
+title = "IMAGINATE"
 version = "1.0.0"
 id = "artifacts/chamak-street"
 router = "path"

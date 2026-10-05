@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout } from "@workspace/api-client-react";
-import { ShoppingCart, User, Search, LogOut, Settings, MessageCircle, Headphones } from "lucide-react";
+import { ShoppingCart, Heart, User, Search, LogOut, Settings, MessageCircle, Headphones } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
@@ -43,7 +43,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white overflow-x-hidden">
+    <div className="min-h-[100dvh] flex flex-col bg-[#0d0d0f] text-white overflow-x-hidden">
       <header
         className="sticky top-0 z-50 w-full glass-nav transition-all duration-300"
         style={{
@@ -52,28 +52,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
         }}
       >
         {/* Row 1: Search | Logo (center) | User + Cart */}
-        <div className="max-w-[1440px] mx-auto px-6 h-[68px] flex items-center">
+        <div className="max-w-[1440px] mx-auto px-6 h-[76px] grid grid-cols-[minmax(0,1fr)_104px_minmax(0,1fr)] items-center gap-4">
           {/* Left: Search */}
           <div className="flex-1 flex items-center gap-1">
             <SmartSearchModal />
           </div>
 
           {/* Center: Logo — shrinks on scroll */}
-          <Link href="/" className="flex items-center justify-center absolute left-1/2 -translate-x-1/2">
+          <Link href="/" aria-label="IMAGINATE home" className="relative z-10 flex h-[76px] w-[104px] items-center justify-center overflow-hidden">
             <motion.div
               animate={{ scale: scrolled ? 0.88 : 1 }}
               transition={{ duration: 0.35, ease: EASE }}
             >
-              <img src="/imaginate-logo.png" alt="IMAGINATE" className="h-[128px] w-[128px] object-contain" />
+              <img src="/imaginate-logo.png" alt="IMAGINATE" className="h-[104px] w-[104px] object-contain" />
             </motion.div>
           </Link>
 
           {/* Right: Admin + User + Cart */}
-          <div className="flex-1 flex items-center justify-end gap-1 z-50">
-            <Link href="/support" aria-label="Support">
+          <div className="flex items-center justify-self-end justify-end gap-1">
+            <Link href="/support" aria-label="Support" className="grid h-10 w-10 place-items-center">
               <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80 transition-colors h-9 w-9" title="Support">
                 <Headphones className="h-5 w-5" />
               </Button>
+            </Link>
+            <Link href="/wishlist" aria-label="Wishlist" data-testid="link-nav-wishlist" className="grid h-10 w-10 place-items-center text-white/70 transition-colors hover:text-white">
+              <Heart className="h-5 w-5" strokeWidth={1.6} />
             </Link>
             {user?.isAdmin && (
               <Link href="/admin" className="hidden md:block">
@@ -85,7 +88,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             )}
             {user ? (
               <div className="hidden md:flex items-center gap-2">
-                <span className="text-xs text-white/40">@{user.username}</span>
+                <span className="max-w-28 truncate text-xs text-white/40">@{user.username}</span>
                 <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout" className="text-white/60 hover:text-white transition-colors h-9 w-9">
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -166,7 +169,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="relative mt-20 border-t border-white/[0.07]" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+      <footer className="relative mt-16 border-t border-white/[0.07]" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
 
         <div className="max-w-[1440px] mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-8">
           <motion.div
