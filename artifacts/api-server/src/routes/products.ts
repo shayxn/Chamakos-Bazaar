@@ -1,12 +1,42 @@
 import { Router } from "express";
+import { ensureCommerceSchema } from "../lib/commerce-schema";
+import { logAdminActivity } from "./admin-activity";
+import { z } from "zod";
 import { db, productsTable, categoriesTable, usersTable } from "@workspace/db";
 import { eq, ilike, and, inArray, ne, isNotNull, isNull, or, type SQL, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
+import { touchAdminSession } from "../lib/admin-sessions";
+import { adminAccess } from "../lib/admin-permissions";
 import { getOperationalSettings } from "../lib/operational-settings";
 import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 import { sendComingSoonReleasePush } from "../lib/push";
 
 const router = Router();
+router.use(async (_req,_res,next)=>{await ensureCommerceSchema();next();});
+const productFields = z.object({
+  name:z.string().trim().min(1).max(240).optional(),price:z.number().finite().nonnegative().optional(),
+  stock:z.number().int().nonnegative().optional(),colors:z.string().max(1000).nullable().optional(),
+  compareAtPrice:z.number().finite().nonnegative().nullable().optional(),
+  seoTitle:z.string().max(240).nullable().optional(),seoDescription:z.string().max(2000).nullable().optional(),
+  socialImage:z.string().max(2000).nullable().optional(),
+  variants:z.array(z.object({id:z.string().min(1).max(100),size:z.string().max(100),color:z.string().max(100),
+    stock:z.number().int().nonnegative(),price:z.number().finite().nonnegative().nullable()})).max(500).optional(),
+}).passthrough();
+router.use(async (req,res,next)=>{
+  if(!["POST","PATCH"].includes(req.method)||req.path.includes("bulk-action")){next();return;}
+  const parsed=productFields.safeParse(req.body);
+  if(!parsed.success){res.status(400).json({error:"Check product price, stock, variants, and fields."});return;}
+  const b=parsed.data;
+  if(b.variants){
+    const keys=b.variants.map(v=>`${v.size}|${v.color}`);
+    if(new Set(keys).size!==keys.length||new Set(b.variants.map(v=>v.id)).size!==b.variants.length){
+      res.status(400).json({error:"Variant combinations and IDs must be unique."});return;
+    }
+    if(b.variants.length)b.stock=b.variants.reduce((sum,v)=>sum+v.stock,0);
+  }
+  if(b.compareAtPrice!=null&&b.price!=null&&b.compareAtPrice<=b.price){res.status(400).json({error:"Compare-at price must exceed the selling price."});return;}
+  req.body=b;next();
+});
 const productListCache = createTtlCache<unknown>(30_000);
 const productDetailCache = createTtlCache<unknown>(30_000);
 
@@ -37,6 +67,7 @@ function serializeProduct(p: {
   id: number; name: string; description: string | null; price: string | number;
   imageUrl: string | null; imageUrls: string | null; stock: number;
   sourceUrl?: string | null;
+  importSource?: string | null;
   categoryId: number | null; categoryName?: string | null; featured: boolean;
   rep: boolean; sizes: string | null; isPreOrder: boolean; preOrderLabel: string | null;
   preOrderDate: string | null; preOrderNote: string | null; createdAt: Date | string;
@@ -46,17 +77,17 @@ function serializeProduct(p: {
   bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
   comingSoon?: boolean; videoUrl?: string | null; shipsToUaeVerified?: boolean;
 }, options: { includeSourceUrl?: boolean } = {}) {
-  const { sourceUrl, ...publicFields } = p;
+  const { sourceUrl, rep, importSource, shipsToUaeVerified, ...publicFields } = p;
   const product = {
     ...publicFields,
     price: Number(p.price),
+    compareAtPrice: (p as any).compareAtPrice == null ? null : Number((p as any).compareAtPrice),
     createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : p.createdAt,
     publishAt: p.publishAt instanceof Date ? p.publishAt.toISOString() : (p.publishAt ?? null),
     unpublishAt: p.unpublishAt instanceof Date ? p.unpublishAt.toISOString() : (p.unpublishAt ?? null),
     videoUrl: p.videoUrl ?? null,
-    shipsToUaeVerified: p.shipsToUaeVerified ?? false,
   };
-  return options.includeSourceUrl ? { ...product, sourceUrl: sourceUrl ?? null } : product;
+  return options.includeSourceUrl ? { ...product, sourceUrl: sourceUrl ?? null,rep,importSource,shipsToUaeVerified:shipsToUaeVerified??false } : product;
 }
 
 const AMAZON_DOMAINS = [
@@ -98,7 +129,9 @@ async function hasVerifiedAdminSession(req: { session?: Record<string, unknown> 
     .from(usersTable)
     .where(eq(usersTable.id, userId))
     .limit(1);
-  return user?.isAdmin === true;
+  if(user?.isAdmin!==true||!await touchAdminSession(req as any,userId))return false;
+  const access=await adminAccess(userId);
+  return access.isOwner||access.permissions.some((p:string)=>p==="products"||p==="content");
 }
 
 router.get("/products", async (req, res) => {
@@ -109,7 +142,7 @@ router.get("/products", async (req, res) => {
   }
   const isAdmin = await hasVerifiedAdminSession(req as any);
   const collection = typeof req.query.collection === "string" ? req.query.collection : undefined;
-  if (!isAdmin && collection === "back_to_school" && !(await getOperationalSettings()).backToSchoolEnabled) {
+  if (!isAdmin && collection === "back_to_school") {
     res.setHeader("Cache-Control", "no-store");
     res.json([]);
     return;
@@ -155,6 +188,8 @@ router.get("/products", async (req, res) => {
       featured: productsTable.featured,
       rep: productsTable.rep,
       sizes: productsTable.sizes,
+      colors: productsTable.colors,compareAtPrice:productsTable.compareAtPrice,variants:productsTable.variants,
+      seoTitle:productsTable.seoTitle,seoDescription:productsTable.seoDescription,socialImage:productsTable.socialImage,
       isPreOrder: productsTable.isPreOrder,
       preOrderLabel: productsTable.preOrderLabel,
       preOrderDate: productsTable.preOrderDate,
@@ -223,6 +258,9 @@ router.post("/products", requireAdmin, async (req, res) => {
     featured: body.featured ?? false,
     rep: body.rep ?? false,
     sizes: body.sizes ?? null,
+    colors:(body as any).colors ?? null,compareAtPrice:(body as any).compareAtPrice==null?null:String((body as any).compareAtPrice),
+    variants:(body as any).variants ?? [],seoTitle:(body as any).seoTitle ?? null,
+    seoDescription:(body as any).seoDescription ?? null,socialImage:(body as any).socialImage ?? null,
     isPreOrder: body.isPreOrder ?? false,
     preOrderLabel: body.preOrderLabel ?? null,
     preOrderDate: body.preOrderDate ?? null,
@@ -244,6 +282,7 @@ router.post("/products", requireAdmin, async (req, res) => {
   }).returning();
   clearProductCaches();
   res.status(201).json(serializeProduct({ ...product, categoryName: null }, { includeSourceUrl: true }));
+  await logAdminActivity(`Admin ${req.session?.userId}`,"Product created",String(product.id),product.name);
 });
 
 router.get("/products/complete-the-look", async (req, res) => {
@@ -338,6 +377,8 @@ router.get("/products/:id", async (req, res) => {
       featured: productsTable.featured,
       rep: productsTable.rep,
       sizes: productsTable.sizes,
+      colors: productsTable.colors,compareAtPrice:productsTable.compareAtPrice,variants:productsTable.variants,
+      seoTitle:productsTable.seoTitle,seoDescription:productsTable.seoDescription,socialImage:productsTable.socialImage,
       isPreOrder: productsTable.isPreOrder,
       preOrderLabel: productsTable.preOrderLabel,
       preOrderDate: productsTable.preOrderDate,
@@ -363,12 +404,7 @@ router.get("/products/:id", async (req, res) => {
 
   if (!product) { res.status(404).json({ error: "Not found" }); return; }
   const isSchoolProduct = product.collection === "back_to_school";
-  if (!isAdmin && isSchoolProduct) {
-    if (!(await getOperationalSettings()).backToSchoolEnabled) {
-      res.status(404).json({ error: "Not found" });
-      return;
-    }
-  }
+  if (!isAdmin && isSchoolProduct) { res.status(404).json({ error: "Not found" }); return; }
   if (!isAdmin && !isPublished(product as any)) { res.status(404).json({ error: "Not found" }); return; }
   const result = serializeProduct(product, { includeSourceUrl: isAdmin });
   if (cacheKey) {
@@ -387,7 +423,8 @@ router.patch("/products/:id", requireAdmin, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const body = req.body as Record<string, unknown>;
   const allowedFields = [
-    "name", "description", "price", "imageUrl", "imageUrls", "stock", "categoryId", "featured", "rep",
+    "name", "description", "price", "imageUrl", "imageUrls", "stock", "categoryId", "featured",
+    "colors","compareAtPrice","variants","seoTitle","seoDescription","socialImage",
     "sizes", "isPreOrder", "preOrderLabel", "preOrderDate", "preOrderNote", "sellingFast", "spotlight",
     "hidden", "publishAt", "unpublishAt", "collection", "bestSeller", "trending", "newArrival",
     "limitedEdition", "comingSoon", "videoUrl", "shipsToUaeVerified", "sourceUrl",
@@ -401,6 +438,7 @@ router.patch("/products/:id", requireAdmin, async (req, res) => {
     return;
   }
   if (updateData.price !== undefined) updateData.price = String(updateData.price);
+  if(updateData.compareAtPrice!=null)updateData.compareAtPrice=String(updateData.compareAtPrice);
   if (updateData.publishAt !== undefined) updateData.publishAt = updateData.publishAt ? new Date(updateData.publishAt as string) : null;
   if (updateData.unpublishAt !== undefined) updateData.unpublishAt = updateData.unpublishAt ? new Date(updateData.unpublishAt as string) : null;
   try {
@@ -437,6 +475,7 @@ router.patch("/products/:id", requireAdmin, async (req, res) => {
   }
 
   res.json(serializeProduct({ ...product, categoryName: null }, { includeSourceUrl: true }));
+  await logAdminActivity(`Admin ${req.session?.userId}`,Object.keys(updateData).includes("price")?"Product price changed":Object.keys(updateData).includes("stock")?"Product stock changed":"Product updated",String(id),product.name);
 });
 
 router.delete("/products/all", requireAdmin, async (_req, res) => {

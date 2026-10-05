@@ -4,7 +4,7 @@ import { useSettings } from "@/lib/use-settings";
 
 export default function Shipping() {
   const settings = useSettings();
-  const standardFee = Number(settings.delivery_standard_price || 25);
+  const standardFee = Number(settings.delivery_standard_price);
 
   return (
     <PageTransition>
@@ -19,7 +19,7 @@ export default function Shipping() {
               <div>
                 <h2 className="text-sm font-medium uppercase tracking-[.16em]">Delivery options at checkout</h2>
                 <p className="mt-2 max-w-xl text-sm leading-6 text-white/55">
-                  Delivery is currently available within the United Arab Emirates. The standard delivery fee is AED {Number.isFinite(standardFee) ? standardFee.toFixed(2) : "25.00"}. Any other available option and its price are shown before you place your order.
+                  Delivery is currently available within the United Arab Emirates. {Number.isFinite(standardFee) && standardFee > 0 ? `The standard delivery fee is AED ${standardFee.toFixed(2)}. ` : ""}Available options and prices are shown before you place your order.
                 </p>
               </div>
             </div>

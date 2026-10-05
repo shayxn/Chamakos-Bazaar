@@ -74,7 +74,6 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   site_og_image: "",
   maintenance_mode: "false",
   emergency_shutdown: "false",
-  back_to_school_enabled: "false",
   announcement_active: "false",
   announcement_text: "",
   announcement_color: "#7c3aed",
@@ -122,11 +121,11 @@ function normalizeSettings(input?: Record<string, string>): Record<string, strin
     resolved.announcement_active = "false";
     resolved.announcement_text = "";
   }
-  if (["#ff6600", "#ffcc00"].includes((resolved.announcement_color ?? "").toLowerCase())) {
+  if (["#a78bfa", "#ffcc00"].includes((resolved.announcement_color ?? "").toLowerCase())) {
     resolved.announcement_color = SETTING_DEFAULTS.announcement_color;
   }
   resolved.worldwide_shipping_enabled = "false";
-  if (["#ff6600", "#ffcc00"].includes(resolved.primary_color.toLowerCase()) || ["#ff6600", "#ffcc00"].includes((resolved.accent_color ?? "").toLowerCase())) {
+  if (["#a78bfa", "#ffcc00"].includes(resolved.primary_color.toLowerCase()) || ["#a78bfa", "#ffcc00"].includes((resolved.accent_color ?? "").toLowerCase())) {
     resolved.primary_color = SETTING_DEFAULTS.primary_color;
     resolved.accent_color = SETTING_DEFAULTS.accent_color;
   }
@@ -150,7 +149,6 @@ export function useSettings(): Record<string, string> {
 
 type OperationalSettings = {
   emergencyShutdown: boolean;
-  backToSchoolEnabled: boolean;
 };
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
@@ -174,7 +172,6 @@ export function useOperationalSettings() {
 
   return {
     emergencyShutdown: query.data?.emergencyShutdown ?? false,
-    backToSchoolEnabled: query.data?.backToSchoolEnabled ?? true,
     isReady: query.isSuccess || query.isError,
   };
 }

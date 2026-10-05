@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import PushConfiguration from "@/components/push-configuration";
 import { motion, AnimatePresence } from "@/lib/motion-noop";
 import {
   Bell, BellRing, BellOff, Check, X, Loader2, Send,
@@ -44,9 +45,9 @@ const EVENT_DEFS = [
     label: "Customer Searches",
     description: "Receive a notification when a customer searches the site (max once per 10 min per session).",
     icon: Search,
-    color: "text-yellow-400",
-    bg: "bg-yellow-400/10",
-    border: "border-yellow-400/30",
+    color: "text-violet-400",
+    bg: "bg-violet-400/10",
+    border: "border-violet-400/30",
     defaultOn: false,
   },
   {
@@ -178,14 +179,40 @@ export default function AdminNotificationSettings() {
         </p>
       </motion.div>
 
+      {/* Device setup */}
+      <section className="rounded-2xl border border-[rgba(124,58,237,0.3)] p-6 space-y-4 bg-[rgba(10,8,16,0.7)] backdrop-blur-xl" data-testid="section-device-setup">
+        <h2 className="text-sm font-black uppercase tracking-widest">Device Setup</h2>
+        <p className="text-xs text-muted-foreground">
+          {isIOS
+            ? (isPWA ? "Running from the Home Screen. You can enable notifications below." : "iPhone and iPad only deliver push notifications to IMAGINATE when it is opened from the Home Screen.")
+            : "Admin notifications use standard web push. Installing IMAGINATE to your device is recommended."}
+        </p>
+        <ol className="list-decimal space-y-1.5 pl-5 text-xs text-white/70">
+          <li>Open IMAGINATE in Safari.</li>
+          <li>Press Share.</li>
+          <li>Press Add to Home Screen.</li>
+          <li>Add IMAGINATE.</li>
+          <li>Open IMAGINATE from the Home Screen.</li>
+          <li>Open Admin, then Notifications.</li>
+          <li>Press Enable Admin Notifications.</li>
+          <li>Grant notification permission.</li>
+        </ol>
+        <p className="text-[11px] text-white/40">Permission is only requested when you press the enable button. Use Send Test Notification to confirm delivery.</p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <a href={`${BASE}/admin/manage/reminders`} className="rounded-lg border border-[rgba(124,58,237,0.4)] px-3 py-2 text-xs font-black uppercase tracking-wider hover:bg-white/5" data-testid="link-manage-reminders">Work reminders</a>
+          <a href={`${BASE}/admin/manage/notification-center`} className="rounded-lg border border-[rgba(124,58,237,0.4)] px-3 py-2 text-xs font-black uppercase tracking-wider hover:bg-white/5" data-testid="link-manage-notification-center">Notification center</a>
+        </div>
+      </section>
+
       {/* Push enable card */}
+      <PushConfiguration />
       <motion.div
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, ease: EASE }}
         className="rounded-2xl border border-white/10 p-6 space-y-4"
         style={{ background: "rgba(255,255,255,0.025)" }}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,102,0,0.12)" }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(167,139,250,0.12)" }}>
             <Bell className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -203,14 +230,14 @@ export default function AdminNotificationSettings() {
               ? <span className="flex items-center gap-1.5 text-xs font-black text-green-400 bg-green-400/10 border border-green-400/30 px-3 py-1.5 rounded-full whitespace-nowrap"><Check className="h-3 w-3" /> Enabled</span>
               : permission === "denied"
               ? <span className="flex items-center gap-1.5 text-xs font-black text-red-400 bg-red-400/10 border border-red-400/30 px-3 py-1.5 rounded-full whitespace-nowrap"><X className="h-3 w-3" /> Blocked</span>
-              : <span className="text-xs font-black text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-3 py-1.5 rounded-full whitespace-nowrap">Not enabled</span>
+              : <span className="text-xs font-black text-violet-400 bg-violet-400/10 border border-violet-400/30 px-3 py-1.5 rounded-full whitespace-nowrap">Not enabled</span>
             }
           </div>
         </div>
 
         {/* iOS non-PWA hint */}
         {isIOSNonPWA && permission !== "granted" && (
-          <div className="rounded-xl p-4 text-xs leading-relaxed" style={{ background: "rgba(255,102,0,0.07)", border: "1px solid rgba(255,102,0,0.2)" }}>
+          <div className="rounded-xl p-4 text-xs leading-relaxed" style={{ background: "rgba(167,139,250,0.07)", border: "1px solid rgba(167,139,250,0.2)" }}>
             <p className="font-black text-primary mb-2">📱 iPhone / iPad — 3 quick steps</p>
             <ol className="text-white/70 space-y-1 list-none">
               <li><span className="text-primary font-black">1.</span> Tap the <strong className="text-white/90">Share</strong> button <span className="text-white/90">⎙</span> at the bottom of Safari</li>

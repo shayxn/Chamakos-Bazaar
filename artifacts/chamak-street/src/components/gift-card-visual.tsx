@@ -57,7 +57,7 @@ export function GiftCardVisual({
         style={{ background: "linear-gradient(135deg, #0c0810 0%, #100d18 100%)" }}>
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-30"
-            style={{ background: "radial-gradient(circle, #ff6600 0%, transparent 70%)", filter: "blur(16px)" }} />
+            style={{ background: "radial-gradient(circle, #a78bfa 0%, transparent 70%)", filter: "blur(16px)" }} />
         </div>
         <div className="shrink-0">
           <div className="text-[10px] font-black uppercase tracking-widest">
@@ -72,7 +72,7 @@ export function GiftCardVisual({
               key={displayBalance}
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              style={{ background: "linear-gradient(135deg, #a78bfa, #7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               {displayBalance.toFixed(0)}
             </motion.span>
           </div>
@@ -96,7 +96,7 @@ export function GiftCardVisual({
 
         {/* Ambient glow — top-right */}
         <div className="absolute -top-16 -right-16 w-80 h-80 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,100,0,0.28) 0%, rgba(255,160,0,0.08) 45%, transparent 70%)", filter: "blur(2px)" }} />
+          style={{ background: "radial-gradient(circle, rgba(167,139,250,0.28) 0%, rgba(167,139,250,0.08) 45%, transparent 70%)", filter: "blur(2px)" }} />
 
         {/* Subtle shimmer line */}
         <div className="absolute inset-0 pointer-events-none"
@@ -104,7 +104,7 @@ export function GiftCardVisual({
 
         {/* Bottom ambient */}
         <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,100,0,0.07) 0%, transparent 70%)", filter: "blur(20px)" }} />
+          style={{ background: "radial-gradient(circle, rgba(167,139,250,0.07) 0%, transparent 70%)", filter: "blur(20px)" }} />
 
         {/* ── CONTENT ── */}
         <div className="absolute inset-0 flex flex-col p-5 sm:p-6">
@@ -116,7 +116,7 @@ export function GiftCardVisual({
                 <span className="text-white">IMAGINATE</span>
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5"
-                style={{ color: "rgba(255,140,0,0.7)" }}>• GIFT CARD •</div>
+                style={{ color: "rgba(167,139,250,0.7)" }}>• GIFT CARD •</div>
             </div>
 
             {/* Code box */}
@@ -140,7 +140,7 @@ export function GiftCardVisual({
           {/* Row 2: Amount + Decorative */}
           <div className="flex items-center justify-between flex-1 my-2">
             <div>
-              <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,150,0,0.8)" }}>
+              <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "rgba(167,139,250,0.8)" }}>
                 A GIFT FOR YOU ✦
               </div>
               <div className="flex items-baseline gap-1.5">
@@ -153,7 +153,7 @@ export function GiftCardVisual({
                     exit={{ opacity: 0, y: -8, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
                     className="text-4xl sm:text-5xl font-black leading-none"
-                    style={{ background: "linear-gradient(135deg, #ff6600 0%, #ffaa00 50%, #ff8800 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                    style={{ background: "linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #7c3aed 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                     {amount.toFixed(0)}
                   </motion.span>
                 </AnimatePresence>
@@ -177,7 +177,7 @@ export function GiftCardVisual({
                   <span style={{ color: "rgba(255,255,255,0.85)" }}>IMAGINATE</span>
                 </div>
                 <div className="text-[11px] font-black leading-none -mt-0.5"
-                  style={{ background: "linear-gradient(135deg,#ff6600,#ffaa00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  style={{ background: "linear-gradient(135deg,#a78bfa,#7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                   GIFT CARD
                 </div>
               </div>
@@ -209,7 +209,7 @@ export function GiftCardVisual({
             <div className="shrink-0 text-center">
               <div className="text-[8px] font-bold uppercase tracking-widest text-white/30">BALANCE</div>
               <div className="text-base sm:text-lg font-black"
-                style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                style={{ background: "linear-gradient(135deg, #a78bfa, #7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 AED {displayBalance.toFixed(0)}
               </div>
               <div className="text-[7px] sm:text-[8px] font-bold uppercase text-white/25 mt-0.5">VALID UNTIL</div>

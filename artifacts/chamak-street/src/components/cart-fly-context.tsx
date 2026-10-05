@@ -91,7 +91,7 @@ function FlyingImage({ imageUrl, startX, startY, startSize, endX, endY }: Omit<F
         pointerEvents: "none",
         objectFit: "cover",
         willChange: "transform, opacity",
-        boxShadow: "0 4px 24px rgba(255,102,0,0.5)",
+        boxShadow: "0 4px 24px rgba(167,139,250,0.5)",
       }}
     />
   );

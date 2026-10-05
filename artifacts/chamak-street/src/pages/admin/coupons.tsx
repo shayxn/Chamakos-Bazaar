@@ -13,12 +13,31 @@ type Coupon = {
   discountType: "percent" | "fixed";
   discountValue: number; minOrderAmount: number;
   usageLimit: number | null; usedCount: number;
-  expiresAt: string | null; isActive: boolean; createdAt: string;
+  startsAt?: string | null; expiresAt: string | null; perCustomerLimit?: number | null;
+  eligibleProducts?: number[]; eligibleCollections?: string[]; eligibleCountries?: string[];
+  isActive: boolean; createdAt: string;
 };
+
+// ISO (UTC) -> value for <input type="datetime-local"> in the viewer's local time
+const toLocalInput = (iso?: string | null) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+// local datetime-local value -> ISO string
+const toIso = (local?: string | null) => {
+  if (!local) return null;
+  const d = new Date(local);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+};
+const splitList = (v: string) => v.split(/[,\n]/).map(x => x.trim()).filter(Boolean);
 
 const EMPTY: Omit<Coupon, "id" | "usedCount" | "createdAt"> = {
   code: "", description: "", discountType: "percent", discountValue: 10,
-  minOrderAmount: 0, usageLimit: null, expiresAt: null, isActive: true,
+  minOrderAmount: 0, usageLimit: null, startsAt: null, expiresAt: null, perCustomerLimit: null,
+  eligibleProducts: [], eligibleCollections: [], eligibleCountries: [], isActive: true,
 };
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -39,24 +58,38 @@ function CouponModal({ coupon, onSave, onClose }: {
     code: coupon.code ?? "", description: coupon.description ?? "",
     discountType: coupon.discountType ?? "percent", discountValue: coupon.discountValue ?? 10,
     minOrderAmount: coupon.minOrderAmount ?? 0, usageLimit: coupon.usageLimit ?? null,
-    expiresAt: coupon.expiresAt ? coupon.expiresAt.slice(0, 10) : null, isActive: coupon.isActive ?? true,
+    startsAt: coupon.startsAt ?? null, expiresAt: coupon.expiresAt ?? null,
+    perCustomerLimit: coupon.perCustomerLimit ?? null,
+    eligibleProducts: coupon.eligibleProducts ?? [], eligibleCollections: coupon.eligibleCollections ?? [],
+    eligibleCountries: coupon.eligibleCountries ?? [], isActive: coupon.isActive ?? true,
   } : { ...EMPTY });
   const [saving, setSaving] = useState(false);
+  const [productsText, setProductsText] = useState((coupon?.eligibleProducts ?? []).join(", "));
+  const [collectionsText, setCollectionsText] = useState((coupon?.eligibleCollections ?? []).join(", "));
+  const [countriesText, setCountriesText] = useState((coupon?.eligibleCountries ?? []).join(", "));
 
   const set = (k: keyof typeof EMPTY, v: any) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSave = async () => {
     if (!form.code.trim()) { toast({ title: "Code is required", variant: "destructive" }); return; }
+    const productIds = splitList(productsText).map(Number);
+    if (productIds.some(n => !Number.isInteger(n) || n <= 0)) { toast({ title: "Eligible products must be numeric product IDs", variant: "destructive" }); return; }
+    if (form.startsAt && form.expiresAt && new Date(form.expiresAt) <= new Date(form.startsAt)) { toast({ title: "End must be after start", variant: "destructive" }); return; }
     setSaving(true);
     try {
       const url = coupon?.id ? `${BASE}/api/coupons/${coupon.id}` : `${BASE}/api/coupons`;
       const res = await fetch(url, {
         method: coupon?.id ? "PATCH" : "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, code: form.code.toUpperCase().trim() }),
+        body: JSON.stringify({
+          ...form, code: form.code.toUpperCase().trim(),
+          eligibleProducts: productIds,
+          eligibleCollections: splitList(collectionsText),
+          eligibleCountries: splitList(countriesText).map(c => c.toUpperCase()),
+        }),
       });
       if (!res.ok) { const d = await res.json() as any; throw new Error(d.error ?? "Save failed"); }
-      toast({ title: `Coupon ${isNew ? "created" : "updated"}!` });
+      toast({ title: `Discount code ${isNew ? "created" : "updated"}!` });
       onSave();
     } catch (err) {
       toast({ title: err instanceof Error ? err.message : "Save failed", variant: "destructive" });
@@ -74,16 +107,16 @@ function CouponModal({ coupon, onSave, onClose }: {
         initial={{ opacity: 0, scale: 0.94, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94 }}
         className="w-full max-w-lg rounded-2xl p-6 space-y-5 overflow-y-auto max-h-[90vh]"
-        style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(255,102,0,0.2)" }}
+        style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(167,139,250,0.2)" }}
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-black uppercase tracking-widest text-lg">{isNew ? "Create Coupon" : "Edit Coupon"}</h2>
+          <h2 className="font-black uppercase tracking-widest text-lg">{isNew ? "Create Discount Code" : "Edit Discount Code"}</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-white transition-colors"><X className="h-5 w-5" /></button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="label-xs mb-1.5 block">Coupon Code *</label>
+            <label className="label-xs mb-1.5 block">Discount Code *</label>
             <Input value={form.code} onChange={e => set("code", e.target.value.toUpperCase())}
               placeholder="e.g. SUMMER20" className="font-mono font-black tracking-widest" />
           </div>
@@ -132,16 +165,43 @@ function CouponModal({ coupon, onSave, onClose }: {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="label-xs mb-1.5 block">Start (optional, your local time)</label>
+              <Input type="datetime-local" value={toLocalInput(form.startsAt)}
+                onChange={e => set("startsAt", toIso(e.target.value))} />
+            </div>
+            <div>
+              <label className="label-xs mb-1.5 block">End (optional, your local time)</label>
+              <Input type="datetime-local" value={toLocalInput(form.expiresAt)}
+                onChange={e => set("expiresAt", toIso(e.target.value))} />
+            </div>
+          </div>
           <div>
-            <label className="label-xs mb-1.5 block">Expiry Date (optional)</label>
-            <Input type="date" value={form.expiresAt ?? ""}
-              onChange={e => set("expiresAt", e.target.value || null)} />
+            <label className="label-xs mb-1.5 block">Per-customer limit</label>
+            <Input type="number" min="1" value={form.perCustomerLimit ?? ""}
+              onChange={e => set("perCustomerLimit", e.target.value ? Number(e.target.value) : null)} placeholder="Unlimited" />
+          </div>
+          <div className="space-y-3 rounded-xl border border-[rgba(124,58,237,0.25)] p-3">
+            <p className="text-xs text-muted-foreground">Leave eligibility fields empty to apply to every product, collection and country.</p>
+            <div>
+              <label className="label-xs mb-1.5 block">Eligible products (product IDs, comma separated)</label>
+              <Input value={productsText} onChange={e => setProductsText(e.target.value)} placeholder="e.g. 12, 18" inputMode="numeric" />
+            </div>
+            <div>
+              <label className="label-xs mb-1.5 block">Eligible collections (comma separated)</label>
+              <Input value={collectionsText} onChange={e => setCollectionsText(e.target.value)} placeholder="Collection names or URLs" />
+            </div>
+            <div>
+              <label className="label-xs mb-1.5 block">Eligible countries (country codes, comma separated)</label>
+              <Input value={countriesText} onChange={e => setCountriesText(e.target.value)} placeholder="e.g. AE" />
+            </div>
           </div>
 
           <div className="flex items-center justify-between py-2 border-t border-border/30">
             <div>
               <p className="text-sm font-bold">Active</p>
-              <p className="text-xs text-muted-foreground">Allow customers to use this coupon</p>
+              <p className="text-xs text-muted-foreground">Allow customers to use this discount code</p>
             </div>
             <Toggle checked={form.isActive} onChange={v => set("isActive", v)} />
           </div>
@@ -150,7 +210,7 @@ function CouponModal({ coupon, onSave, onClose }: {
         <div className="flex gap-3 pt-2">
           <Button variant="outline" onClick={onClose} className="flex-1 font-bold uppercase tracking-wider">Cancel</Button>
           <Button onClick={handleSave} disabled={saving} className="flex-1 fire-gradient border-none font-black uppercase tracking-wider">
-            {saving ? "Saving…" : isNew ? "Create Coupon" : "Save Changes"}
+            {saving ? "Saving…" : isNew ? "Create Discount Code" : "Save Changes"}
           </Button>
         </div>
       </motion.div>
@@ -176,12 +236,12 @@ export default function AdminCoupons() {
   useEffect(() => { fetchCoupons(); }, [fetchCoupons]);
 
   const deleteCoupon = async (id: number) => {
-    if (!confirm("Delete this coupon? This cannot be undone.")) return;
+    if (!confirm("Delete this discount code? This cannot be undone.")) return;
     setDeleting(id);
     try {
       await fetch(`${BASE}/api/coupons/${id}`, { method: "DELETE", credentials: "include" });
       setCoupons(prev => prev.filter(c => c.id !== id));
-      toast({ title: "Coupon deleted" });
+      toast({ title: "Discount code deleted" });
     } catch { toast({ title: "Failed to delete", variant: "destructive" }); }
     setDeleting(null);
   };
@@ -190,7 +250,13 @@ export default function AdminCoupons() {
     const res = await fetch(`${BASE}/api/coupons/${coupon.id}`, {
       method: "PATCH", credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !coupon.isActive }),
+      body: JSON.stringify({
+        code: coupon.code, description: coupon.description, discountType: coupon.discountType,
+        discountValue: coupon.discountValue, minOrderAmount: coupon.minOrderAmount, usageLimit: coupon.usageLimit,
+        startsAt: coupon.startsAt ?? null, expiresAt: coupon.expiresAt, perCustomerLimit: coupon.perCustomerLimit ?? null,
+        eligibleProducts: coupon.eligibleProducts ?? [], eligibleCollections: coupon.eligibleCollections ?? [],
+        eligibleCountries: coupon.eligibleCountries ?? [], isActive: !coupon.isActive,
+      }),
     });
     if (res.ok) setCoupons(prev => prev.map(c => c.id === coupon.id ? { ...c, isActive: !c.isActive } : c));
   };
@@ -205,12 +271,12 @@ export default function AdminCoupons() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
-            <Tag className="h-5 w-5 text-primary" /> Coupon Codes
+            <Tag className="h-5 w-5 text-primary" /> Discount Codes
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Create and manage discount codes for your customers</p>
         </div>
         <Button onClick={() => setModalCoupon({})} className="fire-gradient border-none font-black uppercase tracking-wider gap-2">
-          <Plus className="h-4 w-4" /> New Coupon
+          <Plus className="h-4 w-4" /> New Discount Code
         </Button>
       </div>
 

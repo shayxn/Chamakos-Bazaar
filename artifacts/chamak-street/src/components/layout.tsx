@@ -11,13 +11,15 @@ import { SmartSearchModal } from "./smart-search";
 import { AnnouncementBanner } from "./announcement-banner";
 import { useCartFly } from "./cart-fly-context";
 import { BackToTop } from "./back-to-top";
-import { SystemStudioLayer } from "./system-studio-layer";
+import { NewsletterForm } from "./newsletter-form";
+import { useManagedNavigation } from "@/hooks/use-managed-navigation";
 
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const settings = useSettings();
+  const managedNavigation = useManagedNavigation();
   const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 15_000 } });
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
   const logout = useLogout();
@@ -39,7 +41,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/shop", label: "Shop all" },
     { href: "/shop?new=1", label: "New" },
     { href: "/shop?search=hoodie", label: "Hoodies" },
-    { href: "/about", label: "About" },
+    { href: "/about", label: "Our Story" },
+    { href: "/news", label: "News" },
+    ...managedNavigation,
   ];
 
   return (
@@ -148,6 +152,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     {isActive && (
                       <motion.span
                         layoutId="nav-active-indicator"
+                        style={{pointerEvents:"none"}}
                         className="absolute -bottom-[1px] left-0 right-0 h-[2px] bg-primary rounded-full"
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
@@ -165,7 +170,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       <main className="flex-1">
         {children}
-        <SystemStudioLayer route={location} />
       </main>
 
       {/* Footer */}
@@ -257,6 +261,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </ul>
           </motion.div>
         </div>
+        <div className="max-w-[1440px] mx-auto px-6 pb-8 sm:max-w-md sm:mx-0 sm:ml-[max(1.5rem,calc((100vw-1440px)/2+1.5rem))]"><NewsletterForm /></div>
         <div className="max-w-[1440px] mx-auto px-6 pb-8 pt-6 border-t border-white/8 flex flex-wrap items-center justify-between gap-2 text-xs text-white/25">
           <span className="font-black tracking-widest uppercase text-white/40">IMAGINATE</span>
           <span className="text-right">{settings.footer_copyright || `© ${new Date().getFullYear()} IMAGINATE. All rights reserved.`}</span>

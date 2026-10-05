@@ -4,6 +4,8 @@ import { useGetOrder, getGetOrderQueryKey } from "@workspace/api-client-react";
 import { CheckCircle2, ShoppingBag, MessageCircle, MapPin, Phone, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef } from "react";
+import { useQuery,useQueryClient } from "@tanstack/react-query";
+const BASE=import.meta.env.BASE_URL?.replace(/\/$/,"")||"";
 import { useSettings } from "@/lib/use-settings";
 
 /* ── Confetti ────────────────────────────────────────────────────────────── */
@@ -12,7 +14,7 @@ interface Particle {
   color: string; size: number; rotation: number; rotationV: number;
   shape: "rect" | "circle" | "star"; opacity: number; gravity: number;
 }
-const COLORS = ["#ff6600","#ffaa00","#ffffff","#ff9933","#ffcc44","#ff3300","#ffe066","#ffdd00"];
+const COLORS = ["#a78bfa","#7c3aed","#ffffff","#c4b5fd","#8b5cf6","#ddd6fe"];
 function mkParticle(cx: number, cy: number): Particle {
   const angle = Math.random() * Math.PI * 2;
   const speed = 8 + Math.random() * 18;
@@ -34,7 +36,7 @@ function drawStar(ctx: CanvasRenderingContext2D, size: number) {
   }
   ctx.closePath(); ctx.fill();
 }
-function useConfetti() {
+function useConfetti(enabled:boolean) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const run = useCallback(() => {
@@ -67,16 +69,17 @@ function useConfetti() {
     rafRef.current = requestAnimationFrame(tick);
   }, []);
   useEffect(() => {
+    if(!enabled||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
     const t = setTimeout(run, 300);
     return () => { clearTimeout(t); cancelAnimationFrame(rafRef.current); };
-  }, [run]);
+  }, [run,enabled]);
   return canvasRef;
 }
 
 /* ── Delivery label map ─────────────────────────────────────────────────── */
 const DELIVERY_LABEL: Record<string, string> = {
-  standard: "Standard (2–4 days)",
-  express:  "Express (1–2 days)",
+  standard: "Standard Delivery",
+  express:  "Express Delivery",
   priority: "Priority Delivery",
 };
 
@@ -85,11 +88,19 @@ export default function OrderConfirmation() {
   const [, params] = useRoute("/order/:id");
   const orderId = Number(params?.id);
   const settings = useSettings();
-  const canvasRef = useConfetti();
-
   const { data: order, isLoading } = useGetOrder(orderId, {
     query: { queryKey: getGetOrderQueryKey(orderId), enabled: !!orderId && !isNaN(orderId) },
   });
+  const qc=useQueryClient();
+  const online=order?.paymentMethod==="ziina";
+  const verification=useQuery<{status:string;orderStatus:string}>({
+    queryKey:["order-payment",orderId],enabled:online,
+    queryFn:async()=>{const r=await fetch(`${BASE}/api/payments/${orderId}/status`,{credentials:"include"});const data=await r.json();if(!r.ok)throw new Error(data.error||"Payment verification unavailable.");return data;},
+    retry:false,refetchInterval:q=>q.state.data?.status==="pending"?10000:false,
+  });
+  const confirmed=!online||verification.data?.status==="paid"&&verification.data.orderStatus!=="cancelled";
+  const canvasRef=useConfetti(Boolean(order&&confirmed&&order.status!=="cancelled"));
+  useEffect(()=>{if(online&&verification.data&&verification.data.status!=="pending")qc.invalidateQueries({queryKey:getGetOrderQueryKey(orderId)});},[verification.data?.status,online,orderId,qc]);
 
   if (isLoading) {
     return (
@@ -107,13 +118,23 @@ export default function OrderConfirmation() {
       </div>
     );
   }
+  if(online&&!confirmed){
+    const terminal=["failed","canceled"].includes(verification.data?.status??"");
+    return <main className="mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center gap-4 px-5 text-center">
+      <h1 className="text-3xl font-black text-violet-300">{terminal?"Payment not completed":verification.data?.orderStatus==="cancelled"?"Order needs review":"Checking your payment"}</h1>
+      <p className="text-white/70">{verification.isError?(verification.error as Error).message:terminal?"Your order is cancelled and its reserved stock has been released. No successful payment has been confirmed.":verification.data?.orderStatus==="cancelled"?"Payment was received, but this order requires support review.":"Your order will be confirmed only after the payment provider verifies the payment. A return link is not proof of payment."}</p>
+      {!terminal&&<button className="rounded-full border border-violet-400 px-5 py-3 text-sm" disabled={verification.isFetching} onClick={()=>verification.refetch()}>{verification.isFetching?"Checking…":"Check payment again"}</button>}
+      <Link href="/support" className="text-violet-300">Contact support</Link><Link href="/shop" className="text-sm text-white/60">Back to shop</Link>
+    </main>;
+  }
+  if(order.status==="cancelled")return <main className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center gap-4 px-5 text-center"><h1 className="text-3xl font-black text-violet-300">Order cancelled</h1><p className="text-white/70">This order has been cancelled. Contact support if you need help.</p><Link href="/support">Contact support</Link><Link href="/shop">Back to shop</Link></main>;
 
-  const deliveryCharge = Number((order as any).deliveryCharge ?? 20);
+  const deliveryCharge = Number((order as any).deliveryCharge ?? 25);
   const tip           = Number((order as any).tip ?? 0);
   const subtotal      = order.items?.reduce((s, i) => s + i.price * i.quantity, 0) ?? 0;
-  const total         = subtotal + deliveryCharge + tip;
+  const total         = Number(order.total);
   const deliveryMethod = (order as any).deliveryMethod ?? "standard";
-  const orderNumber   = `FP${String(order.id).padStart(4, "0")}`;
+  const orderNumber   = (order as any).orderNumber||`IMG-${order.id}`;
   const wa            = (settings.support_whatsapp ?? "").replace(/\D/g, "");
   const waText        = encodeURIComponent(
     `Hi IMAGINATE. I just placed an order and wanted to confirm.\n\nOrder: *#${orderNumber}*\nName: ${order.customerName}\nPhone: ${order.customerPhone}`
@@ -122,7 +143,7 @@ export default function OrderConfirmation() {
   const SPRING = { type: "spring" as const, stiffness: 260, damping: 26 };
 
   return (
-    <div className="relative min-h-screen py-8 px-4 overflow-x-hidden" style={{ background: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255,102,0,0.06) 0%, transparent 70%)" }}>
+    <div className="relative min-h-screen py-8 px-4 overflow-x-hidden" style={{ background: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(167,139,250,0.06) 0%, transparent 70%)" }}>
       {/* Confetti canvas */}
       <canvas ref={canvasRef} className="fixed inset-0 z-50 pointer-events-none" aria-hidden />
 
@@ -138,8 +159,8 @@ export default function OrderConfirmation() {
               transition={{ type: "spring", stiffness: 220, damping: 16, delay: 0.2 }}
               className="w-24 h-24 rounded-full flex items-center justify-center"
               style={{
-                background: "linear-gradient(135deg, #ff6600 0%, #ffaa00 100%)",
-                boxShadow: "0 0 60px rgba(255,102,0,0.45), 0 0 120px rgba(255,102,0,0.18), inset 0 1px 0 rgba(255,255,255,0.25)",
+                background: "linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)",
+                boxShadow: "0 0 60px rgba(167,139,250,0.45), 0 0 120px rgba(167,139,250,0.18), inset 0 1px 0 rgba(255,255,255,0.25)",
               }}>
               <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.45, type: "spring", stiffness: 400, damping: 20 }}>
@@ -165,11 +186,11 @@ export default function OrderConfirmation() {
           </motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
             className="text-muted-foreground text-sm mt-3">
-            We'll confirm on WhatsApp shortly.
+            Track your order or contact support if you need help.
           </motion.p>
           <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.75 }}
             className="mt-2 px-3 py-1.5 rounded-lg border border-primary/30 font-mono font-black text-primary text-sm tracking-widest"
-            style={{ background: "rgba(255,102,0,0.08)" }}>
+            style={{ background: "rgba(167,139,250,0.08)" }}>
             #{orderNumber}
           </motion.div>
         </motion.div>
@@ -194,12 +215,12 @@ export default function OrderConfirmation() {
                     <div className="min-w-0">
                       <p className="text-sm font-bold truncate leading-snug">{item.productName}</p>
                       <p className="text-xs text-muted-foreground">
-                        Qty {item.quantity}{item.size ? ` · ${item.size}` : ""}
+                         Qty {item.quantity}{item.size ? ` · ${item.size}` : ""}{(item as any).color ? ` · ${(item as any).color}` : ""}
                       </p>
                     </div>
                   </div>
                   <p className="font-mono font-black text-sm shrink-0 text-primary">
-                    AED {(item.price * item.quantity).toFixed(0)}
+                     AED {(item.price * item.quantity).toFixed(2)}
                   </p>
                 </motion.div>
               ))}
@@ -210,21 +231,22 @@ export default function OrderConfirmation() {
           <div className="px-4 pb-4 mt-3 pt-3 border-t border-white/8 space-y-2 text-sm">
             <div className="flex justify-between text-muted-foreground">
               <span>Subtotal</span>
-              <span className="font-mono">AED {subtotal.toFixed(0)}</span>
+              <span className="font-mono">AED {subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-muted-foreground">
               <span>Delivery</span>
-              <span className="font-mono text-primary">AED {deliveryCharge.toFixed(0)}</span>
+              <span className="font-mono text-primary">AED {deliveryCharge.toFixed(2)}</span>
             </div>
             {tip > 0 && (
               <div className="flex justify-between text-muted-foreground">
                 <span>Tip</span>
-                <span className="font-mono text-yellow-400">AED {tip.toFixed(0)}</span>
+                <span className="font-mono text-violet-400">AED {tip.toFixed(2)}</span>
               </div>
             )}
+            {Number((order as any).discountAmount)>0&&<div className="flex justify-between text-violet-300"><span>Discount{(order as any).couponCode?` (${(order as any).couponCode})`:""}</span><span className="font-mono">− AED {Number((order as any).discountAmount).toFixed(2)}</span></div>}
             <div className="flex justify-between font-black text-base pt-2 border-t border-white/8">
               <span>Total</span>
-              <span className="font-mono text-primary">AED {total.toFixed(0)}</span>
+              <span className="font-mono text-primary">AED {total.toFixed(2)}</span>
             </div>
           </div>
         </motion.div>
@@ -258,7 +280,7 @@ export default function OrderConfirmation() {
               className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wide text-white transition-opacity hover:opacity-90"
               style={{ background: "linear-gradient(135deg, #25D366, #128C7E)", boxShadow: "0 8px 32px rgba(37,211,102,0.25)" }}>
               <MessageCircle className="w-4 h-4" />
-              Track on WhatsApp
+              Contact on WhatsApp
             </a>
           )}
           <Link href="/shop">

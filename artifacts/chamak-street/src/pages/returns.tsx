@@ -43,7 +43,7 @@ export default function Returns() {
           <CheckCircle className="h-10 w-10 text-green-400" />
         </div>
         <h2 className="text-3xl font-black uppercase tracking-tighter mb-3">Request Submitted</h2>
-        <p className="text-muted-foreground mb-4">We've received your return request. Our team will review it and get back to you within 1–2 business days.</p>
+        <p className="text-muted-foreground mb-4">We've received your return request. Our team will review it and contact you.</p>
         <p className="text-xs text-muted-foreground mb-8">Order #{form.orderNumber}</p>
         <Link href="/">
           <button className="px-8 py-3 bg-primary text-primary-foreground font-black uppercase tracking-widest text-sm rounded-lg">
@@ -69,22 +69,15 @@ export default function Returns() {
           </div>
           <h1 className="text-4xl font-black uppercase tracking-tighter">Returns & Refunds</h1>
         </div>
-        <p className="text-muted-foreground mb-4">Submit a return or refund request below. We'll review and get back to you within 1–2 business days.</p>
+        <p className="text-muted-foreground mb-4">Submit a return or refund request below. We'll review your request and contact you.</p>
 
-        <div className="bg-card border border-border rounded-xl p-4 mb-8 text-sm">
-          <p className="font-bold uppercase tracking-wider text-xs mb-2 text-muted-foreground">Return Policy</p>
-          <ul className="text-muted-foreground space-y-1 text-xs">
-            <li>• Returns accepted within 7 days of delivery</li>
-            <li>• Item must be unused and in original condition</li>
-            <li>• Proof of purchase (order number) required</li>
-          </ul>
-        </div>
+
 
         <motion.form initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Order Number *</label>
             <input required value={form.orderNumber} onChange={e => set("orderNumber", e.target.value)}
-              className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary/60 transition-colors font-mono" placeholder="CHM-123456" />
+              className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary/60 transition-colors font-mono" placeholder="IMG-…" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

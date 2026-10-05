@@ -1,200 +1,127 @@
-import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Phone, Mail, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, MessageCircle, Search, Send, RefreshCw } from "lucide-react";
 import { PageTransition } from "@/components/page-transition";
+import { useSettings } from "@/lib/use-settings";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
-const FAQS = [
-  { q: "How long does delivery take?", a: "Standard: 3–5 days · Express: 1–2 days · Priority: same-day or next-day within Dubai. You'll get a WhatsApp update when your order ships." },
-  { q: "What payment methods do you accept?", a: "We accept Cash on Delivery (COD) for all orders. We're working on adding card payments soon." },
-  { q: "Can I return or exchange an item?", a: "Yes! Items in original condition can be returned within 7 days of delivery. Message us on WhatsApp to start a return." },
-  { q: "Are the products authentic / rep?", a: "All products are clearly labelled. Rep items are marked on the product page. We never misrepresent what you're buying." },
-  { q: "I didn't receive my order. What do I do?", a: "Check your order status in My Account → My Orders. If it says delivered but you haven't received it, WhatsApp us right away with your order number." },
-];
+type Faq = { id: number; title: string; data: { category?: string; answer?: string } };
+type Ticket = { id: number; subject: string; category: string; message: string; status: string; reply: string | null; createdAt: string };
+
+async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const r = await fetch(`${BASE}/api${path}`, { credentials: "include", headers: init?.body ? { "Content-Type": "application/json" } : undefined, ...init });
+  if (!r.ok) {
+    let msg = `Request failed (${r.status})`;
+    try { const j = await r.json(); if (j?.error || j?.message) msg = j.error || j.message; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  return r.json();
+}
+
+const glass = "rounded-2xl border border-violet-500/30 bg-white/[0.04] backdrop-blur-xl";
+const field = "w-full rounded-xl border border-violet-500/30 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400/40";
 
 export default function SupportPage() {
-  const [phone, setPhone] = useState("971521142341");
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [agentPhase, setAgentPhase] = useState<"enter" | "idle" | "wave">("enter");
-  const phoneRef = useRef("971521142341");
+  const qc = useQueryClient();
+  const settings = useSettings();
+  const phone = (settings.whatsapp_number || "").replace(/\D/g, "");
+  const [search, setSearch] = useState("");
+  const [cat, setCat] = useState("All");
+  const [open, setOpen] = useState<number | null>(null);
+  const [form, setForm] = useState({ subject: "", category: "", message: "" });
+  const [sent, setSent] = useState(false);
 
-  useEffect(() => {
-    fetch(`${BASE}/api/settings`, { credentials: "include" })
-      .then(r => r.ok ? r.json() : {})
-      .then((d: Record<string, string>) => {
-        if (d.support_whatsapp) {
-          const cleaned = d.support_whatsapp.replace(/\D/g, "");
-          setPhone(cleaned);
-          phoneRef.current = cleaned;
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const faq = useQuery({ queryKey: ["published", "faq"], queryFn: () => api<Faq[]>("/published/faq") });
+  const tickets = useQuery({ queryKey: ["support", "mine"], queryFn: () => api<Ticket[]>("/support"), retry: false });
 
-  // Agent animation cycle
-  useEffect(() => {
-    const t1 = setTimeout(() => setAgentPhase("idle"), 800);
-    const t2 = setTimeout(() => setAgentPhase("wave"), 2500);
-    const t3 = setTimeout(() => setAgentPhase("idle"), 4000);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, []);
+  const categories = useMemo(() => ["All", ...Array.from(new Set((faq.data ?? []).map((f) => f.data?.category).filter(Boolean) as string[]))], [faq.data]);
+  const shown = useMemo(() => {
+    const s = search.trim().toLowerCase();
+    return (faq.data ?? []).filter((f) => (cat === "All" || f.data?.category === cat) && (!s || f.title.toLowerCase().includes(s) || (f.data?.answer ?? "").toLowerCase().includes(s)));
+  }, [faq.data, search, cat]);
 
-  const waLink = `https://wa.me/${phone}?text=${encodeURIComponent("Hi, I need help with my order.")}`;
+  const send = useMutation({
+    mutationFn: () => api<Ticket>("/support", { method: "POST", body: JSON.stringify(form) }),
+    onSuccess: () => { setSent(true); setForm({ subject: "", category: "", message: "" }); qc.invalidateQueries({ queryKey: ["support", "mine"] }); },
+  });
+  const valid = form.subject.trim() && form.category.trim() && form.message.trim();
+  const ticketCats = categories.filter((c) => c !== "All");
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background px-4 py-10">
-        <div className="max-w-lg mx-auto">
-
-          {/* Agent hero */}
-          <div className="flex flex-col items-center mb-10">
-            <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="relative mb-5">
-
-              {/* Glow */}
-              <div className="absolute inset-0 blur-2xl opacity-30 scale-150"
-                style={{ background: "radial-gradient(circle, #ff6600, transparent)" }} />
-
-              {/* Character body */}
-              <motion.div
-                animate={agentPhase === "enter" ? { scale: [0, 1.1, 1], opacity: [0, 1, 1] } : agentPhase === "wave" ? { rotate: [0, -5, 5, -3, 0] } : { scale: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="relative w-36 h-36 rounded-3xl border border-primary/25 overflow-hidden"
-                style={{ background: "linear-gradient(145deg, rgba(20,12,30,1) 0%, rgba(10,6,18,1) 100%)" }}>
-
-                {/* Animated shimmer */}
-                <motion.div animate={{ x: [-200, 200] }} transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
-                  className="absolute inset-0 opacity-10"
-                  style={{ background: "linear-gradient(90deg, transparent, rgba(255,102,0,0.5), transparent)", width: "60%", pointerEvents: "none" }} />
-
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                  {/* Head */}
-                  <div className="relative">
-                    <div className="w-14 h-14 rounded-full overflow-hidden"
-                      style={{ background: "linear-gradient(160deg, #f5c5a3 0%, #e8a882 100%)" }}>
-                      {/* Headset */}
-                      <svg viewBox="0 0 56 56" className="absolute inset-0 w-full h-full">
-                        <path d="M6 26 Q6 10 28 10 Q50 10 50 26" stroke="#1a1a1a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-                        <rect x="2" y="24" width="8" height="14" rx="4" fill="#222" />
-                        <rect x="46" y="24" width="8" height="14" rx="4" fill="#222" />
-                        <path d="M50 34 Q54 38 50 42" stroke="#ff6600" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                      </svg>
-                      {/* Face */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="flex gap-3 mb-1.5">
-                          {[0,1].map(i => (
-                            <motion.div key={i} animate={{ scaleY: [1, 0.1, 1] }} transition={{ repeat: Infinity, duration: 4, delay: i === 0 ? 0 : 0.1 }}
-                              className="w-2 h-2 rounded-full bg-[#2a1a0e]" />
-                          ))}
-                        </div>
-                        <div className="w-5 h-1.5 rounded-full bg-[#c07060]" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Badge */}
-                  <motion.div animate={{ boxShadow: ["0 0 0px rgba(255,102,0,0)", "0 0 12px rgba(255,102,0,0.4)", "0 0 0px rgba(255,102,0,0)"] }}
-                    transition={{ repeat: Infinity, duration: 2.5 }}
-                    className="px-3 py-1 rounded-lg border border-primary/40"
-                    style={{ background: "rgba(255,102,0,0.15)" }}>
-                    <span className="text-[9px] font-black text-primary tracking-widest">FP SUPPORT</span>
-                  </motion.div>
-                </div>
-
-                {/* Pulse rings */}
-                {[0,1].map(i => (
-                  <motion.div key={i} animate={{ scale: [1, 1.4], opacity: [0.25, 0] }} transition={{ repeat: Infinity, duration: 2.5, delay: i * 1 }}
-                    className="absolute inset-0 rounded-3xl border border-primary/30 pointer-events-none" />
-                ))}
-              </motion.div>
-            </motion.div>
-
-            <motion.h1 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-              className="text-2xl font-black text-center mb-1">Hey, need help? 👋</motion.h1>
-            <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
-              className="text-muted-foreground text-sm text-center">Our team is ready to help with orders, deliveries, and returns.</motion.p>
+      <main className="min-h-[100dvh] bg-[#050505] px-4 py-10 text-white sm:px-6">
+        <div className="mx-auto max-w-3xl">
+          <h1 className="text-3xl font-black uppercase tracking-tight sm:text-5xl">How can we help?</h1>
+          <div className="relative mt-6">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+            <input aria-label="Search help" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search questions" data-testid="input-faq-search" className={`${field} pl-10`} />
           </div>
 
-          {/* Contact methods */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}
-            className="grid grid-cols-1 gap-3 mb-8">
-
-            {/* WhatsApp — primary */}
-            <a href={waLink} target="_blank" rel="noopener noreferrer">
-              <motion.div whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-4 p-4 rounded-2xl border border-[#25D366]/30 transition-all hover:border-[#25D366]/60 cursor-pointer"
-                style={{ background: "rgba(37,211,102,0.06)", backdropFilter: "blur(20px)" }}>
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-[#25D366]/30"
-                  style={{ background: "rgba(37,211,102,0.15)" }}>
-                  <MessageCircle className="h-6 w-6 text-[#25D366]" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-black text-sm">WhatsApp</p>
-                  <p className="text-xs text-muted-foreground">Fastest response · Usually within minutes</p>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
-                  <span className="text-xs font-bold text-[#25D366]">Live</span>
-                </div>
-              </motion.div>
-            </a>
-
-            {/* Hours */}
-            <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/8"
-              style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}>
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10"
-                style={{ background: "rgba(255,255,255,0.05)" }}>
-                <Clock className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="font-black text-sm">Support Hours</p>
-                <p className="text-xs text-muted-foreground">Daily · 9 AM – 11 PM Dubai time</p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* FAQ */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75 }}>
-            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Frequently Asked</p>
-            <div className="space-y-2">
-              {FAQS.map((faq, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75 + i * 0.06 }}
-                  className="rounded-2xl border border-white/8 overflow-hidden"
-                  style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}>
-                  <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full flex items-center justify-between px-4 py-3.5 text-left">
-                    <p className="font-bold text-sm pr-4">{faq.q}</p>
-                    {openFaq === i ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
-                  </button>
-                  <AnimatePresence>
-                    {openFaq === i && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.22 }} className="overflow-hidden">
-                        <p className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+          {categories.length > 1 && (
+            <div className="mt-4 flex flex-wrap gap-2" role="tablist">
+              {categories.map((c) => (
+                <button key={c} role="tab" aria-selected={cat === c} onClick={() => setCat(c)} data-testid={`chip-faq-${c}`}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition ${cat === c ? "border-violet-300 bg-violet-500/30 text-white" : "border-violet-500/30 text-white/70 hover:border-violet-300"}`}>{c}</button>
               ))}
             </div>
-          </motion.div>
+          )}
 
-          {/* Sticky WhatsApp CTA */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}
-            className="mt-8 sticky bottom-4">
-            <a href={waLink} target="_blank" rel="noopener noreferrer">
-              <motion.button whileTap={{ scale: 0.97 }}
-                className="w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-[#25D366]/20 transition-all"
-                style={{ background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)" }}>
-                <MessageCircle className="h-5 w-5" />
-                Chat with IMAGINATE Support
-              </motion.button>
+          <section className="mt-6 space-y-2" aria-live="polite">
+            {faq.isLoading && [0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-2xl bg-white/5" />)}
+            {faq.isError && <div className={`${glass} p-5 text-sm`}>Questions could not load. <button onClick={() => faq.refetch()} className="ml-2 inline-flex items-center gap-1 font-bold text-violet-300"><RefreshCw className="h-3.5 w-3.5" />Retry</button></div>}
+            {faq.isSuccess && shown.length === 0 && <div className={`${glass} p-5 text-sm text-white/65`}>{faq.data.length === 0 ? "No questions have been published yet. Send us a request below." : "No questions match your search."}</div>}
+            {shown.map((f) => (
+              <div key={f.id} className={`${glass} overflow-hidden`}>
+                <button onClick={() => setOpen(open === f.id ? null : f.id)} aria-expanded={open === f.id} data-testid={`button-faq-${f.id}`} className="flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left">
+                  <span className="text-sm font-bold">{f.title}</span>
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-violet-300 transition-transform ${open === f.id ? "rotate-180" : ""}`} />
+                </button>
+                {open === f.id && <p className="whitespace-pre-line px-4 pb-4 text-sm leading-relaxed text-white/70">{f.data?.answer}</p>}
+              </div>
+            ))}
+          </section>
+
+          <section className={`${glass} mt-10 p-5 sm:p-6`}>
+            <h2 className="text-lg font-black uppercase tracking-tight">Send a request</h2>
+            {sent && <p role="status" className="mt-3 rounded-xl border border-violet-400/40 bg-violet-500/15 p-3 text-sm" data-testid="status-ticket-sent">Request received. Replies appear below.</p>}
+            <form className="mt-4 grid gap-3" onSubmit={(e) => { e.preventDefault(); setSent(false); if (valid) send.mutate(); }}>
+              <input aria-label="Subject" placeholder="Subject" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className={field} data-testid="input-ticket-subject" />
+              <input aria-label="Category" list="ticket-cats" placeholder="Category (for example Orders)" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={field} data-testid="input-ticket-category" />
+              <datalist id="ticket-cats">{ticketCats.map((c) => <option key={c} value={c} />)}</datalist>
+              <textarea aria-label="Message" rows={5} placeholder="How can we help?" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={field} data-testid="input-ticket-message" />
+              {send.isError && <p role="alert" className="text-sm text-red-300">{(send.error as Error).message}</p>}
+              <button disabled={!valid || send.isPending} data-testid="button-ticket-send" className="inline-flex items-center justify-center gap-2 rounded-full bg-violet-500 px-6 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-violet-400 disabled:opacity-40">
+                <Send className="h-4 w-4" />{send.isPending ? "Sending" : "Send request"}
+              </button>
+            </form>
+          </section>
+
+          {tickets.isError && <div role="alert" className={`${glass} mt-8 p-4 text-sm text-red-200`}>Your previous requests could not load ({(tickets.error as Error).message}). <button onClick={() => tickets.refetch()} className="ml-2 font-bold text-violet-300">Retry</button></div>}
+          {tickets.data && tickets.data.length > 0 && (
+            <section className="mt-8 space-y-3">
+              <h2 className="text-lg font-black uppercase tracking-tight">Your requests</h2>
+              {tickets.data.map((t) => (
+                <article key={t.id} className={`${glass} p-4`} data-testid={`card-ticket-${t.id}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0"><p className="truncate font-bold">{t.subject}</p><p className="text-xs text-white/50">{t.category} / {new Date(t.createdAt).toLocaleDateString("en-GB")}</p></div>
+                    <span className="shrink-0 rounded-full border border-violet-400/50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-violet-200">{t.status}</span>
+                  </div>
+                  <p className="mt-3 whitespace-pre-line text-sm text-white/70">{t.message}</p>
+                  {t.reply && <div className="mt-3 rounded-xl border border-violet-400/40 bg-violet-500/10 p-3 text-sm"><p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-violet-300">Reply</p><p className="whitespace-pre-line">{t.reply}</p></div>}
+                </article>
+              ))}
+            </section>
+          )}
+
+          {phone && (
+            <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" data-testid="link-whatsapp"
+              className="mt-8 flex items-center justify-center gap-2 rounded-full border border-violet-400/50 bg-white/[0.04] px-6 py-3.5 text-sm font-bold backdrop-blur-xl hover:bg-violet-500/20">
+              <MessageCircle className="h-5 w-5" />Chat on WhatsApp
             </a>
-          </motion.div>
-
+          )}
         </div>
-      </div>
+      </main>
     </PageTransition>
   );
 }

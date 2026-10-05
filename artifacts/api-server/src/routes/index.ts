@@ -28,7 +28,11 @@ import adminChatRouter from "./admin-chat";
 import adminActivityRouter from "./admin-activity";
 import couponsRouter from "./coupons";
 import wishlistRouter from "./wishlist";
-import ownerStudioRouter from "./owner-studio";
+import managementRouter from "./management";
+import seoRouter from "./seo";
+import supportManagementRouter from "./support-management";
+import teamRouter from "./team";
+import adminNotificationsRouter from "./admin-notifications";
 import { emergencyShutdownGuard } from "../lib/operational-settings";
 
 
@@ -64,7 +68,11 @@ router.use(adminChatRouter);
 router.use(adminActivityRouter);
 router.use(couponsRouter);
 router.use(wishlistRouter);
-router.use(ownerStudioRouter);
+router.use(managementRouter);
+router.use(seoRouter);
+router.use(supportManagementRouter);
+router.use(teamRouter);
+router.use(adminNotificationsRouter);
 
 
 export default router;

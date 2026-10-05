@@ -31,7 +31,7 @@ export function EmergencyShutdownOverlay() {
       transition={reduceMotion ? { duration: 0 } : { duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
       className="fixed inset-0 z-[9000] flex items-center justify-center overflow-hidden bg-black/80 px-5 text-center text-white backdrop-blur-[3px]"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(255,117,0,0.16),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(167,139,250,0.16),transparent_42%)]" />
       <motion.div
         initial={reduceMotion ? false : { opacity: 0, y: 14, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -48,7 +48,7 @@ export function EmergencyShutdownOverlay() {
         >
           We&apos;ll Be
           <br />
-          <span className="bg-gradient-to-b from-orange-300 to-orange-500 bg-clip-text text-transparent">Back Soon!</span>
+          <span className="bg-gradient-to-b from-violet-300 to-violet-500 bg-clip-text text-transparent">Back Soon!</span>
         </h1>
         <div className="mt-8 flex items-center justify-center gap-3 text-3xl sm:text-4xl" aria-label="Maintenance in progress">
           <span>⚠️</span>

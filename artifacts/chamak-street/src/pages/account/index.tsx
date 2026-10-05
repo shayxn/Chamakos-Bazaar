@@ -76,7 +76,7 @@ function NotificationOnboarding({ customer }: { customer: Customer }) {
     <AnimatePresence>
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
         className="mb-5 rounded-2xl border border-primary/20 overflow-hidden relative"
-        style={{ background: "rgba(255,102,0,0.05)", backdropFilter: "blur(20px)" }}>
+        style={{ background: "rgba(167,139,250,0.05)", backdropFilter: "blur(20px)" }}>
         <button onClick={() => { setDismissed(true); localStorage.setItem("fp_notif_dismissed", "1"); }}
           className="absolute top-3 right-3 text-muted-foreground hover:text-white transition-colors z-10">
           <X className="h-4 w-4" />
@@ -146,7 +146,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 const STATUS_STYLE: Record<string, { cls: string; label: string; dot: string }> = {
-  pending:          { cls: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",  label: "Pending",          dot: "#facc15" },
+  pending:          { cls: "text-violet-400 bg-violet-500/10 border-violet-500/30",  label: "Pending",          dot: "#a78bfa" },
   confirmed:        { cls: "text-blue-400 bg-blue-500/10 border-blue-500/30",        label: "Confirmed",        dot: "#60a5fa" },
   preparing:        { cls: "text-purple-400 bg-purple-500/10 border-purple-500/30",  label: "Preparing",        dot: "#c084fc" },
   packed:           { cls: "text-purple-400 bg-purple-500/10 border-purple-500/30",  label: "Packed",           dot: "#c084fc" },

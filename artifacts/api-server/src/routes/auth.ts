@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import { sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { ensureAdminSessionsTable, getRequestDeviceDetails, touchAdminSession } from "../lib/admin-sessions";
+import { logAdminActivity } from "./admin-activity";
 
 const router = Router();
 const BCRYPT_ROUNDS = 12;
@@ -92,12 +93,14 @@ router.post("/auth/login", async (req, res) => {
   }
 
   (req.session as Record<string, unknown>).userId = user.id;
+  if (user.isAdmin) await logAdminActivity(user.username, "Admin login");
   res.json({ id: user.id, username: user.username, isAdmin: user.isAdmin });
 });
 
 router.post("/auth/logout", async (req, res) => {
   const session = req.session as Record<string, unknown>;
   const deviceToken = session?.deviceToken as string | undefined;
+  if (session?.userId) await logAdminActivity(`Admin ${session.userId}`, "Admin logout");
   if (deviceToken) {
     try {
       await ensureAdminSessionsTable();

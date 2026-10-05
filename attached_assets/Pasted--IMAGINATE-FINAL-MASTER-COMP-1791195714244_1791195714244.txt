@@ -1,0 +1,2011 @@
+======================================================================
+IMAGINATE — FINAL MASTER COMPLETION PASS
+PRODUCTION-READY WEBSITE + ADMIN + BRAND + PWA + QA
+======================================================================
+
+THIS IS THE FINAL MAJOR COMPLETION PASS.
+
+I want this project to reach the point where normal operation of Imaginate
+does NOT require returning to Replit or editing source code.
+
+After this pass, normal business operations should be manageable through
+the Imaginate Admin interface.
+
+IMPORTANT:
+
+DO NOT REBUILD THE PROJECT FROM SCRATCH.
+
+DO NOT DELETE WORKING SYSTEMS.
+
+DO NOT RESET THE DATABASE.
+
+DO NOT REMOVE CORRECTLY WORKING FEATURES.
+
+FIRST inspect the CURRENT project and compare it against ALL requirements
+already given in this project/conversation.
+
+Several things I previously requested are STILL unfinished.
+
+FINISH THEM.
+
+Do not merely acknowledge requirements.
+
+IMPLEMENT THEM.
+
+Then TEST THEM.
+
+Then FIX THEM.
+
+Then perform another complete review.
+
+======================================================================
+PART 1 — LOOK AT THE IMAGE I PROVIDED
+======================================================================
+
+I PROVIDED A SCREENSHOT/IMAGE SHOWING AN EXAMPLE OF THE CURRENT PROBLEM.
+
+USE THAT IMAGE AS A VISUAL REFERENCE FOR WHAT I AM TALKING ABOUT.
+
+There are still areas/components in the current project using:
+
+ORANGE
+YELLOW
+AMBER
+GOLD
+OLD ORANGE GLOWS
+OLD ORANGE OUTLINES
+OLD ORANGE HIGHLIGHTS
+
+This is unfinished.
+
+The screenshot demonstrates the type of legacy orange styling that should
+NOT remain in Imaginate.
+
+DO NOT only fix the exact component visible in the screenshot.
+
+Use it as evidence that the WHOLE PROJECT requires another color audit.
+
+======================================================================
+PART 2 — ZERO ORANGE
+======================================================================
+
+SEARCH THE ENTIRE PROJECT.
+
+Customer website.
+
+Admin.
+
+Every route.
+
+Every component.
+
+Every state.
+
+Every stylesheet.
+
+Every Tailwind class/configuration.
+
+Every SVG.
+
+Every icon where applicable.
+
+Every border.
+
+Every shadow.
+
+Every glow.
+
+Every gradient.
+
+Every hover state.
+
+Every focus state.
+
+Every active state.
+
+Every selected state.
+
+Every loading state.
+
+Every skeleton.
+
+Every modal.
+
+Every dropdown.
+
+Every chart.
+
+Every notification.
+
+Every Admin table.
+
+Every input.
+
+Every button.
+
+Every badge.
+
+Every status chip.
+
+Every navigation item.
+
+Every card.
+
+Every scrollbar if customized.
+
+Every error/success/warning presentation where brand styling applies.
+
+REMOVE LEGACY ORANGE/YELLOW/GOLD/AMBER BRAND STYLING.
+
+THERE SHOULD BE NO FIRSTPICK ORANGE.
+
+THERE SHOULD BE NO CHAMAK STREET COLORS.
+
+Replace legacy brand accents with:
+
+IMAGINATE PURPLE.
+
+IMPORTANT:
+
+Do not blindly make semantic warnings/errors purple if doing so harms
+usability or accessibility.
+
+Critical system states can use appropriate accessible semantic styling,
+but NO legacy orange/yellow brand styling should remain.
+
+The brand interface itself is:
+
+BLACK
+VERY DARK CHARCOAL
+WHITE
+NEUTRAL GRAY
+IMAGINATE PURPLE
+
+======================================================================
+PART 3 — PURPLE OUTLINES
+======================================================================
+
+The orange outline/effect shown in the supplied reference is WRONG.
+
+Replace these legacy accent outlines with:
+
+SUBTLE IMAGINATE PURPLE OUTLINES.
+
+Use the purple from the supplied official Imaginate logo.
+
+Do not invent a completely different purple.
+
+The outline should feel:
+
+thin
+premium
+clean
+subtle
+modern
+
+On hover/focus it can become slightly brighter.
+
+Do NOT make huge neon-purple borders everywhere.
+
+======================================================================
+PART 4 — MORE LIQUID GLASS
+======================================================================
+
+ADD MORE LIQUID GLASS THROUGHOUT THE EXPERIENCE.
+
+BUT:
+
+DO NOT TURN THE ENTIRE WEBSITE INTO TRANSPARENT GLASS.
+
+Use Liquid Glass intelligently.
+
+Good locations include:
+
+Header / Navigation
+
+Search Overlay
+
+Search Results
+
+Cart Drawer
+
+Country Selector
+
+Dropdown Menus
+
+Modals
+
+Quick Product Actions
+
+Floating Controls
+
+Account Controls
+
+News Overlays
+
+Notification Center
+
+Admin Sidebar where appropriate
+
+Admin Top Bar
+
+Admin Summary Cards
+
+Admin Quick Actions
+
+Admin Popovers
+
+Admin Filters
+
+Admin Modals
+
+Countdown controls where appropriate
+
+Support interface where appropriate
+
+Liquid Glass characteristics:
+
+dark translucent surface
+controlled backdrop blur
+subtle reflection/highlight
+soft depth
+clean typography
+subtle purple outline
+subtle purple glow only where useful
+
+NO ORANGE GLASS.
+
+NO YELLOW GLASS.
+
+NO RANDOM RAINBOW GLASS.
+
+Performance is more important than the effect.
+
+If backdrop blur or glass effects create lag:
+
+OPTIMIZE.
+
+If still laggy:
+
+SIMPLIFY.
+
+======================================================================
+PART 5 — ABSOLUTE OLD BRAND REMOVAL
+======================================================================
+
+SEARCH FOR AND REMOVE PUBLIC/ADMIN LEGACY REFERENCES TO:
+
+FirstPick
+First Pick
+FIRSTPICK
+firstpick
+
+Chamak Street
+ChamakStreet
+CHAMAK STREET
+
+HyperCore
+
+Back to School
+BACK TO SCHOOL
+Back To School
+back-to-school
+
+Legacy REP feature/branding
+
+Owner Studio
+
+Legacy Source / Provenance UI
+
+and any other previous project/brand identity that does not belong to
+Imaginate.
+
+IMPORTANT:
+
+Do not blindly delete programming words merely because they contain
+letters such as "rep".
+
+Remove actual legacy branding/features only.
+
+======================================================================
+PART 6 — BACK TO SCHOOL MUST BE GONE
+======================================================================
+
+I HAVE ALREADY REQUESTED THIS.
+
+CHECK AGAIN.
+
+There must be NOTHING regarding Back to School.
+
+Check:
+
+Homepage
+Shop
+Navigation
+Search
+Admin
+Products
+Categories
+Collections
+Pages
+News
+Banners
+Homepage Builder
+Media labels
+Database seed/demo content
+SEO
+Metadata
+Notifications
+Footer
+Mobile
+Desktop
+
+REMOVE IT.
+
+Do not leave:
+
+empty space
+empty section
+hidden placeholder
+unused navigation
+legacy card
+
+======================================================================
+PART 7 — LOADING SCREEN
+======================================================================
+
+CREATE AN AMAZING IMAGINATE LOADING EXPERIENCE.
+
+Use the EXACT official logo I supplied.
+
+DO NOT redraw it.
+
+DO NOT regenerate it.
+
+DO NOT reinterpret it.
+
+BACKGROUND:
+
+PURE BLACK.
+
+CENTER:
+
+IMAGINATE LOGO.
+
+Create a premium cinematic loading animation.
+
+Sequence:
+
+1. Screen begins pure black.
+
+2. Imaginate logo subtly appears.
+
+3. Very subtle purple atmospheric glow develops behind/around logo.
+
+4. Add premium PURPLE LIGHTNING / ELECTRIC ENERGY.
+
+IMPORTANT:
+
+This should NOT look like:
+cheap gaming intro
+YouTube gaming template
+over-the-top electricity
+cartoon lightning
+
+Keep it sophisticated.
+
+5. Lightning briefly illuminates portions of the logo/background.
+
+6. Logo performs a VERY SMALL physical shake/vibration in response.
+
+VERY SMALL.
+
+Do not violently shake it.
+
+7. Purple energy settles.
+
+8. Logo gently fades.
+
+9. Loading screen fades to black.
+
+10. Website smoothly fades in.
+
+The transition should feel seamless.
+
+======================================================================
+LOADING PERFORMANCE
+======================================================================
+
+DO NOT create an artificial 5-second intro every visit.
+
+The animation should correspond to REAL initial loading.
+
+Do not make returning navigation slow.
+
+For internal navigation:
+
+use fast page transitions/skeletons instead.
+
+If the site loads extremely quickly:
+
+allow the loading animation to complete a short polished minimum sequence,
+but keep it brief.
+
+Do NOT trap the customer behind a long animation.
+
+Respect:
+
+prefers-reduced-motion.
+
+On reduced motion:
+
+show simple logo fade instead.
+
+======================================================================
+PART 8 — FINISH EVERYTHING PREVIOUSLY REQUESTED
+======================================================================
+
+AUDIT THE CURRENT IMPLEMENTATION AGAINST ALL PREVIOUSLY REQUESTED
+IMAGINATE FEATURES.
+
+I have noticed that some requested features have been partially implemented
+or left unfinished.
+
+DO NOT assume they are complete because a page/component exists.
+
+Check whether they ACTUALLY WORK.
+
+Finish missing/partial implementations.
+
+This includes the previously specified:
+
+Products
+Variants
+Sizes
+Colors
+Inventory
+Categories
+Orders
+Customers
+Cart
+Checkout
+Guest Checkout
+Accounts
+Wishlist
+Search
+Fuzzy Search
+Tracking
+Pre-Orders
+Coming Soon
+Sold Out
+Notify Me
+Homepage Management
+Hero Management
+Navigation Management
+Pages
+Collection Pages
+Our Story
+News
+Support
+FAQ
+Discount Codes
+Banner
+Store Control
+Maintenance Mode
+Countdown
+Launch Event
+Media
+Analytics
+Notifications
+PWA
+Admin Team
+Permissions
+Activity Log
+Countries
+Currency
+Shipping
+Worldwide Shipping secret system
+Newsletter
+Settings
+Security
+
+If something was requested previously and is only partially implemented:
+
+FINISH IT.
+
+======================================================================
+PART 9 — NORMAL BUSINESS OPERATIONS MUST NOT REQUIRE REPLIT
+======================================================================
+
+THIS IS A MAJOR GOAL.
+
+After this final pass, I should NOT need to edit code for ordinary
+Imaginate operations.
+
+Admin must let me manage:
+
+Products
+Prices
+Compare-at prices
+Descriptions
+Images
+Videos
+Sizes
+Colors
+Stock
+Variants
+Categories
+Collections
+Pages
+Navigation
+Our Story
+Homepage
+Hero
+News
+Banners
+Discount Codes
+Pre-Orders
+Orders
+Customers
+Support
+FAQ
+Newsletter
+Media
+Countdown
+Launch Event
+Maintenance
+Store ON/OFF
+Countries
+Shipping
+Currency
+Notifications
+Analytics
+Admin users
+Permissions
+Security preferences
+SEO fields where appropriate
+
+If a normal store operation currently requires code editing:
+
+create a safe Admin control for it where practical.
+
+======================================================================
+PART 10 — BUILT-IN PAGES
+======================================================================
+
+ADMIN
+→ WEBSITE
+→ PAGES
+
+ONLY TWO BUILT-IN PAGE TYPES:
+
+1. COLLECTION
+2. OUR STORY
+
+Do NOT expose Campaign or Info templates.
+
+======================================================================
+COLLECTION
+======================================================================
+
+Collection supports:
+
+Page Name
+Navigation Name
+URL
+Headline
+Subtitle
+Description
+Hero Image
+Hero Video optional
+Products
+Product ordering
+Publish
+Unpublish
+Scheduling
+Show in Navigation
+Preview
+
+Allow manual product selection.
+
+Allow drag-and-drop ordering.
+
+======================================================================
+OUR STORY
+======================================================================
+
+Our Story supports:
+
+Page Title
+Headline
+Intro
+Story Content
+Images
+Videos
+Timeline Sections
+Quotes
+Optional Team/Founder Sections
+CTA
+Navigation Label
+URL
+Publish Status
+Show in Navigation
+Hero Media
+
+DO NOT invent Imaginate history.
+
+======================================================================
+PART 11 — NEWS DIRECTLY BELOW HERO
+======================================================================
+
+The homepage should support the previously requested News module directly
+below the main opening hero.
+
+Use the supplied news-layout reference for GENERAL STRUCTURE only.
+
+DO NOT COPY GTA/ROCKSTAR BRANDING OR CONTENT.
+
+Layout:
+
+Large Featured Story
+
++
+smaller recent stories.
+
+Featured:
+
+Image
+Category
+Headline
+Date
+
+Smaller:
+
+Thumbnail
+Category
+Headline
+Date
+
+Click → News Article.
+
+======================================================================
+CRITICAL NEWS RULE
+======================================================================
+
+ZERO PUBLISHED NEWS:
+
+SHOW NOTHING.
+
+NO:
+
+NEWS heading
+placeholder
+coming soon
+empty cards
+empty margin
+empty padding
+empty black area
+
+The following homepage section moves directly upward.
+
+======================================================================
+ADMIN NEWS
+======================================================================
+
+ADMIN
+→ CONTENT
+→ NEWS
+
+Allow:
+
+Add News
+Edit
+Delete/Archive
+Draft
+Schedule
+Publish
+Unpublish
+Feature
+Pin Main Story
+Upload Featured Image
+Upload Additional Images
+Optional Video
+Title
+Category
+Summary
+Article
+Date
+URL
+SEO
+Preview
+
+======================================================================
+PART 12 — HOMEPAGE HERO
+======================================================================
+
+The opening image/media + text MUST be editable from Admin.
+
+ADMIN
+→ WEBSITE
+→ HOMEPAGE
+→ HERO
+
+Allow:
+
+Headline
+Subtitle
+Small Text
+Button
+Button Link
+Image
+Video
+Alignment
+Enable/Disable CTA
+Preview
+
+======================================================================
+PART 13 — SUPPORT
+======================================================================
+
+Make Support polished and actually useful.
+
+Public:
+
+HOW CAN WE HELP?
+
+Search.
+
+Categories:
+
+Orders
+Shipping & Delivery
+Returns & Refunds
+Products & Sizing
+Payments
+Pre-Orders
+Account
+Notifications
+Contact Imaginate
+
+Only show configured/relevant categories.
+
+FAQ managed through Admin.
+
+Support requests managed through Admin.
+
+Do not invent policies.
+
+======================================================================
+PART 14 — DISCOUNT CODES
+======================================================================
+
+REMOVE:
+
+COUPONS
+
+Use:
+
+DISCOUNT CODES
+
+ADMIN
+→ DISCOUNT CODES
+
+Admin can create:
+
+Code
+Percentage discount
+Fixed AED discount
+Minimum order
+Start
+End
+Usage limit
+Per-customer limit
+Eligible products
+Eligible collections
+Eligible countries
+Active state
+
+Checkout:
+
+DISCOUNT CODE
+[ ENTER CODE ]
+[ APPLY ]
+
+ONLY ONE DISCOUNT CODE PER ORDER.
+
+If another is entered:
+
+REPLACE CURRENT CODE?
+
+Validate SERVER-SIDE.
+
+======================================================================
+PART 15 — PRODUCT SCHEDULING SPACING
+======================================================================
+
+ADMIN
+→ PRODUCTS
+→ ADD/EDIT
+→ SCHEDULING
+
+FIX THE BAD SPACING BETWEEN:
+
+PUBLISH
+
+and
+
+UNPUBLISH.
+
+These controls should be compact and clearly grouped.
+
+Desktop:
+
+PUBLISH
+[DATE] [TIME]
+
+UNPUBLISH
+[DATE] [TIME]
+
+Mobile:
+
+clean vertical stack.
+
+NO GIANT EMPTY GAP.
+
+======================================================================
+PART 16 — ADMIN ACTIVITY LOG
+======================================================================
+
+Expand Activity Log.
+
+Track meaningful actions:
+
+Login
+Logout
+Product Create/Edit/Archive
+Price Change
+Stock Change
+Order Status
+Discount Code
+News
+Homepage
+Hero
+Navigation
+Pages
+Countries
+Shipping
+Store Mode
+Countdown
+Launch Event
+Support
+Admins
+Permissions
+Security
+
+Show:
+
+Who
+What
+When
+Affected Resource
+Useful non-sensitive details
+
+======================================================================
+PART 17 — OWNER ACTIVITY PUSH ALERTS
+======================================================================
+
+IMPORTANT Admin actions should optionally trigger an Owner push notification.
+
+Examples:
+
+Product price changed.
+
+Store disabled.
+
+News published.
+
+Discount Code created.
+
+Worldwide Shipping setting changed.
+
+Admin permissions changed.
+
+Do not notify for meaningless clicks.
+
+======================================================================
+PART 18 — 750+ ADMIN NOTIFICATION MESSAGE VARIATIONS
+======================================================================
+
+I WANT THE ADMIN WORK-REMINDER SYSTEM TO SUPPORT AT LEAST:
+
+750 DIFFERENT POSSIBLE MESSAGE VARIATIONS.
+
+IMPORTANT:
+
+These are NOT 750 notifications sent immediately.
+
+These are 750+ POSSIBLE ADMIN-ONLY notification messages.
+
+Use reusable templates and context-aware combinations rather than creating
+750 scheduled jobs.
+
+Maximum target around:
+
+5 work-reminder notifications per day.
+
+Make frequency configurable.
+
+======================================================================
+PART 19 — THESE MUST BE REAL IPAD PUSH NOTIFICATIONS
+======================================================================
+
+THIS IS IMPORTANT.
+
+I want Admin notifications to be capable of appearing as actual system
+notifications on my iPad when the Imaginate website is installed to the
+Home Screen as a supported PWA/web app.
+
+DO NOT merely create fake notification cards inside Admin.
+
+Implement standards-based Web Push/PWA notification support where supported.
+
+Use:
+
+PWA Manifest
+Service Worker
+Push API
+Notifications API
+Secure server-side push subscriptions
+HTTPS
+Proper push credentials/provider configuration
+
+If an external push provider/configuration is required:
+
+create the integration/configuration points.
+
+DO NOT fake successful push delivery.
+
+======================================================================
+IPAD SETUP
+======================================================================
+
+ADMIN
+→ NOTIFICATIONS
+→ DEVICE SETUP
+
+Detect supported platform/browser.
+
+For iPhone/iPad where Home Screen installation is required, show clear
+instructions:
+
+1. Open Imaginate in Safari.
+2. Press Share.
+3. Press Add to Home Screen.
+4. Add Imaginate.
+5. Open Imaginate FROM the Home Screen.
+6. Open Admin → Notifications.
+7. Press ENABLE ADMIN NOTIFICATIONS.
+8. Grant notification permission.
+
+Do NOT request notification permission automatically on page load.
+
+It must follow a user action.
+
+======================================================================
+ADMIN PUSH TEST
+======================================================================
+
+Add:
+
+SEND TEST NOTIFICATION
+
+When pressed:
+
+send a real push to the registered Admin device if configured.
+
+Example:
+
+IMAGINATE ADMIN
+
+Admin notifications are working.
+
+If push cannot be delivered:
+
+show the REAL configuration/problem.
+
+Do NOT pretend it worked.
+
+======================================================================
+PART 20 — WORK REMINDER CATEGORIES
+======================================================================
+
+750+ possible variations should come from categories including:
+
+Motivation
+Funny
+Inactive
+Get Back To Work
+Good Progress
+Strong Progress
+Long Session
+Short Session
+Orders
+Products
+Website
+Content
+Launch
+Support
+Inventory
+Suppliers
+Operations
+Analytics
+End Of Day
+
+Include requested examples:
+
+"It's been a while since you worked. Is this time okay?"
+
+"Get to work, you lazy cheeky boy!"
+
+Also include professional/funny/motivational variations.
+
+Use real Admin activity context when possible.
+
+======================================================================
+PART 21 — SMART NOTIFICATIONS
+======================================================================
+
+If Admin has been inactive:
+
+use check-in wording.
+
+If Admin has completed multiple actions:
+
+use progress wording.
+
+If Admin is actively working:
+
+DO NOT send a stupid "get to work" notification.
+
+If Admin has worked for a long session:
+
+use completion/checklist wording.
+
+If there is an important operational event:
+
+PRIORITIZE IT.
+
+Notification priority:
+
+1. Security
+2. Payment / Store Problems
+3. Orders
+4. Support
+5. Inventory
+6. Important Admin Activity
+7. Launch
+8. Work Reminder
+9. Funny/Motivation
+
+======================================================================
+DEFAULT REMINDER WINDOWS
+======================================================================
+
+Use configurable default windows approximately:
+
+09:00
+12:30
+15:30
+18:30
+21:00
+
+using the configured business timezone.
+
+Do not necessarily send all five.
+
+Owner can configure:
+
+Times
+Frequency
+Days
+Quiet Hours
+Reminder Intensity
+Categories
+Enable/Disable
+
+======================================================================
+PART 22 — ADMIN NOTIFICATION CENTER
+======================================================================
+
+ADMIN
+→ NOTIFICATIONS
+
+Sections:
+
+IMPORTANT
+ORDERS
+ACTIVITY
+SUPPORT
+INVENTORY
+WORK REMINDERS
+ALL
+
+Allow:
+
+Read
+Unread
+Mark All Read
+Filter
+Open Related Resource
+
+Liquid Glass.
+
+Purple outline.
+
+No orange.
+
+======================================================================
+PART 23 — WORLDWIDE SHIPPING
+======================================================================
+
+KEEP WORLDWIDE SHIPPING:
+
+OFF.
+
+SECRET.
+
+DO NOT TURN IT ON.
+
+Preserve the previously requested worldwide shipping architecture and
+country-management system.
+
+Owner explicitly enables it later.
+
+======================================================================
+PART 24 — UAE DEFAULT
+======================================================================
+
+Current store default remains:
+
+UAE
+
+Currency:
+
+AED
+
+Do not invent shipping prices.
+
+Do not invent exchange rates.
+
+======================================================================
+PART 25 — COMPLETE CUSTOMER WEBSITE REVIEW
+======================================================================
+
+NOW REVIEW EVERY CUSTOMER PAGE.
+
+Do not just inspect code.
+
+Test actual interactions.
+
+Review and IMPROVE each page where necessary while preserving the
+Imaginate design.
+
+HOME
+
+SHOP
+
+COLLECTION
+
+OUR STORY
+
+NEWS
+
+NEWS ARTICLE
+
+PRODUCT
+
+SEARCH
+
+CART
+
+CHECKOUT
+
+ACCOUNT
+
+WISHLIST
+
+TRACKING
+
+SUPPORT
+
+FAQ
+
+NOTIFICATIONS
+
+COUNTRY SELECTOR
+
+MAINTENANCE
+
+COUNTDOWN
+
+LAUNCH EVENT
+
+404
+
+ERROR
+
+EMPTY STATES
+
+LOADING STATES
+
+======================================================================
+PART 26 — IMPROVE EVERY PAGE
+======================================================================
+
+For each page ask:
+
+Does it look finished?
+
+Does it match Imaginate?
+
+Is spacing correct?
+
+Does it use black/white/purple?
+
+Does Liquid Glass improve it?
+
+Is there any orange?
+
+Is there any yellow?
+
+Is there old branding?
+
+Are buttons obvious?
+
+Does mobile work?
+
+Does tablet work?
+
+Does desktop work?
+
+Does it load quickly?
+
+Does every button work?
+
+Are empty states polished?
+
+Are loading states polished?
+
+Are errors understandable?
+
+FIX ANYTHING THAT FAILS THESE QUESTIONS.
+
+======================================================================
+PART 27 — COMPLETE ADMIN REVIEW
+======================================================================
+
+Review EVERY Admin page.
+
+Dashboard
+Products
+Add Product
+Edit Product
+Inventory
+Variants
+Categories
+Orders
+Customers
+Discount Codes
+Pre-Orders
+Pages
+Navigation
+Our Story
+News
+Homepage
+Hero
+Banner
+Store Control
+Countdown
+Launch Event
+Media
+Support
+FAQ
+Newsletter
+Analytics
+Notifications
+Activity
+Countries
+Shipping
+Worldwide Shipping
+Admin Team
+Permissions
+Settings
+Security
+
+REMOVE ALL ORANGE FROM ADMIN.
+
+REMOVE ALL YELLOW LEGACY BRAND ACCENTS FROM ADMIN.
+
+ADD APPROPRIATE PURPLE OUTLINES.
+
+ADD APPROPRIATE LIQUID GLASS.
+
+MAKE ADMIN FAST.
+
+======================================================================
+PART 28 — BUTTON TEST
+======================================================================
+
+TEST EVERY BUTTON.
+
+Look for:
+
+Does nothing
+Wrong route
+Double click required
+Duplicate submission
+Broken modal
+Broken mobile tap
+Incorrect disabled state
+No loading state
+Incorrect permission
+Wrong API call
+
+FIX THEM.
+
+======================================================================
+PART 29 — FORM TEST
+======================================================================
+
+TEST EVERY IMPORTANT FORM.
+
+Validation.
+
+Loading.
+
+Success.
+
+Failure.
+
+Server validation.
+
+Mobile keyboard.
+
+Duplicate submission.
+
+Required fields.
+
+Clear errors.
+
+======================================================================
+PART 30 — CHECKOUT TEST
+======================================================================
+
+THIS IS CRITICAL.
+
+Test:
+
+Product
+→ Variant
+→ Size
+→ Add to Bag
+→ Cart
+→ Discount Code
+→ Shipping
+→ Checkout
+→ Payment Integration
+→ Confirmation
+→ Order
+→ Admin
+→ Tracking
+
+Never fake payment success.
+
+Never store raw card details.
+
+======================================================================
+PART 31 — ORDER FLOW
+======================================================================
+
+Test:
+
+JUST PLACED / CONFIRMED
+
+PREPARING
+
+SHIPPED
+
+OUT FOR DELIVERY
+
+DELIVERED
+
+CANCELLED
+
+DELAYED if supported
+
+PRE-ORDER where relevant
+
+Customer status must match Admin state.
+
+======================================================================
+PART 32 — PERFORMANCE
+======================================================================
+
+MAKE THE WEBSITE FAST.
+
+Audit:
+
+JavaScript
+Libraries
+Animations
+Liquid Glass
+Images
+Videos
+Fonts
+Database
+API
+Search
+Analytics
+News
+Admin tables
+Product grids
+Cart
+Checkout
+
+Remove unnecessary work.
+
+Use pagination where appropriate.
+
+Debounce search.
+
+Optimize images.
+
+Prevent layout shift.
+
+Lazy-load non-critical content.
+
+Do not lazy-load critical first-screen assets incorrectly.
+
+======================================================================
+PART 33 — MOBILE / IPAD / DESKTOP
+======================================================================
+
+TEST:
+
+Small phone
+Large phone
+iPad/tablet
+Laptop
+Desktop
+Large desktop
+
+Especially test iPad because Admin PWA notifications are important.
+
+No:
+
+horizontal overflow
+cut text
+tiny tap targets
+broken modals
+stretched images
+bad keyboard behavior
+desktop-only layouts
+
+======================================================================
+PART 34 — RELIABILITY
+======================================================================
+
+Fix:
+
+Console errors
+Server errors
+Unhandled promises
+Broken routes
+Missing assets
+404 API requests
+Hydration problems where applicable
+Authentication edge cases
+Race conditions
+Duplicate requests
+Stale UI
+Refresh problems
+
+Countdown must NOT restart on refresh.
+
+Cart should persist appropriately.
+
+Admin session should behave correctly.
+
+======================================================================
+PART 35 — SECURITY
+======================================================================
+
+VERIFY:
+
+Admin server authorization
+
+Owner-only server authorization
+
+Secure password hashing
+
+No plaintext passwords exposed
+
+No secrets in frontend
+
+No raw card storage
+
+Server-side price validation
+
+Server-side stock validation
+
+Server-side discount validation
+
+Server-side shipping validation
+
+Server-side country validation
+
+Order access authorization
+
+Support ticket authorization
+
+Safe uploads
+
+Rate limiting where appropriate
+
+Session security
+
+CSRF protections where relevant to architecture
+
+Secure cookies where applicable
+
+Input validation
+
+======================================================================
+PART 36 — ACCESSIBILITY
+======================================================================
+
+Check:
+
+Keyboard
+Focus
+Contrast
+Labels
+Alt text
+Reduced motion
+Screen readers
+Touch targets
+
+Focus styling should match Imaginate purple.
+
+No legacy orange/yellow focus styling.
+
+======================================================================
+PART 37 — SEO
+======================================================================
+
+Make SEO manageable without code.
+
+Admin should support appropriate:
+
+Page Title
+Meta Description
+Social Image
+Product SEO
+Collection SEO
+News SEO
+Our Story SEO
+
+Also verify:
+
+Sitemap
+Robots
+Canonical URLs where appropriate
+Open Graph
+Structured Product Data where appropriate
+
+Brand:
+
+IMAGINATE.
+
+======================================================================
+PART 38 — PWA
+======================================================================
+
+Make the installed Home Screen experience polished.
+
+Correct:
+
+App Name
+Imaginate Logo/Icon
+Theme
+Black Splash Background where supported
+Manifest
+Service Worker
+Offline/failure behavior where appropriate
+Push subscription support
+
+NO FIRSTPICK PWA DATA.
+
+NO CHAMAK STREET PWA DATA.
+
+NO ORANGE ICON/SCREEN.
+
+======================================================================
+PART 39 — LOADING + PWA BRAND CONSISTENCY
+======================================================================
+
+When opening Imaginate from Home Screen:
+
+brand experience should remain consistent.
+
+Black.
+
+Logo.
+
+Purple.
+
+No legacy flash of orange.
+
+No legacy favicon.
+
+No white-screen flash where avoidable.
+
+======================================================================
+PART 40 — NO FAKE DATA
+======================================================================
+
+DO NOT INVENT:
+
+Orders
+Customers
+Sales
+Reviews
+News
+Stock
+Prices
+Shipping
+Exchange Rates
+Delivery Estimates
+Policies
+Support Requests
+Analytics
+Push Delivery Statistics
+
+Use zero/empty states where real data is absent.
+
+======================================================================
+PART 41 — FINAL BRAND SEARCH
+======================================================================
+
+BEFORE FINISHING:
+
+RUN ANOTHER PROJECT-WIDE SEARCH FOR:
+
+FirstPick
+First Pick
+Chamak
+HyperCore
+Back to School
+Owner Studio
+legacy REP branding
+legacy Source/Provenance UI
+
+AND legacy color values corresponding to old orange/yellow branding.
+
+CHECK AGAIN.
+
+======================================================================
+PART 42 — FINAL COLOR REVIEW
+======================================================================
+
+VISUALLY inspect every customer/admin route.
+
+Sometimes a legacy color can remain even when text search misses it.
+
+Look at:
+
+Borders
+Icons
+Glows
+SVG fills
+Hover
+Focus
+Charts
+Badges
+Buttons
+Selected states
+Dropdowns
+Loading
+Empty states
+Notifications
+
+If it looks orange/yellow because of old branding:
+
+REMOVE IT.
+
+REPLACE WITH IMAGINATE PURPLE where an accent is needed.
+
+======================================================================
+PART 43 — FINAL END-TO-END TEST
+======================================================================
+
+Perform:
+
+HOME
+→ NEWS
+→ ARTICLE
+
+HOME
+→ COLLECTION
+→ PRODUCT
+→ SIZE
+→ CART
+→ DISCOUNT
+→ CHECKOUT
+→ ORDER
+→ CONFIRMATION
+→ TRACKING
+
+SUPPORT
+→ REQUEST
+→ ADMIN
+→ RESPONSE
+→ RESOLVE
+
+ADMIN
+→ NEWS
+→ IMAGE
+→ PUBLISH
+→ HOMEPAGE
+
+ADMIN
+→ UNPUBLISH ALL NEWS
+→ VERIFY NEWS SECTION COMPLETELY DISAPPEARS
+
+ADMIN
+→ COLLECTION PAGE
+→ NAVIGATION
+→ PUBLIC PAGE
+
+ADMIN
+→ OUR STORY
+→ EDIT
+→ PUBLISH
+
+ADMIN
+→ DISCOUNT CODE
+→ CHECKOUT
+→ APPLY
+→ TRY SECOND CODE
+→ REPLACE/CANCEL
+
+ADMIN
+→ ACTION
+→ ACTIVITY LOG
+→ OWNER NOTIFICATION
+
+PWA
+→ INSTALL
+→ ENABLE ADMIN NOTIFICATIONS
+→ SEND TEST PUSH
+→ VERIFY REAL DEVICE NOTIFICATION WHERE SUPPORTED
+
+MAINTENANCE
+→ COUNTDOWN
+→ LAUNCH EVENT PREVIEW
+→ STORE
+
+======================================================================
+PART 44 — FINAL PRODUCTION READINESS CHECKLIST
+======================================================================
+
+Before saying COMPLETE, verify:
+
+No broken buttons.
+
+No broken routes.
+
+No missing images.
+
+No stretched product media.
+
+No legacy branding.
+
+No Back to School.
+
+No unwanted REP.
+
+No Owner Studio.
+
+No legacy Source/Provenance UI.
+
+No FirstPick.
+
+No Chamak Street.
+
+No HyperCore.
+
+No legacy orange.
+
+No legacy yellow.
+
+Purple brand accents consistent.
+
+Liquid Glass smooth.
+
+Loading screen smooth.
+
+Admin functional.
+
+Customer site functional.
+
+Discount Codes functional.
+
+News functional.
+
+Support functional.
+
+Orders functional.
+
+Tracking functional.
+
+PWA functional where platform supports it.
+
+Notifications configured correctly.
+
+Worldwide Shipping OFF.
+
+AED default.
+
+Mobile good.
+
+iPad good.
+
+Desktop good.
+
+Fast.
+
+Secure.
+
+Accessible.
+
+SEO-ready.
+
+======================================================================
+PART 45 — DO NOT CLAIM SUCCESS WITHOUT TESTING
+======================================================================
+
+Do NOT respond with:
+
+"Everything is complete"
+
+simply because code compiled.
+
+Actually inspect/test the implementation.
+
+If a feature requires an external service or credential that has NOT been
+configured:
+
+DO NOT FAKE IT.
+
+Implement the correct integration point and clearly identify the remaining
+configuration requirement.
+
+Examples:
+
+Payment provider credentials
+Web Push credentials/provider
+Email provider
+Domain/DNS
+External exchange-rate provider
+
+The rest of the website should still be complete.
+
+======================================================================
+PART 46 — THE STANDARD
+======================================================================
+
+MAKE THIS THE BEST VERSION OF THE IMAGINATE WEBSITE YOU CAN BUILD.
+
+Do not interpret that as:
+
+more animations
+more clutter
+more features
+more effects
+
+Interpret it as:
+
+BETTER DESIGN
+BETTER SHOPPING
+BETTER ADMIN
+BETTER PERFORMANCE
+BETTER RELIABILITY
+BETTER MOBILE
+BETTER ACCESSIBILITY
+BETTER SECURITY
+BETTER CONSISTENCY
+BETTER POLISH
+
+A customer should immediately understand:
+
+what Imaginate is,
+what is available,
+how much it costs,
+how to choose a size,
+how to buy,
+how to track,
+how to get support.
+
+An Owner should immediately understand:
+
+orders,
+stock,
+products,
+customers,
+content,
+news,
+discounts,
+shipping,
+support,
+analytics,
+notifications,
+store status.
+
+======================================================================
+PART 47 — FINAL RULE
+======================================================================
+
+THIS IS INTENDED TO BE THE FINAL MAJOR DEVELOPMENT PASS.
+
+NORMAL FUTURE BUSINESS CHANGES SHOULD BE POSSIBLE FROM ADMIN WITHOUT
+RETURNING TO SOURCE CODE.
+
+DO NOT REBUILD GOOD WORK.
+
+FINISH UNFINISHED WORK.
+
+FIX BROKEN WORK.
+
+REMOVE OLD WORK.
+
+POLISH GOOD WORK.
+
+NO FIRSTPICK.
+
+NO CHAMAK STREET.
+
+NO BACK TO SCHOOL.
+
+NO LEGACY ORANGE.
+
+NO LEGACY YELLOW.
+
+NO OWNER STUDIO.
+
+NO OLD BRAND.
+
+IMAGINATE ONLY.
+
+BLACK.
+WHITE.
+PURPLE.
+
+LIQUID GLASS.
+PURPLE OUTLINES.
+
+FAST.
+SMOOTH.
+STABLE.
+SECURE.
+RESPONSIVE.
+PREMIUM.
+
+DO THE MOST COMPLETE, CAREFUL JOB POSSIBLE.
+
+WHEN YOU THINK YOU ARE FINISHED:
+
+REVIEW THE ENTIRE WEBSITE AND ADMIN ONE MORE TIME.
+
+THEN FIX ANYTHING YOU FIND BEFORE DECLARING THE PASS COMPLETE.
+======================================================================

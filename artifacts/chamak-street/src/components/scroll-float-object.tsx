@@ -89,7 +89,7 @@ export function ScrollFloatObject() {
           className="absolute inset-0 pointer-events-none"
           animate={{ rotate: -360 }}
           transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
-          style={{ background: "conic-gradient(from 180deg, transparent 72%, rgba(255,180,0,0.06) 85%, transparent 100%)" }}
+          style={{ background: "conic-gradient(from 180deg, transparent 72%, rgba(167,139,250,0.06) 85%, transparent 100%)" }}
         />
 
         {/* ── Giant background text ── */}
@@ -98,13 +98,13 @@ export function ScrollFloatObject() {
             className="whitespace-nowrap font-black uppercase leading-none mb-3"
             style={{ fontSize: "clamp(4rem, 13vw, 11rem)", color: "rgba(124,58,237,0.055)", letterSpacing: "-0.02em", x: textX1 }}
           >
-            CHAMAK&nbsp;STREET&nbsp;·&nbsp;NEW&nbsp;DROP&nbsp;·&nbsp;CHAMAK&nbsp;STREET&nbsp;·&nbsp;NEW&nbsp;DROP
+            IMAGINATE&nbsp;·&nbsp;NEW&nbsp;DROP&nbsp;·&nbsp;IMAGINATE&nbsp;·&nbsp;NEW&nbsp;DROP
           </motion.div>
           <motion.div
             className="whitespace-nowrap font-black uppercase leading-none"
             style={{ fontSize: "clamp(4rem, 13vw, 11rem)", color: "rgba(124,58,237,0.055)", letterSpacing: "-0.02em", x: textX2 }}
           >
-            DUBAI&nbsp;DRIP&nbsp;·&nbsp;STAY&nbsp;CHAMAK&nbsp;·&nbsp;DUBAI&nbsp;DRIP&nbsp;·&nbsp;STAY&nbsp;CHAMAK
+            IMAGINATE&nbsp;·&nbsp;UAE&nbsp;·&nbsp;IMAGINATE&nbsp;·&nbsp;UAE
           </motion.div>
         </div>
 

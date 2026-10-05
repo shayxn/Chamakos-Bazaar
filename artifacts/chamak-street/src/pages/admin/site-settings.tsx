@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { useGetAllSettings, useBulkUpsertSettings, useListProducts } from "@workspace/api-client-react";
+import { useBulkUpsertSettings, useListProducts } from "@workspace/api-client-react";
 import type { Product } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +58,6 @@ const TABS = [
   { id: "sections", label: "Sections", icon: Video },
   { id: "social", label: "Social Buttons", icon: MessageCircle },
   { id: "site", label: "Site Info", icon: Globe },
-  { id: "school", label: "Back To School", icon: BookOpen },
   { id: "emergency", label: "Emergency", icon: ShieldAlert },
   { id: "shipping", label: "Shipping", icon: Truck },
   { id: "content", label: "Content", icon: Type },
@@ -505,7 +504,14 @@ function TrustCardSettings({ n, settings, onChange }: { n: number; settings: Set
 }
 
 export default function AdminSiteSettings() {
-  const { data: dbSettings, isLoading } = useGetAllSettings({ query: { staleTime: 0, queryKey: ["admin", "site-settings"] } });
+  const { data: dbSettings, isLoading } = useQuery<Record<string, string>>({
+    queryKey: ["admin", "site-settings"], staleTime: 0,
+    queryFn: async () => {
+      const r = await fetch(`${import.meta.env.BASE_URL.replace(/\/$/, "")}/api/admin/settings`, { credentials: "include", cache: "no-store" });
+      if (!r.ok) throw new Error("Could not load settings");
+      return r.json();
+    },
+  });
   const { data: products, isLoading: isProductsLoading } = useListProducts(undefined, {
     query: { queryKey: ["admin", "site-settings", "products"], staleTime: 0 },
   });
@@ -517,7 +523,6 @@ export default function AdminSiteSettings() {
   const [hasChanges, setHasChanges] = useState(false);
   const [emergencyConfirmOpen, setEmergencyConfirmOpen] = useState(false);
   const originalSettingsRef = useRef<SettingsMap>({});
-  const schoolProducts = ((products ?? []) as AdminProduct[]).filter((product) => product.collection === "back_to_school");
 
   useEffect(() => {
     if (dbSettings) {
@@ -538,11 +543,11 @@ export default function AdminSiteSettings() {
         mergedSettings.announcement_active = "false";
         mergedSettings.announcement_text = "";
       }
-      if (["#ff6600", "#ffcc00"].includes((mergedSettings.primary_color ?? "").toLowerCase()) || ["#ff6600", "#ffcc00"].includes((mergedSettings.accent_color ?? "").toLowerCase())) {
+      if (["#a78bfa", "#ffcc00"].includes((mergedSettings.primary_color ?? "").toLowerCase()) || ["#a78bfa", "#ffcc00"].includes((mergedSettings.accent_color ?? "").toLowerCase())) {
         mergedSettings.primary_color = SETTING_DEFAULTS.primary_color;
         mergedSettings.accent_color = SETTING_DEFAULTS.accent_color;
       }
-      if (["#ff6600", "#ffcc00"].includes((mergedSettings.announcement_color ?? "").toLowerCase())) {
+      if (["#a78bfa", "#ffcc00"].includes((mergedSettings.announcement_color ?? "").toLowerCase())) {
         mergedSettings.announcement_color = SETTING_DEFAULTS.announcement_color;
       }
       mergedSettings.worldwide_shipping_enabled = "false";
@@ -616,7 +621,7 @@ export default function AdminSiteSettings() {
             <Save className="h-4 w-4" />
             {bulkUpsert.isPending ? "Saving..." : activeTab === "emergency" ? "Submit Emergency Setting" : "Save Changes"}
             {hasChanges && !bulkUpsert.isPending && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-400 border border-background" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-violet-400 border border-background" />
             )}
           </Button>
         </motion.div>
@@ -1001,78 +1006,6 @@ export default function AdminSiteSettings() {
             <h2 className="font-black uppercase tracking-wider text-primary mb-6">Content & Legal</h2>
             <SettingInput label="Privacy Policy" settingKey="privacy_policy" settings={settings} onChange={onChange} multiline />
             <SettingInput label="FAQ" settingKey="faq_text" settings={settings} onChange={onChange} multiline />
-          </div>
-        )}
-
-        {activeTab === "school" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-yellow-300/20 bg-yellow-300/[0.06] p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-yellow-200" />
-                    <h2 className="font-black uppercase tracking-wider text-yellow-100">Back To School</h2>
-                  </div>
-                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
-                    Hide or restore the seasonal destination without deleting products. When hidden, its customer links and direct route disappear with no blank storefront space.
-                  </p>
-                </div>
-                <a
-                  href={`${BASE}/admin/products`}
-                  className="inline-flex h-9 items-center justify-center rounded-lg border border-yellow-200/25 px-3 text-xs font-black uppercase tracking-wider text-yellow-100 transition-colors hover:bg-yellow-200/10"
-                >
-                  Manage products
-                </a>
-              </div>
-              <div className="mt-5 border-t border-yellow-100/10 pt-5">
-                <ToggleInput label="Show Back To School to customers" settingKey="back_to_school_enabled" settings={settings} onChange={onChange} />
-                <p className="mt-2 text-xs text-white/45">
-                  {settings.back_to_school_enabled === "false"
-                    ? "Hidden — products and saved source links stay safely in Admin."
-                    : "Live — customers can browse the Back To School destination."}
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-border/60 bg-black/20">
-              <div className="flex items-center justify-between gap-4 border-b border-border/50 p-5">
-                <div>
-                  <h3 className="font-black uppercase tracking-wider text-white">Collection product links</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">Private source links are visible only in Admin.</p>
-                </div>
-                <span className="rounded-full bg-yellow-300/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-yellow-100">
-                  {schoolProducts.length} products
-                </span>
-              </div>
-              <div className="divide-y divide-border/50">
-                {isProductsLoading ? (
-                  <div className="p-6 text-sm text-muted-foreground">Loading collection products…</div>
-                ) : schoolProducts.length === 0 ? (
-                  <div className="p-6 text-sm text-muted-foreground">No Back To School products are currently assigned.</div>
-                ) : (
-                  schoolProducts.map((product) => (
-                    <div key={product.id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-white">{product.name}</p>
-                        <p className="mt-1 text-xs font-mono text-violet-200">AED {Number(product.price).toFixed(2)}</p>
-                      </div>
-                      {product.sourceUrl ? (
-                        <a
-                          href={product.sourceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex w-fit shrink-0 items-center gap-1.5 text-xs font-black uppercase tracking-wider text-violet-200 transition-colors hover:text-violet-100"
-                        >
-                          Product link <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      ) : (
-                        <span className="text-xs font-bold text-white/35">No product link saved</span>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
           </div>
         )}
 

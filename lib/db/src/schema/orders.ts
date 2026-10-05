@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -6,12 +6,21 @@ export const ordersTable = pgTable("orders", {
   id: serial("id").primaryKey(),
   orderNumber: text("order_number").unique(),
   customerName: text("customer_name"),
+  customerId: integer("customer_id"),
+  stockReserved:boolean("stock_reserved").notNull().default(false),
+  stockReleased:boolean("stock_released").notNull().default(false),
+  paymentIntentId:text("payment_intent_id"),
+  paymentStatus:text("payment_status"),
+  paymentCartId:text("payment_cart_id"),
+  discountCustomerKey:text("discount_customer_key"),
+  couponCode:text("coupon_code"),
+  discountAmount:numeric("discount_amount",{precision:10,scale:2}).default("0"),
   customerEmail: text("customer_email"),
   customerPhone: text("customer_phone"),
   customerAddress: text("customer_address"),
   paymentMethod: text("payment_method").default("cod"),
   deliveryMethod: text("delivery_method").default("standard"),
-  deliveryCharge: numeric("delivery_charge", { precision: 10, scale: 2 }).default("20"),
+  deliveryCharge: numeric("delivery_charge", { precision: 10, scale: 2 }).default("25"),
   tip: numeric("tip", { precision: 10, scale: 2 }).default("0"),
   courierName: text("courier_name"),
   estimatedDelivery: text("estimated_delivery"),

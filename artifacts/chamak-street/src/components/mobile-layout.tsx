@@ -7,10 +7,13 @@ import { AnnouncementBanner } from "./announcement-banner";
 import { SmartSearchModal } from "./smart-search";
 import { useCartFly } from "./cart-fly-context";
 import { motion, AnimatePresence } from "framer-motion";
+import { useManagedNavigation } from "@/hooks/use-managed-navigation";
+import { NewsletterForm } from "./newsletter-form";
 
 export function MobileLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const settings = useSettings();
+  const managedNavigation = useManagedNavigation();
   const { data: cart } = useGetCart({ query: { queryKey: getGetCartQueryKey(), staleTime: 15_000 } });
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
   const { cartBounceKey } = useCartFly();
@@ -91,6 +94,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="flex-1 overflow-x-hidden">{children}</main>
+      <footer className="border-t border-primary/20 px-5 py-8"><NewsletterForm/><div className="mt-6 flex flex-wrap gap-4 text-xs text-white/60"><Link href="/support">Support</Link><Link href="/news">News</Link><Link href="/about">Our Story</Link><Link href="/terms">Policies</Link></div><p className="mt-5 text-[10px] text-white/40">{settings.footer_copyright || `© ${new Date().getFullYear()} IMAGINATE`}</p></footer>
 
       <AnimatePresence>
         {menuOpen && (
@@ -121,7 +125,9 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                 { href: "/shop", label: "Shop all" },
                 { href: "/shop?new=1", label: "New" },
                 { href: "/shop?search=hoodie", label: "Hoodies" },
-                { href: "/about", label: "About" },
+                { href: "/about", label: "Our Story" },
+                { href: "/news", label: "News" },
+                ...managedNavigation,
                 { href: "/wishlist", label: "Wishlist" },
                 { href: "/order-tracking", label: "Track order" },
                 { href: "/account", label: "Account" },

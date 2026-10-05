@@ -141,9 +141,9 @@ export default function Receipt() {
               onClick={handlePrint}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide"
               style={{
-                background: "linear-gradient(135deg, #ff6600, #ffaa00)",
+                background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
                 color: "#000",
-                boxShadow: "0 4px 16px rgba(255,102,0,0.35)",
+                boxShadow: "0 4px 16px rgba(167,139,250,0.35)",
               }}
             >
               <Download className="h-4 w-4" />
@@ -233,9 +233,9 @@ function ReceiptContent({
           display: "inline-block",
           fontSize: "10px", fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase",
           padding: "4px 12px", borderRadius: "9999px",
-          background: order.status === "delivered" ? "rgba(74,222,128,0.15)" : "rgba(255,170,0,0.15)",
-          color: order.status === "delivered" ? "#4ade80" : "#ffaa00",
-          border: `1px solid ${order.status === "delivered" ? "rgba(74,222,128,0.4)" : "rgba(255,170,0,0.4)"}`,
+          background: order.status === "delivered" ? "rgba(74,222,128,0.15)" : "rgba(167,139,250,0.15)",
+          color: order.status === "delivered" ? "#4ade80" : "#a78bfa",
+          border: `1px solid ${order.status === "delivered" ? "rgba(74,222,128,0.4)" : "rgba(167,139,250,0.4)"}`,
         }}>
           {STATUS_LABEL[order.status] ?? order.status}
         </span>
@@ -274,7 +274,7 @@ function ReceiptContent({
             <div>
               <span style={{ fontWeight: 700 }}>{item.productName}</span>
               {item.size && <span style={{ marginLeft: "8px", fontSize: "11px", color: mutedColor, fontWeight: 600 }}>({item.size})</span>}
-              {item.isPreOrder && <span style={{ marginLeft: "6px", fontSize: "9px", background: "rgba(255,200,0,0.15)", color: "#ffcc00", padding: "2px 6px", borderRadius: "4px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Pre-Order</span>}
+              {item.isPreOrder && <span style={{ marginLeft: "6px", fontSize: "9px", background: "rgba(167,139,250,0.15)", color: "#ffcc00", padding: "2px 6px", borderRadius: "4px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Pre-Order</span>}
             </div>
             <div style={{ textAlign: "center", fontWeight: 700 }}>{item.quantity}</div>
             <div style={{ textAlign: "right", fontFamily: "monospace" }}>AED {Number(item.price).toFixed(2)}</div>
@@ -316,7 +316,7 @@ function ReceiptContent({
 
       {/* Estimated delivery */}
       {order.estimatedDelivery && (
-        <div style={{ marginBottom: "24px", padding: "14px 18px", borderRadius: "10px", background: printMode ? "#fff3e8" : "rgba(255,102,0,0.06)", border: `1px solid ${printMode ? "#ffcc99" : "rgba(255,102,0,0.18)"}`, fontSize: "13px" }}>
+        <div style={{ marginBottom: "24px", padding: "14px 18px", borderRadius: "10px", background: printMode ? "#fff3e8" : "rgba(167,139,250,0.06)", border: `1px solid ${printMode ? "#ffcc99" : "rgba(167,139,250,0.18)"}`, fontSize: "13px" }}>
           <span style={{ fontWeight: 700, color: accentColor }}>Estimated Delivery: </span>
           <span style={{ color: mutedColor }}>{order.estimatedDelivery}</span>
         </div>

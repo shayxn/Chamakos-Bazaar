@@ -1,5 +1,6 @@
 import { db, siteSettingsTable } from "@workspace/db";
-import { inArray } from "drizzle-orm";
+import { inArray,sql } from "drizzle-orm";
+import { ensureManagement,rows as extractRows } from "./management-db";
 
 const DEFAULT_DELIVERY_CHARGES: Record<string, number> = {
   standard: 25,
@@ -26,8 +27,13 @@ export async function getDeliveryCharges(): Promise<Record<string, number>> {
       if (row.key === "delivery_express_price") result.express = v;
       if (row.key === "delivery_priority_price") result.priority = v;
     }
+    await ensureManagement();
+    const shipping=extractRows(await db.execute(sql`SELECT data FROM imaginate_documents WHERE kind='shipping' AND status='published'
+      AND data->>'countryCode'='AE' AND (publish_at IS NULL OR publish_at<=NOW()) AND (unpublish_at IS NULL OR unpublish_at>NOW()) ORDER BY updated_at ASC`));
+    for(const row of shipping){
+      const method=row.data.method||"standard",amount=Number(row.data.amount);
+      if((DELIVERY_METHODS as readonly string[]).includes(method)&&Number.isFinite(amount)&&amount>0)result[method]=amount;
+    }
     return result;
-  } catch {
-    return { ...DEFAULT_DELIVERY_CHARGES };
-  }
+  } catch (error) { throw new Error("Delivery configuration is temporarily unavailable.",{cause:error}); }
 }

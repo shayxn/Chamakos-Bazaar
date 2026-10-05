@@ -1,0 +1,216 @@
+Now do a COMPLETE BUG-FIX AND POLISH PASS of the ENTIRE Imaginate website.
+
+I mean EVERYTHING. Do not only inspect the homepage or the parts you recently edited. Go through the entire customer-facing website AND the entire Admin system, page by page, component by component, and feature by feature.
+
+FIX EVERY MAJOR AND MINOR BUG YOU CAN FIND.
+
+Test and inspect:
+- Homepage
+- Header/navigation
+- Mobile navigation
+- Footer
+- Shop
+- Collections
+- Product pages
+- Product variants
+- Sizes
+- Stock
+- Pre-orders
+- Search
+- Wishlist
+- Cart/bag
+- Checkout
+- Discount Codes
+- Accounts
+- Orders
+- Order tracking
+- Support
+- News
+- Our Story
+- Countdown
+- Launch event/video
+- Loading screens
+- Maintenance mode
+- Notifications
+- Country/currency systems
+- Analytics
+- Live Traffic
+- Every Admin page
+- Every Admin sidebar/topbar item
+- Products Admin
+- Orders Admin
+- Customers Admin
+- Inventory Admin
+- Website/Page Manager
+- Homepage editor
+- News editor
+- Support inbox
+- Discounts
+- Countries/shipping
+- Notifications
+- Analytics
+- Admin/team/permissions
+- Settings
+- Security
+- Every modal, dropdown, button, form, input, table, card, filter, toggle, date picker, upload control and interactive element.
+
+ORANGE CLEANUP — EXTREMELY IMPORTANT:
+There should be NO leftover FirstPick orange/yellow/gold/amber brand styling anywhere.
+
+Search the ENTIRE codebase and visually inspect the ENTIRE website AND Admin.
+
+Check:
+- CSS
+- Tailwind classes/config
+- CSS variables
+- inline styles
+- SVGs/icons
+- gradients
+- borders
+- shadows
+- glows
+- hover states
+- focus states
+- active states
+- selected states
+- toggles
+- switches
+- buttons
+- links
+- badges
+- charts
+- loading states
+- skeletons
+- notifications
+- dropdowns
+- modals
+- tables
+- inputs
+- navigation
+- Admin UI
+- mobile UI
+- PWA UI
+
+Replace ALL legacy orange/yellow/gold/amber BRAND colors with the exact Imaginate purple already used by the current Imaginate logo/design system.
+
+Do not blindly replace legitimate semantic warning/error colors if changing them would hurt accessibility. The goal is to completely remove OLD BRAND orange styling, not destroy useful semantic status colors.
+
+LIQUID GLASS:
+Add MORE premium Liquid Glass throughout both the customer website AND Admin.
+
+Use it intelligently on things such as:
+- Navigation/header
+- Search
+- Cart
+- Account panels
+- Dropdowns
+- Modals
+- Filters
+- Floating controls
+- News overlays
+- Product controls
+- Admin sidebar
+- Admin topbar
+- Admin cards
+- Quick actions
+- Popovers
+- Analytics cards
+- Live Traffic
+- Notifications
+- Countdown controls
+
+Liquid Glass should use:
+- Dark translucent surfaces
+- Controlled backdrop blur
+- Subtle reflections/highlights
+- Thin Imaginate-purple outlines where appropriate
+- Very subtle purple glow
+- Layered depth
+
+DO NOT turn everything into giant glowing purple boxes. Keep it premium, restrained and readable.
+
+BUG FIXING:
+Actually USE and TEST the website instead of only checking whether it compiles.
+
+Test every important button and interaction.
+
+Look for:
+- Broken buttons
+- Dead links
+- Wrong routes
+- Console errors
+- API errors
+- Database errors
+- Incorrect loading states
+- Layout shifts
+- Overflow
+- Elements covering each other
+- Bad spacing
+- Huge unnecessary gaps
+- Text clipping
+- Images stretching
+- Broken images
+- Video problems
+- Mobile issues
+- iPad issues
+- Desktop issues
+- Slow animations
+- Lag
+- Duplicate requests
+- Incorrect totals
+- Incorrect AED formatting
+- Checkout problems
+- Product/stock inconsistencies
+- Admin changes not appearing publicly
+- Incorrect permissions
+- Countdown timing problems
+- Notification problems
+- Analytics problems
+- Empty-state problems
+- Accessibility problems
+- Security problems
+
+Test complete real flows, including:
+Product → size/variant → bag → discount → checkout → order → confirmation → Admin order → fulfillment/tracking.
+
+Also test:
+Admin login → edit product → publish → customer sees change.
+Admin countdown → preview → start → reaches zero → launch video → loading message → website.
+Pre-order enabled → countdown displays PRE-ORDER NOW correctly.
+Store/maintenance/countdown modes.
+News publishing.
+Support requests.
+Notification opt-in.
+Live Traffic.
+Mobile menus.
+Search.
+Account/order history.
+
+PERFORMANCE:
+After adding Liquid Glass and effects, make sure the website remains FAST.
+
+If an effect causes lag:
+1. Optimize it.
+2. Simplify it.
+3. Remove it if necessary.
+
+Performance is more important than unnecessary effects.
+
+Do not rebuild the project from scratch.
+Do not reset the database.
+Do not remove working features.
+Do not replace real systems with fake placeholders.
+Do not invent analytics, orders, visitors, stock, notifications or customer data.
+
+When you believe you are finished, DO ANOTHER FULL PASS.
+
+Do not stop because the project compiles.
+
+Open and inspect the pages again, test the major flows again, search again for orange/yellow/gold/amber legacy branding, check mobile/iPad/desktop again, review the Admin again, and fix anything you missed.
+
+The finished result should feel like ONE consistent Imaginate product:
+BLACK + EXACT IMAGINATE PURPLE + PREMIUM LIQUID GLASS.
+
+Customer website and Admin should both feel finished, responsive, fast, secure and production-ready.
+
+Do not just tell me what you fixed. ACTUALLY FIND THE PROBLEMS, FIX THEM, TEST THEM, and then report what was changed and whether anything still requires external credentials/configuration.

@@ -4,15 +4,15 @@ import { Link } from "wouter";
 import { getPrimaryProductMedia } from "@/lib/product-media";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  pending:    { bg: "rgba(234,179,8,0.12)",   text: "#eab308", border: "rgba(234,179,8,0.3)" },
+  pending:    { bg: "rgba(167,139,250,0.12)",   text: "#a78bfa", border: "rgba(167,139,250,0.3)" },
   processing: { bg: "rgba(59,130,246,0.12)",  text: "#60a5fa", border: "rgba(59,130,246,0.3)" },
   shipped:    { bg: "rgba(168,85,247,0.12)",  text: "#c084fc", border: "rgba(168,85,247,0.3)" },
   delivered:  { bg: "rgba(34,197,94,0.12)",   text: "#4ade80", border: "rgba(34,197,94,0.3)" },
   cancelled:  { bg: "rgba(239,68,68,0.12)",   text: "#f87171", border: "rgba(239,68,68,0.3)" },
 };
 
-const ACCENT = "#ff6600";
-const ACCENT_GOLD = "#ffcc00";
+const ACCENT = "#a78bfa";
+const ACCENT_GOLD = "#a78bfa";
 
 function StatCard({
   label,
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(255,102,0,0.12)", border: "1px solid rgba(255,102,0,0.2)" }}>
+                          style={{ background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.2)" }}>
                           <ShoppingBag className="h-3 w-3" style={{ color: ACCENT }} />
                         </div>
                         <div className="min-w-0">
@@ -326,9 +326,9 @@ export default function AdminDashboard() {
                       <span
                         className="font-mono font-black text-[10px] px-2 py-1 rounded-full shrink-0"
                         style={{
-                          background: isOut ? "rgba(239,68,68,0.12)" : "rgba(255,102,0,0.12)",
+                          background: isOut ? "rgba(239,68,68,0.12)" : "rgba(167,139,250,0.12)",
                           color: isOut ? "#f87171" : ACCENT,
-                          border: `1px solid ${isOut ? "rgba(239,68,68,0.3)" : "rgba(255,102,0,0.3)"}`,
+                          border: `1px solid ${isOut ? "rgba(239,68,68,0.3)" : "rgba(167,139,250,0.3)"}`,
                         }}
                       >
                         {isOut ? "Out" : `${product.stock}`}

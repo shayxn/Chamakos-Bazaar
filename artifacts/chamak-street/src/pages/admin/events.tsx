@@ -35,11 +35,10 @@ const PRESETS = [
   { type: "black_friday", label: "🛍️ Black Friday", color: "#111111", badge: "BLACK FRIDAY", banner: "BLACK FRIDAY — Biggest Sale of the Year", subtext: "Today only" },
   { type: "cyber_monday", label: "💻 Cyber Monday", color: "#0055cc", badge: "CYBER MONDAY", banner: "CYBER MONDAY DEALS ARE LIVE", subtext: "Shop the best deals" },
   { type: "uae_national_day", label: "🇦🇪 UAE National Day", color: "#006B3C", badge: "National Day", banner: "Happy UAE National Day 🇦🇪", subtext: "Celebrating 53 years" },
-  { type: "collection_drop", label: "🔥 Collection Drop", color: "#ff4400", badge: "NEW DROP", banner: "NEW COLLECTION JUST DROPPED", subtext: "Shop the latest arrivals" },
-  { type: "back_to_school", label: "📚 Back to School", color: "#ff6600", badge: "BACK TO SCHOOL", banner: "BACK TO SCHOOL SALE", subtext: "Look fresh this semester" },
-  { type: "summer_sale", label: "☀️ Summer Sale", color: "#ff8c00", badge: "SUMMER SALE", banner: "SUMMER SALE IS HERE", subtext: "Hot drops, cool prices" },
+  { type: "collection_drop", label: "🔥 Collection Drop", color: "#a78bfa", badge: "NEW DROP", banner: "NEW COLLECTION JUST DROPPED", subtext: "Shop the latest arrivals" },
+  { type: "summer_sale", label: "☀️ Summer Sale", color: "#a78bfa", badge: "SUMMER SALE", banner: "SUMMER SALE IS HERE", subtext: "Hot drops, cool prices" },
   { type: "winter_sale", label: "❄️ Winter Sale", color: "#2255cc", badge: "WINTER SALE", banner: "WINTER SALE — New season", subtext: "Warm up your wardrobe" },
-  { type: "custom", label: "✨ Custom", color: "#ff6600", badge: "", banner: "", subtext: "" },
+  { type: "custom", label: "✨ Custom", color: "#a78bfa", badge: "", banner: "", subtext: "" },
 ];
 
 const EVENT_SECTIONS = [
@@ -108,7 +107,7 @@ function DateTimeInput({ value, onChange, label }: { value: string | null; onCha
 }
 
 function EventModal({ event, onClose, onSave }: { event: Partial<Event> | null; onClose: () => void; onSave: (data: Partial<Event>) => void }) {
-  const [form, setForm] = useState<Partial<Event>>(event ?? { type: "custom", bannerColor: "#ff6600", textColor: "#ffffff", accentColor: "#ffffff", isActive: false, countdownEnabled: false, homepageEnabled: false, popupEnabled: false, priority: 0 });
+  const [form, setForm] = useState<Partial<Event>>(event ?? { type: "custom", bannerColor: "#a78bfa", textColor: "#ffffff", accentColor: "#ffffff", isActive: false, countdownEnabled: false, homepageEnabled: false, popupEnabled: false, priority: 0 });
   const [section, setSection] = useState("basics");
   const [saving, setSaving] = useState(false);
 
@@ -128,7 +127,7 @@ function EventModal({ event, onClose, onSave }: { event: Partial<Event> | null; 
     setSaving(false);
   };
 
-  const color = form.bannerColor || "#ff6600";
+  const color = form.bannerColor || "#a78bfa";
   const textColor = form.textColor || "#ffffff";
 
   return (
@@ -212,7 +211,7 @@ function EventModal({ event, onClose, onSave }: { event: Partial<Event> | null; 
 
           {section === "visuals" && (
             <>
-              <ColorInput value={form.bannerColor ?? "#ff6600"} onChange={(v) => set("bannerColor", v)} label="Primary / Banner Color" />
+              <ColorInput value={form.bannerColor ?? "#a78bfa"} onChange={(v) => set("bannerColor", v)} label="Primary / Banner Color" />
               <ColorInput value={form.textColor ?? "#ffffff"} onChange={(v) => set("textColor", v)} label="Text Color" />
               <ColorInput value={form.accentColor ?? "#ffffff"} onChange={(v) => set("accentColor", v)} label="Accent / Button Color" />
 
@@ -239,7 +238,7 @@ function EventModal({ event, onClose, onSave }: { event: Partial<Event> | null; 
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Badge preview:</span>
                   <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-sm"
-                    style={{ backgroundColor: form.bannerColor ?? "#ff6600", color: form.textColor ?? "#ffffff" }}>
+                    style={{ backgroundColor: form.bannerColor ?? "#a78bfa", color: form.textColor ?? "#ffffff" }}>
                     {form.badgeText}
                   </span>
                 </div>
@@ -410,7 +409,7 @@ function EventCard({ event, onToggle, onDelete, onEdit, onDuplicate, onMoveUp, o
   event: Event; onToggle: () => void; onDelete: () => void; onEdit: () => void;
   onDuplicate: () => void; onMoveUp: () => void; onMoveDown: () => void;
 }) {
-  const color = event.bannerColor ?? "#ff6600";
+  const color = event.bannerColor ?? "#a78bfa";
 
   return (
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
@@ -449,8 +448,8 @@ function EventCard({ event, onToggle, onDelete, onEdit, onDuplicate, onMoveUp, o
             <div className="flex flex-wrap items-center gap-2">
               {event.homepageEnabled && <span className="flex items-center gap-1 text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-sm font-bold"><Layout className="h-2.5 w-2.5" />Homepage</span>}
               {event.popupEnabled && <span className="flex items-center gap-1 text-[10px] text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-sm font-bold"><Bell className="h-2.5 w-2.5" />Popup</span>}
-              {event.countdownEnabled && <span className="flex items-center gap-1 text-[10px] text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-sm font-bold"><Timer className="h-2.5 w-2.5" />Countdown</span>}
-              {event.badgeText && <span className="flex items-center gap-1 text-[10px] text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-sm font-bold"><Tag className="h-2.5 w-2.5" />{event.badgeText}</span>}
+              {event.countdownEnabled && <span className="flex items-center gap-1 text-[10px] text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-sm font-bold"><Timer className="h-2.5 w-2.5" />Countdown</span>}
+              {event.badgeText && <span className="flex items-center gap-1 text-[10px] text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-sm font-bold"><Tag className="h-2.5 w-2.5" />{event.badgeText}</span>}
               {event.startAt && <span className="text-[10px] text-muted-foreground/50">{new Date(event.startAt).toLocaleDateString()} →</span>}
               {event.endAt && <span className="text-[10px] text-muted-foreground/50">{new Date(event.endAt).toLocaleDateString()}</span>}
             </div>

@@ -2,7 +2,8 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { requireAdmin } from "../lib/auth-middleware";
 import { sql, desc } from "drizzle-orm";
-import { sendAdminActivityPush } from "../lib/push";
+import { createAdminNotification } from "../lib/admin-notifications";
+import { logger } from "../lib/logger";
 
 const router = Router();
 
@@ -20,7 +21,7 @@ async function ensureActivityTable() {
     )
   `);
 }
-ensureActivityTable().catch(console.error);
+ensureActivityTable().catch(error => logger.error({ error }, "Activity table unavailable"));
 
 export async function logAdminActivity(adminName: string, action: string, orderRef?: string, details?: string) {
   try {
@@ -34,8 +35,9 @@ export async function logAdminActivity(adminName: string, action: string, orderR
     // Notify all admin SSE clients of new activity
     if (entry) broadcastActivity(entry);
     // Push to admin devices (non-SSE)
-    sendAdminActivityPush(adminName, action, orderRef).catch(() => {});
-  } catch {}
+    const category = /order/i.test(action) ? "orders" : /stock|inventory/i.test(action) ? "inventory" : /security|login/i.test(action) ? "security" : /store disabled|shipping/i.test(action) ? "important" : "activity";
+    await createAdminNotification("IMAGINATE Admin", `${adminName}: ${action}`, category, "/admin/activity", true);
+  } catch (error) { logger.warn({ error }, "Admin activity could not be recorded"); }
 }
 
 // SSE for real-time admin activity feed

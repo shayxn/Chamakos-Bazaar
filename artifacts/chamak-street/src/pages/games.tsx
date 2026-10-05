@@ -42,7 +42,7 @@ export default function GamesPage() {
         {/* Hero Banner */}
         <div className="relative h-48 md:h-64 overflow-hidden flex items-end">
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-background" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,102,0,0.15),transparent_70%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(167,139,250,0.15),transparent_70%)]" />
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-8 w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -94,7 +94,7 @@ export default function GamesPage() {
                     <motion.div
                       whileHover={{ y: -6 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                      className="group relative rounded-2xl overflow-hidden border border-border/40 hover:border-primary/40 transition-all duration-300 cursor-pointer hover:shadow-[0_20px_60px_rgba(255,102,0,0.2)]"
+                      className="group relative rounded-2xl overflow-hidden border border-border/40 hover:border-primary/40 transition-all duration-300 cursor-pointer hover:shadow-[0_20px_60px_rgba(167,139,250,0.2)]"
                     >
                       {/* Cover Image */}
                       <div className="relative aspect-[3/4] bg-card overflow-hidden">

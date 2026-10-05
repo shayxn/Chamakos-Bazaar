@@ -4,7 +4,6 @@
 - [Splash popup](splash-popup.md) — mini card modal using IMG_0054 (box art) + IMG_0055 (packaging), sessionStorage gate, 6s auto-dismiss with progress bar.
 - [Loading screen gate](loading-screen-gate.md) — first-visit boot uses `firstpick_loaded`; visual follow-ups should wait for its completion event, not guess a delay.
 - [Emergency shutdown](emergency-shutdown.md) — customer pause is server-enforced and operational settings must never use stale or instance-local cache.
-- [Back to School animation](back-to-school-animation.md) — the automatic backpack reveal starts after boot; reduced-motion visitors see a static visible card instead.
 - [Missing routes pattern](missing-routes.md) — several API routers (events, games, abandoned-carts, refund-requests, product-requests) and frontend pages (returns, request-product, games, game-detail) existed but were never registered; always check routes/index.ts and App.tsx when adding new pages.
 - [Hero floating product](hero-floating-product.md) — xl-screen only; uses featuredProducts[0] from the DB query already in home.tsx. Shows levitating product image with shine, shadow glow, and a product tag chip.
 - [Event badge flood fix](event-badge-flood.md) — event-banner.tsx module-level state resets on HMR; added _fetching guard + 30s _lastFetch cache to prevent concurrent fetch storms from many mounted EventProductBadge cards.
@@ -13,7 +12,6 @@
 - [Admin raw-fetch cleanup](admin-fetch-cleanup.md) — 4 admin pages (abandoned-carts, stock-alerts, refund-requests, product-requests) use raw fetch() not React Query; need AbortController + mountedRef guard pattern to prevent state updates on unmounted components.
 - [Hidden product auth gap](hidden-product-auth.md) — when gating a list endpoint by hidden=false, always gate the detail route (/products/:id) AND any sub-query routes (complete-the-look) the same way; otherwise hidden items are accessible by direct URL.
 - [Brand logos CDN](brand-logos-cdn.md) — Clearbit CDN (logo.clearbit.com/{domain}) unreachable from sandbox; falls back to SVG via onError; apply filter:brightness(0)invert(1) for white-on-dark. All brand card links use /shop?search= (not ?q=).
-- [Layout style](layout-style.md) — Fashioncage.me-inspired: pure black bg, centered logo header, category nav row below, announcement bar with social icons left. Shop page has top filter bar (category pills + search + count) and 5-column grid. No light mode.
 - [Framer-motion ease types](framer-motion-ease-types.md) — ease: number[] fails TS inside Variants objects; use `const EASE_CURVE: any = [...]` or cast `as any` on ease. Move transitions out of variants into direct motion props when possible.
 - [Delivery price config](delivery-price-config.md) — Delivery is always paid; standard UAE checkout delivery is AED 25 and must stay aligned in settings, frontend, and backend fallbacks.
 - [GitHub push setup](github-push-setup.md) — Remote is HTTPS github.com/shayxn/Chamakos-Bazaar; no SSH keys; no token in env. push-to-github.sh in repo root handles token-based push with force-with-lease. User needs GITHUB_TOKEN secret.
@@ -59,4 +57,7 @@
 - [Admin chat media](admin-chat-media.md) — photos and voice messages are private direct uploads that must be verified before a chat record can reference them.
 - [Owner Studio security](owner-studio-security.md) — Studio access, publishing, per-page sharing, versions, and public links have strict server-side boundaries.
 - [Built-in Studio page layers](built-in-studio-page-layers.md) — additions to core Store/Admin routes render as published layers, keeping existing transactional screens untouched.
-- [Amazon Back to School sourcing](amazon-back-to-school-sourcing.md) — public Amazon.com listing details feed the collection; USD is converted to AED with an AED 10–20 margin, while source URLs stay Admin-only.
+- [Order ownership boundaries](order-access-decisions.md) — editable phone numbers are not proof of order ownership or push authorization.
+- [Development transforms](development-transforms.md) — passing TypeScript and production builds does not guarantee that development JSX modules load.
+- [Transaction response contracts](transaction-response-contracts.md) — raw-SQL receipt fields must survive ORM selection; validate the breakdown, not only the total.
+- [SQL arrays in Drizzle](sql-array-interpolation.md) — an interpolated JavaScript array expands to a row; use bound IN elements for membership tests.

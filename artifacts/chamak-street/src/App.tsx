@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useEffect } from "react";
+import RouteSeo from "@/components/route-seo";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -23,7 +24,7 @@ class ErrorBoundary extends React.Component<
         <div
           style={{
             minHeight: "100vh",
-            background: "#0a0a0a",
+            background: "#050507",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -35,7 +36,7 @@ class ErrorBoundary extends React.Component<
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: "48px" }}>⚠</div>
+          
           <div style={{ fontSize: "20px", fontWeight: 900, color: "#fff", letterSpacing: "0.1em", textTransform: "uppercase" }}>
             Something went wrong
           </div>
@@ -69,7 +70,7 @@ class ErrorBoundary extends React.Component<
 import { Layout } from "@/components/layout";
 import { MobileLayout } from "@/components/mobile-layout";
 import { useMobile } from "@/lib/use-mobile";
-import { useOperationalSettings, useSettings } from "@/lib/use-settings";
+import { useSettings } from "@/lib/use-settings";
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useVisitorTracking } from "@/lib/use-visitor-tracking";
 import { ScrollProgressBar } from "@/components/smooth-scroll";
@@ -107,8 +108,8 @@ const Receipt = lazy(() => import("@/pages/receipt"));
 const WishlistPage = lazy(() => import("@/pages/wishlist"));
 const MaintenancePage = lazy(() => import("@/pages/maintenance"));
 const AboutPage = lazy(() => import("@/pages/about"));
-const BackToSchool = lazy(() => import("@/pages/back-to-school"));
-const CustomStorePage = lazy(() => import("@/pages/custom-store-page"));
+const ManagedContent = lazy(() => import("@/pages/managed-content"));
+const ContentManagement = lazy(() => import("@/pages/admin/content-management"));
 
 // ── Admin pages (lazy — customers never load these) ──
 const AdminLayout = lazy(() => import("@/components/admin-layout"));
@@ -133,14 +134,12 @@ const AdminSalesReports = lazy(() => import("@/pages/admin/sales-reports"));
 const AdminChat = lazy(() => import("@/pages/admin/chat"));
 const AdminActivityLog = lazy(() => import("@/pages/admin/activity-log"));
 const AdminCoupons = lazy(() => import("@/pages/admin/coupons"));
-const AdminOwnerStudio = lazy(() => import("@/pages/admin/owner-studio"));
-const StudioAdminPage = lazy(() => import("@/pages/admin/studio-admin-page"));
 
 // ── Suspense fallback ──
 function PageSkeleton() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin opacity-50" />
+      <div className="w-full max-w-md space-y-3 px-6" aria-label="Loading"><div className="glass-skeleton h-4 w-2/3 rounded" /><div className="glass-skeleton h-4 w-full rounded" /><div className="glass-skeleton h-4 w-1/2 rounded" /></div>
     </div>
   );
 }
@@ -181,8 +180,8 @@ function AdminRouter() {
         <Route path="/admin/activity" component={AdminActivityLog} />
         <Route path="/admin/chat" component={AdminChat} />
         <Route path="/admin/coupons" component={AdminCoupons} />
-        <Route path="/admin/owner-studio" component={AdminOwnerStudio} />
-        <Route path="/admin/studio/:slug" component={StudioAdminPage} />
+        <Route path="/admin/discount-codes" component={AdminCoupons} />
+        <Route path="/admin/manage/:kind" component={ContentManagement} />
 
         <Route component={NotFound} />
       </Switch>
@@ -194,7 +193,6 @@ function CustomerLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useMobile();
   useVisitorTracking();
   const settings = useSettings();
-  const { backToSchoolEnabled } = useOperationalSettings();
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
   const [location, navigate] = useLocation();
 
@@ -208,27 +206,6 @@ function CustomerLayout({ children }: { children: React.ReactNode }) {
       navigate("/maintenance");
     }
   }, [settings.maintenance_mode, user?.isAdmin, location]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // A hidden seasonal collection has no customer route or blank placeholder.
-  useEffect(() => {
-    if (!backToSchoolEnabled && location === "/back-to-school") {
-      navigate("/shop");
-    }
-  }, [backToSchoolEnabled, location, navigate]);
-
-  // Dynamic SEO metadata from site settings
-  useEffect(() => {
-    if (settings.site_title) document.title = settings.site_title;
-    const setMeta = (selector: string, value: string) => {
-      const element = document.querySelector<HTMLMetaElement>(selector);
-      if (element && value) element.content = value;
-    };
-    setMeta('meta[name="description"]', settings.site_meta_description);
-    setMeta('meta[property="og:title"]', settings.site_title);
-    setMeta('meta[property="og:description"]', settings.site_meta_description);
-    setMeta('meta[name="twitter:title"]', settings.site_title);
-    setMeta('meta[name="twitter:description"]', settings.site_meta_description);
-  }, [settings.site_title, settings.site_meta_description]);
 
   return isMobile ? <MobileLayout>{children}</MobileLayout> : <Layout>{children}</Layout>;
 }
@@ -257,15 +234,16 @@ function MainRouter() {
             <Route path="/account/register" component={AccountRegister} />
             <Route path="/returns" component={Returns} />
             <Route path="/basics" component={Basics} />
-            <Route path="/back-to-school" component={BackToSchool} />
             <Route path="/request-product" component={RequestProduct} />
             <Route path="/games" component={Games} />
             <Route path="/games/:id" component={GameDetail} />
             <Route path="/receipt/:id" component={Receipt} />
             <Route path="/support" component={SupportPage} />
+            <Route path="/news" component={ManagedContent} />
+            <Route path="/news/:slug" component={ManagedContent} />
             <Route path="/wishlist" component={WishlistPage} />
             <Route path="/maintenance" component={MaintenancePage} />
-            <Route path="/:slug" component={CustomStorePage} />
+            <Route path="/:slug" component={ManagedContent} />
 
             <Route component={NotFound} />
           </Switch>
@@ -303,6 +281,7 @@ function App() {
                 <SiteEffects />
                 <LoadingScreen />
                 <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                  <RouteSeo />
                   <EmergencyShutdownOverlay />
                   <ErrorBoundary>
                     <Suspense fallback={<PageSkeleton />}>

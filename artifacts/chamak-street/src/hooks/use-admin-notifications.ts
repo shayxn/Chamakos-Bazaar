@@ -118,7 +118,7 @@ async function registerSW(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
   try {
     const swUrl = `${BASE}/sw.js`;
-    // scope must not exceed the SW file's own directory — use BASE_URL (e.g. /chamak-street/ in dev, / in prod)
+    // scope must not exceed the SW file's own directory — use BASE_URL (e.g. /<artifact-base>/ in dev, / in prod)
     const swScope = import.meta.env.BASE_URL || "/";
     const reg = await navigator.serviceWorker.register(swUrl, { scope: swScope });
     await navigator.serviceWorker.ready;
@@ -238,7 +238,7 @@ export function useAdminPushNotifications() {
           try {
             new Notification("IMAGINATE Admin 🔔", {
               body: "Notifications are on. You'll receive real-time updates for new orders, customer activity, and important IMAGINATE alerts.",
-              icon: "/favicon.ico",
+              icon: "/imaginate-icon-192.png",
               tag: "fp-notifications-enabled",
             });
           } catch { /* ignore if service worker context blocks direct Notification */ }

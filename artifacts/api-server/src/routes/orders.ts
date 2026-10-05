@@ -1,4 +1,8 @@
 import { Router } from "express";
+import { createValidatedOrder, CheckoutError } from "../lib/checkout-service";
+import { clearProductCaches } from "./products";
+import { ensureCommerceSchema } from "../lib/commerce-schema";
+import { releaseOrderStock } from "../lib/order-stock";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable, customerAccountsTable } from "@workspace/db";
 import { eq, inArray, asc, desc, or, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
@@ -8,6 +12,7 @@ import { logAdminActivity } from "./admin-activity";
 import { getDeliveryCharges, DELIVERY_METHODS } from "../lib/delivery";
 
 const router = Router();
+router.use(async (_req,_res,next)=>{await ensureCommerceSchema();next();});
 
 const ordersListCache = createTtlCache<ReturnType<typeof serializeOrder>[]>(15_000);
 
@@ -50,6 +55,7 @@ function serializeOrder(order: typeof ordersTable.$inferSelect, items: Array<typ
   return {
     ...order,
     total: Number(order.total),
+    discountAmount:Number(order.discountAmount??0),
     deliveryCharge: Number(order.deliveryCharge ?? 25),
     tip: Number(order.tip ?? 0),
     createdAt: order.createdAt.toISOString(),
@@ -114,7 +120,7 @@ router.get("/orders/my-latest", async (req, res) => {
 
   // Find most recent order matching by phone OR email
   const conditions = [];
-  if (customer.phone) conditions.push(eq(ordersTable.customerPhone, customer.phone));
+  conditions.push(eq(ordersTable.customerId,customerId));
   if (customer.email) conditions.push(eq(ordersTable.customerEmail, customer.email));
 
   if (conditions.length === 0) {
@@ -168,134 +174,22 @@ router.get("/orders/track", async (req, res) => {
 });
 
 router.post("/orders", async (req, res) => {
-  const body = req.body as {
-    customerName: string;
-    customerPhone: string;
-    customerAddress: string;
-    paymentMethod?: string;
-    deliveryMethod?: string;
-    tip?: number;
-  };
-  if (!body.customerName || !body.customerPhone || !body.customerAddress) {
-    res.status(400).json({ error: "customerName, customerPhone and customerAddress required" });
-    return;
+  if (req.body?.paymentMethod && req.body.paymentMethod !== "cod") {
+    res.status(400).json({ error: "Use the secure payment provider checkout for online payments." }); return;
   }
-  const charges = await getDeliveryCharges();
-  const deliveryMethod = (body.deliveryMethod && (DELIVERY_METHODS as readonly string[]).includes(body.deliveryMethod))
-    ? body.deliveryMethod : "standard";
-  const deliveryCharge = charges[deliveryMethod] ?? 25;
-  const rawTip = Number(body.tip ?? 0);
-  const tip = isNaN(rawTip) || rawTip < 0 ? 0 : Math.min(rawTip, 500);
-
-  const session = req.session as Record<string, unknown>;
-  const sessionId = session.cartId as string | undefined;
-
-  let cartItems: Array<{ productId: number; productName: string; price: number; quantity: number; size: string | null; isPreOrder: boolean }> = [];
-
-  if (sessionId) {
-    const rawItems = await db
-      .select({
-        productId: cartItemsTable.productId,
-        productName: productsTable.name,
-        price: productsTable.price,
-        quantity: cartItemsTable.quantity,
-        size: cartItemsTable.size,
-        isPreOrder: productsTable.isPreOrder,
-      })
-      .from(cartItemsTable)
-      .leftJoin(productsTable, eq(cartItemsTable.productId, productsTable.id))
-      .where(eq(cartItemsTable.sessionId, sessionId));
-
-    cartItems = rawItems.map((i) => ({
-      productId: i.productId,
-      productName: i.productName ?? "Unknown",
-      price: Number(i.price ?? 0),
-      quantity: i.quantity,
-      size: i.size ?? null,
-      isPreOrder: i.isPreOrder ?? false,
-    }));
-  }
-
-  if (cartItems.length === 0) {
-    res.status(400).json({ error: "Cart is empty" });
-    return;
-  }
-
-  const itemsSubtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
-  // ── Coupon ──────────────────────────────────────────────────────────────────
-  const rawCouponCode = (body as any).couponCode as string | undefined;
-  let discountAmount = 0;
-  let appliedCouponCode: string | null = null;
-  if (rawCouponCode?.trim()) {
-    try {
-      const { applyCoupon } = await import("./coupons");
-      const couponResult = await applyCoupon(rawCouponCode.trim(), itemsSubtotal);
-      if (couponResult) {
-        discountAmount = couponResult.discountAmount;
-        appliedCouponCode = couponResult.couponCode;
-      } else {
-        res.status(400).json({ error: "This coupon is invalid, expired, or no longer available" });
-        return;
-      }
-    } catch {
-      res.status(400).json({ error: "This coupon could not be applied" });
-      return;
+  let created;
+  try { created = await createValidatedOrder(req,"cod"); }
+  catch (error) {
+    if (error instanceof CheckoutError || /discount|stock|bag|size/i.test((error as Error).message)) {
+      res.status(400).json({error:(error as Error).message}); return;
     }
+    throw error;
   }
-
-  const total = Math.max(0, itemsSubtotal + deliveryCharge + tip - discountAmount);
-  const hasPreOrder = cartItems.some((i) => i.isPreOrder);
-
-  const orderNumber = await generateOrderNumber();
-
-  const [order] = await db.insert(ordersTable).values({
-    orderNumber,
-    customerName: body.customerName,
-    customerEmail: null,
-    customerPhone: body.customerPhone,
-    customerAddress: body.customerAddress,
-    paymentMethod: body.paymentMethod ?? "cod",
-    deliveryMethod,
-    deliveryCharge: String(deliveryCharge),
-    tip: String(tip),
-    total: String(total || 0),
-    status: "pending",
-    hasPreOrder,
-  }).returning();
-
-  // Store coupon data if applied
-  if (appliedCouponCode) {
-    await db.execute(sql`
-      UPDATE orders SET coupon_code = ${appliedCouponCode}, discount_amount = ${discountAmount} WHERE id = ${order.id}
-    `);
-  }
-
-  if (cartItems.length > 0) {
-    await db.insert(orderItemsTable).values(
-      cartItems.map((i) => ({
-        orderId: order.id,
-        productId: i.productId,
-        productName: i.productName,
-        price: String(i.price),
-        quantity: i.quantity,
-        size: i.size,
-        isPreOrder: i.isPreOrder,
-      }))
-    );
-    if (sessionId) {
-      await db.delete(cartItemsTable).where(eq(cartItemsTable.sessionId, sessionId));
-    }
-  }
-
-  await db.insert(orderTrackingEventsTable).values({
-    orderId: order.id,
-    status: "pending",
-    note: "Order placed successfully",
-  });
+  const order = created.order;
 
   const fullOrder = await buildOrder(order.id);
   ordersListCache.clear();
+  clearProductCaches();
   (req.session as Record<string, unknown>).lastOrderId = order.id;
 
   // Fire push notification asynchronously — don't block response
@@ -323,6 +217,11 @@ router.get("/orders/:id", async (req, res) => {
   const userId = session.userId as number | undefined;        // admin session
   const customerId = session.customerId as number | undefined; // customer account session
   const lastOrderId = session.lastOrderId as number | undefined; // guest last order
+  if(userId){
+    let authorized=false;
+    await requireAdmin(req,res,()=>{authorized=true;});
+    if(!authorized)return;
+  }
 
   // Must have at least one form of identity
   if (!userId && !customerId && lastOrderId !== id) {
@@ -341,7 +240,7 @@ router.get("/orders/:id", async (req, res) => {
       .where(eq(customerAccountsTable.id, customerId));
     const ownsOrder =
       customer && (
-        (customer.phone && customer.phone === order.customerPhone) ||
+        order.customerId===customerId ||
         (customer.email && customer.email === order.customerEmail)
       );
     const isLastOrder = lastOrderId === id;
@@ -360,7 +259,7 @@ router.patch("/orders/:id", requireAdmin, async (req, res) => {
   // Allowlist only admin-editable fields — never let clients mutate totals, ids, or session data
   const { status, customerName, customerPhone, customerEmail, customerAddress, notes } = req.body as Record<string, string | undefined>;
   const patch: Record<string, unknown> = {};
-  if (status !== undefined) patch.status = status;
+  if (status !== undefined) {res.status(400).json({error:"Use the order status control to change status."});return;}
   if (customerName !== undefined) patch.customerName = customerName;
   if (customerPhone !== undefined) patch.customerPhone = customerPhone;
   if (customerEmail !== undefined) patch.customerEmail = customerEmail;
@@ -381,7 +280,7 @@ router.patch("/orders/:id/status", requireAdmin, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { status, delayReason, delayedUntil, cancelReason, refundInitiated, adminName } = 
     req.body as { status: string; delayReason?: string; delayedUntil?: string; cancelReason?: string; refundInitiated?: boolean; adminName?: string };
-  if (!status) { res.status(400).json({ error: "status required" }); return; }
+  if (!["pending","confirmed","preparing","shipped","out_for_delivery","delivered","cancelled","delayed","pre_order"].includes(status)) { res.status(400).json({ error: "Choose a valid order status." }); return; }
   
   const setData: Record<string, unknown> = { status };
   if (status === "delayed") { 
@@ -394,7 +293,21 @@ router.patch("/orders/:id/status", requireAdmin, async (req, res) => {
   }
   if (delayedUntil !== undefined && status !== "delayed") setData.delayedUntil = delayedUntil;
   
-  await db.update(ordersTable).set(setData as any).where(eq(ordersTable.id, id));
+  const updated=await db.transaction(async tx=>{
+    const current=rowsForStatus(await tx.execute(sql`SELECT id,status,payment_method,payment_status FROM orders WHERE id=${id} FOR UPDATE`))[0];
+    if(!current)return false;
+    if(current.status==="cancelled"&&status!=="cancelled")throw new CheckoutError("Cancelled orders cannot be reopened; create a new order to reserve stock.");
+    if(current.payment_method==="ziina"&&current.payment_status!=="paid"&&!["pending","cancelled","delayed"].includes(status))
+      throw new CheckoutError("Online payment has not been verified by the provider.");
+    await tx.update(ordersTable).set(setData as any).where(eq(ordersTable.id,id));
+    if(status==="cancelled")await releaseOrderStock(id,tx);
+    return true;
+  }).catch(error=>{
+    if(error instanceof CheckoutError){res.status(409).json({error:error.message});return false;}throw error;
+  });
+  if(res.headersSent)return;
+  if(!updated){res.sendStatus(404);return;}
+  clearProductCaches();
   
   // Log tracking event
   const trackingNote = 
@@ -407,7 +320,7 @@ router.patch("/orders/:id/status", requireAdmin, async (req, res) => {
   if (!order) { res.status(404).json({ error: "Not found" }); return; }
   
   // Log admin activity
-  logAdminActivity(adminName ?? "Admin", status, order.orderNumber ?? `#${order.id}`).catch(() => {});
+  logAdminActivity(`Admin ${req.session?.userId}`, `Order ${status}`, order.orderNumber ?? `#${order.id}`).catch(() => {});
   
   // Send customer push notification
   sendCustomerStatusPush(order, status, { delayReason, delayedUntil, cancelReason, refundInitiated }).catch(() => {});
@@ -438,3 +351,4 @@ router.delete("/orders/:id", requireAdmin, async (req, res) => {
 });
 
 export default router;
+function rowsForStatus(result:unknown):Record<string,any>[] {return Array.isArray(result)?result:(result as any)?.rows??[];}

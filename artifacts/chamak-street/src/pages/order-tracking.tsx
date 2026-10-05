@@ -23,7 +23,7 @@ type TrackingResult = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Package; color: string }> = {
-  pending: { label: "Order Placed", icon: Clock, color: "text-yellow-400" },
+  pending: { label: "Order Placed", icon: Clock, color: "text-violet-400" },
   confirmed: { label: "Confirmed", icon: CheckCircle2, color: "text-blue-400" },
   packed: { label: "Packed", icon: Package, color: "text-purple-400" },
   shipped: { label: "Shipped", icon: Truck, color: "text-primary" },
@@ -105,7 +105,7 @@ export default function OrderTracking() {
             <div>
               <label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground mb-2 block">Order Number</label>
               <Input
-                placeholder="CHM-100284"
+                placeholder="IMG-…"
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
                 className="h-12 bg-background border-border/60 focus-visible:ring-primary font-mono text-lg"

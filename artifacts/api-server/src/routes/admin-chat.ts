@@ -308,7 +308,7 @@ router.post("/admin/profile/pfp", requireAdmin, async (req, res) => {
 });
 
 router.post("/admin/chat/push-subscribe", requireAdmin, async (req,res) => { const admin=await me(req); const {endpoint,p256dh,auth}=req.body??{}; if(!endpoint||!p256dh||!auth)return void res.status(400).json({error:"Missing fields"}); await initPush(); await saveAdminSubscription(endpoint,p256dh,auth,admin.id); res.json({ok:true}); });
-router.delete("/admin/chat/push-subscribe", requireAdmin, async (req,res) => { const endpoint=typeof req.body?.endpoint==="string"?req.body.endpoint:""; if(!endpoint)return void res.status(400).json({error:"Missing endpoint"}); await removeAdminSubscription(endpoint); res.status(204).end(); });
+router.delete("/admin/chat/push-subscribe", requireAdmin, async (req,res) => { const endpoint=typeof req.body?.endpoint==="string"?req.body.endpoint:""; if(!endpoint)return void res.status(400).json({error:"Missing endpoint"}); await removeAdminSubscription(endpoint,String(req.session?.userId)); res.status(204).end(); });
 router.get("/admin/chat/online", requireAdmin, (_req,res)=>res.json(online()));
 router.get("/admin/chat/ice-config", requireAdmin, (_req,res) => { const iceServers:any[]=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}]; if(process.env.TURN_URL&&process.env.TURN_USERNAME&&process.env.TURN_CREDENTIAL)iceServers.push({urls:process.env.TURN_URL,username:process.env.TURN_USERNAME,credential:process.env.TURN_CREDENTIAL}); res.json({iceServers}); });
 

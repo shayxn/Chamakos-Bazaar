@@ -12,7 +12,7 @@ type RefundReq = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
+  pending: "text-violet-400 bg-violet-500/10 border-violet-500/30",
   approved: "text-green-400 bg-green-500/10 border-green-500/30",
   rejected: "text-red-400 bg-red-500/10 border-red-500/30",
   refunded: "text-blue-400 bg-blue-500/10 border-blue-500/30",

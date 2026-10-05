@@ -8,6 +8,7 @@ import type { RequestHandler } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger";
+import { requireAdmin as authenticatedAdmin } from "../lib/auth-middleware";
 
 const useCloudinary = Boolean(
   process.env.CLOUDINARY_CLOUD_NAME &&
@@ -34,30 +35,14 @@ const upload = multer({
   storage: useCloudinary ? cloudinaryStorage : localStorage,
   limits: { fileSize: maxUploadSize },
   fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) cb(null, true);
+    if (["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/webm","video/quicktime"].includes(file.mimetype)) cb(null, true);
     else cb(new Error("Only image and video files allowed"));
   },
 });
 
 const router = Router();
 
-const requireAdmin: RequestHandler = async (req, res, next) => {
-  const session = req.session as Record<string, unknown>;
-  const userId = session?.userId as number | undefined;
-
-  if (!userId) {
-    res.status(401).json({ error: "Not authenticated" });
-    return;
-  }
-
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-  if (!user?.isAdmin) {
-    res.status(403).json({ error: "Admin access required" });
-    return;
-  }
-
-  next();
-};
+const requireAdmin: RequestHandler = authenticatedAdmin;
 
 function getMediaType(file: Express.Multer.File): "image" | "video" {
   return file.mimetype.startsWith("video/") ? "video" : "image";

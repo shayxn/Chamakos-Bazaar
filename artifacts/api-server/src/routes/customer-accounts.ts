@@ -3,6 +3,8 @@ import { db, customerAccountsTable, customerAddressesTable, ordersTable, orderIt
 import { eq, desc, or, inArray } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import type { Request } from "express";
+import { ensureCommerceSchema } from "../lib/commerce-schema";
+import { randomInt } from "node:crypto";
 import { sendActivityPush, initPush } from "../lib/push";
 import { sendVerificationEmail } from "../lib/email";
 
@@ -27,48 +29,14 @@ setInterval(() => {
 }, 15 * 60 * 1000);
 
 const router = Router();
+router.use(async(_req,_res,next)=>{await ensureCommerceSchema();next();});
+router.post("/customers/register", (_req,res)=>{res.status(409).json({error:"Please use email verification to create your account."});});
 
 
 function getCustomerId(req: Request): number | null {
   const s = (req as any).session;
   return s?.customerId ?? null;
 }
-
-router.post("/customers/register", async (req, res) => {
-  const { name, email, password, phone } = req.body as Record<string, string>;
-  if (!name || !email || !password) {
-    res.status(400).json({ error: "Name, email, and password are required" });
-    return;
-  }
-  if (password.length < 6) {
-    res.status(400).json({ error: "Password must be at least 6 characters" });
-    return;
-  }
-  const existing = await db.select({ id: customerAccountsTable.id }).from(customerAccountsTable).where(eq(customerAccountsTable.email, email.toLowerCase()));
-  if (existing.length > 0) {
-    res.status(409).json({ error: "An account with this email already exists" });
-    return;
-  }
-  const passwordHash = await bcrypt.hash(password, 12);
-  const [customer] = await db.insert(customerAccountsTable).values({
-    name, email: email.toLowerCase(), passwordHash, phone: phone || null,
-  }).returning({ id: customerAccountsTable.id, name: customerAccountsTable.name, email: customerAccountsTable.email, phone: customerAccountsTable.phone, createdAt: customerAccountsTable.createdAt });
-  const s = (req as any).session;
-  if (s) s.customerId = customer.id;
-
-  // Push notification for new account (async, don't block response)
-  (async () => {
-    try {
-      const setting = await db.select().from(siteSettingsTable).where(eq(siteSettingsTable.key, "notif_new_accounts"));
-      if (setting.length > 0 && setting[0].value === "true") {
-        await initPush();
-        await sendActivityPush("NEW_ACCOUNT", { email: customer.email });
-      }
-    } catch {}
-  })();
-
-  res.status(201).json(customer);
-});
 
 /* ─── Step 1: send verification code ───────────────────────────────────── */
 router.post("/customers/send-verification", async (req, res) => {
@@ -90,7 +58,7 @@ router.post("/customers/send-verification", async (req, res) => {
     res.status(429).json({ error: `Too many attempts. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.` }); return;
   }
 
-  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const code = String(randomInt(100000,1000000));
   const passwordHash = await bcrypt.hash(password, 12);
 
   verifications.set(normalEmail, {
@@ -101,6 +69,10 @@ router.post("/customers/send-verification", async (req, res) => {
 
   const emailSent = await sendVerificationEmail(email, code);
   const isDev = process.env.NODE_ENV !== "production";
+  if(!emailSent&&!isDev){
+    verifications.delete(normalEmail);
+    res.status(503).json({error:"Verification email delivery is temporarily unavailable. No account has been created."});return;
+  }
 
   res.json({
     ok: true,
@@ -222,9 +194,10 @@ router.get("/customers/orders", async (req, res) => {
     .from(customerAccountsTable).where(eq(customerAccountsTable.id, customerId));
   if (!customer) { res.status(401).json({ error: "Not found" }); return; }
 
-  // Match orders by email OR phone — checkout only collects phone, not email
-  const conditions = [eq(ordersTable.customerEmail, customer.email)];
-  if (customer.phone) conditions.push(eq(ordersTable.customerPhone, customer.phone));
+  // A profile phone number is not proof of historical guest-order ownership.
+  const conditions = [eq(ordersTable.customerId,customerId),eq(ordersTable.customerEmail,customer.email)];
+  const lastOrderId=(req.session as Record<string,unknown>).lastOrderId;
+  if(typeof lastOrderId==="number")conditions.push(eq(ordersTable.id,lastOrderId));
   const orders = await db.select().from(ordersTable)
     .where(or(...conditions))
     .orderBy(desc(ordersTable.createdAt));

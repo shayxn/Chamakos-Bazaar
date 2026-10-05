@@ -1,5 +1,6 @@
 /* @refresh reset */
 import { useState, useEffect, useRef } from "react";
+import { useSettings } from "@/lib/use-settings";
 import { useGetCart, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Redirect, useLocation } from "wouter";
@@ -86,6 +87,7 @@ export default function Checkout() {
   const [, setLocation] = useLocation();
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
+  const onlineAvailable=useSettings().online_payments_available==="true";
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("standard");
   const [tipOption, setTipOption] = useState<TipOption>("none");
   const [customTipRaw, setCustomTipRaw] = useState("");
@@ -103,24 +105,30 @@ export default function Checkout() {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
 
-  const applyCouponCode = async () => {
-    if (!couponInput.trim()) return;
+  const [replaceTarget, setReplaceTarget] = useState<string | null>(null);
+
+  const applyCouponCode = async (confirmed = false) => {
+    const code = couponInput.trim();
+    if (!code) return;
+    if (couponData && code.toUpperCase() !== couponData.code.toUpperCase() && !confirmed) { setReplaceTarget(code); return; }
+    setReplaceTarget(null);
+    if (couponData && code.toUpperCase() === couponData.code.toUpperCase()) { setCouponInput(""); return; }
     setCouponLoading(true); setCouponError(null);
     try {
       const res = await fetch(`${BASE}/api/coupons/validate`, {
         method: "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: couponInput.trim(), orderTotal: subtotal }),
+        body: JSON.stringify({ code, customerPhone:form.getValues("customerPhone") }),
       });
       const data = await res.json() as any;
-      if (!res.ok) throw new Error(data.error ?? "Invalid coupon");
-      setCouponData(data);
+      if (!res.ok) throw new Error(data.error ?? "Invalid discount code");
+      setCouponData(data); setCouponInput("");
     } catch (err) {
-      setCouponError(err instanceof Error ? err.message : "Invalid coupon code");
-      setCouponData(null);
+      setCouponError(err instanceof Error ? err.message : "Invalid discount code");
     } finally { setCouponLoading(false); }
   };
 
+  const cancelReplace = () => { setReplaceTarget(null); setCouponInput(""); };
   const removeCoupon = () => { setCouponData(null); setCouponInput(""); setCouponError(null); };
 
   // Fetch admin-configured delivery prices with fallback to defaults
@@ -193,7 +201,7 @@ export default function Checkout() {
         tip: tipAmount,
       });
       queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
-      trackOrder(`FP${String(order.id).padStart(4, "0")}`);
+      trackOrder((order as any).orderNumber||`IMG-${order.id}`);
       setLocation(`/order/${order.id}`);
     } catch (err) {
       setPaymentError(err instanceof Error ? err.message : "Order failed");
@@ -328,7 +336,7 @@ export default function Checkout() {
                             onClick={() => setDeliveryMethod(opt.id)}
                             className={`relative w-full flex items-center gap-3 p-4 text-left transition-all overflow-hidden ${
                               showGlow
-                                ? "rounded-xl border-2 border-orange-500/50"
+                                ? "rounded-xl border-2 border-violet-500/50"
                                 : selected
                                 ? "rounded-xl border-2 border-primary glass"
                                 : "rounded-xl border-2 border-border/40 glass-sm hover:border-primary/40"
@@ -349,7 +357,7 @@ export default function Checkout() {
                                   animate={{ x: ["0%", "35%", "5%", "0%"], y: ["0%", "20%", "-15%", "0%"] }}
                                   transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                                   style={{
-                                    background: "radial-gradient(ellipse 90px 65px at 15% 55%, rgba(255,100,0,0.6), transparent 70%)",
+                                    background: "radial-gradient(ellipse 90px 65px at 15% 55%, rgba(167,139,250,0.6), transparent 70%)",
                                     filter: "blur(6px)",
                                   }}
                                 />
@@ -359,7 +367,7 @@ export default function Checkout() {
                                   animate={{ x: ["0%", "-30%", "15%", "0%"], y: ["0%", "-20%", "30%", "0%"] }}
                                   transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 2 }}
                                   style={{
-                                    background: "radial-gradient(ellipse 80px 55px at 78% 45%, rgba(255,205,0,0.55), transparent 70%)",
+                                    background: "radial-gradient(ellipse 80px 55px at 78% 45%, rgba(167,139,250,0.55), transparent 70%)",
                                     filter: "blur(8px)",
                                   }}
                                 />
@@ -369,7 +377,7 @@ export default function Checkout() {
                                   animate={{ x: ["0%", "12%", "-8%", "0%"], y: ["0%", "-12%", "18%", "0%"], opacity: [0.3, 0.6, 0.3] }}
                                   transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 4 }}
                                   style={{
-                                    background: "radial-gradient(ellipse 65px 45px at 50% 50%, rgba(255,155,0,0.5), transparent 70%)",
+                                    background: "radial-gradient(ellipse 65px 45px at 50% 50%, rgba(167,139,250,0.5), transparent 70%)",
                                     filter: "blur(10px)",
                                   }}
                                 />
@@ -384,7 +392,7 @@ export default function Checkout() {
                                 <p className="font-black uppercase tracking-wide text-sm">{opt.label}</p>
                                 {opt.badge && (
                                   <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full"
-                                    style={{ background: "rgba(255,102,0,0.2)", color: "#ff6600", border: "1px solid rgba(255,102,0,0.4)" }}>
+                                    style={{ background: "rgba(167,139,250,0.2)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.4)" }}>
                                     ⚡ {opt.badge}
                                   </span>
                                 )}
@@ -471,7 +479,7 @@ export default function Checkout() {
                       </div>
                     </button>
                     <button
-                      type="button" onClick={() => setPaymentMethod("ziina")}
+                      type="button" disabled={!onlineAvailable} onClick={() => setPaymentMethod("ziina")}
                       className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${paymentMethod === "ziina" ? "border-primary glass" : "border-border/40 glass-sm hover:border-primary/40"}`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${paymentMethod === "ziina" ? "border-primary" : "border-muted-foreground"}`}>
@@ -479,6 +487,7 @@ export default function Checkout() {
                       </div>
                       <div className="flex items-center gap-2 flex-1">
                         <div className="bg-[#6C4CFF] text-white font-black text-xs px-2 py-1 rounded shrink-0">ziina</div>
+                        {!onlineAvailable&&<span className="text-xs text-white/50">Currently unavailable</span>}
                         <div>
                           <p className="font-black uppercase tracking-wider text-sm">Ziina Online Payment</p>
                           <p className="text-xs text-muted-foreground">Pay securely online through Ziina</p>
@@ -496,7 +505,7 @@ export default function Checkout() {
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                     <Button
                       type="submit" size="lg"
-                      className="w-full h-14 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(255,102,0,0.3)] hover:shadow-[0_0_35px_rgba(255,102,0,0.55)] transition-all"
+                      className="w-full h-14 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(167,139,250,0.3)] hover:shadow-[0_0_35px_rgba(167,139,250,0.55)] transition-all"
                       disabled={busy}
                     >
                       {busy ? (
@@ -543,7 +552,7 @@ export default function Checkout() {
                         </div>
                         <div>
                           <h4 className="font-bold text-sm uppercase leading-tight line-clamp-2">{item.productName}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Qty: {item.quantity}{item.size ? ` | Size: ${item.size}` : ""}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Qty: {item.quantity}{item.size ? ` | Size: ${item.size}` : ""}{item.color ? ` | Color: ${item.color}` : ""}</p>
                         </div>
                       </div>
                       <div className="font-mono font-bold text-sm shrink-0">AED {(item.price * item.quantity).toFixed(2)}</div>
@@ -554,8 +563,8 @@ export default function Checkout() {
 
               {/* Coupon input */}
               <div className="border-t border-white/10 pt-4 space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Promo Code</p>
-                {couponData ? (
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Discount Code</p>
+                {couponData && (
                   <div className="flex items-center justify-between glass-sm border border-green-500/30 rounded-xl px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5 text-green-400 shrink-0" />
@@ -570,20 +579,31 @@ export default function Checkout() {
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                ) : (
+                )}
+                {replaceTarget && (
+                  <div role="alertdialog" className="rounded-xl border border-[rgba(124,58,237,0.4)] bg-black/60 p-3 space-y-2" data-testid="dialog-replace-code">
+                    <p className="text-xs font-bold text-white">Replace current code?</p>
+                    <p className="text-[11px] text-muted-foreground">Only one discount code can be used per order. {couponData?.code} will be replaced by {replaceTarget.toUpperCase()}.</p>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => applyCouponCode(true)} className="flex-1 h-9 rounded-lg bg-primary text-xs font-black uppercase tracking-wider text-white" data-testid="button-replace-code-confirm">Replace</button>
+                      <button type="button" onClick={cancelReplace} className="flex-1 h-9 rounded-lg border border-white/20 text-xs font-black uppercase tracking-wider" data-testid="button-replace-code-cancel">Cancel</button>
+                    </div>
+                  </div>
+                )}
+                {(
                   <div className="flex gap-2">
                     <div className="flex-1 flex items-center gap-2 glass-sm border border-border/40 rounded-xl px-3 h-10">
                       <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       <input
-                        type="text" placeholder="Enter coupon code" value={couponInput}
+                        type="text" placeholder="Enter discount code" value={couponInput}
                         onChange={e => setCouponInput(e.target.value.toUpperCase())}
-                        onKeyDown={e => e.key === "Enter" && applyCouponCode()}
+                        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); applyCouponCode(); } }}
                         className="flex-1 bg-transparent outline-none text-xs font-mono font-bold tracking-widest placeholder:text-muted-foreground/50"
                       />
                     </div>
                     <button
                       type="button"
-                      onClick={applyCouponCode} disabled={couponLoading || !couponInput.trim()}
+                      onClick={() => applyCouponCode()} disabled={couponLoading || !couponInput.trim()}
                       className="px-3 h-10 rounded-xl bg-primary/10 border border-primary/30 text-primary text-xs font-black uppercase tracking-wider hover:bg-primary/20 transition-colors disabled:opacity-50 flex items-center justify-center min-w-[60px]"
                     >
                       {couponLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Apply"}
@@ -617,7 +637,7 @@ export default function Checkout() {
                       className="flex justify-between text-sm"
                     >
                       <span className="text-muted-foreground flex items-center gap-1">
-                        <Tag className="h-3 w-3 text-green-400" /> Coupon <span className="text-green-400 font-mono font-bold text-xs">{couponData?.code}</span>
+                        <Tag className="h-3 w-3 text-green-400" /> Discount code <span className="text-green-400 font-mono font-bold text-xs">{couponData?.code}</span>
                       </span>
                       <span className="font-mono font-bold text-green-400">−AED {discountAmount.toFixed(2)}</span>
                     </motion.div>
@@ -632,9 +652,9 @@ export default function Checkout() {
                       className="flex justify-between text-sm"
                     >
                       <span className="text-muted-foreground flex items-center gap-1">
-                        <Star className="h-3 w-3 text-yellow-400" /> Tip
+                        <Star className="h-3 w-3 text-violet-400" /> Tip
                       </span>
-                      <span className="font-mono font-bold text-yellow-400">AED {tipAmount.toFixed(2)}</span>
+                      <span className="font-mono font-bold text-violet-400">AED {tipAmount.toFixed(2)}</span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -643,7 +663,7 @@ export default function Checkout() {
                   <span className="font-black uppercase tracking-wider">Total</span>
                   <motion.span
                     key={grandTotal}
-                    initial={{ scale: 1.08, color: "#ff6600" }} animate={{ scale: 1, color: "#ff6600" }}
+                    initial={{ scale: 1.08, color: "#a78bfa" }} animate={{ scale: 1, color: "#a78bfa" }}
                     className="font-mono text-2xl font-black text-primary"
                   >
                     AED {grandTotal.toFixed(2)}

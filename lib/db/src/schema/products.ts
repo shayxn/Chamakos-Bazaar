@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, integer, boolean, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, integer, boolean, timestamp, uniqueIndex, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -15,6 +15,11 @@ export const productsTable = pgTable("products", {
   rep: boolean("rep").notNull().default(false),
   sizes: text("sizes"),
   colors: text("colors"),
+  compareAtPrice: numeric("compare_at_price", { precision: 10, scale: 2 }),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  socialImage: text("social_image"),
+  variants: jsonb("variants").$type<{id:string;size:string;color:string;stock:number;price:number|null}[]>().notNull().default([]),
   isPreOrder: boolean("is_pre_order").notNull().default(false),
   preOrderLabel: text("pre_order_label"),
   preOrderDate: text("pre_order_date"),

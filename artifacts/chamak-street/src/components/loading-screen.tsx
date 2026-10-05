@@ -41,14 +41,28 @@ export function LoadingScreen() {
     window.dispatchEvent(new Event("firstpick:boot-complete"));
   }, [skip, settings.isSuccess, operational.isSuccess, routeReady, fontsReady]);
 
+  const [leaving, setLeaving] = useState(false);
+  useEffect(() => {
+    if (visible || skip) return;
+    setLeaving(false);
+  }, [visible, skip]);
   if (!visible) return null;
   const failed = settings.isError || operational.isError;
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-7 bg-[#0d0d0f] px-6 text-center" role="status">
-      <img src={`${BASE}/imaginate-logo.png`} alt="IMAGINATE" width="200" className="h-auto w-44 object-contain" />
-      <div className="h-5 w-5 rounded-full border border-violet-300/30 border-t-violet-300 motion-safe:animate-spin" aria-hidden="true" />
-      <p className="text-xs tracking-wide text-white/60">{failed ? "The store could not be loaded." : slow ? "Taking longer than expected." : "Preparing the store…"}</p>
-      {(failed || slow) && <button className="rounded-lg border border-white/20 px-5 py-3 text-sm text-white hover:bg-white/5" onClick={() => window.location.reload()}>Retry loading</button>}
+    <div className="imaginate-boot fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-black px-6 text-center" role="status" aria-live="polite" data-leaving={leaving}>
+      <div className="imaginate-boot-glow" aria-hidden="true" />
+      <div className="imaginate-boot-logo relative">
+        <img src={`${BASE}/imaginate-logo.png`} alt="IMAGINATE" width="200" className="relative z-10 h-auto w-44 object-contain" />
+        <svg className="imaginate-bolt" viewBox="0 0 200 80" aria-hidden="true">
+          <polyline points="0,40 38,30 62,46 96,26 130,48 164,32 200,42" fill="none" stroke="#c4a7ff" strokeWidth="1.2" strokeLinejoin="round" />
+        </svg>
+      </div>
+      {(failed || slow) && (
+        <>
+          <p className="text-xs tracking-wide text-white/60">{failed ? "The store could not be loaded." : "Taking longer than expected."}</p>
+          <button className="rounded-lg border border-[rgba(124,58,237,0.5)] px-5 py-3 text-sm text-white hover:bg-white/5" onClick={() => window.location.reload()}>Retry loading</button>
+        </>
+      )}
     </div>
   );
 }

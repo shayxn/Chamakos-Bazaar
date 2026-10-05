@@ -257,7 +257,7 @@ export function BrandsSection() {
                   className="group flex flex-col items-center gap-3 cursor-pointer"
                 >
                   <div
-                    className="w-full aspect-square rounded-2xl flex items-center justify-center overflow-hidden border border-white/8 group-hover:border-primary/50 transition-all duration-300 shadow-lg group-hover:shadow-[0_8px_28px_rgba(255,102,0,0.2)]"
+                    className="w-full aspect-square rounded-2xl flex items-center justify-center overflow-hidden border border-white/8 group-hover:border-primary/50 transition-all duration-300 shadow-lg group-hover:shadow-[0_8px_28px_rgba(167,139,250,0.2)]"
                     style={{ backgroundColor: brand.bg }}
                   >
                     <BrandLogo brand={brand} />

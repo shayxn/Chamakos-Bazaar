@@ -9,6 +9,7 @@ import { logger } from "./lib/logger";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { requestSecurity } from "./lib/request-security";
 
 const app: Express = express();
 app.set("trust proxy", 1);
@@ -29,7 +30,8 @@ app.use(
   }),
 );
 
-app.use(cors({ origin: true, credentials: true }));
+app.use(requestSecurity);
+app.use(cors({ origin: false, credentials: true }));
 
 app.use("/api/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
 
@@ -37,7 +39,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const sessionSecret =
-  process.env.SESSION_SECRET ?? "chamak_street_fallback_secret_2024_do_not_use_in_prod";
+  process.env.SESSION_SECRET;
+if (!sessionSecret) throw new Error("SESSION_SECRET must be configured.");
 
 const isProduction = process.env.NODE_ENV === "production";
 

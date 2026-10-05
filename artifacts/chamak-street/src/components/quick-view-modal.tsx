@@ -150,7 +150,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
                         <Button
                           size="lg"
                           className={`w-full font-black uppercase tracking-widest ${
-                            isOutOfStock ? "opacity-50 cursor-not-allowed" : "fire-gradient border-none shadow-[0_0_20px_rgba(255,102,0,0.35)]"
+                            isOutOfStock ? "opacity-50 cursor-not-allowed" : "fire-gradient border-none shadow-[0_0_20px_rgba(167,139,250,0.35)]"
                           }`}
                           disabled={isOutOfStock || addToCart.isPending}
                           onClick={handleAdd}

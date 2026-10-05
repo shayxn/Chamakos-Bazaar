@@ -1,10 +1,22 @@
 // IMAGINATE — Push Notification Service Worker v4
 // Derive base path from this file's own URL so click-through URLs work in both
-// dev (/chamak-street/sw.js → base=/chamak-street) and prod (/sw.js → base=)
+// dev (/<artifact-base>/sw.js → base=/<artifact-base>) and prod (/sw.js → base=)
 const BASE_PATH = self.location.pathname.replace(/\/sw\.js$/, "");
 
-self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open("imaginate-brand-assets").then(cache=>cache.addAll([
+    `${BASE_PATH}/imaginate-logo.png`,`${BASE_PATH}/imaginate-icon-192.png`
+  ])).catch(()=>{}));
+  self.skipWaiting();
+});
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener("fetch", (event) => {
+  if(event.request.mode!=="navigate"||new URL(event.request.url).pathname.includes("/api/"))return;
+  event.respondWith(fetch(event.request).catch(()=>new Response(
+    '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline | IMAGINATE</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#000;color:#fff;font-family:Arial}main{max-width:420px;text-align:center;padding:24px}button{background:#b79cff;color:#000;border:0;padding:14px 28px;border-radius:24px;font-weight:bold}p{color:#aaa;line-height:1.6}</style></head><body><main><h1>IMAGINATE</h1><h2>You are offline</h2><p>Reconnect to load current products, stock, and your account. Orders and payments are never submitted offline.</p><button onclick="location.reload()">Try again</button></main></body></html>',
+    {headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}}
+  )));
+});
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
@@ -59,8 +71,8 @@ self.addEventListener("push", (event) => {
 
       return self.registration.showNotification(title || "IMAGINATE", {
         body: body || "",
-        icon: "/imaginate-icon-192.png",
-        badge: "/imaginate-icon-192.png",
+        icon: `${BASE_PATH}/imaginate-icon-192.png`,
+        badge: `${BASE_PATH}/imaginate-icon-192.png`,
         tag,
         requireInteraction,
         vibrate: type === "NEW_ORDER" ? [200, 100, 200, 100, 200] : [100, 50, 100],

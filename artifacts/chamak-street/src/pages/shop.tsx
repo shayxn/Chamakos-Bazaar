@@ -330,7 +330,7 @@ export default function Shop() {
             >
               <motion.div
                 className="w-16 h-16 rounded-2xl glass-liquid flex items-center justify-center mx-auto mb-5"
-                animate={{ boxShadow: ["0 0 0 0 rgba(255,102,0,0)", "0 0 0 10px rgba(255,102,0,0.08)", "0 0 0 0 rgba(255,102,0,0)"] }}
+                animate={{ boxShadow: ["0 0 0 0 rgba(167,139,250,0)", "0 0 0 10px rgba(167,139,250,0.08)", "0 0 0 0 rgba(167,139,250,0)"] }}
                 transition={{ duration: 2.8, repeat: Infinity }}
               >
                 <SlidersHorizontal className="h-7 w-7 text-white/35" />
@@ -366,7 +366,7 @@ export default function Shop() {
                       <TiltCard>
                       <div className="group cursor-pointer" data-testid={`card-product-${product.id}`}>
                         {/* Image */}
-                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(255,102,0,0.2)]">
+                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(167,139,250,0.2)]">
                           <Link href={`/product/${product.id}`} className="block w-full h-full">
                             {primaryMedia ? (
                               primaryMedia.type === "video" ? (
@@ -395,10 +395,10 @@ export default function Shop() {
                               <span className="bg-primary/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Featured</span>
                             )}
                             {product.sellingFast && (
-                              <span className="bg-orange-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Hot</span>
+                              <span className="bg-violet-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Hot</span>
                             )}
                             {(product as any).bestSeller && (
-                              <span className="bg-amber-400/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Best Seller</span>
+                              <span className="bg-violet-400/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Best Seller</span>
                             )}
                             {(product as any).trending && (
                               <span className="bg-cyan-400/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Trending</span>

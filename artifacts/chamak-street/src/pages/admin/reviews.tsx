@@ -174,7 +174,7 @@ export default function AdminReviews() {
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <span className="font-black text-sm">{review.customerName}</span>
                     {review.isVerified && <BadgeCheck className="h-4 w-4 text-primary" />}
-                    {review.isPinned && <Pin className="h-3.5 w-3.5 text-yellow-400" />}
+                    {review.isPinned && <Pin className="h-3.5 w-3.5 text-violet-400" />}
                     <div className="flex gap-0.5">
                       {[1,2,3,4,5].map((s) => <Star key={s} className={`h-3 w-3 ${s <= review.rating ? "text-primary fill-primary" : "text-muted-foreground/20"}`} />)}
                     </div>
@@ -182,7 +182,7 @@ export default function AdminReviews() {
                   <p className="text-sm text-muted-foreground line-clamp-2">{review.body}</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <Button variant="ghost" size="icon" onClick={() => toggle(review, "isPinned")} className={review.isPinned ? "text-yellow-400" : "text-muted-foreground"} title="Pin">
+                  <Button variant="ghost" size="icon" onClick={() => toggle(review, "isPinned")} className={review.isPinned ? "text-violet-400" : "text-muted-foreground"} title="Pin">
                     <Pin className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => toggle(review, "isVisible")} className={review.isVisible ? "text-primary" : "text-muted-foreground"} title={review.isVisible ? "Hide" : "Show"}>

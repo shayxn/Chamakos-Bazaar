@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Api
   version: 0.2.0
-  description: Chamak Street e-commerce API
+  description: IMAGINATE e-commerce API
 servers:
   - url: /api
     description: Base API path
@@ -20,6 +20,121 @@ tags:
   - name: reviews
   - name: tiktok
 paths:
+  /published/{kind}:
+    get:
+      operationId: listPublishedContent
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Currently published documents
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ManagedDocument" } }
+  /published/{kind}/{slug}:
+    get:
+      operationId: getPublishedContent
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Published document
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ManagedDocument" }
+        "404": { description: Not published }
+  /manage/{kind}:
+    get:
+      operationId: listManagedContent
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Admin documents
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ManagedDocument" } }
+        "401": { description: Authentication required }
+        "403": { description: Permission required }
+    post:
+      operationId: createManagedContent
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ManagedDocumentInput" }
+      responses:
+        "201":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ManagedDocument" }
+        "400": { description: Invalid input }
+        "403": { description: Permission required }
+  /manage/{kind}/{id}:
+    patch:
+      operationId: updateManagedContent
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ManagedDocumentInput" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ManagedDocument" }
+        "400": { description: Invalid input }
+        "403": { description: Permission required }
+    delete:
+      operationId: archiveManagedContent
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string } }
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Archived }
+  /support:
+    get:
+      operationId: listOwnSupportRequests
+      responses:
+        "200":
+          description: Requests owned by this customer or guest session
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/SupportRequest" } }
+    post:
+      operationId: createSupportRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportRequestInput" }
+      responses:
+        "201":
+          description: Received
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportRequest" }
+        "400": { description: Invalid input }
+        "429": { description: Please wait }
+  /newsletter:
+    post:
+      operationId: subscribeNewsletter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewsletterConsent" }
+      responses:
+        "201": { description: Subscribed with consent }
+        "400": { description: Email and consent required }
   /healthz:
     get:
       operationId: healthCheck
@@ -812,6 +927,60 @@ paths:
 
 components:
   schemas:
+    ProductVariant:
+      type: object
+      required: [id, size, color, stock, price]
+      properties:
+        id: { type: string }
+        size: { type: string }
+        color: { type: string }
+        stock: { type: integer, minimum: 0 }
+        price: { type: [number, "null"], minimum: 0 }
+    ManagedDocumentInput:
+      type: object
+      required: [title, slug, status, data]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 240 }
+        slug: { type: string, pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+        status: { type: string, enum: [draft, published, archived] }
+        featured: { type: boolean }
+        showInNavigation: { type: boolean }
+        publishAt: { type: [string, "null"], format: date-time }
+        unpublishAt: { type: [string, "null"], format: date-time }
+        data: { type: object, additionalProperties: true }
+    ManagedDocument:
+      allOf:
+        - { $ref: "#/components/schemas/ManagedDocumentInput" }
+        - type: object
+          required: [id, kind, createdAt, updatedAt]
+          properties:
+            id: { type: integer }
+            kind: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    SupportRequestInput:
+      type: object
+      required: [subject, category, message]
+      properties:
+        subject: { type: string, minLength: 3, maxLength: 200 }
+        category: { type: string, minLength: 1, maxLength: 100 }
+        message: { type: string, minLength: 10, maxLength: 8000 }
+    SupportRequest:
+      allOf:
+        - { $ref: "#/components/schemas/SupportRequestInput" }
+        - type: object
+          required: [id, status, reply, createdAt]
+          properties:
+            id: { type: integer }
+            status: { type: string, enum: [open, in-progress, resolved] }
+            reply: { type: string }
+            createdAt: { type: string, format: date-time }
+    NewsletterConsent:
+      type: object
+      required: [email, consent]
+      properties:
+        email: { type: string, format: email }
+        consent: { type: boolean, enum: [true] }
     HealthStatus:
       type: object
       properties:
@@ -930,6 +1099,12 @@ components:
           type: ["string", "null"]
         price:
           type: number
+        compareAtPrice: { type: [number, "null"] }
+        colors: { type: [string, "null"] }
+        seoTitle: { type: [string, "null"] }
+        seoDescription: { type: [string, "null"] }
+        socialImage: { type: [string, "null"] }
+        variants: { type: array, items: { $ref: "#/components/schemas/ProductVariant" } }
         imageUrl:
           type: ["string", "null"]
         imageUrls:
@@ -981,6 +1156,12 @@ components:
           type: string
         price:
           type: number
+        compareAtPrice: { type: [number, "null"] }
+        colors: { type: [string, "null"] }
+        seoTitle: { type: [string, "null"] }
+        seoDescription: { type: [string, "null"] }
+        socialImage: { type: [string, "null"] }
+        variants: { type: array, items: { $ref: "#/components/schemas/ProductVariant" } }
         imageUrl:
           type: string
         imageUrls:
@@ -1015,6 +1196,12 @@ components:
           type: string
         price:
           type: number
+        compareAtPrice: { type: [number, "null"] }
+        colors: { type: [string, "null"] }
+        seoTitle: { type: [string, "null"] }
+        seoDescription: { type: [string, "null"] }
+        socialImage: { type: [string, "null"] }
+        variants: { type: array, items: { $ref: "#/components/schemas/ProductVariant" } }
         imageUrl:
           type: string
         imageUrls:
@@ -1058,6 +1245,8 @@ components:
           type: integer
         size:
           type: ["string", "null"]
+        color: { type: [string, "null"] }
+        variantId: { type: [string, "null"] }
 
     Cart:
       type: object
@@ -1078,8 +1267,12 @@ components:
           type: integer
         quantity:
           type: integer
+          minimum: 1
+          maximum: 99
         size:
           type: string
+        color: { type: [string, "null"] }
+        variantId: { type: [string, "null"] }
 
     CartItemUpdate:
       type: object
@@ -1087,6 +1280,8 @@ components:
       properties:
         quantity:
           type: integer
+          minimum: 1
+          maximum: 99
 
     OrderItem:
       type: object
@@ -1104,6 +1299,8 @@ components:
           type: integer
         size:
           type: ["string", "null"]
+        color: { type: [string, "null"] }
+        variantId: { type: [string, "null"] }
         isPreOrder:
           type: boolean
 

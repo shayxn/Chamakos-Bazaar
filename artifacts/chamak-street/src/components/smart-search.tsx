@@ -283,7 +283,7 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.04, ease: EASE }}
-                        whileHover={{ scale: 1.05, backgroundColor: "rgba(255,102,0,0.12)" }}
+                        whileHover={{ scale: 1.05, backgroundColor: "rgba(167,139,250,0.12)" }}
                         whileTap={{ scale: 0.96 }}
                         onClick={() => handleTrendingClick(term)}
                         className="flex items-center gap-1.5 text-xs font-bold text-white/60 hover:text-primary px-3 py-1.5 rounded-full border border-white/10 hover:border-primary/40 transition-all"
@@ -307,7 +307,7 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
                   ].map(({ label, href, icon: Icon }) => (
                     <Link key={href} href={href} onClick={onClose}>
                       <motion.div
-                        whileHover={{ scale: 1.02, borderColor: "rgba(255,102,0,0.4)" }}
+                        whileHover={{ scale: 1.02, borderColor: "rgba(167,139,250,0.4)" }}
                         className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-white/8 text-sm font-semibold text-white/50 hover:text-white cursor-pointer transition-colors"
                         style={{ background: "rgba(255,255,255,0.03)" }}
                       >
@@ -329,7 +329,7 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
               exit={{ opacity: 0 }}
               className="px-5 py-12 text-center"
             >
-              <div className="w-14 h-14 rounded-full border border-white/8 flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(255,102,0,0.06)" }}>
+              <div className="w-14 h-14 rounded-full border border-white/8 flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(167,139,250,0.06)" }}>
                 <Search className="h-6 w-6 text-white/20" />
               </div>
               <p className="text-white/50 font-semibold">No results for</p>
@@ -420,11 +420,11 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
               {/* View all in shop */}
               <Link href={`/shop?search=${encodeURIComponent(query)}`} onClick={() => { addRecent(query); onClose?.(); }}>
                 <motion.div
-                  whileHover={{ backgroundColor: "rgba(255,102,0,0.07)" }}
+                  whileHover={{ backgroundColor: "rgba(167,139,250,0.07)" }}
                   className="flex items-center gap-3 px-5 py-3.5 border-t border-white/6 cursor-pointer transition-colors"
                 >
                   <div className="w-14 h-14 rounded-lg shrink-0 border border-primary/20 flex items-center justify-center"
-                    style={{ background: "rgba(255,102,0,0.06)" }}>
+                    style={{ background: "rgba(167,139,250,0.06)" }}>
                     <ArrowRight className="h-5 w-5 text-primary/60" />
                   </div>
                   <div>
@@ -497,12 +497,12 @@ export function SmartSearchModal() {
                 WebkitBackdropFilter: "blur(72px) saturate(240%) brightness(1.08)",
                 border: "1px solid rgba(255,255,255,0.14)",
                 borderRadius: 24,
-                boxShadow: "0 40px 100px rgba(0,0,0,0.80), inset 0 2px 0 rgba(255,255,255,0.16), inset 0 -1.5px 0 rgba(0,0,0,0.28), 0 0 0 0.5px rgba(255,102,0,0.12)",
+                boxShadow: "0 40px 100px rgba(0,0,0,0.80), inset 0 2px 0 rgba(255,255,255,0.16), inset 0 -1.5px 0 rgba(0,0,0,0.28), 0 0 0 0.5px rgba(167,139,250,0.12)",
               }}
             >
               {/* Top accent line */}
               <div className="absolute top-0 left-0 right-0 h-px"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(255,102,0,0.6), rgba(255,204,0,0.4), transparent)" }} />
+                style={{ background: "linear-gradient(90deg, transparent, rgba(167,139,250,0.6), rgba(167,139,250,0.4), transparent)" }} />
 
               <SmartSearch onClose={() => setOpen(false)} />
             </motion.div>

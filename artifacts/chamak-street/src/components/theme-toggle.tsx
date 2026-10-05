@@ -28,7 +28,7 @@ export function ThemeToggle() {
         active={!isGlass}
         onClick={() => setTheme("default")}
         isGlass={isGlass}
-        label="Chamak"
+        label="Imaginate"
         icon={<MoonIcon />}
         activeGlow={isGlass ? undefined : "rgba(124,58,237,0.25)"}
         activeColor={isGlass ? undefined : "#7c3aed"}

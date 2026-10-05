@@ -219,7 +219,7 @@ export default function AccountRegister() {
 
               {/* Dev mode: show code when SMTP not configured */}
               {devCode && (
-                <div className="mb-6 px-4 py-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-xs text-yellow-400 font-mono">
+                <div className="mb-6 px-4 py-3 bg-violet-500/10 border border-violet-500/20 rounded-xl text-xs text-violet-400 font-mono">
                   DEV MODE — Code: <span className="font-black text-base tracking-widest">{devCode}</span>
                 </div>
               )}
@@ -242,7 +242,7 @@ export default function AccountRegister() {
                       d ? "border-primary/60 bg-primary/8 text-white" : "border-white/12 bg-white/4 text-muted-foreground",
                       isLocked ? "opacity-40" : "focus:border-primary/60",
                     ].join(" ")}
-                    style={{ background: d ? "rgba(255,102,0,0.07)" : "rgba(255,255,255,0.03)" }}
+                    style={{ background: d ? "rgba(167,139,250,0.07)" : "rgba(255,255,255,0.03)" }}
                   />
                 ))}
               </div>

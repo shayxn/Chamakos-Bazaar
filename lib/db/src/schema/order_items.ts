@@ -10,6 +10,8 @@ export const orderItemsTable = pgTable("order_items", {
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   quantity: integer("quantity").notNull(),
   size: text("size"),
+  color: text("color"),
+  variantId: text("variant_id"),
   isPreOrder: boolean("is_pre_order").notNull().default(false),
 });
 

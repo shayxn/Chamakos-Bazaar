@@ -1,8 +1,13 @@
 import { Router, type Request } from "express";
+import { createValidatedOrder, releaseFailedCheckout, CheckoutError } from "../lib/checkout-service";
+import { clearProductCaches } from "./products";
 import { db, ordersTable, orderItemsTable, cartItemsTable, productsTable, orderTrackingEventsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { getDeliveryCharges, DELIVERY_METHODS } from "../lib/delivery";
+import { createHash } from "node:crypto";
+import { requireAdmin } from "../lib/auth-middleware";
+import { verifyZiinaPayment } from "../lib/payment-verification";
 
 function generateOrderNumber(): string {
   const num = 100000 + Math.floor(Math.random() * 900000);
@@ -33,6 +38,7 @@ type CheckoutBody = {
 type OrderForPayment = {
   id: number;
   total: string;
+  orderNumber:string|null;
 };
 
 const router = Router();
@@ -111,8 +117,9 @@ async function createZiinaIntent(req: Request, order: OrderForPayment): Promise<
   const siteBaseUrl = getSiteBaseUrl(req);
   const orderUrl = `${siteBaseUrl}/order/${order.id}`;
   const body = {
+    operation_id:(()=>{const h=createHash("sha1").update(`imaginate-ziina:${order.orderNumber||order.id}`).digest("hex");return `${h.slice(0,8)}-${h.slice(8,12)}-5${h.slice(13,16)}-8${h.slice(17,20)}-${h.slice(20,32)}`;})(),
     amount,
-    currency_code: process.env.ZIINA_CURRENCY_CODE ?? "AED",
+    currency_code: "AED",
     message: `IMAGINATE order #${order.id.toString().padStart(6, "0")}`,
     success_url: `${orderUrl}?payment=ziina-success&payment_intent_id={PAYMENT_INTENT_ID}`,
     cancel_url: `${orderUrl}?payment=ziina-cancelled&payment_intent_id={PAYMENT_INTENT_ID}`,
@@ -128,6 +135,7 @@ async function createZiinaIntent(req: Request, order: OrderForPayment): Promise<
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    signal:AbortSignal.timeout(10000),
   });
 
   const data = (await response.json()) as ZiinaPaymentIntentResponse;
@@ -136,7 +144,7 @@ async function createZiinaIntent(req: Request, order: OrderForPayment): Promise<
     throw new Error(data.latest_error?.message ?? "Ziina payment intent failed");
   }
 
-  if (!data.redirect_url) {
+  if (!data.redirect_url||!data.id) {
     logger.error({ data }, "Ziina payment intent response missing redirect_url");
     throw new Error("Ziina payment link was not returned");
   }
@@ -145,100 +153,23 @@ async function createZiinaIntent(req: Request, order: OrderForPayment): Promise<
 }
 
 router.post("/payments/ziina-checkout", async (req, res) => {
-  const parsed = getCheckoutBody(req.body);
-  if (!parsed) {
-    res.status(400).json({ error: "Invalid input" });
-    return;
-  }
-
-  const session = req.session as Record<string, unknown>;
-  const sessionId = session.cartId as string | undefined;
-  if (!sessionId) {
-    res.status(400).json({ error: "Cart is empty" });
-    return;
-  }
-
-  const cartItems = await getCartItems(sessionId);
-  if (cartItems.length === 0) {
-    res.status(400).json({ error: "Cart is empty" });
-    return;
-  }
-
-  const charges = await getDeliveryCharges();
-  const deliveryCharge = charges[parsed.deliveryMethod] ?? 25;
-  const tip = parsed.tip;
-  const itemsSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const rawCouponCode = typeof req.body?.couponCode === "string" ? req.body.couponCode.trim() : "";
-  let discountAmount = 0;
-  let appliedCouponCode: string | null = null;
-  if (rawCouponCode) {
-    const { applyCoupon } = await import("./coupons");
-    const coupon = await applyCoupon(rawCouponCode, itemsSubtotal);
-    if (!coupon) {
-      res.status(400).json({ error: "This coupon is invalid, expired, or no longer available" });
-      return;
+  if (!process.env.ZIINA_ACCESS_TOKEN) { res.status(503).json({error:"Online payment is not configured. No payment has been taken."}); return; }
+  let created;
+  try { created = await createValidatedOrder(req,"ziina",false); }
+  catch (error) {
+    if (error instanceof CheckoutError || /discount|stock|bag|size/i.test((error as Error).message)) {
+      res.status(400).json({error:(error as Error).message}); return;
     }
-    discountAmount = coupon.discountAmount;
-    appliedCouponCode = coupon.couponCode;
+    throw error;
   }
-  const total = Math.max(0, itemsSubtotal + deliveryCharge + tip - discountAmount);
-
-  const hasPreOrder = cartItems.some((item) => item.isPreOrder);
-
-  let orderNumber = generateOrderNumber();
-  let attempts = 0;
-  while (attempts < 5) {
-    const existing = await db.select({ id: ordersTable.id }).from(ordersTable).where(eq(ordersTable.orderNumber, orderNumber));
-    if (existing.length === 0) break;
-    orderNumber = generateOrderNumber();
-    attempts++;
-  }
-
-  const [order] = await db.insert(ordersTable).values({
-    orderNumber,
-    customerName: parsed.customerName,
-    customerEmail: null,
-    customerPhone: parsed.customerPhone,
-    customerAddress: parsed.customerAddress,
-    paymentMethod: "ziina",
-    deliveryMethod: parsed.deliveryMethod,
-    deliveryCharge: String(deliveryCharge),
-    tip: String(tip),
-    total: String(total),
-    status: "pending",
-    hasPreOrder,
-  }).returning();
-  if (appliedCouponCode) {
-    await db.execute(sql`
-      UPDATE orders
-      SET coupon_code = ${appliedCouponCode}, discount_amount = ${discountAmount}
-      WHERE id = ${order.id}
-    `);
-  }
-
-  await db.insert(orderItemsTable).values(
-    cartItems.map((item) => ({
-      orderId: order.id,
-      productId: item.productId,
-      productName: item.productName,
-      price: String(item.price),
-      quantity: item.quantity,
-      size: item.size,
-      isPreOrder: item.isPreOrder,
-    })),
-  );
-
-  await db.insert(orderTrackingEventsTable).values({
-    orderId: order.id,
-    status: "pending",
-    note: "Order placed — awaiting Ziina payment",
-  });
-
+  const order = created.order;
   (req.session as Record<string, unknown>).lastOrderId = order.id;
 
   try {
     const data = await createZiinaIntent(req, order);
-    await db.delete(cartItemsTable).where(eq(cartItemsTable.sessionId, sessionId));
+    await db.update(ordersTable).set({paymentIntentId:data.id,paymentStatus:"pending"}).where(eq(ordersTable.id,order.id));
+    await db.delete(cartItemsTable).where(eq(cartItemsTable.sessionId, String(req.session?.cartId ?? "")));
+    clearProductCaches();
     res.status(201).json({
       orderId: order.id,
       id: data.id,
@@ -246,6 +177,8 @@ router.post("/payments/ziina-checkout", async (req, res) => {
       embeddedUrl: data.embedded_url ?? null,
     });
   } catch (error) {
+    await releaseFailedCheckout(created);
+    clearProductCaches();
     logger.error({ err: error, orderId: order.id }, "Ziina checkout failed");
     res.status(502).json({ error: error instanceof Error ? error.message : "Ziina payment request failed" });
   }
@@ -266,15 +199,19 @@ router.post("/payments/ziina-intent", async (req, res) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
+  if(userId){let allowed=false;await requireAdmin(req,res,()=>{allowed=true;});if(!allowed)return;}
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
   if (!order) {
     res.status(404).json({ error: "Order not found" });
     return;
   }
+  if(order.paymentMethod!=="ziina"||order.status==="cancelled"||order.paymentStatus==="paid"){res.status(409).json({error:"This order does not require a new online payment."});return;}
+  if(order.paymentIntentId){res.status(409).json({error:"An online payment already exists. Check its status before retrying."});return;}
 
   try {
     const data = await createZiinaIntent(req, order);
+    await db.update(ordersTable).set({paymentIntentId:data.id,paymentStatus:"pending"}).where(eq(ordersTable.id,order.id));
     res.status(201).json({
       id: data.id,
       redirectUrl: data.redirect_url,
@@ -284,6 +221,19 @@ router.post("/payments/ziina-intent", async (req, res) => {
     logger.error({ err: error }, "Ziina payment intent request failed");
     res.status(502).json({ error: "Ziina payment request failed" });
   }
+});
+router.get("/payments/:id/status",async(req,res)=>{
+  const id=Number(req.params.id);
+  if(!Number.isInteger(id)||id<=0){res.sendStatus(400);return;}
+  const [order]=await db.select().from(ordersTable).where(eq(ordersTable.id,id));
+  if(!order){res.sendStatus(404);return;}
+  if(req.session?.userId){let allowed=false;await requireAdmin(req,res,()=>{allowed=true;});if(!allowed)return;}
+  else if(req.session?.lastOrderId!==id&&(!req.session?.customerId||order.customerId!==req.session.customerId)){res.sendStatus(403);return;}
+  try{
+    const state=await verifyZiinaPayment(id);
+    clearProductCaches();
+    res.setHeader("Cache-Control","no-store");res.json(state);
+  }catch(error){res.status(503).json({error:(error as Error).message});}
 });
 
 export default router;

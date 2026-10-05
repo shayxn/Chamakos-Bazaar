@@ -105,7 +105,7 @@ export default function AbandonedCarts() {
                       </span>
                     )}
                     {!c.recovered && c.hasActiveCart && (
-                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border text-yellow-400 bg-yellow-500/10 border-yellow-500/30">
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border text-violet-400 bg-violet-500/10 border-violet-500/30">
                         Active
                       </span>
                     )}

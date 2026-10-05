@@ -82,6 +82,8 @@ export default defineConfig({
       strict: true,
     },
     proxy: {
+      "/robots.txt":{target:"http://localhost:8080",changeOrigin:true,rewrite:()=>"/api/robots.txt"},
+      "/sitemap.xml":{target:"http://localhost:8080",changeOrigin:true,rewrite:()=>"/api/sitemap.xml"},
       "/api": {
         target: "http://localhost:8080",
         changeOrigin: true,
@@ -93,5 +95,10 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy:{
+      "/api":{target:"http://localhost:8080",changeOrigin:true},
+      "/robots.txt":{target:"http://localhost:8080",changeOrigin:true,rewrite:()=>"/api/robots.txt"},
+      "/sitemap.xml":{target:"http://localhost:8080",changeOrigin:true,rewrite:()=>"/api/sitemap.xml"},
+    },
   },
 });

@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { db, siteSettingsTable, usersTable } from "@workspace/db";
 import { eq, inArray } from "drizzle-orm";
 
-const OPERATIONAL_SETTING_KEYS = ["emergency_shutdown", "back_to_school_enabled"] as const;
+const OPERATIONAL_SETTING_KEYS = ["emergency_shutdown", "maintenance_mode", "store_enabled"] as const;
 
 export type OperationalSettings = {
   emergencyShutdown: boolean;
@@ -17,8 +17,8 @@ export async function getOperationalSettings(): Promise<OperationalSettings> {
   const values = Object.fromEntries(rows.map((row) => [row.key, row.value]));
 
   return {
-    emergencyShutdown: values.emergency_shutdown === "true",
-    backToSchoolEnabled: values.back_to_school_enabled !== "false",
+    emergencyShutdown: values.emergency_shutdown === "true" || values.maintenance_mode === "true" || values.store_enabled === "false",
+    backToSchoolEnabled: false,
   };
 }
 

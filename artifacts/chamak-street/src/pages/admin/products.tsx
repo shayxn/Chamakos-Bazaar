@@ -44,7 +44,10 @@ async function uploadMedia(file: File): Promise<ProductMedia> {
   return { url: d.url, type: d.type === "video" ? "video" : "image" };
 }
 
+type VariantRow = { id: string; size: string; color: string; stock: number; price: number | null };
 type ProductFormData = ProductInput & {
+  colors?: string | null; compareAtPrice?: number | null; seoTitle?: string | null; seoDescription?: string | null;
+  socialImage?: string | null; variants?: VariantRow[];
   isPreOrder?: boolean; preOrderLabel?: string | null; preOrderDate?: string | null; preOrderNote?: string | null;
   sellingFast?: boolean; spotlight?: boolean; hidden?: boolean; publishAt?: string | null; unpublishAt?: string | null;
   bestSeller?: boolean; trending?: boolean; newArrival?: boolean; limitedEdition?: boolean;
@@ -62,7 +65,7 @@ const BULK_ACTIONS = [
 ];
 
 /* ── Animated Toggle ── */
-function Toggle({ checked, onChange, color = "#ff6600" }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
+function Toggle({ checked, onChange, color = "#a78bfa" }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
   return (
     <motion.button
       type="button"
@@ -228,19 +231,19 @@ function MediaZone({ items, onChange, uploading, onUpload }: {
     <div className="space-y-3">
       {/* Drop zone */}
       <motion.div
-        animate={{ borderColor: dragging ? "rgba(255,102,0,0.7)" : uploading ? "rgba(255,102,0,0.4)" : "rgba(255,255,255,0.12)" }}
+        animate={{ borderColor: dragging ? "rgba(167,139,250,0.7)" : uploading ? "rgba(167,139,250,0.4)" : "rgba(255,255,255,0.12)" }}
         onDragOver={e => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
         className="relative rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2.5 py-8 cursor-pointer transition-colors"
-        style={{ background: dragging ? "rgba(255,102,0,0.06)" : uploading ? "rgba(255,102,0,0.04)" : "rgba(255,255,255,0.02)" }}
+        style={{ background: dragging ? "rgba(167,139,250,0.06)" : uploading ? "rgba(167,139,250,0.04)" : "rgba(255,255,255,0.02)" }}
       >
         <motion.div
           animate={uploading ? { rotate: 360 } : { rotate: 0 }}
           transition={uploading ? { duration: 1.2, repeat: Infinity, ease: "linear" } : {}}
           className="w-10 h-10 rounded-xl flex items-center justify-center"
-          style={{ background: "rgba(255,102,0,0.12)", border: "1px solid rgba(255,102,0,0.25)" }}
+          style={{ background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.25)" }}
         >
           {uploading ? <Upload className="h-5 w-5 text-primary" /> : <ImageIcon className="h-5 w-5 text-primary/60" />}
         </motion.div>
@@ -319,6 +322,7 @@ export default function AdminProducts() {
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
   const queryClient = useQueryClient();
+  const refreshProducts=()=>{void queryClient.invalidateQueries({queryKey:["admin","products","all"]});void queryClient.invalidateQueries({queryKey:getListProductsQueryKey()});};
   const { toast } = useToast();
 
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -330,26 +334,18 @@ export default function AdminProducts() {
   const [bulkAction, setBulkAction] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page,setPage]=useState(1);
+  useEffect(()=>{setPage(1);},[searchQuery]);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const [deleteAllConfirm, setDeleteAllConfirm] = useState(false);
   const [deleteAllLoading, setDeleteAllLoading] = useState(false);
-  const [inventoryView, setInventoryView] = useState<"all" | "back_to_school">("all");
-  const [backToSchoolEnabled, setBackToSchoolEnabled] = useState(true);
-  const [sectionSaving, setSectionSaving] = useState(false);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch(`${BASE}/api/settings`, { credentials: "include", signal: controller.signal })
-      .then((response) => response.ok ? response.json() as Promise<Record<string, string>> : {})
-      .then((settings: Record<string, string>) => setBackToSchoolEnabled(settings.back_to_school_enabled !== "false"))
-      .catch(() => {});
-    return () => controller.abort();
-  }, []);
 
   const [formData, setFormData] = useState<ProductFormData>({
     name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "",
-    featured: false, rep: false, categoryId: undefined,
+    colors: "", compareAtPrice: null, seoTitle: "", seoDescription: "", socialImage: "", variants: [],
+    featured: false, categoryId: undefined,
     isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
     sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
     bestSeller: false, trending: false, newArrival: false, limitedEdition: false,
@@ -387,7 +383,8 @@ export default function AdminProducts() {
     setEditingId(null); setInStock(true); setMediaItems([]);
     setFormData({
       name: "", price: 0, stock: 100, imageUrl: "", description: "", sizes: "S, M, L, XL",
-      featured: false, rep: false, categoryId: categories?.[0]?.id,
+      colors: "", compareAtPrice: null, seoTitle: "", seoDescription: "", socialImage: "", variants: [],
+      featured: false, categoryId: categories?.[0]?.id,
       isPreOrder: false, preOrderLabel: "", preOrderDate: "", preOrderNote: "",
       sellingFast: false, spotlight: false, hidden: false, publishAt: null, unpublishAt: null,
       bestSeller: false, trending: false, newArrival: false, limitedEdition: false,
@@ -405,7 +402,12 @@ export default function AdminProducts() {
       name: product.name, price: product.price,
       stock: product.stock ?? 0,
       imageUrl: product.imageUrl || "", description: product.description || "",
-      sizes: product.sizes || "", featured: product.featured, rep: (product as any).rep ?? false,
+      sizes: product.sizes || "", featured: product.featured,
+      colors: Array.isArray((product as ProductFormData).colors) ? ((product as unknown as { colors: string[] }).colors).join(", ") : ((product as ProductFormData).colors ?? ""),
+      compareAtPrice: (product as ProductFormData).compareAtPrice != null ? Number((product as ProductFormData).compareAtPrice) : null,
+      seoTitle: (product as ProductFormData).seoTitle ?? "", seoDescription: (product as ProductFormData).seoDescription ?? "",
+      socialImage: (product as ProductFormData).socialImage ?? "",
+      variants: (() => { let v: unknown = (product as ProductFormData).variants; if (typeof v === "string") { try { v = JSON.parse(v); } catch { v = []; } } return Array.isArray(v) ? (v as VariantRow[]) : []; })(),
       categoryId: product.categoryId || undefined,
       isPreOrder: (product as ProductFormData).isPreOrder ?? false,
       preOrderLabel: (product as ProductFormData).preOrderLabel ?? "",
@@ -433,10 +435,25 @@ export default function AdminProducts() {
     e.preventDefault();
     if (!formData.name.trim()) { toast({ title: "Name is required", variant: "destructive" }); return; }
     if (!formData.price || formData.price <= 0) { toast({ title: "Enter a valid price", variant: "destructive" }); return; }
-    const data = { ...formData, collection: formData.collection || null, imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "", stock: inStock ? Math.max(0, Number(formData.stock) || 0) : 0 };
+    const cmp = formData.compareAtPrice;
+    if (cmp != null && !(Number(cmp) > formData.price)) { toast({ title: "Compare-at price must be higher than the price", variant: "destructive" }); return; }
+    const rows = formData.variants ?? [];
+    const keys = new Set<string>();
+    for (const r of rows) {
+      const k = `${r.size.trim().toLowerCase()}|${r.color.trim().toLowerCase()}`;
+      if (!r.size.trim() && !r.color.trim()) { toast({ title: "Each variant needs a size or colour", variant: "destructive" }); return; }
+      if (keys.has(k)) { toast({ title: "Duplicate variant", description: `${r.size} ${r.color}`.trim(), variant: "destructive" }); return; }
+      keys.add(k);
+    }
+    const data = { ...formData,
+      colors: (formData.colors ?? "").split(",").map(c => c.trim()).filter(Boolean).join(", "),
+      compareAtPrice: cmp != null ? Number(cmp) : null,
+      seoTitle: formData.seoTitle?.trim() || null, seoDescription: formData.seoDescription?.trim() || null, socialImage: formData.socialImage?.trim() || null,
+      variants: rows.map(r => ({ id: r.id, size: r.size.trim(), color: r.color.trim(), stock: Math.max(0, Math.floor(Number(r.stock) || 0)), price: r.price != null && Number(r.price) > 0 ? Number(r.price) : null })),
+      collection: formData.collection || null, imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "", stock: inStock ? Math.max(0, Number(formData.stock) || 0) : 0 };
     const opts = {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+        refreshProducts();
         setSheetOpen(false);
         toast({ title: editingId ? "Product updated ✓" : "Product created ✓" });
       },
@@ -462,7 +479,7 @@ export default function AdminProducts() {
     if (!pendingDeleteId) return;
     deleteProduct.mutate({ id: pendingDeleteId }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+        refreshProducts();
         toast({ title: "Product deleted" });
         setPendingDeleteId(null);
       },
@@ -474,43 +491,7 @@ export default function AdminProducts() {
     e.stopPropagation();
     if (product.spotlight) return;
     updateProduct.mutate({ id: product.id, data: { ...product, spotlight: true } as ProductInput }, {
-      onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() }); toast({ title: "⭐ Spotlight updated" }); }
-    });
-  };
-
-  const updateBackToSchoolEnabled = async (enabled: boolean) => {
-    const previous = backToSchoolEnabled;
-    setBackToSchoolEnabled(enabled);
-    setSectionSaving(true);
-    try {
-      const response = await fetch(`${BASE}/api/settings/back_to_school_enabled`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value: String(enabled) }),
-      });
-      if (!response.ok) throw new Error("Could not update Back to School visibility");
-      toast({ title: enabled ? "Back to School restored" : "Back to School hidden" });
-    } catch (error) {
-      setBackToSchoolEnabled(previous);
-      toast({ title: "Section update failed", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
-    } finally {
-      setSectionSaving(false);
-    }
-  };
-
-  const deleteBackToSchoolSection = () => {
-    if (!window.confirm("Remove Back to School from the storefront? Products will remain in inventory and can be restored later.")) return;
-    updateBackToSchoolEnabled(false);
-  };
-
-  const removeFromBackToSchool = (id: number) => {
-    updateProduct.mutate({ id, data: { collection: null } as unknown as ProductInput }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
-        toast({ title: "Removed from Back to School", description: "The product remains in your main inventory." });
-      },
-      onError: (error) => toast({ title: "Could not remove product", description: error instanceof Error ? error.message : undefined, variant: "destructive" }),
+      onSuccess: () => { refreshProducts(); toast({ title: "Spotlight updated" }); }
     });
   };
 
@@ -519,7 +500,7 @@ export default function AdminProducts() {
     try {
       const res = await fetch(`${BASE}/api/products/all`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error(`Delete failed (${res.status})`);
-      queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+      refreshProducts();
       toast({ title: "All products deleted" });
       setSelectedIds(new Set());
     } catch (error) {
@@ -554,18 +535,20 @@ export default function AdminProducts() {
       const d = await res.json() as { affected: number };
       toast({ title: `${d.affected} products updated` });
       setSelectedIds(new Set()); setBulkAction("");
-      queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+      refreshProducts();
     } catch (error) {
       toast({ title: "Bulk action could not be completed", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
     } finally { setBulkLoading(false); }
   };
 
-  const schoolProducts = (products ?? []).filter((product) => (product as ProductFormData).collection === "back_to_school");
   const filteredProducts = (products ?? []).filter(p =>
-    (inventoryView === "all" || (p as ProductFormData).collection === "back_to_school") &&
+    
     (!searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
   const isPending = createProduct.isPending || updateProduct.isPending;
+  const pageCount=Math.max(1,Math.ceil(filteredProducts.length/36));
+  const currentPage=Math.min(page,pageCount);
+  const visibleProducts=filteredProducts.slice((currentPage-1)*36,currentPage*36);
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-32 gap-3">
@@ -612,48 +595,13 @@ export default function AdminProducts() {
               Delete All
             </Button>
           )}
-          <Button onClick={() => openNew(inventoryView === "back_to_school" ? "back_to_school" : undefined)} className="font-bold uppercase tracking-wider fire-gradient border-none">
+          <Button onClick={() => openNew()} className="font-bold uppercase tracking-wider fire-gradient border-none">
             <Plus className="mr-2 h-4 w-4" /> Add Product
           </Button>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-orange-400/25 bg-gradient-to-br from-orange-500/[0.10] via-yellow-400/[0.04] to-transparent p-4 shadow-[0_0_32px_rgba(255,102,0,0.08)]">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-yellow-300/25 bg-yellow-300/10 text-xl">🎒</div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-sm font-black uppercase tracking-widest text-white">Back to School</h2>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${backToSchoolEnabled ? "bg-green-400/15 text-green-300" : "bg-white/10 text-white/40"}`}>
-                  {backToSchoolEnabled ? "Live" : "Hidden"}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-white/45">{schoolProducts.length} products in the collection · UAE shipping · safely restorable</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => setInventoryView(inventoryView === "back_to_school" ? "all" : "back_to_school")} className="border-orange-300/25 text-orange-200 hover:bg-orange-400/10">
-              {inventoryView === "back_to_school" ? "View all inventory" : "Manage products"}
-            </Button>
-            <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2">
-              <span className="text-[10px] font-black uppercase tracking-wider text-white/50">Show section</span>
-              <Toggle checked={backToSchoolEnabled} onChange={updateBackToSchoolEnabled} color="#f59e0b" />
-            </div>
-            <Button size="sm" variant="outline" onClick={deleteBackToSchoolSection} disabled={!backToSchoolEnabled || sectionSaving} className="border-red-400/25 text-red-300 hover:bg-red-400/10">
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Delete section
-            </Button>
-          </div>
-        </div>
-        {inventoryView === "back_to_school" && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-orange-200/70">Only Back to School products are shown below.</p>
-            <Button size="sm" onClick={() => openNew("back_to_school")} className="h-8 bg-yellow-300 text-black hover:bg-yellow-200">
-              <Plus className="mr-1.5 h-3.5 w-3.5" /> Add to Back to School
-            </Button>
-          </div>
-        )}
-      </div>
+
 
       {/* Search + Bulk */}
       <div className="flex items-center gap-3 flex-wrap">
@@ -687,9 +635,9 @@ export default function AdminProducts() {
       </div>
 
       {/* Product grid */}
-      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <AnimatePresence>
-          {filteredProducts.map((product, i) => {
+          {visibleProducts.map((product, i) => {
             const primaryMedia = getPrimaryProductMedia(product.imageUrl);
             const mediaCount = parseProductMedia(product.imageUrl).length;
             const isHidden = (product as ProductFormData).hidden;
@@ -697,11 +645,10 @@ export default function AdminProducts() {
             return (
               <motion.div
                 key={product.id}
-                layout
-                initial={{ opacity: 0, y: 16 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: i * 0.03, duration: 0.3, ease: EASE }}
+                transition={{ duration: 0 }}
                 onClick={() => toggleSelect(product.id)}
                 className={`bg-card border rounded-xl overflow-hidden flex flex-col group cursor-pointer transition-all duration-200 ${
                   isSelected ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/30"
@@ -737,12 +684,9 @@ export default function AdminProducts() {
                   {/* Badges */}
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {product.featured && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Featured</span>}
-                    {(product as ProductFormData).isPreOrder && <span className="bg-yellow-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
-                    {(product as ProductFormData).sellingFast && <span className="bg-orange-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">🔥 Hot</span>}
-                    {(product as ProductFormData).spotlight && <span className="bg-yellow-400 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">⭐ Spotlight</span>}
-                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm ${product.rep ? "bg-[#111827] text-white border border-white/20" : "bg-green-500/90 text-black"}`}>
-                      {product.rep ? "REP" : "Original"}
-                    </span>
+                    {(product as ProductFormData).isPreOrder && <span className="bg-violet-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
+                    {(product as ProductFormData).sellingFast && <span className="bg-violet-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Hot</span>}
+                    {(product as ProductFormData).spotlight && <span className="bg-violet-400 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Spotlight</span>}
                   </div>
 
                   <div className="absolute bottom-2 right-2 flex items-center gap-1">
@@ -762,43 +706,20 @@ export default function AdminProducts() {
                       <p className="text-[10px] uppercase text-muted-foreground tracking-widest mb-0.5">{product.categoryName || "—"}</p>
                       <h3 className="font-bold leading-tight truncate">{product.name}</h3>
                     </div>
-                   {(product as ProductFormData).sourceUrl && (
-                     <a
-                       href={(product as ProductFormData).sourceUrl!}
-                       target="_blank"
-                       rel="noreferrer"
-                       onClick={event => event.stopPropagation()}
-                       className="mb-3 inline-flex w-fit items-center gap-1 text-[10px] font-black uppercase tracking-wider text-orange-300/80 transition-colors hover:text-orange-200"
-                     >
-                       Amazon link <ExternalLink className="h-3 w-3" />
-                     </a>
-                   )}
-                    <p className="font-mono font-bold text-primary text-sm shrink-0 ml-2">AED {product.price.toFixed(2)}</p>
                   </div>
                   <div className="mt-auto pt-3 flex items-center gap-2 border-t border-border/40">
                     <button
                       onClick={e => handleSetSpotlight(e, product as Product & ProductFormData)}
                       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all border ${
                         (product as ProductFormData).spotlight
-                          ? "bg-yellow-400/15 text-yellow-400 border-yellow-400/30 cursor-default"
-                          : "bg-transparent text-muted-foreground border-transparent hover:bg-yellow-400/8 hover:text-yellow-400 hover:border-yellow-400/20"
+                          ? "bg-violet-400/15 text-violet-400 border-violet-400/30 cursor-default"
+                          : "bg-transparent text-muted-foreground border-transparent hover:bg-violet-400/8 hover:text-violet-400 hover:border-violet-400/20"
                       }`}
                     >
-                      <Star className={`h-3 w-3 ${(product as ProductFormData).spotlight ? "fill-yellow-400" : ""}`} />
+                      <Star className={`h-3 w-3 ${(product as ProductFormData).spotlight ? "fill-violet-400" : ""}`} />
                       {(product as ProductFormData).spotlight ? "Spotlight" : "Set"}
                     </button>
                     <div className="ml-auto flex gap-1">
-                      {inventoryView === "back_to_school" && (product as ProductFormData).collection === "back_to_school" && (
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={e => { e.stopPropagation(); removeFromBackToSchool(product.id); }}
-                          className="flex h-8 items-center gap-1 rounded-lg px-2 text-[9px] font-black uppercase tracking-wider text-orange-300 hover:bg-orange-400/10"
-                          title="Remove from Back to School and keep in inventory"
-                        >
-                          Remove
-                        </motion.button>
-                      )}
                       <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
                         onClick={e => { e.stopPropagation(); openEdit(product); }}
                         className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
@@ -818,6 +739,11 @@ export default function AdminProducts() {
         </AnimatePresence>
       </motion.div>
 
+      {pageCount>1&&<nav aria-label="Inventory pages" className="flex items-center justify-center gap-4">
+        <Button variant="outline" disabled={currentPage===1} onClick={()=>setPage(currentPage-1)}>Previous</Button>
+        <span className="text-xs text-white/60">Page {currentPage} of {pageCount} · 36 products per page</span>
+        <Button variant="outline" disabled={currentPage===pageCount} onClick={()=>setPage(currentPage+1)}>Next</Button>
+      </nav>}
       {filteredProducts.length === 0 && (
         <div className="text-center py-20 text-muted-foreground">
           <Package className="h-10 w-10 mx-auto mb-3 opacity-20" />
@@ -930,7 +856,7 @@ export default function AdminProducts() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-black transition-all disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg, #ff6600, #ffaa00)", boxShadow: "0 4px 16px rgba(255,102,0,0.35)" }}
+                style={{ background: "linear-gradient(135deg, #a78bfa, #7c3aed)", boxShadow: "0 4px 16px rgba(167,139,250,0.35)" }}
               >
                 {isPending ? (
                   <><motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} className="inline-block w-3 h-3 border-2 border-black/30 border-t-black rounded-full" /> Saving…</>
@@ -947,21 +873,11 @@ export default function AdminProducts() {
             style={{ WebkitOverflowScrolling: "touch" }}>
 
             {/* Media */}
-            <Section title="Product Media" icon={ImageIcon} accent="rgba(255,102,0,0.18)">
+            <Section title="Product Media" icon={ImageIcon} accent="rgba(167,139,250,0.18)">
               <MediaZone items={mediaItems} onChange={handleMediaChange} uploading={uploading} onUpload={handleUpload} />
             </Section>
 
-            <Section title="Source & Provenance" icon={LinkIcon} accent="rgba(251,191,36,0.18)">
-              <Field label="Amazon product link" hint="Use the exact Amazon or amzn.to listing URL for this item. It stays private to Admin.">
-                <Input
-                  type="url"
-                  value={formData.sourceUrl ?? ""}
-                  onChange={e => set({ sourceUrl: e.target.value || null })}
-                  placeholder="https://www.amazon.ae/dp/..."
-                  className="glass-input text-white placeholder-white/25"
-                />
-              </Field>
-            </Section>
+            
 
             {/* Basic Info */}
             <Section title="Basic Info" icon={Tag} accent="rgba(99,102,241,0.2)">
@@ -992,7 +908,6 @@ export default function AdminProducts() {
                      className="w-full h-10 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white focus:outline-none focus:border-primary/50"
                    >
                      <option value="">Main Store</option>
-                     <option value="back_to_school">Back to School</option>
                    </select>
                  </Field>
               </div>
@@ -1033,21 +948,56 @@ export default function AdminProducts() {
               <Field label="Sizes" hint="Leave empty for one-size items">
                 <SizeChips value={formData.sizes || ""} onChange={v => set({ sizes: v })} />
               </Field>
+              <Field label="Colours" hint="Comma separated, e.g. Black, Sand">
+                <Input value={formData.colors ?? ""} onChange={e => set({ colors: e.target.value })} placeholder="Black, Sand" />
+              </Field>
+              <Field label="Compare-at price (AED)" hint="Optional. Shown only when higher than the price">
+                <Input type="number" min="0" step="0.01" inputMode="decimal" value={formData.compareAtPrice ?? ""}
+                  onChange={e => set({ compareAtPrice: e.target.value === "" ? null : Number(e.target.value) })} />
+              </Field>
+              <Field label="Variants" hint="Stock and optional price per size and colour combination">
+                <div className="space-y-2">
+                  {(formData.variants ?? []).map((v, i) => {
+                    const upd = (patch: Partial<VariantRow>) => set({ variants: (formData.variants ?? []).map((r, j) => j === i ? { ...r, ...patch } : r) });
+                    return (
+                      <div key={v.id} className="grid grid-cols-2 sm:grid-cols-[1fr_1fr_80px_100px_auto] gap-2 rounded-lg border border-white/10 p-2">
+                        <Input aria-label="Variant size" placeholder="Size" value={v.size} onChange={e => upd({ size: e.target.value })} />
+                        <Input aria-label="Variant colour" placeholder="Colour" value={v.color} onChange={e => upd({ color: e.target.value })} />
+                        <Input aria-label="Variant stock" type="number" min="0" placeholder="Stock" value={v.stock} onChange={e => upd({ stock: Number(e.target.value) })} />
+                        <Input aria-label="Variant price override" type="number" min="0" step="0.01" placeholder="Price" value={v.price ?? ""} onChange={e => upd({ price: e.target.value === "" ? null : Number(e.target.value) })} />
+                        <button type="button" aria-label="Remove variant" onClick={() => set({ variants: (formData.variants ?? []).filter((_, j) => j !== i) })}
+                          className="col-span-2 sm:col-span-1 h-10 px-3 rounded-md border border-white/10 text-xs font-black uppercase tracking-wider hover:bg-white/5">Remove</button>
+                      </div>
+                    );
+                  })}
+                  <button type="button" onClick={() => set({ variants: [...(formData.variants ?? []), { id: `v_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, size: "", color: "", stock: 0, price: null }] })}
+                    className="h-10 px-4 rounded-md border border-[rgba(124,58,237,0.5)] text-xs font-black uppercase tracking-wider hover:bg-white/5" data-testid="button-add-variant">Add variant</button>
+                </div>
+              </Field>
+              <Field label="SEO title">
+                <Input value={formData.seoTitle ?? ""} onChange={e => set({ seoTitle: e.target.value })} maxLength={70} />
+              </Field>
+              <Field label="SEO description">
+                <Input value={formData.seoDescription ?? ""} onChange={e => set({ seoDescription: e.target.value })} maxLength={170} />
+              </Field>
+              <Field label="Social image URL">
+                <Input value={formData.socialImage ?? ""} onChange={e => set({ socialImage: e.target.value })} placeholder="https://" />
+              </Field>
             </Section>
 
             {/* Badges & Flags */}
-            <Section title="Badges & Flags" icon={Sparkles} accent="rgba(251,191,36,0.18)">
+            <Section title="Badges & Flags" icon={Sparkles} accent="rgba(167,139,250,0.18)">
               <div className="grid grid-cols-2 gap-2">
                 <PillToggle checked={formData.featured ?? false} onChange={v => set({ featured: v })}
-                  label="Featured" icon={Star} color="#ff6600" />
+                  label="Featured" icon={Star} color="#a78bfa" />
                 <PillToggle checked={formData.sellingFast ?? false} onChange={v => set({ sellingFast: v })}
-                  label="Selling Fast" icon={Flame} color="#f97316" />
+                  label="Selling Fast" icon={Flame} color="#a78bfa" />
                 <PillToggle checked={formData.spotlight ?? false} onChange={v => set({ spotlight: v })}
-                  label="Spotlight" icon={Sparkles} color="#facc15" />
+                  label="Spotlight" icon={Sparkles} color="#a78bfa" />
                 <PillToggle checked={formData.hidden ?? false} onChange={v => set({ hidden: v })}
                   label="Hidden" icon={EyeOff} color="#94a3b8" />
                 <PillToggle checked={formData.bestSeller ?? false} onChange={v => set({ bestSeller: v })}
-                  label="Best Seller" icon={Star} color="#f59e0b" />
+                  label="Best Seller" icon={Star} color="#a78bfa" />
                 <PillToggle checked={formData.trending ?? false} onChange={v => set({ trending: v })}
                   label="Trending" icon={Zap} color="#06b6d4" />
                 <PillToggle checked={formData.newArrival ?? false} onChange={v => set({ newArrival: v })}
@@ -1060,10 +1010,10 @@ export default function AdminProducts() {
             </Section>
 
             {/* Pre-Order — collapsible */}
-            <Section title="Pre-Order" icon={Calendar} accent="rgba(234,179,8,0.18)" collapsible>
+            <Section title="Pre-Order" icon={Calendar} accent="rgba(167,139,250,0.18)" collapsible>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/60 font-bold">Enable Pre-Order Mode</span>
-                <Toggle checked={formData.isPreOrder ?? false} onChange={v => set({ isPreOrder: v })} color="#eab308" />
+                <Toggle checked={formData.isPreOrder ?? false} onChange={v => set({ isPreOrder: v })} color="#a78bfa" />
               </div>
               <AnimatePresence>
                 {formData.isPreOrder && (
@@ -1098,8 +1048,8 @@ export default function AdminProducts() {
 
             {/* Scheduling — collapsible */}
             <Section title="Scheduling" icon={Layers} accent="rgba(139,92,246,0.18)" collapsible>
-              <div className="grid grid-cols-2 gap-4 p-1">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1 items-start">
+                <div className="space-y-1.5 min-w-0">
                   <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Publish At (optional)</label>
                   <Input type="datetime-local"
                     value={formData.publishAt ? formData.publishAt.slice(0, 16) : ""}
@@ -1107,7 +1057,7 @@ export default function AdminProducts() {
                     className="bg-white/5 border-white/10 text-white h-10 text-xs w-full" />
                   <p className="text-[10px] text-white/25">Auto-publish at this date</p>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 min-w-0">
                   <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Unpublish At (optional)</label>
                   <Input type="datetime-local"
                     value={formData.unpublishAt ? formData.unpublishAt.slice(0, 16) : ""}

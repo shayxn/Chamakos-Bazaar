@@ -14,10 +14,13 @@ async function ensureTable() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await db.execute(sql`ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS admin_id INTEGER`);
 }
 
 async function getOrCreateVapidKeys(): Promise<{ publicKey: string; privateKey: string }> {
-  const rows = await db
+  return db.transaction(async tx=>{
+  await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('imaginate-vapid-keys'))`);
+  const rows = await tx
     .select()
     .from(siteSettingsTable)
     .where(inArray(siteSettingsTable.key, ["vapid_public_key", "vapid_private_key"]));
@@ -29,7 +32,7 @@ async function getOrCreateVapidKeys(): Promise<{ publicKey: string; privateKey: 
   }
 
   const keys = webpush.generateVAPIDKeys();
-  await db.execute(sql`
+  await tx.execute(sql`
     INSERT INTO site_settings (key, value, updated_at)
     VALUES
       ('vapid_public_key', ${keys.publicKey}, NOW()),
@@ -37,6 +40,7 @@ async function getOrCreateVapidKeys(): Promise<{ publicKey: string; privateKey: 
     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
   `);
   return keys;
+  });
 }
 
 export async function initPush(): Promise<string> {
@@ -46,23 +50,31 @@ export async function initPush(): Promise<string> {
   }
   await ensureTable();
   const keys = await getOrCreateVapidKeys();
-  webpush.setVapidDetails("mailto:admin@firstpick.ae", keys.publicKey, keys.privateKey);
+  const subjectSetting = await db.execute(sql`SELECT value FROM site_settings WHERE key='push_contact' LIMIT 1`);
+  const contact = process.env.VAPID_SUBJECT || (Array.isArray(subjectSetting) ? subjectSetting : (subjectSetting as any).rows ?? [])[0]?.value;
+  if (typeof contact !== "string" || !/^(mailto:|https:\/\/)/.test(contact)) throw new Error("Set your real push contact email or HTTPS website under Admin → Notifications → Push configuration before enabling notifications.");
+  webpush.setVapidDetails(contact, keys.publicKey, keys.privateKey);
   _initialized = true;
   return keys.publicKey;
 }
+export function resetPushConfiguration() { _initialized = false; }
 
-export async function saveSubscription(endpoint: string, p256dh: string, auth: string) {
+export async function saveSubscription(endpoint: string, p256dh: string, auth: string, adminId?: number) {
   await ensureTable();
   await db.execute(sql`
-    INSERT INTO push_subscriptions (endpoint, p256dh, auth)
-    VALUES (${endpoint}, ${p256dh}, ${auth})
-    ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth
+    INSERT INTO push_subscriptions (endpoint, p256dh, auth, admin_id)
+    VALUES (${endpoint}, ${p256dh}, ${auth}, ${adminId ?? null})
+    ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth, admin_id=EXCLUDED.admin_id
   `);
 }
 
 export async function removeSubscription(endpoint: string) {
   await ensureTable();
   await db.execute(sql`DELETE FROM push_subscriptions WHERE endpoint = ${endpoint}`);
+}
+export async function removeOwnedSubscription(endpoint:string,adminId:number){
+  await ensureTable();
+  await db.execute(sql`DELETE FROM push_subscriptions WHERE endpoint=${endpoint} AND admin_id=${adminId}`);
 }
 
 async function getAllSubscriptions(): Promise<{ endpoint: string; p256dh: string; auth: string }[]> {
@@ -89,16 +101,16 @@ async function deliver(subs: { endpoint: string; p256dh: string; auth: string }[
   return results.filter(Boolean).length;
 }
 
-export async function sendTestPush(endpoint: string) {
+export async function sendTestPush(endpoint: string, adminId?: number) {
   if (!_initialized) await initPush();
   const result = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
-    sql`SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE endpoint = ${endpoint} LIMIT 1`
+    sql`SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE endpoint = ${endpoint} AND admin_id=${adminId ?? null} LIMIT 1`
   );
   const subs = Array.isArray(result) ? result : (result as any).rows ?? [];
   if (!subs.length) throw new Error("This browser does not have an active push subscription.");
   const delivered = await deliver(subs, JSON.stringify({
     title: "IMAGINATE Admin",
-    body: "This is a test notification from your admin dashboard.",
+    body: "Admin notifications are working.",
     type: "TEST_NOTIFICATION",
     data: { url: "/admin/notifications" },
   }));
@@ -162,16 +174,17 @@ export async function ensureCustomerSubTable() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await db.execute(sql`ALTER TABLE customer_push_subscriptions ADD COLUMN IF NOT EXISTS customer_id INTEGER,ADD COLUMN IF NOT EXISTS order_id INTEGER`);
 }
 
-export async function saveCustomerSubscription(endpoint: string, p256dh: string, auth: string, customerPhone?: string, customerEmail?: string) {
+export async function saveCustomerSubscription(endpoint: string, p256dh: string, auth: string, customerPhone?: string, customerEmail?: string,customerId?:number,orderId?:number) {
   await ensureCustomerSubTable();
   await db.execute(sql`
-    INSERT INTO customer_push_subscriptions (endpoint, p256dh, auth, customer_phone, customer_email)
-    VALUES (${endpoint}, ${p256dh}, ${auth}, ${customerPhone ?? null}, ${customerEmail ?? null})
+    INSERT INTO customer_push_subscriptions (endpoint, p256dh, auth, customer_phone, customer_email,customer_id,order_id)
+    VALUES (${endpoint}, ${p256dh}, ${auth}, ${customerPhone ?? null}, ${customerEmail ?? null},${customerId??null},${orderId??null})
     ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth, 
-      customer_phone = COALESCE(EXCLUDED.customer_phone, customer_push_subscriptions.customer_phone),
-      customer_email = COALESCE(EXCLUDED.customer_email, customer_push_subscriptions.customer_email)
+      customer_phone = EXCLUDED.customer_phone,customer_email = EXCLUDED.customer_email,
+      customer_id=EXCLUDED.customer_id,order_id=EXCLUDED.order_id
   `);
 }
 
@@ -184,18 +197,18 @@ const STATUS_PUSH_MESSAGES: Record<string, (orderNumber: string, extra?: Record<
   delivered: (n) => ({ title: "Delivered ✓", body: `Your IMAGINATE order #${n} has arrived. Enjoy your order!` }),
   delayed: (n, e) => ({ title: "Order Delayed ⚠️", body: `Your IMAGINATE order #${n} has been delayed.${e?.delayedUntil ? ` Expected by: ${e.delayedUntil}` : ""} Open the app and go to My Orders to see more.` }),
   cancelled: (n, e) => {
-    const refundMsg = e?.refundInitiated ? " Your money will be refunded back to your original payment method shortly." : "";
+    const refundMsg = e?.refundInitiated ? " Your refund has been initiated through the payment provider; timing depends on the provider." : "";
     return { title: "Order Cancelled", body: `Your IMAGINATE order #${n} has been cancelled.${refundMsg} Open the app and go to My Orders to view the details.` };
   },
 };
 
-async function getCustomerSubscriptions(customerPhone?: string | null, customerEmail?: string | null): Promise<{ endpoint: string; p256dh: string; auth: string }[]> {
-  await ensureTable();
+async function getCustomerSubscriptions(customerId:number|undefined|null,orderId:number,customerEmail?:string|null): Promise<{ endpoint: string; p256dh: string; auth: string }[]> {
+  await ensureCustomerSubTable();
   // Customer subscriptions are stored in a separate table with customer identifier
   try {
     const result = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
       sql`SELECT endpoint, p256dh, auth FROM customer_push_subscriptions 
-          WHERE customer_phone = ${customerPhone ?? null} OR customer_email = ${customerEmail ?? null}
+          WHERE customer_id = ${customerId??null} OR order_id = ${orderId}
           LIMIT 10`
     );
     return Array.isArray(result) ? result : (result as any).rows ?? [];
@@ -203,13 +216,13 @@ async function getCustomerSubscriptions(customerPhone?: string | null, customerE
 }
 
 export async function sendCustomerStatusPush(
-  order: { id: number; orderNumber?: string | null; customerPhone?: string | null; customerEmail?: string | null; customerPushLog?: string | null },
+  order: { id: number;customerId?:number|null; orderNumber?: string | null; customerPhone?: string | null; customerEmail?: string | null; customerPushLog?: string | null },
   status: string,
   extra?: { delayReason?: string; delayedUntil?: string; cancelReason?: string; refundInitiated?: boolean }
 ) {
   try {
     if (!_initialized) await initPush();
-    const orderNum = order.orderNumber ?? `FP${order.id}`;
+    const orderNum = order.orderNumber ?? `IMG-${order.id}`;
     const msgFactory = STATUS_PUSH_MESSAGES[status];
     if (!msgFactory) return; // No push for this status
     
@@ -220,14 +233,15 @@ export async function sendCustomerStatusPush(
     const msg = msgFactory(orderNum, extra as Record<string, unknown>);
     if (!msg) return;
     
-    const subs = await getCustomerSubscriptions(order.customerPhone, order.customerEmail);
+    const subs = await getCustomerSubscriptions(order.customerId,order.id,order.customerEmail);
     if (!subs.length) return;
     
     const payload = JSON.stringify({
       title: msg.title, body: msg.body, type: "ORDER_STATUS",
       data: { orderId: order.id, orderNumber: orderNum, url: `/order/${order.id}` }
     });
-    await deliver(subs, payload);
+    const accepted=await deliver(subs, payload);
+    if(!accepted)return;
     
     // Update push log — mark this status as sent
     const newLog = JSON.stringify([...alreadySent, status]);
@@ -263,9 +277,9 @@ export async function saveAdminSubscription(endpoint: string, p256dh: string, au
   `);
 }
 
-export async function removeAdminSubscription(endpoint: string) {
+export async function removeAdminSubscription(endpoint: string,adminId?:string) {
   await ensureAdminPushTable();
-  await db.execute(sql`DELETE FROM admin_push_subscriptions WHERE endpoint = ${endpoint}`);
+  await db.execute(adminId?sql`DELETE FROM admin_push_subscriptions WHERE endpoint=${endpoint} AND admin_id=${adminId}`:sql`DELETE FROM admin_push_subscriptions WHERE endpoint=${endpoint}`);
 }
 
 async function getAdminSubscriptions(skipAdminId?: string): Promise<{ endpoint: string; p256dh: string; auth: string; admin_id?: string | null }[]> {
@@ -321,6 +335,19 @@ export async function sendAdminActivityPush(adminName: string, action: string, o
     });
     await deliver(subs, payload);
   } catch {}
+}
+
+export async function sendOwnerPush(title: string, body: string, url: string, owner: number | null) {
+  if (!owner) return 0;
+  await initPush();
+  await ensureAdminPushTable();
+  const subs = rowsForOwner(await db.execute(sql`
+    SELECT endpoint,p256dh,auth FROM push_subscriptions WHERE admin_id=${owner}
+    UNION SELECT endpoint,p256dh,auth FROM admin_push_subscriptions WHERE admin_id=${String(owner)}`));
+  return deliver(subs, JSON.stringify({ title, body, type: "ADMIN_ACTIVITY", data: { url } }));
+}
+function rowsForOwner(result: unknown): { endpoint: string; p256dh: string; auth: string }[] {
+  return Array.isArray(result) ? result : (result as any).rows ?? [];
 }
 
 // ── Coming-soon wishlist notifications ───────────────────────────────────────

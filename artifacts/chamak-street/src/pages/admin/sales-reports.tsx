@@ -20,7 +20,7 @@ type ReportData = {
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
 const STATUS_COLORS: Record<string, string> = {
-  pending:   "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  pending:   "bg-violet-500/20 text-violet-400 border-violet-500/30",
   confirmed: "bg-blue-500/20   text-blue-400   border-blue-500/30",
   shipped:   "bg-purple-500/20 text-purple-400  border-purple-500/30",
   delivered: "bg-green-500/20  text-green-400   border-green-500/30",
@@ -205,7 +205,7 @@ export default function SalesReports() {
                 const pct = data.bestProducts[0]?.revenue > 0 ? (p.revenue / data.bestProducts[0].revenue) * 100 : 0;
                 return (
                   <div key={i} className="px-5 py-3 flex items-center gap-3 group hover:bg-white/2 transition-colors">
-                    <span className={`text-xs font-black w-5 shrink-0 ${i === 0 ? "text-yellow-400" : "text-muted-foreground"}`}>
+                    <span className={`text-xs font-black w-5 shrink-0 ${i === 0 ? "text-violet-400" : "text-muted-foreground"}`}>
                       {i === 0 ? "🏆" : `#${i + 1}`}
                     </span>
                     <div className="flex-1 min-w-0">
@@ -242,7 +242,7 @@ export default function SalesReports() {
               {data.topCustomers.map((c, i) => (
                 <div key={i} className="px-5 py-3 flex items-center gap-3 hover:bg-white/2 transition-colors">
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-black ${
-                    i === 0 ? "bg-yellow-400/20 text-yellow-400" : "bg-white/5 text-muted-foreground"
+                    i === 0 ? "bg-violet-400/20 text-violet-400" : "bg-white/5 text-muted-foreground"
                   }`}>
                     {c.name?.charAt(0)?.toUpperCase() ?? "?"}
                   </div>

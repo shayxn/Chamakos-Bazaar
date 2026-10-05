@@ -100,7 +100,7 @@ export default function GiftCardsCompletePage() {
         <div className="relative overflow-hidden border-b border-white/8 py-10 px-4 text-center">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-48"
-              style={{ background: "radial-gradient(ellipse, rgba(34,197,94,0.12) 0%, rgba(255,102,0,0.06) 50%, transparent 70%)", filter: "blur(20px)" }} />
+              style={{ background: "radial-gradient(ellipse, rgba(34,197,94,0.12) 0%, rgba(167,139,250,0.06) 50%, transparent 70%)", filter: "blur(20px)" }} />
           </div>
           <div className="relative">
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
@@ -199,7 +199,7 @@ export default function GiftCardsCompletePage() {
               style={{ touchAction: "manipulation" }}
               className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-black uppercase"
               // @ts-ignore
-              style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #ff6600, #ffaa00)" }}>
+              style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #a78bfa, #7c3aed)" }}>
               Shop Now <ArrowRight className="w-4 h-4" />
             </motion.button>
           </div>

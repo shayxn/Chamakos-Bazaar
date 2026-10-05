@@ -59,7 +59,7 @@ function ScrollVideo({ video, index }: { video: { id: number | string; embedUrl:
           borderRadius: "24px",
           background: "#0a0a0a",
           boxShadow: isInView && !faded
-            ? "0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.08), 0 0 60px rgba(255,102,0,0.08)"
+            ? "0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.08), 0 0 60px rgba(167,139,250,0.08)"
             : "0 16px 40px rgba(0,0,0,0.5)",
           transition: "box-shadow 0.6s ease",
         }}
@@ -173,7 +173,7 @@ export function TiktokSection() {
           className="text-center mb-20"
         >
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 mb-3">
-            @firstpick
+            @imaginate
           </p>
           <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter">{title}</h2>
         </motion.div>

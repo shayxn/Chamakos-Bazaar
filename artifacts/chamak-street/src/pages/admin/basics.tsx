@@ -639,9 +639,9 @@ export default function AdminBasics() {
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     <span className="bg-violet-500/90 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Basics</span>
                     {product.featured && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Featured</span>}
-                    {product.isPreOrder && <span className="bg-yellow-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
+                    {product.isPreOrder && <span className="bg-violet-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
                     {product.sellingFast && <span className="bg-violet-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Hot</span>}
-                    {product.spotlight && <span className="bg-yellow-400 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">⭐ Spotlight</span>}
+                    {product.spotlight && <span className="bg-violet-400 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">⭐ Spotlight</span>}
                   </div>
 
                   <div className="absolute bottom-2 right-2 flex items-center gap-1">
@@ -668,11 +668,11 @@ export default function AdminBasics() {
                       onClick={e => handleSetSpotlight(e, product)}
                       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all border ${
                         product.spotlight
-                          ? "bg-yellow-400/15 text-yellow-400 border-yellow-400/30 cursor-default"
-                          : "bg-transparent text-muted-foreground border-transparent hover:bg-yellow-400/8 hover:text-yellow-400 hover:border-yellow-400/20"
+                          ? "bg-violet-400/15 text-violet-400 border-violet-400/30 cursor-default"
+                          : "bg-transparent text-muted-foreground border-transparent hover:bg-violet-400/8 hover:text-violet-400 hover:border-violet-400/20"
                       }`}
                     >
-                      <Star className={`h-3 w-3 ${product.spotlight ? "fill-yellow-400" : ""}`} />
+                      <Star className={`h-3 w-3 ${product.spotlight ? "fill-violet-400" : ""}`} />
                       {product.spotlight ? "Spotlight" : "Set"}
                     </button>
                     <div className="ml-auto flex gap-1">
@@ -891,24 +891,24 @@ export default function AdminBasics() {
             </Section>
 
             {/* Badges & Flags */}
-            <Section title="Badges & Flags" icon={Sparkles} accent="rgba(251,191,36,0.18)">
+            <Section title="Badges & Flags" icon={Sparkles} accent="rgba(167,139,250,0.18)">
               <div className="grid grid-cols-2 gap-2">
                 <PillToggle checked={formData.featured ?? false} onChange={v => set({ featured: v })}
                   label="Featured" icon={Star} color="#7c3aed" />
                 <PillToggle checked={formData.sellingFast ?? false} onChange={v => set({ sellingFast: v })}
-                  label="Selling Fast" icon={Flame} color="#f97316" />
+                  label="Selling Fast" icon={Flame} color="#a78bfa" />
                 <PillToggle checked={formData.spotlight ?? false} onChange={v => set({ spotlight: v })}
-                  label="Spotlight" icon={Sparkles} color="#facc15" />
+                  label="Spotlight" icon={Sparkles} color="#a78bfa" />
                 <PillToggle checked={formData.hidden ?? false} onChange={v => set({ hidden: v })}
                   label="Hidden" icon={EyeOff} color="#94a3b8" />
               </div>
             </Section>
 
             {/* Pre-Order — collapsible */}
-            <Section title="Pre-Order" icon={Calendar} accent="rgba(234,179,8,0.18)" collapsible>
+            <Section title="Pre-Order" icon={Calendar} accent="rgba(167,139,250,0.18)" collapsible>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/60 font-bold">Enable Pre-Order Mode</span>
-                <Toggle checked={formData.isPreOrder ?? false} onChange={v => set({ isPreOrder: v })} color="#eab308" />
+                <Toggle checked={formData.isPreOrder ?? false} onChange={v => set({ isPreOrder: v })} color="#a78bfa" />
               </div>
               <AnimatePresence>
                 {formData.isPreOrder && (

@@ -1,5 +1,7 @@
 import { useListProducts, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
+import HomepageNews from "@/components/homepage-news";
+import LaunchPanel from "@/components/launch-panel";
 import { ArrowRight, Heart } from "lucide-react";
 import { useMemo } from "react";
 import { getPrimaryProductMedia } from "@/lib/product-media";
@@ -74,12 +76,11 @@ export default function Home() {
       } catch { /* A single configured URL is also supported. */ }
       return undefined;
     };
-    return tryImages(settings.hero_images) ??
-      (settings.hero_image && settings.hero_image !== "/chamako-hero.png" ? settings.hero_image : undefined);
+    return (settings.hero_image && settings.hero_image !== "/chamako-hero.png" ? settings.hero_image : undefined) ?? tryImages(settings.hero_images);
   }, [settings.hero_images, settings.hero_image]);
 
   const liveEnabled = settings.live_event_enabled === "true";
-  const liveDate = settings.live_event_date?.trim() || "October 27";
+  const liveDate = settings.live_event_date?.trim() || "";
   const liveTime = settings.live_event_time?.trim();
   const liveCtaUrl = settings.live_event_live_url?.trim() || settings.live_event_cta_url?.trim();
   const eventDateLabel = /^\d{4}-\d{2}-\d{2}$/.test(liveDate)
@@ -93,24 +94,26 @@ export default function Home() {
     <main className="min-h-[100dvh] overflow-hidden bg-[#111113] text-[#f4f2f7]">
       <section className="relative isolate border-b border-white/10" aria-label="Imaginate campaign">
         <div className="mx-auto grid max-w-[1600px] lg:min-h-[calc(100svh-120px)] lg:grid-cols-[1.05fr_.95fr]">
-          <div className="relative flex flex-col justify-end px-6 pb-10 pt-14 sm:px-10 lg:px-[5vw] lg:pb-14">
+          <div className={`relative flex flex-col justify-end px-6 pb-10 pt-14 sm:px-10 lg:px-[5vw] lg:pb-14 ${settings.hero_alignment === "center" ? "text-center items-center" : settings.hero_alignment === "right" ? "text-right items-end" : ""}`}>
             <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#7c3aed]/15 blur-3xl" />
-            <p className="relative mb-6 flex items-center gap-3 text-[10px] uppercase tracking-[.3em] text-white/65"><span className="h-px w-9 bg-[#a78bfa]" />UAE streetwear label</p>
+            <p className="relative mb-6 flex items-center gap-3 text-[10px] uppercase tracking-[.3em] text-white/65"><span className="h-px w-9 bg-[#a78bfa]" />{settings.hero_small_text || "IMAGINATE · UAE"}</p>
             <h1 className="relative text-[clamp(3.2rem,9vw,8.4rem)] font-semibold uppercase leading-[.84] tracking-[-.07em]" data-testid="text-hero-title">
-              {settings.hero_title?.trim() || "Wear the"}<br /><span className="text-[#b79cff]">{settings.hero_subtitle?.trim() || (settings.hero_title?.trim() ? "" : "unwritten.")}</span>
+              {settings.hero_headline?.trim() || settings.hero_title?.trim() || "IMAGINATE"}<br /><span className="text-[#b79cff]">{settings.hero_subheadline?.trim() || settings.hero_subtitle?.trim() || ""}</span>
             </h1>
             <p className="relative mt-7 max-w-md text-sm leading-6 text-white/65 sm:text-base">
-              {settings.hero_description?.trim() || "IMAGINATE is a point of view in motion. A new language for the streets, made to be yours."}
+              {settings.hero_description?.trim() || ""}
             </p>
-            <div className="relative mt-9 flex flex-wrap items-center gap-3">
-              <Link href="/shop" data-testid="link-hero-shop" className="group inline-flex items-center gap-4 bg-[#b79cff] px-7 py-4 text-[11px] font-semibold uppercase tracking-[.2em] text-[#111113] transition-colors hover:bg-white">
-                {settings.hero_cta_text?.trim() || "Shop the collection"} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            {settings.hero_cta_enabled !== "false" && <div className="relative mt-9 flex flex-wrap items-center gap-3">
+              <Link href={settings.hero_cta_url?.trim() || "/shop"} data-testid="link-hero-shop" className="group inline-flex items-center gap-4 bg-[#b79cff] px-7 py-4 text-[11px] font-semibold uppercase tracking-[.2em] text-[#111113] transition-colors hover:bg-white">
+                {settings.hero_cta_label?.trim() || settings.hero_cta_text?.trim() || "Shop the collection"} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link href="/shop?new=1" className="inline-flex items-center border border-white/25 px-7 py-4 text-[11px] uppercase tracking-[.2em] transition-colors hover:border-white">New in</Link>
-            </div>
+            </div>}
           </div>
           <div className="relative min-h-[420px] overflow-hidden border-t border-white/10 bg-[#19191c] lg:border-l lg:border-t-0">
-            {heroImage ? (
+            {settings.hero_video ? (
+              <video src={settings.hero_video} poster={heroImage} muted loop autoPlay playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
+            ) : heroImage ? (
               <>
                 <img src={heroImage} alt="" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover" />
                 <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#111113]/70 via-transparent to-transparent" />
@@ -139,6 +142,8 @@ export default function Home() {
         </div>
       </section>
 
+      <HomepageNews />
+      <LaunchPanel />
       {liveEnabled && (
         <section className="relative isolate overflow-hidden border-y border-white/10 bg-[#17161a]" aria-label="IMAGINATE Live">
           {settings.live_event_background && (

@@ -49,7 +49,7 @@ function TruckSVG() {
       <rect x="4" y="18" width="225" height="76" rx="5" fill="#0d0d0d" stroke="#7c3aed" strokeWidth="1.5" />
       {/* Corrugation lines */}
       {[30, 60, 90, 120, 150, 180, 200].map((x) => (
-        <line key={x} x1={x} y1="20" x2={x} y2="92" stroke="rgba(255,102,0,0.15)" strokeWidth="1" />
+        <line key={x} x1={x} y1="20" x2={x} y2="92" stroke="rgba(167,139,250,0.15)" strokeWidth="1" />
       ))}
       {/* IMAGINATE logo text on trailer */}
       <text x="115" y="53" textAnchor="middle" fontSize="13" fontWeight="900" fill="#a78bfa"
@@ -62,7 +62,7 @@ function TruckSVG() {
       <rect x="4" y="18" width="10" height="76" rx="0" fill="#1a1a1a" />
       {/* Rear lights */}
       <rect x="5" y="22" width="6" height="12" rx="2" fill="#cc0000" opacity="0.9" />
-      <rect x="5" y="78" width="6" height="12" rx="2" fill="#ffaa00" opacity="0.8" />
+      <rect x="5" y="78" width="6" height="12" rx="2" fill="#a78bfa" opacity="0.8" />
 
       {/* ── Connector / fifth wheel ── */}
       <rect x="226" y="72" width="12" height="8" rx="2" fill="#333" />

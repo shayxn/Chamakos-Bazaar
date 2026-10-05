@@ -9,6 +9,7 @@ import { Minus, Plus, ShoppingCart, AlertCircle, ArrowLeft, ChevronLeft, Chevron
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { PageTransition } from "@/components/page-transition";
+import { ContentSeo } from "@/components/content-seo";
 import { trackCartUpdate } from "@/lib/use-visitor-tracking";
 import { parseProductMedia, getPrimaryProductMedia } from "@/lib/product-media";
 import { QuickViewModal } from "@/components/quick-view-modal";
@@ -124,6 +125,8 @@ function MotionItem({ children, delay = 0, className = "" }: { children: React.R
   );
 }
 
+type PVariant = { id: string; size: string; color: string; stock: number; price: number | null };
+
 type LookProduct = {
   id: number; name: string; price: number; imageUrl: string | null;
   imageUrls: string | null; stock: number; sizes: string | null;
@@ -235,7 +238,7 @@ function CompleteTheLookSection({
           transition={{ duration: 0.45, delay: 0.35, ease: EASE }}
           className="relative group"
         >
-          <div className="relative aspect-square rounded-xl overflow-hidden bg-card border-2 border-primary/50 shadow-[0_0_20px_rgba(255,102,0,0.15)]">
+          <div className="relative aspect-square rounded-xl overflow-hidden bg-card border-2 border-primary/50 shadow-[0_0_20px_rgba(167,139,250,0.15)]">
             {currentMedia ? (
               <img
                 src={currentMedia.url}
@@ -270,7 +273,7 @@ function CompleteTheLookSection({
               className="relative group"
             >
               <Link href={`/product/${item.id}`}>
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-[0_6px_24px_rgba(255,102,0,0.18)]">
+                <div className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-[0_6px_24px_rgba(167,139,250,0.18)]">
                   {media ? (
                     <img
                       src={media.url}
@@ -332,7 +335,7 @@ function CompleteTheLookSection({
           className={`flex items-center gap-2.5 px-8 py-3.5 rounded-sm font-black uppercase tracking-widest text-sm transition-all ${
             allAdded
               ? "bg-green-500/15 border border-green-500/40 text-green-400"
-              : "fire-gradient text-primary-foreground shadow-[0_0_28px_rgba(255,102,0,0.3)] hover:shadow-[0_0_44px_rgba(255,102,0,0.5)]"
+              : "fire-gradient text-primary-foreground shadow-[0_0_28px_rgba(167,139,250,0.3)] hover:shadow-[0_0_44px_rgba(167,139,250,0.5)]"
           }`}
         >
           {allAdded ? (
@@ -369,7 +372,7 @@ export default function ProductDetail() {
     categoryId ? { categoryId, limit: 13 } : undefined,
     { query: { enabled: !!categoryId && recVisible, queryKey: getListProductsQueryKey(categoryId ? { categoryId, limit: 13 } : undefined), staleTime: 30_000 } }
   );
-  const related = (relatedProducts ?? []).filter((p) => p.id !== id).slice(0, recCount);
+  const related = (relatedProducts ?? []).filter((p,index,all) => p.id !== id&&all.findIndex(other=>other.id===p.id)===index).slice(0, recCount);
 
   const scrollSlider = (dir: "left" | "right") => {
     if (!sliderRef.current) return;
@@ -385,6 +388,7 @@ export default function ProductDetail() {
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("");
   const [addedPulse, setAddedPulse] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
@@ -393,6 +397,7 @@ export default function ProductDetail() {
   useEffect(() => {
     setQuantity(1);
     setSelectedSize("");
+    setSelectedColor("");
     setSelectedMediaIndex(0);
     setScrolledPast(false);
   }, [id]);
@@ -423,6 +428,48 @@ export default function ProductDetail() {
   };
 
   const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()) : [];
+  const ext = (product ?? {}) as unknown as {
+    colors?: string | string[] | null; variants?: PVariant[] | string | null; compareAtPrice?: number | string | null;
+    seoTitle?: string | null; seoDescription?: string | null; socialImage?: string | null;
+  };
+  const colors: string[] = Array.isArray(ext.colors) ? ext.colors : (ext.colors ? String(ext.colors).split(",").map(c => c.trim()).filter(Boolean) : []);
+  const variants: PVariant[] = useMemo(() => {
+    let v = ext.variants;
+    if (typeof v === "string") { try { v = JSON.parse(v); } catch { v = []; } }
+    return Array.isArray(v) ? v : [];
+  }, [ext.variants]);
+  const matchedVariant = variants.find(v =>
+    (sizes.length === 0 || (selectedSize && v.size === selectedSize) || !v.size) &&
+    (colors.length === 0 || (selectedColor && v.color === selectedColor) || !v.color) &&
+    (!!selectedSize || sizes.length === 0) && (!!selectedColor || colors.length === 0)) ?? null;
+  const variantStock = matchedVariant ? matchedVariant.stock : null;
+  const effectiveStock = variantStock ?? product?.stock ?? 0;
+  const effPrice = matchedVariant && matchedVariant.price != null ? Number(matchedVariant.price) : (product?.price ?? 0);
+  const compareAt = ext.compareAtPrice != null && ext.compareAtPrice !== "" ? Number(ext.compareAtPrice) : null;
+  const showCompare = compareAt !== null && Number.isFinite(compareAt) && compareAt > effPrice;
+  useEffect(() => {
+    if (!product) return;
+    const prevTitle = document.title;
+    const touched: Array<{ el: HTMLMetaElement; prev: string | null; created: boolean }> = [];
+    const setMeta = (attr: "name" | "property", key: string, val?: string | null) => {
+      if (!val) return;
+      let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
+      const created = !el;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      touched.push({ el, prev: el.getAttribute("content"), created });
+      el.setAttribute("content", val);
+    };
+    if (ext.seoTitle) document.title = ext.seoTitle;
+    setMeta("name", "description", ext.seoDescription);
+    setMeta("property", "og:title", ext.seoTitle);
+    setMeta("property", "og:description", ext.seoDescription);
+    setMeta("property", "og:image", ext.socialImage);
+    return () => {
+      document.title = prevTitle;
+      touched.reverse().forEach(t => { if (t.created) t.el.remove(); else if (t.prev !== null) t.el.setAttribute("content", t.prev); });
+    };
+  }, [product?.id, ext.seoTitle, ext.seoDescription, ext.socialImage]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const mediaItems = useMemo(() => parseProductMedia(product?.imageUrl ?? null), [product?.imageUrl]);
 
   // Show sticky ATC bar once scrolled past the main button — RAF-throttled
@@ -455,8 +502,20 @@ export default function ProductDetail() {
       toast({ title: "Select a size", description: "Please select a size before adding to cart.", variant: "destructive" });
       return;
     }
+    if (colors.length > 0 && !selectedColor) {
+      toast({ title: "Select a colour", description: "Please select a colour before adding to cart.", variant: "destructive" });
+      return;
+    }
+    if (variants.length > 0 && !matchedVariant) {
+      toast({ title: "Combination unavailable", description: "Choose another size or colour.", variant: "destructive" });
+      return;
+    }
+    if (matchedVariant && matchedVariant.stock <= 0 && !isPreOrder) {
+      toast({ title: "Out of stock", description: "This option is sold out.", variant: "destructive" });
+      return;
+    }
     addToCart.mutate(
-      { data: { productId: product.id, quantity, size: selectedSize || undefined } },
+      { data: { productId: product.id, quantity, size: selectedSize || undefined, color: selectedColor || undefined, variantId: matchedVariant?.id } as never },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
@@ -517,11 +576,13 @@ export default function ProductDetail() {
   const productEvent = events.find((event) => event.countdownEnabled && event.ctaUrl?.replace(/\/$/, "").endsWith(`/product/${id}`));
   const preorderDate = productEvent?.endAt || product.preOrderDate;
   // Sticky bar: only after scroll AND (no sizes OR size already chosen)
-  const stickyVisible = scrolledPast && !isOutOfStock && (sizes.length === 0 || !!selectedSize);
+  const stickyVisible = scrolledPast && !isOutOfStock && (sizes.length === 0 || !!selectedSize) && (colors.length === 0 || !!selectedColor);
   const selectedMedia = mediaItems[selectedMediaIndex] ?? mediaItems[0] ?? null;
 
   return (
     <PageTransition>
+      <ContentSeo title={(product as any).seoTitle||product.name} description={(product as any).seoDescription||product.description||undefined} image={(product as any).socialImage||product.imageUrl||undefined}
+        product={{name:product.name,price:product.price,stock:product.stock}}/>
       <div className="container mx-auto px-4 py-12">
         {/* Back */}
         <MotionItem delay={0.05}>
@@ -584,7 +645,7 @@ export default function ProductDetail() {
                 initial={{ opacity: 0 }}
                 whileHover={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
-                style={{ background: "radial-gradient(ellipse at 50% 85%, rgba(255,102,0,0.25), transparent 65%)" }}
+                style={{ background: "radial-gradient(ellipse at 50% 85%, rgba(167,139,250,0.25), transparent 65%)" }}
               />
             </motion.div>
             {mediaItems.length > 1 && (
@@ -594,7 +655,7 @@ export default function ProductDetail() {
                     key={`${item.url}-${index}`}
                     type="button"
                     onClick={() => setSelectedMediaIndex(index)}
-                    className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-xl glass-thumb transition-all duration-300 ${selectedMediaIndex === index ? "thumb-selected !border-primary/70 !shadow-[0_0_16px_rgba(255,102,0,0.30),inset_0_2px_0_rgba(255,180,80,0.18)]" : ""}`}
+                    className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-xl glass-thumb transition-all duration-300 ${selectedMediaIndex === index ? "thumb-selected !border-primary/70 !shadow-[0_0_16px_rgba(167,139,250,0.30),inset_0_2px_0_rgba(167,139,250,0.18)]" : ""}`}
                   >
                     {item.type === "video" ? (
                       <>
@@ -621,7 +682,7 @@ export default function ProductDetail() {
                   <span className="text-xs font-black tracking-widest uppercase bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-sm backdrop-blur-sm">Featured</span>
                 )}
                 {(product as any).bestSeller && (
-                  <span className="text-xs font-black tracking-widest uppercase bg-amber-400/90 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">Best Seller</span>
+                  <span className="text-xs font-black tracking-widest uppercase bg-violet-400/90 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">Best Seller</span>
                 )}
                 {(product as any).trending && (
                   <span className="text-xs font-black tracking-widest uppercase bg-cyan-400/90 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">Trending</span>
@@ -654,8 +715,14 @@ export default function ProductDetail() {
 
             <MotionItem delay={0.29} className="mt-5">
               <div className="text-3xl font-mono font-black text-primary">
-                AED {product.price.toFixed(2)}
+                AED {effPrice.toFixed(2)}
+                {showCompare && <span className="ml-3 text-lg text-muted-foreground line-through" data-testid="text-compare-at">AED {compareAt!.toFixed(2)}</span>}
               </div>
+              {variantStock !== null && !isPreOrder && (
+                <p className={`mt-1 text-xs font-bold ${variantStock > 0 ? "text-white/60" : "text-red-400"}`} data-testid="text-variant-stock">
+                  {variantStock > 0 ? (variantStock <= 5 ? `Only ${variantStock} left` : "In stock") : "Sold out"}
+                </p>
+              )}
             </MotionItem>
 
             {product.description && (
@@ -667,6 +734,23 @@ export default function ProductDetail() {
             )}
 
             <MotionItem delay={0.42} className="mt-8 space-y-8">
+              {/* Colours */}
+              {colors.length > 0 && (
+                <div className="mt-6" data-testid="color-selector">
+                  <h3 className="font-black uppercase tracking-wider text-sm mb-3">Colour{selectedColor && <span className="ml-2 text-white/50 normal-case font-bold">{selectedColor}</span>}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {colors.map(c => {
+                      const out = variants.length > 0 && variants.filter(v => v.color === c && (!selectedSize || v.size === selectedSize)).every(v => v.stock <= 0);
+                      return (
+                        <button key={c} type="button" onClick={() => setSelectedColor(c)} aria-pressed={selectedColor === c}
+                          className={`min-h-[44px] px-4 rounded-xl border text-sm font-bold transition-colors ${selectedColor === c ? "border-primary bg-primary/20 text-white" : "border-white/15 text-white/60 hover:text-white"} ${out && !isPreOrder ? "opacity-50 line-through" : ""}`}
+                          data-testid={`color-${c}`}>{c}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Sizes */}
               {sizes.length > 0 && (
                 <div>
@@ -729,7 +813,7 @@ export default function ProductDetail() {
                 <div className="flex items-center h-12 w-36 glass-qty rounded-xl overflow-hidden">
                   <motion.button
                     whileTap={{ scale: 0.82 }}
-                    whileHover={{ backgroundColor: "rgba(255,102,0,0.08)" }}
+                    whileHover={{ backgroundColor: "rgba(167,139,250,0.08)" }}
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     className="w-10 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
                     disabled={isOutOfStock}
@@ -742,10 +826,10 @@ export default function ProductDetail() {
                     </span>
                   <motion.button
                     whileTap={{ scale: 0.82 }}
-                    whileHover={{ backgroundColor: "rgba(255,102,0,0.08)" }}
-                    onClick={() => setQuantity((q) => Math.min(isPreOrder ? 99 : product.stock, q + 1))}
+                    whileHover={{ backgroundColor: "rgba(167,139,250,0.08)" }}
+                    onClick={() => setQuantity((q) => Math.min(isPreOrder ? 99 : effectiveStock, q + 1))}
                     className="w-10 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
-                    disabled={isOutOfStock || quantity >= (isPreOrder ? 99 : product.stock)}
+                    disabled={isOutOfStock || quantity >= (isPreOrder ? 99 : effectiveStock)}
                     data-testid="button-quantity-plus"
                   >
                     <Plus className="h-4 w-4" />
@@ -864,7 +948,7 @@ export default function ProductDetail() {
                   >
                     <Link href={`/product/${p.id}`}>
                       <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}>
-                        <div className="product-img-frame relative aspect-square mb-3 overflow-hidden rounded-xl glass-card group-hover:shadow-[0_0_24px_rgba(255,102,0,0.22)] transition-all duration-300">
+                        <div className="product-img-frame relative aspect-square mb-3 overflow-hidden rounded-xl glass-card group-hover:shadow-[0_0_24px_rgba(167,139,250,0.22)] transition-all duration-300">
                           {media ? (
                             <img
                               src={media.url}
@@ -920,14 +1004,14 @@ export default function ProductDetail() {
               background: "rgba(8,8,8,0.82)",
               backdropFilter: "blur(56px) saturate(240%) brightness(1.05)",
               WebkitBackdropFilter: "blur(56px) saturate(240%) brightness(1.05)",
-              border: "1px solid rgba(255,102,0,0.30)",
-              boxShadow: "0 -2px 0 rgba(255,255,255,0.06) inset, 0 8px 48px rgba(0,0,0,0.72), 0 0 0 0.5px rgba(255,102,0,0.15)",
+              border: "1px solid rgba(167,139,250,0.30)",
+              boxShadow: "0 -2px 0 rgba(255,255,255,0.06) inset, 0 8px 48px rgba(0,0,0,0.72), 0 0 0 0.5px rgba(167,139,250,0.15)",
             }}
           >
             <div className="px-4 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest truncate">{product.name}</p>
-                <p className="text-primary font-mono font-black text-base leading-tight">AED {product.price.toFixed(2)}</p>
+                <p className="text-primary font-mono font-black text-base leading-tight">AED {effPrice.toFixed(2)}</p>
                 {selectedSize && (
                   <p className="text-[10px] text-white/35 font-bold mt-0.5">Size: {selectedSize}</p>
                 )}

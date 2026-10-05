@@ -9,10 +9,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAdminPushNotifications } from "@/hooks/use-admin-notifications";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { SystemStudioLayer } from "@/components/system-studio-layer";
 
 const NOTIF_KEY = "firstpick_notif_asked";
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
@@ -148,7 +148,7 @@ function GlobalSearch() {
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.1)",
           }}
-          onFocusCapture={e => (e.currentTarget.style.borderColor = "rgba(255,102,0,0.65)")}
+          onFocusCapture={e => (e.currentTarget.style.borderColor = "rgba(167,139,250,0.65)")}
           onBlurCapture={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
         />
         <AnimatePresence>
@@ -174,7 +174,7 @@ function GlobalSearch() {
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15, ease: EASE }}
             className="absolute left-3 right-3 top-full mt-1 z-50 rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto"
-            style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(255,102,0,0.2)", backdropFilter: "blur(12px)" }}
+            style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(167,139,250,0.2)", backdropFilter: "blur(12px)" }}
           >
             {!hasResults ? (
               <p className="text-xs text-muted-foreground px-4 py-3">No results for "{debouncedQuery}"</p>
@@ -257,6 +257,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const search = typeof window !== "undefined" ? window.location.search : "";
   const isCalls = search.includes("view=calls");
   const { data: user, isLoading } = useGetMe({ query: { retry: false, queryKey: ["auth", "me"] } });
+  const accessQuery=useQuery<{isOwner:boolean;permissions:string[]}>({queryKey:["admin-access",user?.id],enabled:!!user?.isAdmin,
+    queryFn:async()=>{const r=await fetch(`${BASE}/api/admin/access`,{credentials:"include"});if(!r.ok)throw new Error("Your Admin access could not be verified.");return r.json();},staleTime:15000});
   const { permission, subscribe } = useAdminPushNotifications();
   const { toast } = useToast();
   const [showDeniedBanner, setShowDeniedBanner] = useState(false);
@@ -268,23 +270,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [adminPfp, setAdminPfp] = useState<string | null>(() => (
     typeof window !== "undefined" ? localStorage.getItem("fp_admin_pfp") : null
   ));
-  const [ownerStudioAccess, setOwnerStudioAccess] = useState(false);
   const isChat = location.split("?")[0] === "/admin/chat";
-
-  useEffect(() => {
-    if (!user?.isAdmin) {
-      setOwnerStudioAccess(false);
-      return;
-    }
-    const controller = new AbortController();
-    fetch(`${BASE}/api/owner-studio/access`, { credentials: "include", signal: controller.signal })
-      .then(async (response) => response.ok ? response.json() as Promise<{ canAccess?: boolean }> : { canAccess: false })
-      .then((access) => setOwnerStudioAccess(Boolean(access.canAccess)))
-      .catch((error) => {
-        if ((error as Error).name !== "AbortError") setOwnerStudioAccess(false);
-      });
-    return () => controller.abort();
-  }, [user?.id, user?.isAdmin]);
 
   useEffect(() => {
     const refreshAdminPfp = () => setAdminPfp(localStorage.getItem("fp_admin_pfp"));
@@ -411,13 +397,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/chat?view=calls", label: "Calls", icon: Phone },
     { href: "/admin/notifications", label: "Notifications", icon: BellRing },
     { href: "/admin/activity", label: "Activity Log", icon: Activity },
-    { href: "/admin/coupons", label: "Coupons", icon: Ticket },
-    ...(ownerStudioAccess ? [{ href: "/admin/owner-studio", label: "Owner Studio", icon: Zap }] : []),
+    { href: "/admin/discount-codes", label: "Discount Codes", icon: Ticket },
+    { href: "/admin/manage/customers", label: "Customers", icon: Users },
+    { href: "/admin/manage/news", label: "Content · News", icon: FileText },
+    { href: "/admin/manage/pages", label: "Website · Pages", icon: Layers },
+    { href: "/admin/manage/navigation", label: "Website · Navigation", icon: Layers },
+    { href: "/admin/manage/homepage", label: "Website · Homepage Hero", icon: LayoutDashboard },
+    { href: "/admin/manage/launch", label: "Countdown & Launch", icon: Activity },
+    { href: "/admin/manage/media", label: "Media", icon: Video },
+    { href: "/admin/manage/support", label: "Support Requests", icon: MessageCircle },
+    { href: "/admin/manage/faq", label: "Support · FAQ", icon: FileText },
+    { href: "/admin/manage/newsletter", label: "Newsletter", icon: Users },
+    { href: "/admin/manage/countries", label: "Countries", icon: Layers },
+    { href: "/admin/manage/shipping", label: "Shipping", icon: ShoppingBag },
+    { href: "/admin/manage/team", label: "Admin Team & Permissions", icon: Users },
+    { href: "/admin/sales-reports", label: "Analytics", icon: Activity },
     { href: "/admin/site-settings", label: "Site Settings", icon: Settings },
     { href: "/admin/reviews", label: "Reviews", icon: Star },
     { href: "/admin/tiktok", label: "TikTok Videos", icon: Video },
-    { href: "/admin/terms", label: "Pages & Legal", icon: FileText },
-  ];
+    { href: "/admin/terms", label: "Policies & Legal", icon: FileText },
+  ].filter(link=>{
+    const access=accessQuery.data;
+    if(!access)return ["/admin/chat","/admin/chat?view=calls","/admin/activity"].includes(link.href);
+    if(access.isOwner)return true;
+    if(/manage\/(?:team|countries|shipping|launch|reminders)/.test(link.href))return false;
+    if(/chat|activity/.test(link.href))return true;
+    const permission=/products|basics|categories|stock-alerts/.test(link.href)?"products":
+      /orders|refund|abandoned/.test(link.href)?"orders":/support|product-requests/.test(link.href)?"support":
+      /discount|coupon/.test(link.href)?"discounts":/customer|newsletter/.test(link.href)?"customers":
+      /visitors|sales|analytics/.test(link.href)||link.href==="/admin"?"analytics":
+      /notification/.test(link.href)?"notifications":/manage|reviews|tiktok|terms|events|games/.test(link.href)?"content":"settings";
+    return access.permissions.includes(permission);
+  });
 
   return (
     <div className="h-[100dvh] overflow-hidden flex bg-[#000000] text-white">
@@ -434,7 +445,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               className="w-full rounded-2xl p-4 space-y-4 text-left shadow-2xl"
-              style={{ background: "rgba(10,10,10,0.98)", border: "1px solid rgba(255,102,0,0.22)" }}
+              style={{ background: "rgba(10,10,10,0.98)", border: "1px solid rgba(167,139,250,0.22)" }}
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center"
@@ -699,7 +710,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className={isChat ? "flex-1 flex flex-col min-h-0 overflow-hidden p-2 md:p-4" : "p-6 md:p-8 flex-1 overflow-auto"}
           >
             {children}
-              <SystemStudioLayer route={location} admin />
           </motion.div>
         </AnimatePresence>
       </main>

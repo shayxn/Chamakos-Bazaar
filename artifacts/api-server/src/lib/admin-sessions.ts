@@ -37,18 +37,19 @@ export async function getAdminDeviceToken(req: Request): Promise<string | null> 
   const rows: Array<{ id: number; user_id: number; revoked_at: string | null }> = Array.isArray(result)
     ? result
     : ((result as unknown as { rows?: Array<{ id: number; user_id: number; revoked_at: string | null }> }).rows ?? []);
-  return rows[0]?.revoked_at ? null : token;
+  return !rows[0] || rows[0].revoked_at ? null : token;
 }
 
 export async function touchAdminSession(req: Request, userId: number): Promise<boolean> {
   const token = await getAdminDeviceToken(req);
   if (!token) return false;
-  await db.execute(sql`
+  const result=await db.execute(sql`
     UPDATE admin_device_sessions
     SET last_seen_at = NOW()
-    WHERE device_token = ${token} AND user_id = ${userId} AND revoked_at IS NULL
+    WHERE device_token = ${token} AND user_id = ${userId} AND revoked_at IS NULL RETURNING id
   `);
-  return true;
+  const rows=Array.isArray(result)?result:(result as any).rows??[];
+  return rows.length>0;
 }
 
 export function getRequestDeviceDetails(req: Request) {

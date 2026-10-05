@@ -1,0 +1,60 @@
+Improve Imaginate’s Countdown, Loading Screen, and add a new Admin section called “Live Traffic”.
+
+COUNTDOWN:
+Make creating/managing countdowns extremely easy in Admin. Add a simple Countdown ON/OFF switch. When turned ON, show:
+- When should it start? [date + time]
+- When should it end? [date + time]
+- What text should appear above the countdown?
+- What image/background should appear below/behind the countdown?
+- Launch video upload
+- Preview Countdown button
+
+Use the store/business timezone and server time so the countdown stays accurate across devices.
+
+If at least one product has Pre-order enabled while the countdown is active, automatically show a premium “PRE-ORDER NOW” button below the countdown that takes customers to the available pre-order products. Hide it automatically when there are no active pre-order products.
+
+COUNTDOWN END / LAUNCH:
+When the countdown reaches exactly 0:
+1. Fade the countdown to pure black.
+2. If Admin uploaded a launch video, play it full-screen WITH AUDIO when browser/device permissions allow it. Preserve aspect ratio and make it mobile/iPad friendly. Provide a sensible user interaction fallback if autoplay with audio is blocked.
+3. When the video finishes, smoothly fade to black.
+4. Display:
+“We know you’re excited, just a few moments!”
+Small text below:
+“This may take a few minutes.”
+5. Load/prepare the website behind this screen.
+6. As soon as the website is genuinely ready, smoothly fade the message out and fade the website in.
+7. Do NOT use a fake multi-minute delay. If the site is ready quickly, continue quickly.
+8. If no launch video is uploaded, skip directly to the post-countdown loading/launch sequence.
+9. Make sure late visitors do not unnecessarily replay the launch video every visit.
+
+LOADING SCREEN:
+Polish the normal Imaginate loading screen. It should be pure black with the exact supplied Imaginate logo centered. Add premium purple lightning/electric energy around the logo with a subtle atmospheric purple glow. The lightning should briefly illuminate the logo/background and make the logo shake/vibrate VERY slightly. Keep it cinematic and premium, not cartoonish or like a gaming template. Once the real page is ready, the energy settles, the logo fades out, and the website smoothly fades in. Do not artificially slow down the website. Respect Reduced Motion by using a simple logo fade instead.
+
+LIVE TRAFFIC:
+Add a new Admin category called “Live Traffic”.
+
+Show real analytics such as:
+“4 people are on the website right now”
+
+Include:
+- Visitors currently online
+- Which page each active visitor is viewing
+- Anonymous session/device type where safely available
+- Today’s visitors
+- This week’s visitors
+- This month’s visitors
+- Previous month comparison
+- Page views
+- Unique visitors
+- Most viewed pages/products
+- Traffic over time
+- Country breakdown when reliably available
+- New vs returning visitors where reliably measurable
+
+Update the live visitor count in near real time. Use privacy-conscious anonymous analytics and do NOT expose unnecessary personal information.
+
+Add monthly analytics so Admin can see how many people visited Imaginate each month and compare months.
+
+IMPORTANT:
+Use REAL measured analytics only. Never generate fake visitors, fake page views, fake locations, fake activity, or placeholder numbers in production. Keep everything fast, secure, responsive, and consistent with Imaginate’s black + exact purple Liquid Glass design.

@@ -14,14 +14,14 @@ import { useToast } from "@/hooks/use-toast";
 import { playCashSound } from "@/hooks/use-admin-notifications";
 
 const STATUS_COLORS: Record<string, string> = {
-  pending:          "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
+  pending:          "bg-violet-500/10 text-violet-400 border-violet-500/30",
   confirmed:        "bg-blue-500/10 text-blue-400 border-blue-500/30",
   packed:           "bg-purple-500/10 text-purple-400 border-purple-500/30",
   preparing:        "bg-purple-500/10 text-purple-400 border-purple-500/30",
   shipped:          "bg-primary/10 text-primary border-primary/30",
-  out_for_delivery: "bg-orange-500/10 text-orange-400 border-orange-500/30",
+  out_for_delivery: "bg-violet-500/10 text-violet-400 border-violet-500/30",
   delivered:        "bg-green-500/10 text-green-400 border-green-500/30",
-  delayed:          "text-orange-400 bg-orange-500/15 border-orange-500/40",
+  delayed:          "text-violet-400 bg-violet-500/15 border-violet-500/40",
   cancelled:        "text-red-400 bg-red-500/15 border-red-500/40",
 };
 
@@ -74,7 +74,7 @@ async function generateReceiptDataUrl(order: Order): Promise<string> {
   ctx.fillRect(0, 0, W, H);
 
   // Orange header stripe
-  ctx.fillStyle = "#ff6600";
+  ctx.fillStyle = "#a78bfa";
   ctx.fillRect(0, 0, W, 64);
 
   // Header title
@@ -112,7 +112,7 @@ async function generateReceiptDataUrl(order: Order): Promise<string> {
 
   // Customer section
   y += 22;
-  ctx.fillStyle = "#ff6600";
+  ctx.fillStyle = "#a78bfa";
   ctx.font = "bold 9px 'Courier New', Courier, monospace";
   ctx.fillText("CUSTOMER INFORMATION", PAD, y);
 
@@ -164,7 +164,7 @@ async function generateReceiptDataUrl(order: Order): Promise<string> {
   ctx.stroke();
 
   y += 20;
-  ctx.fillStyle = "#ff6600";
+  ctx.fillStyle = "#a78bfa";
   ctx.font = "bold 9px 'Courier New', Courier, monospace";
   ctx.fillText("ORDERED ITEMS", PAD, y);
   ctx.fillText("QTY", 400, y);
@@ -194,7 +194,7 @@ async function generateReceiptDataUrl(order: Order): Promise<string> {
     ctx.fillStyle = "#555555";
     ctx.fillText(`×${item.quantity}`, 405, y);
 
-    ctx.fillStyle = "#ff6600";
+    ctx.fillStyle = "#a78bfa";
     ctx.font = "bold 13px 'Courier New', Courier, monospace";
     ctx.fillText(`AED ${(item.price * item.quantity).toFixed(2)}`, 455, y);
 
@@ -220,7 +220,7 @@ async function generateReceiptDataUrl(order: Order): Promise<string> {
   ctx.font = "11px 'Courier New', Courier, monospace";
   ctx.fillText("TOTAL AMOUNT", PAD, y);
 
-  ctx.fillStyle = "#ff6600";
+  ctx.fillStyle = "#a78bfa";
   ctx.font = "bold 26px 'Courier New', Courier, monospace";
   const totalStr = `AED ${order.total.toFixed(2)}`;
   const totalW = ctx.measureText(totalStr).width;
@@ -543,10 +543,10 @@ export default function AdminOrders() {
                 <div className="flex items-center gap-3 flex-wrap mb-1">
                   <span className="font-mono font-black text-primary text-lg">{order.orderNumber ?? `#${order.id}`}</span>
                   {order.hasPreOrder && (
-                    <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded font-black uppercase tracking-wider">Pre-Order</span>
+                    <span className="text-[10px] bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded font-black uppercase tracking-wider">Pre-Order</span>
                   )}
                   {order.deliveryMethod === "priority" && (
-                    <span className="text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider" style={{ background: "rgba(255,102,0,0.15)", color: "#ff6600", border: "1px solid rgba(255,102,0,0.3)" }}>⚡ Priority</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider" style={{ background: "rgba(167,139,250,0.15)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.3)" }}>⚡ Priority</span>
                   )}
                   {order.deliveryMethod === "express" && (
                     <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded font-black uppercase tracking-wider">Express</span>
@@ -629,7 +629,7 @@ export default function AdminOrders() {
                             <Package className="h-4 w-4 text-primary shrink-0" />
                             <span className="font-bold shrink-0">{item.quantity}×</span>
                             <span className="min-w-0 flex-1 break-words">{item.productName}{item.size ? ` (${item.size})` : ""}</span>
-                            {item.isPreOrder && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded font-black">Pre-Order</span>}
+                            {item.isPreOrder && <span className="text-[10px] bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded font-black">Pre-Order</span>}
                             <span className="ml-auto whitespace-nowrap font-mono font-bold text-primary">AED {(item.price * item.quantity).toFixed(2)}</span>
                           </div>
                         ))}
@@ -654,7 +654,7 @@ export default function AdminOrders() {
                       {(order.tip ?? 0) > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">⭐ Tip</span>
-                          <span className="font-mono font-bold text-yellow-400">AED {(order.tip ?? 0).toFixed(2)}</span>
+                          <span className="font-mono font-bold text-violet-400">AED {(order.tip ?? 0).toFixed(2)}</span>
                         </div>
                       )}
                       <div className="border-t border-border/30 pt-2 flex justify-between">
@@ -665,10 +665,10 @@ export default function AdminOrders() {
 
                     {/* ─── Delay / Cancel Info ─── */}
                     {order.delayReason && (
-                      <div className="rounded-xl p-4 border border-orange-500/20 bg-orange-500/5">
-                        <p className="text-xs font-black uppercase tracking-widest text-orange-400 mb-1">⚠️ Order Delayed</p>
+                      <div className="rounded-xl p-4 border border-violet-500/20 bg-violet-500/5">
+                        <p className="text-xs font-black uppercase tracking-widest text-violet-400 mb-1">⚠️ Order Delayed</p>
                         <p className="text-sm text-muted-foreground">{order.delayReason}</p>
-                        {order.delayedUntil && <p className="text-xs text-orange-400 mt-1 font-bold">New estimate: {order.delayedUntil}</p>}
+                        {order.delayedUntil && <p className="text-xs text-violet-400 mt-1 font-bold">New estimate: {order.delayedUntil}</p>}
                       </div>
                     )}
                     {order.cancelReason && (
@@ -705,9 +705,9 @@ export default function AdminOrders() {
                           onClick={() => window.open(`/receipt/${order.id}`, "_blank")}
                           className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-sm uppercase tracking-wide transition-all hover:scale-105 active:scale-95"
                           style={{
-                            background: "linear-gradient(135deg, #ff6600, #ffcc00)",
+                            background: "linear-gradient(135deg, #a78bfa, #ffcc00)",
                             color: "#000000",
-                            boxShadow: "0 4px 16px rgba(255,102,0,0.35)",
+                            boxShadow: "0 4px 16px rgba(167,139,250,0.35)",
                           }}
                         >
                           <Eye className="h-4 w-4" />
@@ -826,7 +826,7 @@ export default function AdminOrders() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="w-full max-w-md rounded-2xl border border-orange-500/20 p-6 space-y-4"
+              className="w-full max-w-md rounded-2xl border border-violet-500/20 p-6 space-y-4"
               style={{ background: "rgba(20,20,20,0.95)", backdropFilter: "blur(20px)" }}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-2xl">⚠️</span>
@@ -836,17 +836,17 @@ export default function AdminOrders() {
                 <div>
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-1.5">Reason for delay</label>
                   <textarea value={delayReason} onChange={e => setDelayReason(e.target.value)} rows={3} placeholder="e.g. Supplier delay, high demand..."
-                    className="w-full px-3 py-2.5 bg-background border border-orange-500/20 rounded-xl text-sm focus:outline-none focus:border-orange-500/50 resize-none" />
+                    className="w-full px-3 py-2.5 bg-background border border-violet-500/20 rounded-xl text-sm focus:outline-none focus:border-violet-500/50 resize-none" />
                 </div>
                 <div>
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-1.5">New estimated delivery</label>
                   <input type="date" value={delayedUntil} onChange={e => setDelayedUntil(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-background border border-orange-500/20 rounded-xl text-sm focus:outline-none focus:border-orange-500/50" />
+                    className="w-full px-3 py-2.5 bg-background border border-violet-500/20 rounded-xl text-sm focus:outline-none focus:border-violet-500/50" />
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setDelayModal(null)} className="flex-1 py-2.5 rounded-xl border border-border font-bold text-sm hover:bg-muted transition-colors">Cancel</button>
-                <button onClick={handleConfirmDelay} className="flex-1 py-2.5 rounded-xl bg-orange-500 text-white font-black text-sm hover:opacity-90 transition-opacity">Confirm Delay</button>
+                <button onClick={handleConfirmDelay} className="flex-1 py-2.5 rounded-xl bg-violet-500 text-white font-black text-sm hover:opacity-90 transition-opacity">Confirm Delay</button>
               </div>
             </motion.div>
           </motion.div>
@@ -875,7 +875,7 @@ export default function AdminOrders() {
                   <label className="flex items-center gap-3 p-3 rounded-xl border border-border cursor-pointer hover:border-red-500/30 transition-colors">
                     <input type="checkbox" checked={refundInitiated} onChange={e => setRefundInitiated(e.target.checked)} className="w-4 h-4" />
                     <div>
-                      <p className="text-sm font-bold">Refund initiated</p>
+                      <p className="text-sm font-bold">I have already issued the refund through the payment provider</p>
                       <p className="text-xs text-muted-foreground">Customer will be notified that a refund is on the way</p>
                     </div>
                   </label>

@@ -2,6 +2,7 @@ import { type Request, type Response, type NextFunction } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { touchAdminSession } from "./admin-sessions";
+import { enforceAdminPermission } from "./admin-permissions";
 
 export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   const session = req.session as Record<string, unknown>;
@@ -19,5 +20,5 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
     res.status(401).json({ error: "Admin session expired. Please sign in again." });
     return;
   }
-  next();
+  await enforceAdminPermission(req, res, next);
 }
