@@ -1,0 +1,52 @@
+export const CUSTOMER_MARKETING_CATEGORIES = ["drop", "restock", "preorder", "release", "promotion", "news", "reminder"] as const;
+const topics = [
+  ["order", "Order update", "Order {orderNumber}: {status}."],
+  ["shipping", "Shipping update", "Shipping for order {orderNumber}: {shippingStatus}."],
+  ["delivery", "Delivery update", "Delivery for order {orderNumber}: {deliveryStatus}."],
+  ["drop", "New drop", "{productName} is now available at Imaginate."],
+  ["restock", "Restock", "{productName} is back in stock."],
+  ["preorder", "Pre-orders", "Pre-orders are open for {productName}. Check the product page for the current details."],
+  ["release", "New release", "{productName} has been released."],
+  ["promotion", "Offer update", "{offerDetails}"],
+  ["news", "Imaginate news", "{storyTitle}: {storySummary}"],
+  ["reminder", "Your reminder", "{reminderDetails}"],
+] as const;
+// Authored alternatives, not a sending cadence. Every template requires a real event or an Admin's relevant campaign.
+const alternatives = [
+  ["An update for you", "Open Imaginate to see the details."],
+  ["The latest from Imaginate", "See the latest information on the website."],
+  ["Your Imaginate update", "Take a look when it suits you."],
+  ["A note from Imaginate", "The full details are ready to view."],
+  ["Keep up with Imaginate", "Read the update on Imaginate."],
+  ["Here is your update", "Visit the website for more information."],
+  ["Something to know", "Find the relevant details in Imaginate."],
+  ["For your attention", "Open the update for the complete information."],
+  ["A fresh update", "See what has changed on the website."],
+  ["Stay informed", "Check Imaginate for the latest details."],
+  ["News for you", "You can view the full update online."],
+  ["A quick update", "Explore the details in your own time."],
+  ["From the Imaginate team", "Open Imaginate for the complete update."],
+  ["Your latest news", "Follow the link to read more."],
+  ["One useful update", "The website has the relevant information."],
+  ["Worth a look", "View this update on Imaginate."],
+  ["Information for you", "Read the full details before taking action."],
+  ["An Imaginate notice", "See the current information online."],
+  ["A new note for you", "Open the website to take a closer look."],
+  ["The current update", "Check the details directly on Imaginate."],
+  ["You are in the loop", "View the complete information on the website."],
+  ["A little update", "Read more when you have a moment."],
+  ["From Imaginate to you", "Open this notice for the full details."],
+  ["An update to check", "The relevant page has more information."],
+  ["Your next update", "Visit Imaginate to review the details."],
+  ["Keeping you updated", "See this notice on the website."],
+  ["The details are here", "Open Imaginate to read the full update."],
+  ["One thing to share", "You will find more information online."],
+  ["Your information update", "Review the current details in Imaginate."],
+  ["A relevant notice", "Follow the link for the complete update."],
+] as const;
+export const customerNotificationTemplates = topics.flatMap(([category, topic, message]) =>
+  alternatives.map(([lead, ending], i) => ({
+    id: `${category}-${i + 1}`, category, title: `${lead} · ${topic}`,
+    body: `${message} ${ending}`, transactional: ["order", "shipping", "delivery"].includes(category),
+  })),
+);

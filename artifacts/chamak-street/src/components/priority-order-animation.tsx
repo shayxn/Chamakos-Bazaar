@@ -33,7 +33,7 @@ function Wheel({ cx, cy, r = 16 }: { cx: number; cy: number; r?: number }) {
       {/* Inner hub ring */}
       <circle cx={cx} cy={cy} r={r * 0.45} fill="#111" stroke="#333" strokeWidth="1" />
       {/* Hub cap */}
-      <circle cx={cx} cy={cy} r={r * 0.2} fill="#a78bfa" />
+      <circle cx={cx} cy={cy} r={r * 0.2} fill="#b79cff" />
     </g>
   );
 }
@@ -46,31 +46,31 @@ function TruckSVG() {
       <ellipse cx="170" cy="112" rx="150" ry="5" fill="rgba(124,58,237,0.12)" />
 
       {/* ── Trailer body ── */}
-      <rect x="4" y="18" width="225" height="76" rx="5" fill="#0d0d0d" stroke="#7c3aed" strokeWidth="1.5" />
+      <rect x="4" y="18" width="225" height="76" rx="5" fill="#0d0d0d" stroke="#b79cff" strokeWidth="1.5" />
       {/* Corrugation lines */}
       {[30, 60, 90, 120, 150, 180, 200].map((x) => (
-        <line key={x} x1={x} y1="20" x2={x} y2="92" stroke="rgba(167,139,250,0.15)" strokeWidth="1" />
+        <line key={x} x1={x} y1="20" x2={x} y2="92" stroke="rgba(183,156,255,0.15)" strokeWidth="1" />
       ))}
       {/* IMAGINATE logo text on trailer */}
-      <text x="115" y="53" textAnchor="middle" fontSize="13" fontWeight="900" fill="#a78bfa"
+      <text x="115" y="53" textAnchor="middle" fontSize="13" fontWeight="900" fill="#b79cff"
         fontFamily="'Arial Black', Impact, sans-serif" letterSpacing="1">IMAGINATE</text>
-      <text x="115" y="73" textAnchor="middle" fontSize="13" fontWeight="900" fill="#a78bfa"
+      <text x="115" y="73" textAnchor="middle" fontSize="13" fontWeight="900" fill="#b79cff"
         fontFamily="'Arial Black', Impact, sans-serif" letterSpacing="1">DELIVERY</text>
       {/* ⚡ bolt icon */}
-      <text x="116" y="90" textAnchor="middle" fontSize="10" fill="rgba(167,139,250,0.7)">PRIORITY</text>
+      <text x="116" y="90" textAnchor="middle" fontSize="10" fill="rgba(183,156,255,0.7)">PRIORITY</text>
       {/* Trailer rear wall */}
       <rect x="4" y="18" width="10" height="76" rx="0" fill="#1a1a1a" />
       {/* Rear lights */}
       <rect x="5" y="22" width="6" height="12" rx="2" fill="#cc0000" opacity="0.9" />
-      <rect x="5" y="78" width="6" height="12" rx="2" fill="#a78bfa" opacity="0.8" />
+      <rect x="5" y="78" width="6" height="12" rx="2" fill="#b79cff" opacity="0.8" />
 
       {/* ── Connector / fifth wheel ── */}
       <rect x="226" y="72" width="12" height="8" rx="2" fill="#333" />
 
       {/* ── Cab ── */}
-      <path d="M236 28 L305 28 L322 58 L322 94 L236 94 Z" fill="#111" stroke="#7c3aed" strokeWidth="1.5" />
+      <path d="M236 28 L305 28 L322 58 L322 94 L236 94 Z" fill="#111" stroke="#b79cff" strokeWidth="1.5" />
       {/* Cab roof fairing */}
-      <path d="M236 28 L285 20 L305 28 Z" fill="#0d0d0d" stroke="#7c3aed" strokeWidth="1" />
+      <path d="M236 28 L285 20 L305 28 Z" fill="#0d0d0d" stroke="#b79cff" strokeWidth="1" />
       {/* Windshield */}
       <path d="M242 35 L295 35 L310 58 L242 58 Z" fill="rgba(26,58,92,0.85)" stroke="rgba(124,58,237,0.3)" strokeWidth="1" />
       {/* Windshield shine */}
@@ -189,7 +189,7 @@ export function PriorityOrderAnimation({ onComplete }: PriorityOrderAnimationPro
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ delay: WORD_DELAYS[i], type: "spring", stiffness: 360, damping: 28 }}
             className="text-4xl font-black uppercase tracking-tight text-white"
-            style={word === "Way!" ? { color: "#a78bfa" } : {}}
+            style={word === "Way!" ? { color: "#b79cff" } : {}}
           >
             {word}
           </motion.span>

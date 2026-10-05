@@ -41,15 +41,15 @@ export function NewsletterForm() {
               type="email" required autoComplete="email" inputMode="email" value={email}
               onChange={e => setEmail(e.target.value)} placeholder="Email address" aria-label="Email address"
               data-testid="input-newsletter-email"
-              className="h-10 min-w-0 flex-1 rounded-lg bg-white/5 px-3 text-sm text-white outline-none placeholder:text-white/30 border border-[rgba(124,58,237,0.3)] focus:border-[rgba(167,139,250,0.7)]"
+              className="h-10 min-w-0 flex-1 rounded-lg bg-white/5 px-3 text-sm text-white outline-none placeholder:text-white/30 border border-[rgba(124,58,237,0.3)] focus:border-[rgba(183,156,255,0.7)]"
             />
             <button type="submit" disabled={state === "sending" || !email.trim()} data-testid="button-newsletter-submit"
-              className="h-10 rounded-lg bg-primary px-4 text-xs font-black uppercase tracking-wider text-white disabled:opacity-50 flex items-center justify-center min-w-[84px]">
+              className="h-10 rounded-lg bg-primary px-4 text-xs font-black uppercase tracking-wider text-primary-foreground disabled:opacity-50 flex items-center justify-center min-w-[84px]">
               {state === "sending" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Subscribe"}
             </button>
           </div>
           <label className="flex items-start gap-2 text-[11px] leading-4 text-white/45 cursor-pointer">
-            <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} data-testid="checkbox-newsletter-consent" className="mt-0.5 h-3.5 w-3.5 accent-[#7c3aed]" />
+            <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} data-testid="checkbox-newsletter-consent" className="mt-0.5 h-3.5 w-3.5 accent-[#b79cff]" />
             I agree to receive marketing emails from IMAGINATE and can unsubscribe at any time.
           </label>
           {state === "error" && <p role="alert" className="text-xs font-bold text-destructive">{message}</p>}

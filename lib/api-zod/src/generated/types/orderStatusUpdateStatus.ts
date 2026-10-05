@@ -13,8 +13,11 @@ export const OrderStatusUpdateStatus = {
   pending: 'pending',
   confirmed: 'confirmed',
   packed: 'packed',
+  preparing: 'preparing',
   shipped: 'shipped',
   out_for_delivery: 'out_for_delivery',
   delivered: 'delivered',
   cancelled: 'cancelled',
+  delayed: 'delayed',
+  pre_order: 'pre_order',
 } as const;

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Archive, Eye, GripVertical, Plus, RefreshCw, Save, Upload, X } from "lucide-react";
+import LaunchAdmin from "@/components/launch-admin";
+import { Archive, Eye, GripVertical, Plus, RefreshCw, Save, Trash2, Upload, X } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
@@ -75,10 +76,10 @@ const KINDS: Record<string, { label: string; fields: F[]; titleLabel?: string }>
 const SPECIAL = ["support", "newsletter", "customers", "team", "reminders", "notification-center"];
 
 /* ---------- styles ---------- */
-const glass = "rounded-2xl border border-violet-500/30 bg-white/[0.04] backdrop-blur-xl";
-const inp = "w-full rounded-xl border border-violet-500/30 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400/40";
-const btn = "inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-violet-500/25 disabled:opacity-40";
-const btnP = "inline-flex items-center justify-center gap-2 rounded-full bg-violet-500 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white transition hover:bg-violet-400 disabled:opacity-40";
+const glass = "rounded-2xl border border-primary/30 bg-white/[0.04] backdrop-blur-xl";
+const inp = "w-full rounded-xl border border-primary/30 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40";
+const btn = "inline-flex items-center justify-center gap-2 rounded-full border border-primary/50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-primary/25 disabled:opacity-40";
+const btnP = "inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-black uppercase tracking-widest text-primary-foreground transition hover:bg-primary disabled:opacity-40";
 
 function Lbl({ t, hint, children }: { t: string; hint?: string; children: React.ReactNode }) {
   return <label className="block space-y-1.5"><span className="text-[10px] font-black uppercase tracking-widest text-white/60">{t}</span>{children}{hint && <span className="block text-[11px] text-white/45">{hint}</span>}</label>;
@@ -88,7 +89,7 @@ function Err({ e, retry }: { e: unknown; retry?: () => void }) {
 }
 function Skel() { return <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-white/5" />)}</div>; }
 function Empty({ t }: { t: string }) { return <div className={`${glass} p-10 text-center text-sm text-white/60`} data-testid="state-empty">{t}</div>; }
-function Notice({ msg }: { msg: string }) { return msg ? <p role="status" className="rounded-xl border border-violet-400/40 bg-violet-500/15 px-3 py-2 text-sm">{msg}</p> : null; }
+function Notice({ msg }: { msg: string }) { return msg ? <p role="status" className="rounded-xl border border-primary/40 bg-primary/15 px-3 py-2 text-sm">{msg}</p> : null; }
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 const toLocal = (iso: string | null) => { if (!iso) return ""; const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
 const fromLocal = (v: string) => (v ? new Date(v).toISOString() : null);
@@ -106,7 +107,7 @@ function ImageField({ value, onChange }: { value: string; onChange: (v: string) 
         <button type="button" className={btn} disabled={busy} onClick={() => ref.current?.click()}><Upload className="h-3.5 w-3.5" />{busy ? "..." : "Upload"}</button>
         <input ref={ref} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
       </div>
-      {value && (isVid ? <video src={value} className="max-h-40 rounded-xl" muted controls /> : <img src={value} alt="" className="max-h-40 rounded-xl border border-violet-500/30 object-cover" />)}
+      {value && (isVid ? <video src={value} className="max-h-40 rounded-xl" muted controls /> : <img src={value} alt="" className="max-h-40 rounded-xl border border-primary/30 object-cover" />)}
       {err && <p className="text-xs text-red-300">{err}</p>}
     </div>
   );
@@ -119,8 +120,8 @@ function DragList<T>({ items, onChange, render }: { items: T[]; onChange: (n: T[
       {items.map((it, i) => (
         <li key={i} draggable onDragStart={() => { from.current = i; }} onDragOver={(e) => e.preventDefault()}
           onDrop={() => { const f = from.current; if (f === null || f === i) return; const n = [...items]; const [m] = n.splice(f, 1); n.splice(i, 0, m); from.current = null; onChange(n); }}
-          className="flex items-center gap-2 rounded-xl border border-violet-500/25 bg-black/30 p-2">
-          <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-violet-300" aria-hidden />
+          className="flex items-center gap-2 rounded-xl border border-primary/25 bg-black/30 p-2">
+          <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-primary" aria-hidden />
           <div className="min-w-0 flex-1">{render(it, i)}</div>
         </li>
       ))}
@@ -144,7 +145,7 @@ function ProductPicker({ value, onChange }: { value: number[]; onChange: (v: num
       {q.isLoading && <Skel />}
       {q.isError && <Err e={q.error} retry={() => q.refetch()} />}
       <div className="max-h-48 space-y-1 overflow-auto">
-        {avail.slice(0, 40).map((p) => <button type="button" key={p.id} onClick={() => onChange([...value, p.id])} className="flex w-full justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-violet-500/20"><span className="truncate">{p.name}</span><span className="text-white/50">AED {p.price}</span></button>)}
+        {avail.slice(0, 40).map((p) => <button type="button" key={p.id} onClick={() => onChange([...value, p.id])} className="flex w-full justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-primary/20"><span className="truncate">{p.name}</span><span className="text-white/50">AED {p.price}</span></button>)}
       </div>
       <div className="flex gap-2"><input className={inp} inputMode="numeric" placeholder="Add by product ID" value={manual} onChange={(e) => setManual(e.target.value.replace(/\D/g, ""))} />
         <button type="button" className={btn} onClick={() => { const n = Number(manual); if (n && !value.includes(n)) onChange([...value, n]); setManual(""); }}>Add</button></div>
@@ -176,7 +177,7 @@ function FieldEditor({ f, value, onChange }: { f: F; value: any; onChange: (v: a
     case "date": return <Lbl t={f.label}><input type="date" className={inp} value={value ?? ""} onChange={(e) => onChange(e.target.value)} /></Lbl>;
     case "area": return <Lbl t={f.label}><textarea rows={4} className={inp} value={value ?? ""} onChange={(e) => onChange(e.target.value)} /></Lbl>;
     case "number": return <Lbl t={f.label}><input type="number" className={inp} value={value ?? ""} onChange={(e) => onChange(e.target.value === "" ? undefined : Number(e.target.value))} /></Lbl>;
-    case "bool": return <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-violet-500" checked={!!value} onChange={(e) => onChange(e.target.checked)} />{f.label}</label>;
+    case "bool": return <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-primary" checked={!!value} onChange={(e) => onChange(e.target.checked)} />{f.label}</label>;
     case "select": return <Lbl t={f.label}><select className={inp} value={value ?? f.options?.[0]} onChange={(e) => onChange(e.target.value)}>{f.options?.map((o) => <option key={o} value={o}>{o}</option>)}</select></Lbl>;
     case "image": return <Lbl t={f.label}><ImageField value={value ?? ""} onChange={onChange} /></Lbl>;
     case "lines": return <Lbl t={f.label}><textarea rows={3} className={inp} value={(value ?? []).join("\n")} onChange={(e) => onChange(e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))} /></Lbl>;
@@ -212,8 +213,8 @@ function Editor({ kind, doc, onClose }: { kind: string; doc: Doc | null; onClose
         <Lbl t="Slug"><input className={inp} value={form.slug} onChange={(e) => { setSlugTouched(true); setForm({ ...form, slug: slugify(e.target.value) }); }} /></Lbl>
         <Lbl t="Status"><select className={inp} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Status })}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></Lbl>
         <div className="flex flex-wrap items-center gap-4 pt-5 text-sm">
-          <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-violet-500" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />{kind === "news" ? "Pin as main story" : "Featured"}</label>
-          <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-violet-500" checked={form.showInNavigation} onChange={(e) => setForm({ ...form, showInNavigation: e.target.checked })} />Show in navigation</label>
+          <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-primary" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />{kind === "news" ? "Pin as main story" : "Featured"}</label>
+          <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-primary" checked={form.showInNavigation} onChange={(e) => setForm({ ...form, showInNavigation: e.target.checked })} />Show in navigation</label>
         </div>
         <Lbl t="Publish at (schedule)"><input type="datetime-local" className={inp} value={toLocal(form.publishAt)} onChange={(e) => setForm({ ...form, publishAt: fromLocal(e.target.value) })} /></Lbl>
         <Lbl t="Unpublish at"><input type="datetime-local" className={inp} value={toLocal(form.unpublishAt)} onChange={(e) => setForm({ ...form, unpublishAt: fromLocal(e.target.value) })} /></Lbl>
@@ -224,9 +225,9 @@ function Editor({ kind, doc, onClose }: { kind: string; doc: Doc | null; onClose
         <div>
           <button type="button" className={btn} onClick={() => setPreview((p) => !p)}><Eye className="h-3.5 w-3.5" />{preview ? "Hide preview" : "Preview"}</button>
           {preview && (
-            <div className="mt-3 overflow-hidden rounded-2xl border border-violet-500/30 bg-black">
+            <div className="mt-3 overflow-hidden rounded-2xl border border-primary/30 bg-black">
               {form.data.heroImage && <img src={form.data.heroImage} alt="" className="h-40 w-full object-cover opacity-60" />}
-              <div className="p-4"><p className="text-2xl font-black uppercase">{form.data.headline || form.title || "Untitled"}</p><p className="text-violet-200">{form.data.subtitle}</p><p className="mt-2 text-sm text-white/65">{form.data.description}</p>
+              <div className="p-4"><p className="text-2xl font-black uppercase">{form.data.headline || form.title || "Untitled"}</p><p className="text-primary">{form.data.subtitle}</p><p className="mt-2 text-sm text-white/65">{form.data.description}</p>
                 <p className="mt-3 text-xs text-white/50">Template: {form.data.template ?? "collection"} / {(form.data.products ?? []).length} products</p></div>
             </div>
           )}
@@ -251,7 +252,7 @@ function DocManager({ kind }: { kind: string }) {
   const [editing, setEditing] = useState<Doc | "new" | null>(null);
   useEffect(() => setEditing(null), [kind]);
   const q = useQuery({ queryKey: ["manage", kind], queryFn: () => api<Doc[]>(`/manage/${kind}`) });
-  const del = useMutation({ mutationFn: (id: number) => api(`/manage/${kind}/${id}`, { method: "DELETE" }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["manage", kind] }); qc.invalidateQueries({ queryKey: ["published"] }); } });
+  const del = useMutation({ mutationFn: (v: number | { id: number; permanent: boolean }) => { const id = typeof v === "number" ? v : v.id; const perm = typeof v !== "number" && v.permanent; return api(`/manage/${kind}/${id}${perm ? "?permanent=true" : ""}`, { method: "DELETE" }); }, onSuccess: () => { qc.invalidateQueries({ queryKey: ["manage", kind] }); qc.invalidateQueries({ queryKey: ["published"] }); } });
   const reorder = useMutation({
     mutationFn: async (list: Doc[]) => { await Promise.all(list.map((d, i) => d.data?.order === i ? null : api(`/manage/${kind}/${d.id}`, { method: "PATCH", body: JSON.stringify({ title: d.title, slug: d.slug, status: d.status, featured: d.featured, showInNavigation: d.showInNavigation, publishAt: d.publishAt, unpublishAt: d.unpublishAt, data: { ...d.data, order: i } }) }))); },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["manage", kind] }); qc.invalidateQueries({ queryKey: ["published"] }); },
@@ -265,9 +266,10 @@ function DocManager({ kind }: { kind: string }) {
         <p className="truncate text-xs text-white/50">/{d.slug}{d.publishAt ? ` / from ${new Date(d.publishAt).toLocaleString()}` : ""}{d.unpublishAt ? ` / until ${new Date(d.unpublishAt).toLocaleString()}` : ""}</p>
       </button>
       <div className="flex shrink-0 items-center gap-2">
-        {d.featured && <span className="hidden rounded-full border border-violet-400/50 px-2 py-0.5 text-[10px] uppercase tracking-widest sm:inline">Featured</span>}
-        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${d.status === "published" ? "border-violet-300 bg-violet-500/25" : "border-white/25 text-white/60"}`}>{d.status}</span>
+        {d.featured && <span className="hidden rounded-full border border-primary/50 px-2 py-0.5 text-[10px] uppercase tracking-widest sm:inline">Featured</span>}
+        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${d.status === "published" ? "border-primary bg-primary/25" : "border-white/25 text-white/60"}`}>{d.status}</span>
         <button aria-label={`Archive ${d.title}`} className="rounded-full p-2 hover:bg-white/10" disabled={del.isPending} onClick={() => { if (window.confirm(`Archive "${d.title}"?`)) del.mutate(d.id); }}><Archive className="h-4 w-4" /></button>
+        <button aria-label={`Delete ${d.title} permanently`} data-testid={`button-delete-${d.id}`} className="rounded-full p-2 text-red-300 hover:bg-red-500/15" disabled={del.isPending} onClick={() => { if (window.confirm(`Permanently delete "${d.title}"? This cannot be undone.`)) del.mutate({ id: d.id, permanent: true }); }}><Trash2 className="h-4 w-4" /></button>
       </div>
     </div>
   );
@@ -322,7 +324,7 @@ function SimpleTable<T extends { id: number }>({ title, path, cols }: { title: s
   return (
     <Wrap title={title} q={q}>
       {q.data?.length === 0 ? <Empty t="Nothing here yet." /> : (
-        <div className={`${glass} overflow-x-auto`}><table className="w-full min-w-[480px] text-left text-sm"><thead><tr className="border-b border-violet-500/25 text-[10px] uppercase tracking-widest text-white/55">{cols.map((c) => <th key={c.h} className="p-3">{c.h}</th>)}</tr></thead>
+        <div className={`${glass} overflow-x-auto`}><table className="w-full min-w-[480px] text-left text-sm"><thead><tr className="border-b border-primary/25 text-[10px] uppercase tracking-widest text-white/55">{cols.map((c) => <th key={c.h} className="p-3">{c.h}</th>)}</tr></thead>
           <tbody>{q.data?.map((r) => <tr key={r.id} className="border-b border-white/5">{cols.map((c) => <td key={c.h} className="p-3">{c.v(r)}</td>)}</tr>)}</tbody></table></div>
       )}
     </Wrap>
@@ -338,7 +340,7 @@ function NewsletterPanel() {
     <Wrap title="Newsletter" q={q}>
       {m.isError && <Err e={m.error} />}
       {q.data?.length === 0 ? <Empty t="No subscribers yet." /> : (
-        <div className={`${glass} overflow-x-auto`}><table className="w-full min-w-[480px] text-left text-sm"><thead><tr className="border-b border-violet-500/25 text-[10px] uppercase tracking-widest text-white/55"><th className="p-3">Email</th><th className="p-3">Status</th><th className="p-3">Joined</th><th className="p-3" /></tr></thead>
+        <div className={`${glass} overflow-x-auto`}><table className="w-full min-w-[480px] text-left text-sm"><thead><tr className="border-b border-primary/25 text-[10px] uppercase tracking-widest text-white/55"><th className="p-3">Email</th><th className="p-3">Status</th><th className="p-3">Joined</th><th className="p-3" /></tr></thead>
           <tbody>{q.data?.map((r) => <tr key={r.id} className="border-b border-white/5"><td className="p-3">{r.email}</td><td className="p-3">{r.status}</td><td className="p-3">{when(r.createdAt)}</td>
             <td className="p-3 text-right"><button className={btn} disabled={m.isPending} onClick={() => m.mutate({ id: r.id, status: r.status === "unsubscribed" ? "subscribed" : "unsubscribed" })}>{r.status === "unsubscribed" ? "Resubscribe" : "Unsubscribe"}</button></td></tr>)}</tbody></table></div>
       )}
@@ -362,7 +364,7 @@ function HeroPanel() {
             <Lbl t="Headline"><input className={inp} value={f.hero_headline} onChange={(e) => set("hero_headline", e.target.value)} /></Lbl>
             <Lbl t="Subheadline"><input className={inp} value={f.hero_subheadline} onChange={(e) => set("hero_subheadline", e.target.value)} /></Lbl>
             <Lbl t="Small text"><textarea rows={2} className={inp} value={f.hero_small_text} onChange={(e) => set("hero_small_text", e.target.value)} /></Lbl>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-violet-500" checked={f.hero_cta_enabled !== "false"} onChange={(e) => set("hero_cta_enabled", String(e.target.checked))} />Show button</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-primary" checked={f.hero_cta_enabled !== "false"} onChange={(e) => set("hero_cta_enabled", String(e.target.checked))} />Show button</label>
             <Lbl t="Button label"><input className={inp} value={f.hero_cta_label} onChange={(e) => set("hero_cta_label", e.target.value)} /></Lbl>
             <Lbl t="Button link"><input className={inp} placeholder="/shop" value={f.hero_cta_url} onChange={(e) => set("hero_cta_url", e.target.value)} /></Lbl>
             <Lbl t="Alignment"><select className={inp} value={f.hero_alignment} onChange={(e) => set("hero_alignment", e.target.value)}><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></Lbl>
@@ -377,9 +379,9 @@ function HeroPanel() {
               {f.hero_video ? <video src={f.hero_video} muted loop autoPlay playsInline className="absolute inset-0 h-full w-full object-cover opacity-50" /> : f.hero_image && <img src={f.hero_image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" />}
               <div className="relative max-w-sm">
                 <p className="text-3xl font-black uppercase leading-none">{f.hero_headline}</p>
-                <p className="mt-2 text-lg text-violet-200">{f.hero_subheadline}</p>
+                <p className="mt-2 text-lg text-primary">{f.hero_subheadline}</p>
                 <p className="mt-2 text-sm text-white/70">{f.hero_small_text}</p>
-                {f.hero_cta_enabled !== "false" && f.hero_cta_label && <span className="mt-4 inline-block rounded-full bg-violet-500 px-5 py-2 text-xs font-black uppercase tracking-widest">{f.hero_cta_label}</span>}
+                {f.hero_cta_enabled !== "false" && f.hero_cta_label && <span className="mt-4 inline-block rounded-full bg-primary px-5 py-2 text-xs font-black uppercase tracking-widest">{f.hero_cta_label}</span>}
               </div>
             </div>
           </div>
@@ -400,7 +402,7 @@ function TeamPanel() {
   const upd = useMutation({ mutationFn: (m: M) => api(`/admin/team/${m.id}`, { method: "PATCH", body: JSON.stringify({ role: m.role, permissions: m.permissions }) }), onSuccess: inv });
   const remove=useMutation({mutationFn:(id:number)=>api(`/admin/team/${id}`,{method:"DELETE"}),onSuccess:inv});
   const toggle = (arr: string[], p: string) => arr.includes(p) ? arr.filter((x) => x !== p) : [...arr, p];
-  const permBox = (sel: string[], on: (p: string) => void) => <div className="flex flex-wrap gap-3">{PERMS.map((p) => <label key={p} className="flex items-center gap-1.5 text-xs"><input type="checkbox" className="accent-violet-500" checked={sel.includes(p)} onChange={() => on(p)} />{p}</label>)}</div>;
+  const permBox = (sel: string[], on: (p: string) => void) => <div className="flex flex-wrap gap-3">{PERMS.map((p) => <label key={p} className="flex items-center gap-1.5 text-xs"><input type="checkbox" className="accent-primary" checked={sel.includes(p)} onChange={() => on(p)} />{p}</label>)}</div>;
   return (
     <Wrap title="Team" q={q}>
       <div className={`${glass} space-y-3 p-4`}>
@@ -408,7 +410,7 @@ function TeamPanel() {
         <div className="grid gap-2 sm:grid-cols-3">
           <input aria-label="Username" className={inp} placeholder="Username" value={nu.username} onChange={(e) => setNu({ ...nu, username: e.target.value })} />
           <input aria-label="Password" type="password" className={inp} placeholder="Password" value={nu.password} onChange={(e) => setNu({ ...nu, password: e.target.value })} />
-          <select aria-label="Role" className={inp} value={nu.role} onChange={(e) => setNu({ ...nu, role: e.target.value })}><option value="admin">admin</option><option value="owner">owner</option></select>
+          <select aria-label="Role" className={inp} value={nu.role} onChange={(e) => setNu({ ...nu, role: e.target.value })}><option value="admin">admin</option></select>
         </div>
         {permBox(nu.permissions, (p) => setNu({ ...nu, permissions: toggle(nu.permissions, p) }))}
         {add.isError && <Err e={add.error} />}
@@ -426,7 +428,7 @@ function TeamRow({ m, permBox, toggle, onSave, onRemove,busy }: { m: { id: numbe
   return (
     <div className={`${glass} space-y-3 p-4`}>
       <div className="flex items-center justify-between gap-3"><p className="font-bold">{m.username}</p>
-        <select aria-label="Role" className={`${inp} w-auto`} value={role} onChange={(e) => setRole(e.target.value)}><option value="admin">admin</option><option value="owner">owner</option></select></div>
+        <select aria-label="Role" className={`${inp} w-auto`} value={role} onChange={(e) => setRole(e.target.value)}><option value="admin">admin</option>{m.role === "owner" && <option value="owner">owner</option>}</select></div>
       {permBox(perms, (p) => setPerms(toggle(perms, p)))}
       <button className={btn} disabled={busy} onClick={() => onSave({ id: m.id, username: m.username, role, permissions: perms })}>Save</button>
       <button className={`${btn} ml-2`} disabled={busy} onClick={onRemove}>Remove Admin access</button>
@@ -446,9 +448,9 @@ function RemindersPanel() {
     <Wrap title="Reminders" q={q}>
       {f && (
         <div className={`${glass} space-y-4 p-4 sm:p-6`}>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-violet-500" checked={f.enabled} onChange={(e) => setF({ ...f, enabled: e.target.checked })} />Reminders enabled</label>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-primary" checked={f.enabled} onChange={(e) => setF({ ...f, enabled: e.target.checked })} />Reminders enabled</label>
           <Lbl t="Times (one HH:MM per line)"><textarea rows={3} className={inp} value={f.times.join("\n")} onChange={(e) => setF({ ...f, times: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })} /></Lbl>
-          <div className="flex flex-wrap gap-3">{dayNames.map((n, i) => <label key={n} className="flex items-center gap-1.5 text-sm"><input type="checkbox" className="accent-violet-500" checked={f.days.includes(i)} onChange={() => setF({ ...f, days: f.days.includes(i) ? f.days.filter((d) => d !== i) : [...f.days, i].sort() })} />{n}</label>)}</div>
+          <div className="flex flex-wrap gap-3">{dayNames.map((n, i) => <label key={n} className="flex items-center gap-1.5 text-sm"><input type="checkbox" className="accent-primary" checked={f.days.includes(i)} onChange={() => setF({ ...f, days: f.days.includes(i) ? f.days.filter((d) => d !== i) : [...f.days, i].sort() })} />{n}</label>)}</div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Lbl t="Timezone"><input className={inp} placeholder="Asia/Dubai" value={f.timezone} onChange={(e) => setF({ ...f, timezone: e.target.value })} /></Lbl>
             <Lbl t="Reminders per day (0 to 5)"><select className={inp} value={f.dailyLimit} onChange={(e) => setF({ ...f, dailyLimit: Number(e.target.value) })}>{[0, 1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}</select></Lbl>
@@ -478,8 +480,8 @@ function NotificationPanel() {
   return (
     <Wrap title="Notification center" q={q}>
       <div className="flex flex-wrap items-center gap-2">
-        <button className={`${btn} ${!cat ? "bg-violet-500/30" : ""}`} onClick={() => setCat("")}>All</button>
-        {cats.map((c) => <button key={c} className={`${btn} ${cat === c ? "bg-violet-500/30" : ""}`} onClick={() => setCat(c)}>{c}</button>)}
+        <button className={`${btn} ${!cat ? "bg-primary/30" : ""}`} onClick={() => setCat("")}>All</button>
+        {cats.map((c) => <button key={c} className={`${btn} ${cat === c ? "bg-primary/30" : ""}`} onClick={() => setCat(c)}>{c}</button>)}
         <button className={`${btn} ml-auto`} disabled={read.isPending} onClick={() => read.mutate({ all: true })}>Mark all read</button>
       </div>
       {read.isError && <Err e={read.error} />}
@@ -502,7 +504,8 @@ export default function ContentManagement() {
   const kind = decodeURIComponent(loc.split("?")[0].replace(/\/+$/, "").split("/").pop() ?? "");
   return (
     <div className="space-y-6 text-white" data-testid={`page-manage-${kind}`}>
-      {kind === "support" ? <SupportPanel />
+      {kind === "launch" ? <LaunchAdmin />
+        : kind === "support" ? <SupportPanel />
         : kind === "newsletter" ? <NewsletterPanel />
         : kind === "homepage" ? <HeroPanel />
         : kind === "customers" ? <SimpleTable title="Customers" path="/admin/customers" cols={[{ h: "Name", v: (r: {id:number;name:string;email:string;phone:string;createdAt:string}) => r.name }, { h: "Email", v: (r) => r.email }, { h: "Phone", v: (r) => r.phone || "" }, { h: "Joined", v: (r) => when(r.createdAt) }]} />

@@ -51,7 +51,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header
         className="sticky top-0 z-50 w-full glass-nav transition-all duration-300"
         style={{
-           borderBottom: scrolled ? "1px solid rgba(167,139,250,0.18)" : "1px solid rgba(255,255,255,0.06)",
+           borderBottom: scrolled ? "1px solid rgba(183,156,255,0.18)" : "1px solid rgba(255,255,255,0.06)",
           boxShadow: scrolled ? "0 4px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10)" : undefined,
         }}
       >
@@ -258,6 +258,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <li><Link href="/terms" className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-block">Terms of Service</Link></li>
               <li><Link href="/privacy" className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-block">Privacy Policy</Link></li>
               <li><Link href="/shipping" className="hover:text-primary transition-colors duration-200 hover:translate-x-0.5 inline-block">Shipping Info</Link></li>
+              <li><button type="button" data-testid="button-notification-settings" onClick={() => window.dispatchEvent(new Event("imaginate:open-notification-settings"))} className="hover:text-primary transition-colors duration-200 inline-block text-left">Notification settings</button></li>
             </ul>
           </motion.div>
         </div>
@@ -270,7 +271,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       <BackToTop />
 
-      {settings.whatsapp_visible !== "false" && settings.whatsapp_number && (
+      {settings.whatsapp_visible !== "false" && settings.whatsapp_number && !/^\/(?:product\/|cart|checkout|order\/|receipt\/)/.test(location) && (
         <motion.a
           href={`https://wa.me/${settings.whatsapp_number.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(settings.whatsapp_message || "Hello! I'm interested in one of your products.")}`}
           target="_blank"

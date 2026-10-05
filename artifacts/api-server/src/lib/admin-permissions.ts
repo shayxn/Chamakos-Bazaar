@@ -40,8 +40,9 @@ export async function enforceAdminPermission(req: Request, res: Response, next: 
   else if (/orders|refund|abandoned/.test(path)) permission = "orders";
   else if (/support|product-requests/.test(path)) permission = "support";
   else if (/coupons|discount/.test(path)) permission = "discounts";
+  else if (/customer-notifications/.test(path)) permission = "notifications";
   else if (/customer|newsletter/.test(path)) permission = "customers";
-  else if (/sales|visitor|dashboard/.test(path)) permission = "analytics";
+  else if (/sales|visitor|dashboard|live-traffic/.test(path)) permission = "analytics";
   else if (/push|notification|reminder/.test(path)) permission = "notifications";
   else if (/manage|content|tiktok|reviews|events|games/.test(path)) permission = "content";
   // Device self-service remains available to every authenticated admin.

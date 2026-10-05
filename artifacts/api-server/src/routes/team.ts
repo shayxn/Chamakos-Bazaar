@@ -13,9 +13,10 @@ router.get("/admin/access",requireAdmin,async(req,res)=>{res.json(await adminAcc
 const accessInput = z.object({
   role: z.enum(["admin", "owner"]), permissions: z.array(z.enum(PERMISSIONS)).max(20),
 });
-router.get("/admin/team", requireAdmin, requireOwner, async (_req, res): Promise<void> => {
+router.get("/admin/team", requireAdmin, requireOwner, async (req, res): Promise<void> => {
   const users = await db.select({ id: usersTable.id, username: usersTable.username }).from(usersTable).where(eq(usersTable.isAdmin, true));
-  res.json(await Promise.all(users.map(async user => ({ ...user, ...await adminAccess(user.id) }))));
+  const members=await Promise.all(users.map(async user => ({ ...user, ...await adminAccess(user.id) })));
+  res.json(members.filter(member=>member.id!==req.session?.userId&&!member.isOwner));
 });
 router.post("/admin/team", requireAdmin, requireOwner, async (req, res): Promise<void> => {
   const parsed = accessInput.extend({

@@ -127,7 +127,7 @@ export function SpotlightBanner() {
             height: 6 + i * 4,
             left: `${12 + i * 8}%`,
             top: `${30 + i * 12}%`,
-            background: "#7c3aed",
+            background: "#b79cff",
             filter: "blur(2px)",
           }}
         />
@@ -151,9 +151,9 @@ export function SpotlightBanner() {
             <motion.span
               animate={{ opacity: [1, 0.4, 1] }}
               transition={{ duration: 1.8, repeat: Infinity }}
-              className="w-2 h-2 rounded-full bg-[#7c3aed] shrink-0"
+              className="w-2 h-2 rounded-full bg-[#b79cff] shrink-0"
             />
-            <Star className="h-3.5 w-3.5 fill-[#7c3aed] text-[#7c3aed]" />
+            <Star className="h-3.5 w-3.5 fill-[#b79cff] text-[#b79cff]" />
             <span className="text-[11px] font-black uppercase tracking-widest text-[#ff9944]">
               Featured Product
             </span>
@@ -189,7 +189,7 @@ export function SpotlightBanner() {
             transition={{ duration: 0.5, delay: 0.3, ease: EASE }}
             className="text-2xl font-black mb-6"
             style={{
-              background: "linear-gradient(135deg, #7c3aed, #a78bfa)",
+              background: "linear-gradient(135deg, #b79cff, #b79cff)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
@@ -206,7 +206,7 @@ export function SpotlightBanner() {
               className="mb-6"
             >
               <div className="flex items-center gap-2 mb-3">
-                <Clock className="h-3.5 w-3.5 text-[#7c3aed]" />
+                <Clock className="h-3.5 w-3.5 text-[#b79cff]" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-white/45">
                   {spotlight.preOrderLabel || "Available In"}
                 </span>
@@ -248,7 +248,7 @@ export function SpotlightBanner() {
                 whileHover={{ scale: 1.05, boxShadow: "0 8px 40px rgba(124,58,237,0.4)" }}
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-2.5 px-8 py-4 rounded-full font-black uppercase tracking-widest text-sm text-white transition-shadow"
-                style={{ background: "linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)" }}
+                style={{ background: "linear-gradient(135deg, #b79cff 0%, #b79cff 100%)" }}
               >
                 <ShoppingBag className="h-4 w-4" />
                 Shop Now

@@ -98,7 +98,7 @@ export default function Basics() {
               </div>
               <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter text-white mb-2">
                 <span style={{ color: "rgba(255,255,255,0.95)" }}>IMAGINATE</span>{" "}
-                <span style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                <span style={{ background: "linear-gradient(135deg, #b79cff, #b79cff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                   BASICS
                 </span>
               </h1>
@@ -258,10 +258,10 @@ export default function Basics() {
                               Basics
                             </span>
                             {product.featured && (
-                              <span className="bg-primary/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Featured</span>
+                              <span className="bg-primary/90 text-primary-foreground text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Featured</span>
                             )}
                             {(product as any).sellingFast && (
-                              <span className="bg-violet-500/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Hot</span>
+                              <span className="bg-primary/90 text-primary-foreground text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Hot</span>
                             )}
                           </div>
 

@@ -336,7 +336,7 @@ export default function Checkout() {
                             onClick={() => setDeliveryMethod(opt.id)}
                             className={`relative w-full flex items-center gap-3 p-4 text-left transition-all overflow-hidden ${
                               showGlow
-                                ? "rounded-xl border-2 border-violet-500/50"
+                                ? "rounded-xl border-2 border-primary/50"
                                 : selected
                                 ? "rounded-xl border-2 border-primary glass"
                                 : "rounded-xl border-2 border-border/40 glass-sm hover:border-primary/40"
@@ -357,7 +357,7 @@ export default function Checkout() {
                                   animate={{ x: ["0%", "35%", "5%", "0%"], y: ["0%", "20%", "-15%", "0%"] }}
                                   transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                                   style={{
-                                    background: "radial-gradient(ellipse 90px 65px at 15% 55%, rgba(167,139,250,0.6), transparent 70%)",
+                                    background: "radial-gradient(ellipse 90px 65px at 15% 55%, rgba(183,156,255,0.6), transparent 70%)",
                                     filter: "blur(6px)",
                                   }}
                                 />
@@ -367,7 +367,7 @@ export default function Checkout() {
                                   animate={{ x: ["0%", "-30%", "15%", "0%"], y: ["0%", "-20%", "30%", "0%"] }}
                                   transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 2 }}
                                   style={{
-                                    background: "radial-gradient(ellipse 80px 55px at 78% 45%, rgba(167,139,250,0.55), transparent 70%)",
+                                    background: "radial-gradient(ellipse 80px 55px at 78% 45%, rgba(183,156,255,0.55), transparent 70%)",
                                     filter: "blur(8px)",
                                   }}
                                 />
@@ -377,7 +377,7 @@ export default function Checkout() {
                                   animate={{ x: ["0%", "12%", "-8%", "0%"], y: ["0%", "-12%", "18%", "0%"], opacity: [0.3, 0.6, 0.3] }}
                                   transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 4 }}
                                   style={{
-                                    background: "radial-gradient(ellipse 65px 45px at 50% 50%, rgba(167,139,250,0.5), transparent 70%)",
+                                    background: "radial-gradient(ellipse 65px 45px at 50% 50%, rgba(183,156,255,0.5), transparent 70%)",
                                     filter: "blur(10px)",
                                   }}
                                 />
@@ -392,7 +392,7 @@ export default function Checkout() {
                                 <p className="font-black uppercase tracking-wide text-sm">{opt.label}</p>
                                 {opt.badge && (
                                   <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full"
-                                    style={{ background: "rgba(167,139,250,0.2)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.4)" }}>
+                                    style={{ background: "rgba(183,156,255,0.2)", color: "#b79cff", border: "1px solid rgba(183,156,255,0.4)" }}>
                                     ⚡ {opt.badge}
                                   </span>
                                 )}
@@ -505,7 +505,7 @@ export default function Checkout() {
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                     <Button
                       type="submit" size="lg"
-                      className="w-full h-14 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(167,139,250,0.3)] hover:shadow-[0_0_35px_rgba(167,139,250,0.55)] transition-all"
+                      className="w-full h-14 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(183,156,255,0.3)] hover:shadow-[0_0_35px_rgba(183,156,255,0.55)] transition-all"
                       disabled={busy}
                     >
                       {busy ? (
@@ -585,7 +585,7 @@ export default function Checkout() {
                     <p className="text-xs font-bold text-white">Replace current code?</p>
                     <p className="text-[11px] text-muted-foreground">Only one discount code can be used per order. {couponData?.code} will be replaced by {replaceTarget.toUpperCase()}.</p>
                     <div className="flex gap-2">
-                      <button type="button" onClick={() => applyCouponCode(true)} className="flex-1 h-9 rounded-lg bg-primary text-xs font-black uppercase tracking-wider text-white" data-testid="button-replace-code-confirm">Replace</button>
+                      <button type="button" onClick={() => applyCouponCode(true)} className="flex-1 h-9 rounded-lg bg-primary text-xs font-black uppercase tracking-wider text-primary-foreground" data-testid="button-replace-code-confirm">Replace</button>
                       <button type="button" onClick={cancelReplace} className="flex-1 h-9 rounded-lg border border-white/20 text-xs font-black uppercase tracking-wider" data-testid="button-replace-code-cancel">Cancel</button>
                     </div>
                   </div>
@@ -652,9 +652,9 @@ export default function Checkout() {
                       className="flex justify-between text-sm"
                     >
                       <span className="text-muted-foreground flex items-center gap-1">
-                        <Star className="h-3 w-3 text-violet-400" /> Tip
+                        <Star className="h-3 w-3 text-primary" /> Tip
                       </span>
-                      <span className="font-mono font-bold text-violet-400">AED {tipAmount.toFixed(2)}</span>
+                      <span className="font-mono font-bold text-primary">AED {tipAmount.toFixed(2)}</span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -663,7 +663,7 @@ export default function Checkout() {
                   <span className="font-black uppercase tracking-wider">Total</span>
                   <motion.span
                     key={grandTotal}
-                    initial={{ scale: 1.08, color: "#a78bfa" }} animate={{ scale: 1, color: "#a78bfa" }}
+                    initial={{ scale: 1.08, color: "#b79cff" }} animate={{ scale: 1, color: "#b79cff" }}
                     className="font-mono text-2xl font-black text-primary"
                   >
                     AED {grandTotal.toFixed(2)}

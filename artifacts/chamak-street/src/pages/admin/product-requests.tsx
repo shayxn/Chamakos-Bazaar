@@ -12,7 +12,7 @@ type Request = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "text-violet-400 bg-violet-500/10 border-violet-500/30",
+  pending: "text-primary bg-primary/10 border-primary/30",
   approved: "text-green-400 bg-green-500/10 border-green-500/30",
   rejected: "text-red-400 bg-red-500/10 border-red-500/30",
 };

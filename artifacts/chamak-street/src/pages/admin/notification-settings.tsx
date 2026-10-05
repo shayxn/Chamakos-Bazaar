@@ -45,9 +45,9 @@ const EVENT_DEFS = [
     label: "Customer Searches",
     description: "Receive a notification when a customer searches the site (max once per 10 min per session).",
     icon: Search,
-    color: "text-violet-400",
-    bg: "bg-violet-400/10",
-    border: "border-violet-400/30",
+    color: "text-primary",
+    bg: "bg-primary/10",
+    border: "border-primary/30",
     defaultOn: false,
   },
   {
@@ -212,7 +212,7 @@ export default function AdminNotificationSettings() {
         style={{ background: "rgba(255,255,255,0.025)" }}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(167,139,250,0.12)" }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(183,156,255,0.12)" }}>
             <Bell className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -230,14 +230,14 @@ export default function AdminNotificationSettings() {
               ? <span className="flex items-center gap-1.5 text-xs font-black text-green-400 bg-green-400/10 border border-green-400/30 px-3 py-1.5 rounded-full whitespace-nowrap"><Check className="h-3 w-3" /> Enabled</span>
               : permission === "denied"
               ? <span className="flex items-center gap-1.5 text-xs font-black text-red-400 bg-red-400/10 border border-red-400/30 px-3 py-1.5 rounded-full whitespace-nowrap"><X className="h-3 w-3" /> Blocked</span>
-              : <span className="text-xs font-black text-violet-400 bg-violet-400/10 border border-violet-400/30 px-3 py-1.5 rounded-full whitespace-nowrap">Not enabled</span>
+              : <span className="text-xs font-black text-primary bg-primary/10 border border-primary/30 px-3 py-1.5 rounded-full whitespace-nowrap">Not enabled</span>
             }
           </div>
         </div>
 
         {/* iOS non-PWA hint */}
         {isIOSNonPWA && permission !== "granted" && (
-          <div className="rounded-xl p-4 text-xs leading-relaxed" style={{ background: "rgba(167,139,250,0.07)", border: "1px solid rgba(167,139,250,0.2)" }}>
+          <div className="rounded-xl p-4 text-xs leading-relaxed" style={{ background: "rgba(183,156,255,0.07)", border: "1px solid rgba(183,156,255,0.2)" }}>
             <p className="font-black text-primary mb-2">📱 iPhone / iPad — 3 quick steps</p>
             <ol className="text-white/70 space-y-1 list-none">
               <li><span className="text-primary font-black">1.</span> Tap the <strong className="text-white/90">Share</strong> button <span className="text-white/90">⎙</span> at the bottom of Safari</li>

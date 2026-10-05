@@ -94,7 +94,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="flex-1 overflow-x-hidden">{children}</main>
-      <footer className="border-t border-primary/20 px-5 py-8"><NewsletterForm/><div className="mt-6 flex flex-wrap gap-4 text-xs text-white/60"><Link href="/support">Support</Link><Link href="/news">News</Link><Link href="/about">Our Story</Link><Link href="/terms">Policies</Link></div><p className="mt-5 text-[10px] text-white/40">{settings.footer_copyright || `© ${new Date().getFullYear()} IMAGINATE`}</p></footer>
+      <footer className="border-t border-primary/20 px-5 py-8"><NewsletterForm/><div className="mt-6 flex flex-wrap gap-4 text-xs text-white/60"><Link href="/support">Support</Link><Link href="/news">News</Link><Link href="/about">Our Story</Link><Link href="/terms">Policies</Link><button type="button" data-testid="button-notification-settings-mobile" onClick={() => window.dispatchEvent(new Event("imaginate:open-notification-settings"))}>Notification settings</button></div><p className="mt-5 text-[10px] text-white/40">{settings.footer_copyright || `© ${new Date().getFullYear()} IMAGINATE`}</p></footer>
 
       <AnimatePresence>
         {menuOpen && (
@@ -155,7 +155,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      {settings.whatsapp_visible !== "false" && settings.whatsapp_number && (
+      {settings.whatsapp_visible !== "false" && settings.whatsapp_number && !/^\/(?:product\/|cart|checkout|order\/|receipt\/)/.test(location) && (
         <a
           href={`https://wa.me/${settings.whatsapp_number.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(settings.whatsapp_message || "Hello! I'm interested in one of your products.")}`}
           target="_blank"

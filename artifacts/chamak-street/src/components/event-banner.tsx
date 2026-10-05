@@ -117,7 +117,7 @@ function EventBannerInner({ event, onDismiss }: { event: ActiveEvent; onDismiss:
       exit={{ height: 0, opacity: 0 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        background: event.bannerColor || "#a78bfa",
+        background: event.bannerColor || "#b79cff",
         backgroundImage: event.backgroundImageUrl
           ? `linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.45)),url(${event.backgroundImageUrl})`
           : undefined,

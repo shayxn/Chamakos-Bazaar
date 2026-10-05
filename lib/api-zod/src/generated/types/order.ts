@@ -26,6 +26,14 @@ export interface Order {
   courierName?: string | null;
   /** @nullable */
   estimatedDelivery?: string | null;
+  /** @nullable */
+  delayReason?: string | null;
+  /** @nullable */
+  delayedUntil?: string | null;
+  /** @nullable */
+  cancelReason?: string | null;
+  /** @nullable */
+  refundInitiated?: boolean | null;
   status: OrderStatus;
   total: number;
   hasPreOrder?: boolean;

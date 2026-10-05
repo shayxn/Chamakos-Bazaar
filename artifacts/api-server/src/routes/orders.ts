@@ -9,17 +9,17 @@ import { requireAdmin } from "../lib/auth-middleware";
 import { createTtlCache } from "../lib/response-cache";
 import { sendOrderPush, sendCustomerStatusPush } from "../lib/push";
 import { logAdminActivity } from "./admin-activity";
+import { bindCustomerOrder } from "../lib/customer-notification-delivery";
 import { getDeliveryCharges, DELIVERY_METHODS } from "../lib/delivery";
 
 const router = Router();
-router.use(async (_req,_res,next)=>{await ensureCommerceSchema();next();});
+router.use(async (_req,_res,next)=>{await ensureCommerceSchema();await ensureOrderColumns();next();});
 
 const ordersListCache = createTtlCache<ReturnType<typeof serializeOrder>[]>(15_000);
 
-let _ordersMigrated = false;
+let orderMigration:Promise<void>|undefined;
 async function ensureOrderColumns() {
-  if (_ordersMigrated) return; _ordersMigrated = true;
-  await db.execute(sql`
+  await (orderMigration??=db.execute(sql`
     ALTER TABLE orders
       ADD COLUMN IF NOT EXISTS delay_reason TEXT,
       ADD COLUMN IF NOT EXISTS delayed_until TEXT,
@@ -28,7 +28,7 @@ async function ensureOrderColumns() {
       ADD COLUMN IF NOT EXISTS customer_push_log TEXT DEFAULT '[]',
       ADD COLUMN IF NOT EXISTS coupon_code TEXT,
       ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10,2) DEFAULT 0
-  `);
+  `).then(()=>undefined).catch(error=>{orderMigration=undefined;throw error;}));
 }
 ensureOrderColumns().catch(console.error);
 
@@ -191,6 +191,8 @@ router.post("/orders", async (req, res) => {
   ordersListCache.clear();
   clearProductCaches();
   (req.session as Record<string, unknown>).lastOrderId = order.id;
+  await bindCustomerOrder(req,order.id);
+  sendCustomerStatusPush(order,"confirmed").catch(()=>{});
 
   // Fire push notification asynchronously — don't block response
   if (fullOrder) {
@@ -257,14 +259,18 @@ router.patch("/orders/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   // Allowlist only admin-editable fields — never let clients mutate totals, ids, or session data
-  const { status, customerName, customerPhone, customerEmail, customerAddress, notes } = req.body as Record<string, string | undefined>;
+  const { status, customerName, customerPhone, customerEmail, customerAddress, courierName,estimatedDelivery,trackingNote } = req.body as Record<string, string | undefined>;
   const patch: Record<string, unknown> = {};
   if (status !== undefined) {res.status(400).json({error:"Use the order status control to change status."});return;}
   if (customerName !== undefined) patch.customerName = customerName;
   if (customerPhone !== undefined) patch.customerPhone = customerPhone;
   if (customerEmail !== undefined) patch.customerEmail = customerEmail;
   if (customerAddress !== undefined) patch.customerAddress = customerAddress;
-  if (notes !== undefined) patch.notes = notes;
+  for(const [key,value] of Object.entries({courierName,estimatedDelivery,trackingNote})){
+    if(value===undefined)continue;
+    if(typeof value!=="string"||value.length>(key==="courierName"?240:2000)){res.status(400).json({error:"Check the shipping details."});return;}
+    patch[key]=value.trim();
+  }
   if (Object.keys(patch).length === 0) { res.status(400).json({ error: "No valid fields to update" }); return; }
   try {
     const [order] = await db.update(ordersTable).set(patch).where(eq(ordersTable.id, id)).returning();
@@ -280,7 +286,11 @@ router.patch("/orders/:id/status", requireAdmin, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { status, delayReason, delayedUntil, cancelReason, refundInitiated, adminName } = 
     req.body as { status: string; delayReason?: string; delayedUntil?: string; cancelReason?: string; refundInitiated?: boolean; adminName?: string };
-  if (!["pending","confirmed","preparing","shipped","out_for_delivery","delivered","cancelled","delayed","pre_order"].includes(status)) { res.status(400).json({ error: "Choose a valid order status." }); return; }
+  if (!["pending","confirmed","packed","preparing","shipped","out_for_delivery","delivered","cancelled","delayed","pre_order"].includes(status)) { res.status(400).json({ error: "Choose a valid order status." }); return; }
+  if([delayReason,delayedUntil,cancelReason].some(v=>v!==undefined&&(typeof v!=="string"||v.length>2000))||
+    (refundInitiated!==undefined&&typeof refundInitiated!=="boolean")){
+    res.status(400).json({error:"Check the delay or cancellation details."});return;
+  }
   
   const setData: Record<string, unknown> = { status };
   if (status === "delayed") { 
@@ -344,9 +354,20 @@ router.post("/orders/:id/tracking", requireAdmin, async (req, res) => {
 router.delete("/orders/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-  await db.delete(orderItemsTable).where(eq(orderItemsTable.orderId, id));
-  await db.delete(orderTrackingEventsTable).where(eq(orderTrackingEventsTable.orderId, id));
-  await db.delete(ordersTable).where(eq(ordersTable.id, id));
+  const deleted=await db.transaction(async tx=>{
+    const order=rowsForStatus(await tx.execute(sql`SELECT id,status FROM orders WHERE id=${id} FOR UPDATE`))[0];
+    if(!order)return false;
+    // Unfulfilled reservations must not disappear with their order. Shipped/sold stock stays deducted.
+    if(["pending","confirmed","packed","preparing","delayed","pre_order","cancelled"].includes(order.status))
+      await releaseOrderStock(id,tx);
+    await tx.delete(orderItemsTable).where(eq(orderItemsTable.orderId,id));
+    await tx.delete(orderTrackingEventsTable).where(eq(orderTrackingEventsTable.orderId,id));
+    await tx.delete(ordersTable).where(eq(ordersTable.id,id));
+    return true;
+  });
+  if(!deleted){res.sendStatus(404);return;}
+  ordersListCache.clear();
+  clearProductCaches();
   res.json({ message: "Deleted" });
 });
 

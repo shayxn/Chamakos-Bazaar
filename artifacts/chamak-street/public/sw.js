@@ -84,7 +84,16 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || `${BASE_PATH}/admin`;
+  const nd = event.notification.data || {};
+  const customerType = nd.type === "CUSTOMER_MARKETING" || nd.type === "CUSTOMER_ORDER_STATUS";
+  let targetUrl = nd.url || (customerType ? `${BASE_PATH}/` : `${BASE_PATH}/admin`);
+  if (customerType) {
+    // Customer notifications may only open same-origin, non-admin pages.
+    try {
+      const u = new URL(targetUrl, self.location.origin);
+      if (u.origin !== self.location.origin || /\/admin(\/|$)/.test(u.pathname)) targetUrl = `${BASE_PATH}/`;
+    } catch (e) { targetUrl = `${BASE_PATH}/`; }
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {

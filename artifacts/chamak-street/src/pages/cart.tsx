@@ -82,7 +82,7 @@ export default function Cart() {
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 380, damping: 22 }}
               >
-                <Button size="lg" className="w-full font-black uppercase tracking-widest fire-gradient border-none h-13 shadow-[0_0_24px_rgba(167,139,250,0.35)]">
+                <Button size="lg" className="w-full font-black uppercase tracking-widest fire-gradient border-none h-13 shadow-[0_0_24px_rgba(183,156,255,0.35)]">
                   Browse the Shop <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </motion.div>
@@ -192,7 +192,7 @@ export default function Cart() {
                         <div className="flex items-center h-11 glass-qty rounded-xl overflow-hidden">
                           <motion.button
                             whileTap={{ scale: 0.75 }}
-                            whileHover={{ backgroundColor: "rgba(167,139,250,0.1)" }}
+                            whileHover={{ backgroundColor: "rgba(183,156,255,0.1)" }}
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
                             className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
                             disabled={pendingItemId === item.id}
@@ -213,7 +213,7 @@ export default function Cart() {
                           </AnimatePresence>
                           <motion.button
                             whileTap={{ scale: 0.75 }}
-                            whileHover={{ backgroundColor: "rgba(167,139,250,0.1)" }}
+                            whileHover={{ backgroundColor: "rgba(183,156,255,0.1)" }}
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
                             className="w-11 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
                             disabled={pendingItemId === item.id}
@@ -224,8 +224,8 @@ export default function Cart() {
 
                         <motion.div
                           key={`${item.id}-${item.quantity}`}
-                          initial={{ scale: 1.18, color: "#ffcc00" }}
-                          animate={{ scale: 1, color: "#a78bfa" }}
+                          initial={{ scale: 1.18, color: "#b79cff" }}
+                          animate={{ scale: 1, color: "#b79cff" }}
                           transition={{ duration: 0.28, ease: EASE }}
                           className="font-mono font-black text-base text-primary"
                         >
@@ -310,7 +310,7 @@ export default function Cart() {
               >
                 <Button
                   size="lg"
-                  className="w-full h-13 font-black uppercase tracking-widest flex items-center justify-center gap-2 fire-gradient border-none shadow-[0_0_24px_rgba(167,139,250,0.35)] hover:shadow-[0_0_48px_rgba(167,139,250,0.55)] transition-shadow duration-300"
+                  className="w-full h-13 font-black uppercase tracking-widest flex items-center justify-center gap-2 fire-gradient border-none shadow-[0_0_24px_rgba(183,156,255,0.35)] hover:shadow-[0_0_48px_rgba(183,156,255,0.55)] transition-shadow duration-300"
                   onClick={() => setLocation("/checkout")}
                   data-testid="button-checkout"
                 >

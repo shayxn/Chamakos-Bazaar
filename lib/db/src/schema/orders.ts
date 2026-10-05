@@ -28,6 +28,10 @@ export const ordersTable = pgTable("orders", {
   total: numeric("total", { precision: 10, scale: 2 }).notNull(),
   hasPreOrder: boolean("has_pre_order").notNull().default(false),
   trackingNote: text("tracking_note"),
+  delayReason:text("delay_reason"),
+  delayedUntil:text("delayed_until"),
+  cancelReason:text("cancel_reason"),
+  refundInitiated:boolean("refund_initiated").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

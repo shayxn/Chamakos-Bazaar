@@ -134,7 +134,7 @@ export function ComingSoonNotifyPrompt({ productName, onClose }: Props) {
                   onClick={subscribe}
                   disabled={loading}
                   className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wide text-white flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity"
-                  style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)", boxShadow: "0 8px 32px rgba(124,58,237,0.3)", touchAction: "manipulation" }}>
+                  style={{ background: "linear-gradient(135deg, #b79cff, #b79cff)", boxShadow: "0 8px 32px rgba(124,58,237,0.3)", touchAction: "manipulation" }}>
                   {loading ? (
                     <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
                       className="w-5 h-5 border-2 border-white border-t-transparent rounded-full" />

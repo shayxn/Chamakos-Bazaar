@@ -100,6 +100,7 @@ export default function Shop() {
 
   const urlCatId = params.get("cat") ? Number(params.get("cat")) : undefined;
   const isNewest = params.get("new") === "1";
+  const isPreorder = params.get("preorder") === "1";
 
   const [localSearch, setLocalSearch] = useState(params.get("search") || "");
   const debouncedSearch = useDebouncedValue(localSearch.trim(), 300);
@@ -113,13 +114,14 @@ export default function Shop() {
   useEffect(() => {
     setLocalSearch(new URLSearchParams(search).get("search") || "");
   }, [search]);
-  useEffect(() => { setPage(1); }, [urlCatId, isNewest, debouncedSearch, sortKey]);
+  useEffect(() => { setPage(1); }, [urlCatId, isNewest, isPreorder, debouncedSearch, sortKey]);
 
   const { data: categories } = useListCategories({
     query: { queryKey: getListCategoriesQueryKey(), staleTime: 60_000 }
   });
 
   const queryParams = {
+    ...(isPreorder?{preorderOnly:true}:{}),
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
     ...(urlCatId ? { categoryId: urlCatId } : {}),
   };
@@ -131,6 +133,7 @@ export default function Shop() {
   const products = useMemo(() => {
     if (!rawProducts) return rawProducts;
     let list = [...rawProducts];
+    if (isPreorder) list = list.filter((p) => (p as { isPreOrder?: boolean }).isPreOrder);
     if (isNewest || sortKey === "newest") {
       list = list.sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
     } else if (sortKey === "price-asc") {
@@ -141,7 +144,7 @@ export default function Shop() {
       list = list.sort((a, b) => a.name.localeCompare(b.name));
     }
     return list;
-  }, [rawProducts, isNewest, sortKey]);
+  }, [rawProducts, isNewest, isPreorder, sortKey]);
   const pageCount = Math.max(1, Math.ceil((products?.length ?? 0) / 40));
   const currentPage = Math.min(page, pageCount);
   const pageProducts = products?.slice((currentPage - 1) * 40, currentPage * 40);
@@ -330,7 +333,7 @@ export default function Shop() {
             >
               <motion.div
                 className="w-16 h-16 rounded-2xl glass-liquid flex items-center justify-center mx-auto mb-5"
-                animate={{ boxShadow: ["0 0 0 0 rgba(167,139,250,0)", "0 0 0 10px rgba(167,139,250,0.08)", "0 0 0 0 rgba(167,139,250,0)"] }}
+                animate={{ boxShadow: ["0 0 0 0 rgba(183,156,255,0)", "0 0 0 10px rgba(183,156,255,0.08)", "0 0 0 0 rgba(183,156,255,0)"] }}
                 transition={{ duration: 2.8, repeat: Infinity }}
               >
                 <SlidersHorizontal className="h-7 w-7 text-white/35" />
@@ -366,7 +369,7 @@ export default function Shop() {
                       <TiltCard>
                       <div className="group cursor-pointer" data-testid={`card-product-${product.id}`}>
                         {/* Image */}
-                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(167,139,250,0.2)]">
+                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(183,156,255,0.2)]">
                           <Link href={`/product/${product.id}`} className="block w-full h-full">
                             {primaryMedia ? (
                               primaryMedia.type === "video" ? (
@@ -395,10 +398,10 @@ export default function Shop() {
                               <span className="bg-primary/90 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Featured</span>
                             )}
                             {product.sellingFast && (
-                              <span className="bg-violet-500/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Hot</span>
+                              <span className="bg-primary/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Hot</span>
                             )}
                             {(product as any).bestSeller && (
-                              <span className="bg-violet-400/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Best Seller</span>
+                              <span className="bg-primary/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Best Seller</span>
                             )}
                             {(product as any).trending && (
                               <span className="bg-cyan-400/90 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-sm backdrop-blur-sm">Trending</span>

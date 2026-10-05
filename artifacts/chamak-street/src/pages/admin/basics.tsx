@@ -66,7 +66,7 @@ const BULK_ACTIONS = [
 ];
 
 /* ── Animated Toggle ── */
-function Toggle({ checked, onChange, color = "#7c3aed" }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
+function Toggle({ checked, onChange, color = "#b79cff" }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
   return (
     <motion.button
       type="button"
@@ -528,7 +528,7 @@ export default function AdminBasics() {
           <div className="flex items-center gap-3 mb-1 flex-wrap">
             <h1 className="text-3xl font-black uppercase tracking-tighter">IMAGINATE Basics</h1>
             <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border"
-              style={{ background: "rgba(124,58,237,0.1)", borderColor: "rgba(124,58,237,0.3)", color: "#a78bfa" }}>
+              style={{ background: "rgba(124,58,237,0.1)", borderColor: "rgba(124,58,237,0.3)", color: "#b79cff" }}>
               Collection
             </span>
           </div>
@@ -637,11 +637,11 @@ export default function AdminBasics() {
 
                   {/* Badges */}
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
-                    <span className="bg-violet-500/90 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Basics</span>
+                    <span className="bg-primary/90 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Basics</span>
                     {product.featured && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Featured</span>}
-                    {product.isPreOrder && <span className="bg-violet-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
-                    {product.sellingFast && <span className="bg-violet-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Hot</span>}
-                    {product.spotlight && <span className="bg-violet-400 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">⭐ Spotlight</span>}
+                    {product.isPreOrder && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
+                    {product.sellingFast && <span className="bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Hot</span>}
+                    {product.spotlight && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">⭐ Spotlight</span>}
                   </div>
 
                   <div className="absolute bottom-2 right-2 flex items-center gap-1">
@@ -668,11 +668,11 @@ export default function AdminBasics() {
                       onClick={e => handleSetSpotlight(e, product)}
                       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all border ${
                         product.spotlight
-                          ? "bg-violet-400/15 text-violet-400 border-violet-400/30 cursor-default"
-                          : "bg-transparent text-muted-foreground border-transparent hover:bg-violet-400/8 hover:text-violet-400 hover:border-violet-400/20"
+                          ? "bg-primary/15 text-primary border-primary/30 cursor-default"
+                          : "bg-transparent text-muted-foreground border-transparent hover:bg-primary/8 hover:text-primary hover:border-primary/20"
                       }`}
                     >
-                      <Star className={`h-3 w-3 ${product.spotlight ? "fill-violet-400" : ""}`} />
+                      <Star className={`h-3 w-3 ${product.spotlight ? "fill-primary" : ""}`} />
                       {product.spotlight ? "Spotlight" : "Set"}
                     </button>
                     <div className="ml-auto flex gap-1">
@@ -789,7 +789,7 @@ export default function AdminBasics() {
                   {editingId ? "Edit Basics Product" : "New Basics Product"}
                 </SheetTitle>
                 <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(124,58,237,0.15)", color: "#a78bfa", border: "1px solid rgba(124,58,237,0.3)" }}>
+                  style={{ background: "rgba(124,58,237,0.15)", color: "#b79cff", border: "1px solid rgba(124,58,237,0.3)" }}>
                   Basics
                 </span>
               </div>
@@ -809,7 +809,7 @@ export default function AdminBasics() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-black transition-all disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)", boxShadow: "0 4px 16px rgba(124,58,237,0.3)" }}
+                style={{ background: "linear-gradient(135deg, #b79cff, #b79cff)", boxShadow: "0 4px 16px rgba(124,58,237,0.3)" }}
               >
                 {isPending ? (
                   <><motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} className="inline-block w-3 h-3 border-2 border-black/30 border-t-black rounded-full" /> Saving…</>
@@ -891,24 +891,24 @@ export default function AdminBasics() {
             </Section>
 
             {/* Badges & Flags */}
-            <Section title="Badges & Flags" icon={Sparkles} accent="rgba(167,139,250,0.18)">
+            <Section title="Badges & Flags" icon={Sparkles} accent="rgba(183,156,255,0.18)">
               <div className="grid grid-cols-2 gap-2">
                 <PillToggle checked={formData.featured ?? false} onChange={v => set({ featured: v })}
-                  label="Featured" icon={Star} color="#7c3aed" />
+                  label="Featured" icon={Star} color="#b79cff" />
                 <PillToggle checked={formData.sellingFast ?? false} onChange={v => set({ sellingFast: v })}
-                  label="Selling Fast" icon={Flame} color="#a78bfa" />
+                  label="Selling Fast" icon={Flame} color="#b79cff" />
                 <PillToggle checked={formData.spotlight ?? false} onChange={v => set({ spotlight: v })}
-                  label="Spotlight" icon={Sparkles} color="#a78bfa" />
+                  label="Spotlight" icon={Sparkles} color="#b79cff" />
                 <PillToggle checked={formData.hidden ?? false} onChange={v => set({ hidden: v })}
                   label="Hidden" icon={EyeOff} color="#94a3b8" />
               </div>
             </Section>
 
             {/* Pre-Order — collapsible */}
-            <Section title="Pre-Order" icon={Calendar} accent="rgba(167,139,250,0.18)" collapsible>
+            <Section title="Pre-Order" icon={Calendar} accent="rgba(183,156,255,0.18)" collapsible>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/60 font-bold">Enable Pre-Order Mode</span>
-                <Toggle checked={formData.isPreOrder ?? false} onChange={v => set({ isPreOrder: v })} color="#a78bfa" />
+                <Toggle checked={formData.isPreOrder ?? false} onChange={v => set({ isPreOrder: v })} color="#b79cff" />
               </div>
               <AnimatePresence>
                 {formData.isPreOrder && (

@@ -28,5 +28,5 @@ export function ScrollProgressBar() {
       window.removeEventListener("resize", schedule);
     };
   }, []);
-  return <div ref={bar} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-[9999] h-0.5 w-full origin-left bg-violet-400" style={{ transform: "scaleX(0)" }} />;
+  return <div ref={bar} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-[9999] h-0.5 w-full origin-left bg-primary" style={{ transform: "scaleX(0)" }} />;
 }

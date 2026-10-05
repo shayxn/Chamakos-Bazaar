@@ -25,7 +25,7 @@ export function SunToggle() {
     tids.current.push(tid);
   };
 
-  const bodyFill = sun ? "#a78bfa" : "rgba(210,225,255,0.95)";
+  const bodyFill = sun ? "#b79cff" : "rgba(210,225,255,0.95)";
   const rayFill  = sun ? "#ff9922" : "rgba(210,225,255,0.85)";
 
   return (
@@ -38,7 +38,7 @@ export function SunToggle() {
     >
       <span aria-hidden style={{
         position: "absolute", inset: 0, borderRadius: "9999px",
-        boxShadow: sun ? "0 0 18px 6px rgba(167,139,250,0.30)" : "none",
+        boxShadow: sun ? "0 0 18px 6px rgba(183,156,255,0.30)" : "none",
         transition: "box-shadow 0.5s ease", pointerEvents: "none",
       }} />
       <svg width="30" height="30" viewBox="0 0 24 24" style={{

@@ -277,6 +277,15 @@ paths:
       tags: [products]
       summary: List products
       parameters:
+        - name: collection
+          in: query
+          schema:
+            type: string
+        - name: preorderOnly
+          in: query
+          description: Available pre-orders across the main store and Basics.
+          schema:
+            type: boolean
         - name: categoryId
           in: query
           schema:
@@ -925,8 +934,177 @@ paths:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
 
+  /launch-state:
+    get:
+      operationId: getLaunchState
+      responses:
+        '200':
+          description: Server clock, published countdown and available pre-order count.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+  /traffic/track:
+    post:
+      operationId: trackAnonymousTraffic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AnonymousTrafficInput' }
+      responses:
+        '200':
+          description: Anonymous activity measured.
+          content:
+            application/json:
+              schema: { type: object, properties: { ok: { type: boolean } } }
+  /admin/live-traffic:
+    get:
+      operationId: getLiveTraffic
+      responses:
+        '200':
+          description: Real measured anonymous traffic, business-timezone periods and monthly history.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+  /customer-notifications/preferences:
+    get:
+      operationId: getCustomerNotificationPreferences
+      responses:
+        '200':
+          description: Current customer's notification preferences.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerNotificationPreferences' }
+    patch:
+      operationId: updateCustomerNotificationPreferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomerNotificationPreferences' }
+      responses:
+        '200':
+          description: Preferences saved.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerNotificationPreferences' }
+  /customer-notifications/subscribe:
+    post:
+      operationId: subscribeCustomerNotifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomerPushSubscriptionInput' }
+      responses:
+        '200':
+          description: Explicit consent and browser subscription saved, not a delivery claim.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerNotificationPreferences' }
+  /admin/customer-notifications:
+    get:
+      operationId: getCustomerNotificationCampaigns
+      responses:
+        '200':
+          description: Campaigns, provider configuration and marketing limits.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+    post:
+      operationId: createCustomerNotificationCampaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomerNotificationCampaignInput' }
+      responses:
+        '201':
+          description: Draft or scheduled customer marketing campaign saved.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+  /admin/customer-notifications/templates:
+    get:
+      operationId: getCustomerNotificationTemplates
+      responses:
+        '200':
+          description: Customer-only message templates, never automatically sent to fill a quota.
+          content:
+            application/json:
+              schema: { type: array, items: { type: object, additionalProperties: true } }
+  /admin/customer-notifications/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    patch:
+      operationId: editCustomerNotificationCampaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomerNotificationCampaignInput' }
+      responses:
+        '200':
+          description: Unsent campaign updated.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+    delete:
+      operationId: deleteCustomerNotificationCampaign
+      responses:
+        '204': { description: Unsent campaign deleted. }
+  /admin/customer-notifications/{id}/send:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      operationId: sendCustomerNotificationCampaign
+      responses:
+        '200':
+          description: Actual provider acceptance counts; acceptance is not proof of display on a device.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
 components:
   schemas:
+    AnonymousTrafficInput:
+      type: object
+      required: [visitorId, page]
+      properties:
+        visitorId: { type: string }
+        page: { type: string }
+        deviceType: { type: string, enum: [desktop, mobile, tablet] }
+        pageChanged: { type: boolean }
+    CustomerPushSubscriptionInput:
+      type: object
+      required: [endpoint, keys, consent, marketingEnabled, orderUpdatesEnabled]
+      properties:
+        endpoint: { type: string, format: uri }
+        consent: { type: boolean, enum: [true] }
+        marketingEnabled: { type: boolean }
+        orderUpdatesEnabled: { type: boolean }
+        keys:
+          type: object
+          required: [p256dh, auth]
+          properties:
+            p256dh: { type: string }
+            auth: { type: string }
+    CustomerNotificationPreferences:
+      type: object
+      required: [marketingEnabled, orderUpdatesEnabled]
+      properties:
+        marketingEnabled: { type: boolean }
+        orderUpdatesEnabled: { type: boolean }
+        subscribed: { type: boolean }
+    CustomerNotificationCampaignInput:
+      type: object
+      required: [title, body, category, url, status]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 100 }
+        body: { type: string, minLength: 1, maxLength: 1000 }
+        category: { type: string, enum: [drop, restock, preorder, release, promotion, news, reminder] }
+        url: { type: string, pattern: '^/(?!/)' }
+        status: { type: string, enum: [draft, scheduled] }
+        dueAt: { type: string, format: date-time, nullable: true }
     ProductVariant:
       type: object
       required: [id, size, color, stock, price]
@@ -1326,9 +1504,17 @@ components:
           type: ["string", "null"]
         estimatedDelivery:
           type: ["string", "null"]
+        delayReason:
+          type: ["string", "null"]
+        delayedUntil:
+          type: ["string", "null"]
+        cancelReason:
+          type: ["string", "null"]
+        refundInitiated:
+          type: ["boolean", "null"]
         status:
           type: string
-          enum: [pending, confirmed, packed, shipped, out_for_delivery, delivered, cancelled]
+          enum: [pending, confirmed, packed, preparing, shipped, out_for_delivery, delivered, cancelled, delayed, pre_order]
         total:
           type: number
         hasPreOrder:
@@ -1381,7 +1567,15 @@ components:
       properties:
         status:
           type: string
-          enum: [pending, confirmed, packed, shipped, out_for_delivery, delivered, cancelled]
+          enum: [pending, confirmed, packed, preparing, shipped, out_for_delivery, delivered, cancelled, delayed, pre_order]
+        delayReason:
+          type: string
+        delayedUntil:
+          type: string
+        cancelReason:
+          type: string
+        refundInitiated:
+          type: boolean
 
     TrackingEvent:
       type: object

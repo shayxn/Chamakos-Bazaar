@@ -92,7 +92,7 @@ export default function ClaimPage() {
         <div className="relative overflow-hidden border-b border-white/8 py-12 px-4 text-center">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48"
-              style={{ background: "radial-gradient(ellipse, rgba(167,139,250,0.15) 0%, transparent 70%)", filter: "blur(20px)" }} />
+              style={{ background: "radial-gradient(ellipse, rgba(183,156,255,0.15) 0%, transparent 70%)", filter: "blur(20px)" }} />
           </div>
           <div className="relative">
             <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
@@ -129,7 +129,7 @@ export default function ClaimPage() {
           {/* Message */}
           {card?.message && (
             <div className="rounded-xl border border-white/10 p-4"
-              style={{ background: "rgba(167,139,250,0.04)", borderColor: "rgba(167,139,250,0.15)" }}>
+              style={{ background: "rgba(183,156,255,0.04)", borderColor: "rgba(183,156,255,0.15)" }}>
               <div className="text-xs font-bold uppercase tracking-widest text-primary/50 mb-1">Personal Message</div>
               <p className="text-white/70 text-sm italic">"{card.message}"</p>
               {card.senderName && <p className="text-xs text-white/30 mt-2">— {card.senderName}</p>}
@@ -140,7 +140,7 @@ export default function ClaimPage() {
           <div className="text-center">
             <div className="text-xs font-bold uppercase tracking-widest text-white/30 mb-1">Gift Value</div>
             <div className="text-5xl font-black"
-              style={{ background: "linear-gradient(135deg, #a78bfa, #7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              style={{ background: "linear-gradient(135deg, #b79cff, #b79cff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               AED {card?.amount}
             </div>
             <div className="text-xs text-white/30 mt-1">Add it to your IMAGINATE account and use it at checkout.</div>
@@ -157,7 +157,7 @@ export default function ClaimPage() {
                 style={{ touchAction: "manipulation" }}
                 className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wide text-white flex items-center justify-center gap-2"
                 // @ts-ignore
-                style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #a78bfa, #7c3aed)", boxShadow: "0 8px 32px rgba(167,139,250,0.3)" }}>
+                style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #b79cff, #b79cff)", boxShadow: "0 8px 32px rgba(183,156,255,0.3)" }}>
                 Shop Now <ArrowRight className="w-4 h-4" />
               </motion.button>
             </div>
@@ -173,7 +173,7 @@ export default function ClaimPage() {
                 style={{ touchAction: "manipulation" }}
                 className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wide text-white flex items-center justify-center gap-2 disabled:opacity-60"
                 // @ts-ignore
-                style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #a78bfa, #7c3aed)", boxShadow: "0 8px 32px rgba(167,139,250,0.3)" }}>
+                style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #b79cff, #b79cff)", boxShadow: "0 8px 32px rgba(183,156,255,0.3)" }}>
                 {claiming ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
                     className="w-5 h-5 border-2 border-white border-t-transparent rounded-full" />

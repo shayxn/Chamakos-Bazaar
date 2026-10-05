@@ -34,7 +34,7 @@ export default function AdminActivityLog() {
 
   const getStatusColor = (action: string) => {
     if (action === "cancelled") return "text-red-400";
-    if (action === "delayed") return "text-violet-400";
+    if (action === "delayed") return "text-primary";
     if (action === "delivered") return "text-green-400";
     if (action === "shipped" || action === "out_for_delivery") return "text-primary";
     return "text-muted-foreground";

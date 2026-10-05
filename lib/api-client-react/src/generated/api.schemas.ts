@@ -5,6 +5,80 @@
  * IMAGINATE e-commerce API
  * OpenAPI spec version: 0.2.0
  */
+export type AnonymousTrafficInputDeviceType = typeof AnonymousTrafficInputDeviceType[keyof typeof AnonymousTrafficInputDeviceType];
+
+
+export const AnonymousTrafficInputDeviceType = {
+  desktop: 'desktop',
+  mobile: 'mobile',
+  tablet: 'tablet',
+} as const;
+
+export interface AnonymousTrafficInput {
+  visitorId: string;
+  page: string;
+  deviceType?: AnonymousTrafficInputDeviceType;
+  pageChanged?: boolean;
+}
+
+export type CustomerPushSubscriptionInputKeys = {
+  p256dh: string;
+  auth: string;
+};
+
+export interface CustomerPushSubscriptionInput {
+  endpoint: string;
+  consent: true;
+  marketingEnabled: boolean;
+  orderUpdatesEnabled: boolean;
+  keys: CustomerPushSubscriptionInputKeys;
+}
+
+export interface CustomerNotificationPreferences {
+  marketingEnabled: boolean;
+  orderUpdatesEnabled: boolean;
+  subscribed?: boolean;
+}
+
+export type CustomerNotificationCampaignInputCategory = typeof CustomerNotificationCampaignInputCategory[keyof typeof CustomerNotificationCampaignInputCategory];
+
+
+export const CustomerNotificationCampaignInputCategory = {
+  drop: 'drop',
+  restock: 'restock',
+  preorder: 'preorder',
+  release: 'release',
+  promotion: 'promotion',
+  news: 'news',
+  reminder: 'reminder',
+} as const;
+
+export type CustomerNotificationCampaignInputStatus = typeof CustomerNotificationCampaignInputStatus[keyof typeof CustomerNotificationCampaignInputStatus];
+
+
+export const CustomerNotificationCampaignInputStatus = {
+  draft: 'draft',
+  scheduled: 'scheduled',
+} as const;
+
+export interface CustomerNotificationCampaignInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  body: string;
+  category: CustomerNotificationCampaignInputCategory;
+  /** @pattern ^/(?!/) */
+  url: string;
+  status: CustomerNotificationCampaignInputStatus;
+  dueAt?: string | null;
+}
+
 export interface ProductVariant {
   id: string;
   size: string;
@@ -332,10 +406,13 @@ export const OrderStatus = {
   pending: 'pending',
   confirmed: 'confirmed',
   packed: 'packed',
+  preparing: 'preparing',
   shipped: 'shipped',
   out_for_delivery: 'out_for_delivery',
   delivered: 'delivered',
   cancelled: 'cancelled',
+  delayed: 'delayed',
+  pre_order: 'pre_order',
 } as const;
 
 export interface Order {
@@ -356,6 +433,14 @@ export interface Order {
   courierName?: string | null;
   /** @nullable */
   estimatedDelivery?: string | null;
+  /** @nullable */
+  delayReason?: string | null;
+  /** @nullable */
+  delayedUntil?: string | null;
+  /** @nullable */
+  cancelReason?: string | null;
+  /** @nullable */
+  refundInitiated?: boolean | null;
   status: OrderStatus;
   total: number;
   hasPreOrder?: boolean;
@@ -390,14 +475,21 @@ export const OrderStatusUpdateStatus = {
   pending: 'pending',
   confirmed: 'confirmed',
   packed: 'packed',
+  preparing: 'preparing',
   shipped: 'shipped',
   out_for_delivery: 'out_for_delivery',
   delivered: 'delivered',
   cancelled: 'cancelled',
+  delayed: 'delayed',
+  pre_order: 'pre_order',
 } as const;
 
 export interface OrderStatusUpdate {
   status: OrderStatusUpdateStatus;
+  delayReason?: string;
+  delayedUntil?: string;
+  cancelReason?: string;
+  refundInitiated?: boolean;
 }
 
 export interface TrackingEvent {
@@ -554,6 +646,11 @@ export interface StoreStats {
 }
 
 export type ListProductsParams = {
+collection?: string;
+/**
+ * Available pre-orders across the main store and Basics.
+ */
+preorderOnly?: boolean;
 categoryId?: number;
 search?: string;
 featured?: boolean;
@@ -569,4 +666,22 @@ export type TrackOrderParams = {
 orderNumber: string;
 phone: string;
 };
+
+export type GetLaunchState200 = { [key: string]: unknown };
+
+export type TrackAnonymousTraffic200 = {
+  ok?: boolean;
+};
+
+export type GetLiveTraffic200 = { [key: string]: unknown };
+
+export type GetCustomerNotificationCampaigns200 = { [key: string]: unknown };
+
+export type CreateCustomerNotificationCampaign201 = { [key: string]: unknown };
+
+export type GetCustomerNotificationTemplates200Item = { [key: string]: unknown };
+
+export type EditCustomerNotificationCampaign200 = { [key: string]: unknown };
+
+export type SendCustomerNotificationCampaign200 = { [key: string]: unknown };
 

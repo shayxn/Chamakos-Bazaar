@@ -23,7 +23,7 @@ type TrackingResult = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof Package; color: string }> = {
-  pending: { label: "Order Placed", icon: Clock, color: "text-violet-400" },
+  pending: { label: "Order Placed", icon: Clock, color: "text-primary" },
   confirmed: { label: "Confirmed", icon: CheckCircle2, color: "text-blue-400" },
   packed: { label: "Packed", icon: Package, color: "text-purple-400" },
   shipped: { label: "Shipped", icon: Truck, color: "text-primary" },

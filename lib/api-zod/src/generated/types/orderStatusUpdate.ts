@@ -9,4 +9,8 @@ import type { OrderStatusUpdateStatus } from './orderStatusUpdateStatus';
 
 export interface OrderStatusUpdate {
   status: OrderStatusUpdateStatus;
+  delayReason?: string;
+  delayedUntil?: string;
+  cancelReason?: string;
+  refundInitiated?: boolean;
 }

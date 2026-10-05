@@ -39,8 +39,8 @@ export function ProductPreorderDetails({ date, note, label }: {
     ["Seconds", Math.floor(remaining / 1_000) % 60],
   ] as const;
   return (
-    <section className="rounded-xl border border-violet-300/20 bg-violet-400/[0.06] p-5" data-testid="preorder-details" aria-label="Pre-order details">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-200">{label?.trim() || "Pre-order available"}</p>
+    <section className="rounded-xl border border-primary/20 bg-primary/[0.06] p-5" data-testid="preorder-details" aria-label="Pre-order details">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{label?.trim() || "Pre-order available"}</p>
       {deadline !== null && remaining > 0 ? (
         <div className="mt-4 grid grid-cols-4 gap-2" data-testid="preorder-countdown" role="timer" aria-label="Time until the configured pre-order date">
           {segments.map(([name, value]) => (

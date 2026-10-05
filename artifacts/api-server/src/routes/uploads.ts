@@ -6,9 +6,20 @@ import crypto from "crypto";
 import { Blob } from "node:buffer";
 import type { RequestHandler } from "express";
 import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq,sql } from "drizzle-orm";
 import { logger } from "../lib/logger";
 import { requireAdmin as authenticatedAdmin } from "../lib/auth-middleware";
+import { storeMediaSignedUrl } from "../lib/chat-media-storage";
+import { rows } from "../lib/management-db";
+
+const mediaExtensions:Record<string,string>={"image/jpeg":".jpg","image/png":".png","image/webp":".webp","image/gif":".gif",
+  "video/mp4":".mp4","video/webm":".webm","video/quicktime":".mov"};
+let mediaSchema:Promise<void>|undefined;
+function ensureMedia(){
+  return mediaSchema??=(db.execute(sql`CREATE TABLE IF NOT EXISTS imaginate_store_media (
+    filename TEXT PRIMARY KEY,content_type TEXT NOT NULL,size BIGINT NOT NULL,uploader_id INTEGER,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`).then(()=>undefined).catch(error=>{mediaSchema=undefined;throw error;}));
+}
 
 const useCloudinary = Boolean(
   process.env.CLOUDINARY_CLOUD_NAME &&
@@ -22,7 +33,7 @@ if (!useCloudinary && !fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { rec
 const localStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
+    const ext = mediaExtensions[file.mimetype];
     const name = crypto.randomBytes(12).toString("hex");
     cb(null, `${name}${ext}`);
   },
@@ -43,6 +54,16 @@ const upload = multer({
 const router = Router();
 
 const requireAdmin: RequestHandler = authenticatedAdmin;
+
+router.get("/uploads/:filename",async(req,res)=>{
+  if(!/^[a-f0-9]{24}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/.test(String(req.params.filename))){res.sendStatus(404);return;}
+  await ensureMedia();
+  const asset=rows(await db.execute(sql`SELECT filename FROM imaginate_store_media WHERE filename=${req.params.filename}`))[0];
+  if(!asset){res.sendStatus(404);return;}
+  try{
+    res.set("Cache-Control","public,max-age=300").redirect(302,await storeMediaSignedUrl(asset.filename,"GET"));
+  }catch(error){logger.warn({error:"Store media URL unavailable"},"Persistent store media unavailable");res.status(503).json({error:"Media is temporarily unavailable."});}
+});
 
 function getMediaType(file: Express.Multer.File): "image" | "video" {
   return file.mimetype.startsWith("video/") ? "video" : "image";
@@ -128,14 +149,33 @@ router.post("/uploads/sign", requireAdmin, (_req, res) => {
   }
 });
 
-router.post("/uploads", requireAdmin, upload.single("file"), async (req, res) => {
+const acceptUpload:RequestHandler=(req,res,next)=>upload.single("file")(req,res,error=>{
+  if(error){res.status(400).json({error:error.code==="LIMIT_FILE_SIZE"?`File exceeds the ${maxUploadSize/(1024*1024)} MB upload limit.`:
+    "Upload one JPEG, PNG, WebP, GIF, MP4, WebM or MOV file."});return;}
+  next();
+});
+router.post("/uploads", requireAdmin, acceptUpload, async (req, res) => {
   if (!req.file) {
     res.status(400).json({ error: "No file uploaded" });
     return;
   }
 
   if (!useCloudinary) {
-    res.json({ url: `/api/uploads/${req.file.filename}`, type: getMediaType(req.file) });
+    try{
+      if(!process.env.PRIVATE_OBJECT_DIR){res.status(503).json({error:"Persistent media storage is not configured."});return;}
+      const file=req.file;
+      const uploadURL=await storeMediaSignedUrl(file.filename,"PUT");
+      const stored=await fetch(uploadURL,{method:"PUT",headers:{"Content-Type":file.mimetype,"Content-Length":String(file.size)},
+        body:fs.createReadStream(file.path),duplex:"half",signal:AbortSignal.timeout(180000)} as RequestInit&{duplex:"half"});
+      if(!stored.ok)throw new Error("Persistent upload was not accepted.");
+      await ensureMedia();
+      await db.execute(sql`INSERT INTO imaginate_store_media(filename,content_type,size,uploader_id)
+        VALUES(${file.filename},${file.mimetype},${file.size},${Number(req.session?.userId)})`);
+      res.json({url:`/api/uploads/${file.filename}`,type:getMediaType(file)});
+    }catch(error){
+      logger.warn({error:"Persistent upload failed"},"Store media upload unavailable");
+      res.status(502).json({error:"Media could not be saved to persistent storage. Please try again."});
+    }finally{await fs.promises.unlink(req.file.path).catch(()=>{});}
     return;
   }
 

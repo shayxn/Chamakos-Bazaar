@@ -45,7 +45,7 @@ interface VisitorSession {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function DeviceIcon({ type }: { type: string | null }) {
-  if (type === "mobile") return <Smartphone className="h-4 w-4 text-violet-400" />;
+  if (type === "mobile") return <Smartphone className="h-4 w-4 text-primary" />;
   if (type === "tablet") return <Tablet className="h-4 w-4 text-blue-400" />;
   return <Monitor className="h-4 w-4 text-green-400" />;
 }
@@ -81,7 +81,7 @@ function getActivityIcon(type: string) {
   switch (type) {
     case "visit":    return <Globe className="h-3 w-3 text-primary" />;
     case "page":     return <Eye className="h-3 w-3 text-blue-400" />;
-    case "search":   return <Search className="h-3 w-3 text-violet-400" />;
+    case "search":   return <Search className="h-3 w-3 text-primary" />;
     case "cart":     return <ShoppingCart className="h-3 w-3 text-green-400" />;
     case "checkout": return <CreditCard className="h-3 w-3 text-purple-400" />;
     case "order":    return <CheckCircle className="h-3 w-3 text-primary" />;
@@ -221,7 +221,7 @@ export default function AdminVisitors() {
                 </motion.span>
               ) : (
                 <motion.span key="off" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                  className="text-[10px] font-bold text-violet-400 bg-violet-400/10 border border-violet-400/25 px-2 py-0.5 rounded-full">
+                  className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/25 px-2 py-0.5 rounded-full">
                   {sseStatus === "connecting" ? "Connecting…" : "Reconnecting…"}
                 </motion.span>
               )}
@@ -244,7 +244,7 @@ export default function AdminVisitors() {
           { label: "Total Sessions", value: stats.total, icon: Users, color: "text-primary",    bg: "bg-primary/8" },
           { label: "Last 24h",       value: stats.today, icon: Clock, color: "text-green-400",  bg: "bg-green-400/8" },
           { label: "Online Now",     value: activeCount, icon: Wifi,  color: "text-blue-400",   bg: "bg-blue-400/8" },
-          { label: "Mobile",         value: stats.mobile, icon: Smartphone, color: "text-violet-400", bg: "bg-violet-400/8" },
+          { label: "Mobile",         value: stats.mobile, icon: Smartphone, color: "text-primary", bg: "bg-primary/8" },
         ].map(({ label, value, icon: Icon, color, bg }, i) => (
           <motion.div key={label}
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -365,7 +365,7 @@ export default function AdminVisitors() {
                             </span>
                           )}
                           {searches[0] && (
-                            <span className="text-[9px] bg-violet-400/10 text-violet-400 border border-violet-400/25 px-1.5 py-0.5 rounded font-bold truncate max-w-[80px]">
+                            <span className="text-[9px] bg-primary/10 text-primary border border-primary/25 px-1.5 py-0.5 rounded font-bold truncate max-w-[80px]">
                               🔍 {searches[0]}
                             </span>
                           )}
@@ -483,7 +483,7 @@ export default function AdminVisitors() {
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {searchTerms.map((q, i) => (
-                        <span key={i} className="text-[11px] bg-violet-400/8 text-violet-400 border border-violet-400/20 px-2.5 py-1 rounded-lg font-bold">
+                        <span key={i} className="text-[11px] bg-primary/8 text-primary border border-primary/20 px-2.5 py-1 rounded-lg font-bold">
                           "{q}"
                         </span>
                       ))}

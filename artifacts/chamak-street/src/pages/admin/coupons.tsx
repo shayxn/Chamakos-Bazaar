@@ -107,7 +107,7 @@ function CouponModal({ coupon, onSave, onClose }: {
         initial={{ opacity: 0, scale: 0.94, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94 }}
         className="w-full max-w-lg rounded-2xl p-6 space-y-5 overflow-y-auto max-h-[90vh]"
-        style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(167,139,250,0.2)" }}
+        style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(183,156,255,0.2)" }}
       >
         <div className="flex items-center justify-between">
           <h2 className="font-black uppercase tracking-widest text-lg">{isNew ? "Create Discount Code" : "Edit Discount Code"}</h2>

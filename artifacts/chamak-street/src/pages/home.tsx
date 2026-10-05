@@ -95,8 +95,8 @@ export default function Home() {
       <section className="relative isolate border-b border-white/10" aria-label="Imaginate campaign">
         <div className="mx-auto grid max-w-[1600px] lg:min-h-[calc(100svh-120px)] lg:grid-cols-[1.05fr_.95fr]">
           <div className={`relative flex flex-col justify-end px-6 pb-10 pt-14 sm:px-10 lg:px-[5vw] lg:pb-14 ${settings.hero_alignment === "center" ? "text-center items-center" : settings.hero_alignment === "right" ? "text-right items-end" : ""}`}>
-            <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#7c3aed]/15 blur-3xl" />
-            <p className="relative mb-6 flex items-center gap-3 text-[10px] uppercase tracking-[.3em] text-white/65"><span className="h-px w-9 bg-[#a78bfa]" />{settings.hero_small_text || "IMAGINATE · UAE"}</p>
+            <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#b79cff]/15 blur-3xl" />
+            <p className="relative mb-6 flex items-center gap-3 text-[10px] uppercase tracking-[.3em] text-white/65"><span className="h-px w-9 bg-[#b79cff]" />{settings.hero_small_text || "IMAGINATE · UAE"}</p>
             <h1 className="relative text-[clamp(3.2rem,9vw,8.4rem)] font-semibold uppercase leading-[.84] tracking-[-.07em]" data-testid="text-hero-title">
               {settings.hero_headline?.trim() || settings.hero_title?.trim() || "IMAGINATE"}<br /><span className="text-[#b79cff]">{settings.hero_subheadline?.trim() || settings.hero_subtitle?.trim() || ""}</span>
             </h1>
@@ -141,8 +141,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       <HomepageNews />
+
       <LaunchPanel />
       {liveEnabled && (
         <section className="relative isolate overflow-hidden border-y border-white/10 bg-[#17161a]" aria-label="IMAGINATE Live">

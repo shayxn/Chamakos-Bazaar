@@ -190,12 +190,12 @@ export async function saveCustomerSubscription(endpoint: string, p256dh: string,
 
 // ── Customer order status push ────────────────────────────────────────────────
 const STATUS_PUSH_MESSAGES: Record<string, (orderNumber: string, extra?: Record<string, unknown>) => { title: string; body: string } | null> = {
-  confirmed: (n) => ({ title: "Order Placed 🛍️", body: `Your IMAGINATE order #${n} has been placed successfully. We'll keep you updated!` }),
-  preparing: (n) => ({ title: "Preparing 📦", body: `Good news! We're preparing your IMAGINATE order #${n}.` }),
-  shipped: (n) => ({ title: "Shipped 🚚", body: `Your IMAGINATE order #${n} has been shipped and is heading your way.` }),
-  out_for_delivery: (n) => ({ title: "On Its Way ⚡", body: `Your IMAGINATE order #${n} is on its way to you.` }),
+  confirmed: (n) => ({ title: "Order placed", body: `Your IMAGINATE order #${n} has been placed successfully.` }),
+  preparing: (n) => ({ title: "Preparing your order", body: `We're preparing your IMAGINATE order #${n}.` }),
+  shipped: (n) => ({ title: "Order shipped", body: `Your IMAGINATE order #${n} has been shipped.` }),
+  out_for_delivery: (n) => ({ title: "Out for delivery", body: `Your IMAGINATE order #${n} is out for delivery.` }),
   delivered: (n) => ({ title: "Delivered ✓", body: `Your IMAGINATE order #${n} has arrived. Enjoy your order!` }),
-  delayed: (n, e) => ({ title: "Order Delayed ⚠️", body: `Your IMAGINATE order #${n} has been delayed.${e?.delayedUntil ? ` Expected by: ${e.delayedUntil}` : ""} Open the app and go to My Orders to see more.` }),
+  delayed: (n, e) => ({ title: "Order delayed", body: `Your IMAGINATE order #${n} has been delayed.${e?.delayedUntil ? ` Updated estimate: ${e.delayedUntil}` : ""} Open Imaginate to see the details.` }),
   cancelled: (n, e) => {
     const refundMsg = e?.refundInitiated ? " Your refund has been initiated through the payment provider; timing depends on the provider." : "";
     return { title: "Order Cancelled", body: `Your IMAGINATE order #${n} has been cancelled.${refundMsg} Open the app and go to My Orders to view the details.` };
@@ -203,12 +203,14 @@ const STATUS_PUSH_MESSAGES: Record<string, (orderNumber: string, extra?: Record<
 };
 
 async function getCustomerSubscriptions(customerId:number|undefined|null,orderId:number,customerEmail?:string|null): Promise<{ endpoint: string; p256dh: string; auth: string }[]> {
-  await ensureCustomerSubTable();
+  await (await import("./customer-notification-delivery")).ensureCustomerNotificationSchema();
   // Customer subscriptions are stored in a separate table with customer identifier
   try {
     const result = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
-      sql`SELECT endpoint, p256dh, auth FROM customer_push_subscriptions 
-          WHERE customer_id = ${customerId??null} OR order_id = ${orderId}
+      sql`SELECT endpoint, p256dh, auth FROM customer_push_subscriptions c
+          WHERE order_updates_enabled=TRUE AND (customer_id = ${customerId??null} OR order_id = ${orderId})
+          AND NOT EXISTS(SELECT 1 FROM push_subscriptions a WHERE a.endpoint=c.endpoint)
+          AND NOT EXISTS(SELECT 1 FROM admin_push_subscriptions a WHERE a.endpoint=c.endpoint)
           LIMIT 10`
     );
     return Array.isArray(result) ? result : (result as any).rows ?? [];
@@ -237,7 +239,7 @@ export async function sendCustomerStatusPush(
     if (!subs.length) return;
     
     const payload = JSON.stringify({
-      title: msg.title, body: msg.body, type: "ORDER_STATUS",
+      title: msg.title, body: msg.body, type: "CUSTOMER_ORDER_STATUS",
       data: { orderId: order.id, orderNumber: orderNum, url: `/order/${order.id}` }
     });
     const accepted=await deliver(subs, payload);
@@ -375,24 +377,9 @@ export async function saveWishlistSubscription(endpoint: string, p256dh: string,
 
 export async function sendComingSoonReleasePush(productId: number, productName: string, imageUrl?: string | null) {
   try {
-    if (!_initialized) await initPush();
-    // Find push subscriptions for all sessions that wishlisted this product (single JOIN query)
-    const subRows = await db.execute<{ endpoint: string; p256dh: string; auth: string }>(
-      sql`SELECT DISTINCT cps.endpoint, cps.p256dh, cps.auth
-          FROM customer_push_subscriptions cps
-          INNER JOIN wishlists w ON w.session_id = cps.session_id
-          WHERE w.product_id = ${productId} AND cps.session_id IS NOT NULL`
-    );
-    const subs = (Array.isArray(subRows) ? subRows : (subRows as any).rows ?? []) as { endpoint: string; p256dh: string; auth: string }[];
-    if (!subs.length) return;
-    const payload = JSON.stringify({
-      title: `🔥 ${productName} just dropped!`,
-      body: "The item you wishlisted is now available. Tap to shop before it sells out.",
-      type: "PRODUCT_RELEASE",
-      data: { productId, url: `/product/${productId}` },
-    });
-    await deliver(subs, payload);
-    console.log(`[Push] Sent release push for product ${productId} to ${subs.length} subscriber(s)`);
+    const {sendCustomerMarketing}=await import("./customer-notification-delivery");
+    await sendCustomerMarketing(`release:${productId}:${new Date().toISOString().slice(0,10)}`,
+      {title:`${productName} is available`,body:"The item you asked to hear about is now available. Open Imaginate to view it.",url:`/product/${productId}`},productId);
   } catch (err) {
     console.error("[Push] sendComingSoonReleasePush failed:", err);
   }

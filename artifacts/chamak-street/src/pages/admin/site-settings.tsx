@@ -621,7 +621,7 @@ export default function AdminSiteSettings() {
             <Save className="h-4 w-4" />
             {bulkUpsert.isPending ? "Saving..." : activeTab === "emergency" ? "Submit Emergency Setting" : "Save Changes"}
             {hasChanges && !bulkUpsert.isPending && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-violet-400 border border-background" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary border border-background" />
             )}
           </Button>
         </motion.div>
@@ -983,8 +983,8 @@ export default function AdminSiteSettings() {
                 <SettingInput label="Priority Delivery (AED)" settingKey="delivery_priority_price" settings={settings} onChange={onChange} placeholder="40" />
               </div>
             </div>
-            <div className="rounded-2xl border border-violet-400/20 bg-violet-400/[0.04] p-5">
-              <h2 className="font-black uppercase tracking-wider text-violet-200">Delivery destinations</h2>
+            <div className="rounded-2xl border border-primary/20 bg-primary/[0.04] p-5">
+              <h2 className="font-black uppercase tracking-wider text-primary">Delivery destinations</h2>
               <p className="mt-2 text-sm leading-relaxed text-white/60">
                 United Arab Emirates only. Worldwide shipping is OFF and hidden from customers. International countries, rates, and any currency conversion have not been configured.
               </p>

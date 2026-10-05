@@ -207,20 +207,20 @@ export default function AdminChatPage() {
         <div className="p-5 pb-3">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold">{isCalls ? "Calls" : "Chats"}</h1>
-            <button className="text-violet-500 hover:bg-[#1a1a1a] p-1.5 rounded-lg transition-colors">
+            <button className="text-primary hover:bg-[#1a1a1a] p-1.5 rounded-lg transition-colors">
               {isCalls ? <PhoneCall className="w-5 h-5" /> : <SquarePen className="w-5 h-5" />}
             </button>
           </div>
           
           {/* Tabs */}
           <div className="flex gap-2">
-            <button className="px-4 py-1.5 rounded-full text-xs font-medium bg-[#a78bfa] text-black">
+            <button className="px-4 py-1.5 rounded-full text-xs font-medium bg-[#b79cff] text-black">
               All
             </button>
             {!isCalls && (
               <>
                 <button className="px-4 py-1.5 rounded-full text-xs font-medium bg-[#1a1a1a] text-gray-300 flex items-center gap-1.5">
-                  Unread {totalUnread > 0 && <span className="bg-[#a78bfa] text-black px-1.5 rounded-full text-[10px] font-bold">{totalUnread}</span>}
+                  Unread {totalUnread > 0 && <span className="bg-[#b79cff] text-black px-1.5 rounded-full text-[10px] font-bold">{totalUnread}</span>}
                 </button>
                 <button className="px-4 py-1.5 rounded-full text-xs font-medium bg-[#1a1a1a] text-gray-300">
                   Groups
@@ -242,7 +242,7 @@ export default function AdminChatPage() {
               {/* Chat list */}
               <button 
                 onClick={() => select("group")} 
-                className={`w-full text-left p-3 mb-1 rounded-2xl flex gap-3 transition-colors items-center ${conversation === "group" ? "bg-[#1a110a] border border-[#a78bfa]/30" : "hover:bg-[#111]"}`}
+                className={`w-full text-left p-3 mb-1 rounded-2xl flex gap-3 transition-colors items-center ${conversation === "group" ? "bg-[#1a110a] border border-[#b79cff]/30" : "hover:bg-[#111]"}`}
               >
                 <div className="relative">
                   <div className="w-10 h-10 rounded-full bg-[#111111] text-gray-300 flex items-center justify-center border border-[#222] shrink-0">
@@ -259,7 +259,7 @@ export default function AdminChatPage() {
                     {online.length} online
                   </div>
                 </div>
-                {unread.group ? <span className="w-5 h-5 rounded-full bg-[#a78bfa] text-black flex items-center justify-center text-[10px] font-bold shrink-0">{unread.group}</span> : null}
+                {unread.group ? <span className="w-5 h-5 rounded-full bg-[#b79cff] text-black flex items-center justify-center text-[10px] font-bold shrink-0">{unread.group}</span> : null}
               </button>
 
               {admins.filter(a => a.adminId !== me?.adminId).map(a => {
@@ -272,7 +272,7 @@ export default function AdminChatPage() {
                     whileTap={{ scale: 0.98 }}
                     key={a.adminId} 
                     onClick={() => select(id)} 
-                    className={`w-full text-left p-3 mb-1 rounded-2xl flex gap-3 transition-colors items-center ${isActive ? "bg-[#1a110a] border border-[#a78bfa]/30" : "hover:bg-[#111]"}`}
+                    className={`w-full text-left p-3 mb-1 rounded-2xl flex gap-3 transition-colors items-center ${isActive ? "bg-[#1a110a] border border-[#b79cff]/30" : "hover:bg-[#111]"}`}
                   >
                     <div className="relative">
                       {getAvatar(a.adminName)}
@@ -287,7 +287,7 @@ export default function AdminChatPage() {
                         {isOnline ? "Active now" : "Offline"}
                       </div>
                     </div>
-                    {unread[id] ? <span className="w-5 h-5 rounded-full bg-[#a78bfa] text-black flex items-center justify-center text-[10px] font-bold shrink-0">{unread[id]}</span> : null}
+                    {unread[id] ? <span className="w-5 h-5 rounded-full bg-[#b79cff] text-black flex items-center justify-center text-[10px] font-bold shrink-0">{unread[id]}</span> : null}
                   </motion.button>
                 );
               })}
@@ -298,9 +298,9 @@ export default function AdminChatPage() {
               {room && (
                 <>
                   <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-2 mt-2">Ongoing Call</div>
-                  <button onClick={() => setMinimized(false)} className="w-full text-left p-3 mb-3 rounded-2xl flex gap-3 transition-colors items-center bg-[#1a110a] border border-[#a78bfa]/30">
+                  <button onClick={() => setMinimized(false)} className="w-full text-left p-3 mb-3 rounded-2xl flex gap-3 transition-colors items-center bg-[#1a110a] border border-[#b79cff]/30">
                     <div className="relative">
-                      <div className="w-10 h-10 rounded-full bg-[#a78bfa]/20 text-[#a78bfa] flex items-center justify-center border border-[#a78bfa]/30 shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-[#b79cff]/20 text-[#b79cff] flex items-center justify-center border border-[#b79cff]/30 shrink-0">
                         <PhoneCall className="w-5 h-5 animate-pulse" />
                       </div>
                     </div>
@@ -374,7 +374,7 @@ export default function AdminChatPage() {
             
             {/* Main Stage */}
             <motion.div initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.06, duration: 0.32, ease: "easeOut" }} className="flex-1 flex min-h-0 min-w-0 flex-col relative m-2 sm:m-4 rounded-3xl overflow-hidden border border-[#1a1a1a] bg-black">
-              <motion.div aria-hidden className="absolute -top-1/3 left-1/2 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[#a78bfa]/10 blur-3xl" animate={{ opacity: [0.18, 0.42, 0.18], scale: [0.92, 1.08, 0.92] }} transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }} />
+              <motion.div aria-hidden className="absolute -top-1/3 left-1/2 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[#b79cff]/10 blur-3xl" animate={{ opacity: [0.18, 0.42, 0.18], scale: [0.92, 1.08, 0.92] }} transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }} />
               <div className="absolute top-4 w-full flex justify-center z-10">
                 <div className="flex items-center gap-1.5 text-green-500/80 text-[10px] font-medium bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">
                   <Lock className="w-3 h-3" /> End-to-end encrypted
@@ -390,7 +390,7 @@ export default function AdminChatPage() {
               
               <div className="absolute top-4 right-4 z-10 flex gap-2">
                 {!stream.current && (
-                  <button type="button" onClick={() => void join(room, true)} className="h-10 rounded-xl bg-[#a78bfa] px-4 text-xs font-bold text-black transition-colors hover:bg-[#ff8126]">
+                  <button type="button" onClick={() => void join(room, true)} className="h-10 rounded-xl bg-[#b79cff] px-4 text-xs font-bold text-black transition-colors hover:bg-[#ff8126]">
                     Join call
                   </button>
                 )}
@@ -436,8 +436,8 @@ export default function AdminChatPage() {
                     </div>
                     <span className="text-[9px] font-medium">{camera ? "Camera" : "Camera off"}</span>
                   </motion.button>
-                  <motion.button whileHover={{ y: -2 }} whileTap={{ scale: 0.92 }} type="button" onClick={() => void toggleScreenShare()} className={`flex flex-col items-center gap-1 sm:gap-1.5 w-11 sm:w-14 ${sharing ? "text-[#a78bfa]" : "text-gray-300 hover:text-white"}`}>
-                    <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${sharing ? "bg-[#a78bfa]/20 ring-1 ring-[#a78bfa]/50" : "bg-[#222] hover:bg-[#333]"}`}>
+                  <motion.button whileHover={{ y: -2 }} whileTap={{ scale: 0.92 }} type="button" onClick={() => void toggleScreenShare()} className={`flex flex-col items-center gap-1 sm:gap-1.5 w-11 sm:w-14 ${sharing ? "text-[#b79cff]" : "text-gray-300 hover:text-white"}`}>
+                    <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${sharing ? "bg-[#b79cff]/20 ring-1 ring-[#b79cff]/50" : "bg-[#222] hover:bg-[#333]"}`}>
                       <Monitor className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <span className="text-[9px] font-medium">{sharing ? "Stop share" : "Share"}</span>
@@ -504,7 +504,7 @@ export default function AdminChatPage() {
                 {messages.slice(-3).map((message) => {
                   const isMe = message.senderId === me?.adminId;
                   return (
-                    <div key={message.id || message.clientMessageId} className={`max-w-[90%] rounded-xl px-2.5 py-2 text-[10px] ${isMe ? "ml-auto bg-[#a78bfa] text-black" : "bg-[#1b1b1b] text-gray-200"}`}>
+                    <div key={message.id || message.clientMessageId} className={`max-w-[90%] rounded-xl px-2.5 py-2 text-[10px] ${isMe ? "ml-auto bg-[#b79cff] text-black" : "bg-[#1b1b1b] text-gray-200"}`}>
                       {!isMe && <p className="mb-0.5 font-bold text-[#ff8c42]">{message.senderName}</p>}
                       <p>{message.message}</p>
                       <p className={`mt-1 text-right text-[8px] ${isMe ? "text-black/55" : "text-gray-500"}`}>{new Date(message.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</p>
@@ -515,20 +515,20 @@ export default function AdminChatPage() {
               </div>
               <form onSubmit={e => { e.preventDefault(); void send(); }} className="mt-3 bg-[#111] rounded-full px-3 py-2 flex items-center gap-2 border border-[#222]">
                 <input value={text} onChange={event => { setText(event.target.value); void typingPost(true); }} onBlur={() => void typingPost(false)} className="bg-transparent border-none text-xs text-white flex-1 outline-none placeholder:text-gray-600" placeholder="Type a message..." />
-                <button type="submit" className="text-[#a78bfa]" aria-label="Send in-call message"><Send className="w-4 h-4" /></button>
+                <button type="submit" className="text-[#b79cff]" aria-label="Send in-call message"><Send className="w-4 h-4" /></button>
               </form>
             </div>
           </motion.div>
         ) : isCalls ? (
           <div className="flex-1 flex items-center justify-center bg-[#050505] p-5 overflow-hidden">
             <motion.div initial={{ opacity: 0, y: 20, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 22 }} className="relative w-full max-w-lg rounded-3xl border border-[#1d1d1d] bg-[#0c0c0c] px-5 sm:px-8 py-10 sm:py-12 text-center shadow-2xl">
-              <motion.div aria-hidden className="absolute -top-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-[#a78bfa]/20 blur-3xl" animate={{ scale: [0.85, 1.15, 0.85], opacity: [0.25, 0.55, 0.25] }} transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }} />
-              <motion.div animate={{ rotate: [0, -4, 4, 0], y: [0, -3, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }} className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#a78bfa]/30 bg-[#a78bfa]/10 text-[#a78bfa]">
+              <motion.div aria-hidden className="absolute -top-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-[#b79cff]/20 blur-3xl" animate={{ scale: [0.85, 1.15, 0.85], opacity: [0.25, 0.55, 0.25] }} transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }} />
+              <motion.div animate={{ rotate: [0, -4, 4, 0], y: [0, -3, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }} className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#b79cff]/30 bg-[#b79cff]/10 text-[#b79cff]">
                 <Video className="h-7 w-7" />
               </motion.div>
               <p className="mt-6 text-lg font-bold text-white">Ready to call your team?</p>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">Start one secure room for every available IMAGINATE admin. The live call will open here with its participant panel and in-call chat.</p>
-              <motion.button whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.96 }} type="button" onClick={start} className="mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-[#a78bfa] px-5 text-sm font-bold text-black transition-colors hover:bg-[#ff8126]">
+              <motion.button whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.96 }} type="button" onClick={start} className="mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-[#b79cff] px-5 text-sm font-bold text-black transition-colors hover:bg-[#ff8126]">
                 <Video className="h-4 w-4" /> Start video call
               </motion.button>
             </motion.div>
@@ -563,8 +563,8 @@ export default function AdminChatPage() {
               
               <div className="flex items-center gap-5 text-gray-400">
                 <button className="hover:text-white transition-colors"><Search className="w-5 h-5" /></button>
-                <button onClick={start} className="hover:text-white transition-colors text-violet-500"><Phone className="w-5 h-5" /></button>
-                <button onClick={start} className="hover:text-white transition-colors text-violet-500"><Video className="w-5 h-5" /></button>
+                <button onClick={start} className="hover:text-white transition-colors text-primary"><Phone className="w-5 h-5" /></button>
+                <button onClick={start} className="hover:text-white transition-colors text-primary"><Video className="w-5 h-5" /></button>
                 <div className="w-[1px] h-5 bg-[#222]" />
                 <button className="hover:text-white transition-colors"><Info className="w-5 h-5" /></button>
               </div>
@@ -585,17 +585,17 @@ export default function AdminChatPage() {
                   <motion.div key={m.id || m.clientMessageId} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 420, damping: 30 }} className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
                     <div className={`px-3 sm:px-4 py-2.5 rounded-2xl max-w-[85%] sm:max-w-md text-[13px] relative group ${
                       isMe 
-                        ? "bg-[#a78bfa] text-black rounded-br-sm" 
+                        ? "bg-[#b79cff] text-black rounded-br-sm"
                         : "bg-[#1a1a1a] text-gray-200 border border-[#222] rounded-bl-sm"
                     }`}>
                       {!isMe && conversation === "group" && (
-                        <div className="text-[10px] font-bold text-violet-500 mb-1">{m.senderName}</div>
+                        <div className="text-[10px] font-bold text-primary mb-1">{m.senderName}</div>
                       )}
                       {m.type === "image" && mediaUrl ? (
                         <img src={mediaUrl} alt={m.message === "📷 Photo" ? "Shared photo" : m.message} className="max-h-80 w-auto max-w-full rounded-xl object-cover" loading="lazy" />
                       ) : m.type === "audio" && mediaUrl ? (
                         <div className="min-w-[220px]">
-                          <div className={`mb-1 flex items-center gap-1.5 text-[10px] font-bold ${isMe ? "text-black/65" : "text-violet-400"}`}><Mic className="h-3.5 w-3.5" /> Voice message</div>
+                          <div className={`mb-1 flex items-center gap-1.5 text-[10px] font-bold ${isMe ? "text-black/65" : "text-primary"}`}><Mic className="h-3.5 w-3.5" /> Voice message</div>
                           <audio controls preload="metadata" className="h-9 w-full max-w-[260px]" src={mediaUrl}>Your browser cannot play this voice message.</audio>
                         </div>
                       ) : (
@@ -643,7 +643,7 @@ export default function AdminChatPage() {
               <form onSubmit={e => { e.preventDefault(); void send().catch(()=>{}); }} className="relative flex items-center gap-3 bg-[#111111] rounded-full px-4 py-2 border border-[#222]">
                 <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={event => { selectPhoto(event.target.files?.[0]); event.target.value=""; }} />
                 <button type="button" onClick={() => fileInput.current?.click()} disabled={uploadingMedia || recording} className="text-gray-400 hover:text-white transition-colors disabled:opacity-40" aria-label="Send a photo">
-                  {uploadingMedia ? <Loader2 className="w-5 h-5 animate-spin text-violet-500" /> : <ImageIcon className="w-5 h-5" />}
+                  {uploadingMedia ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <ImageIcon className="w-5 h-5" />}
                 </button>
                 <input 
                   value={text} 
@@ -664,13 +664,13 @@ export default function AdminChatPage() {
                   )}
                 </AnimatePresence>
                 {text.trim() ? (
-                  <motion.button whileHover={{ scale: 1.1, rotate: -8 }} whileTap={{ scale: 0.9 }} type="submit" className="w-8 h-8 rounded-full bg-[#a78bfa] flex items-center justify-center text-black ml-1 hover:bg-[#ff8833] transition-colors shadow-lg">
+                  <motion.button whileHover={{ scale: 1.1, rotate: -8 }} whileTap={{ scale: 0.9 }} type="submit" className="w-8 h-8 rounded-full bg-[#b79cff] flex items-center justify-center text-black ml-1 hover:bg-[#ff8833] transition-colors shadow-lg">
                     <Send className="w-4 h-4 ml-0.5" />
                   </motion.button>
                 ) : (
                   <div className="flex items-center gap-1">
                     {recording && <button type="button" onClick={cancelVoice} className="text-gray-400 hover:text-white transition-colors" aria-label="Discard voice message"><X className="w-4 h-4" /></button>}
-                    <button type="button" onClick={recording ? stopRecording : () => void startRecording()} disabled={uploadingMedia} className={`${recording ? "bg-red-500 text-white animate-pulse" : "text-[#a78bfa] hover:text-[#ff8833]"} flex h-8 w-8 items-center justify-center rounded-full transition-colors disabled:opacity-40`} aria-label={recording ? "Stop and send voice message" : "Record a voice message"}>
+                    <button type="button" onClick={recording ? stopRecording : () => void startRecording()} disabled={uploadingMedia} className={`${recording ? "bg-red-500 text-white animate-pulse" : "text-[#b79cff] hover:text-[#ff8833]"} flex h-8 w-8 items-center justify-center rounded-full transition-colors disabled:opacity-40`} aria-label={recording ? "Stop and send voice message" : "Record a voice message"}>
                       {recording ? <Square className="w-3.5 h-3.5 fill-current" /> : <Mic className="w-5 h-5" />}
                     </button>
                   </div>

@@ -27,7 +27,7 @@ function CategoryForm({
 }) {
   const [form, setForm] = useState<Partial<Category>>({
     name: "", iconEmoji: "", description: "", bannerImageUrl: "",
-    thumbnailImageUrl: "", bgImageUrl: "", accentColor: "#a78bfa",
+    thumbnailImageUrl: "", bgImageUrl: "", accentColor: "#b79cff",
     displayOrder: 0, isVisible: true, ...initial,
   });
 
@@ -63,8 +63,8 @@ function CategoryForm({
         <div>
           <label className="label-xs">Accent Color</label>
           <div className="flex gap-2 mt-1">
-            <Input type="color" value={form.accentColor ?? "#a78bfa"} onChange={(e) => set("accentColor", e.target.value)} className="w-14 h-9 p-1 cursor-pointer" />
-            <Input value={form.accentColor ?? ""} onChange={(e) => set("accentColor", e.target.value)} placeholder="#a78bfa" />
+            <Input type="color" value={form.accentColor ?? "#b79cff"} onChange={(e) => set("accentColor", e.target.value)} className="w-14 h-9 p-1 cursor-pointer" />
+            <Input value={form.accentColor ?? ""} onChange={(e) => set("accentColor", e.target.value)} placeholder="#b79cff" />
           </div>
         </div>
         <div>

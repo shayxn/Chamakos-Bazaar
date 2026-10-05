@@ -16,7 +16,7 @@ export default function MaintenancePage() {
             animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
             transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5 }}
             className="w-20 h-20 rounded-2xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #a78bfa 0%, #ffcc00 100%)" }}
+            style={{ background: "linear-gradient(135deg, #b79cff 0%, #b79cff 100%)" }}
           >
             <Wrench className="h-10 w-10 text-white" strokeWidth={2.5} />
           </motion.div>
@@ -27,7 +27,7 @@ export default function MaintenancePage() {
             className="absolute inset-0"
             style={{ transformOrigin: "center" }}
           >
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-violet-400 shadow-[0_0_8px_#facc15]" />
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary shadow-[0_0_8px_#b79cff]" />
           </motion.div>
         </div>
 
@@ -35,7 +35,7 @@ export default function MaintenancePage() {
           <motion.h1
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             className="text-4xl font-black uppercase tracking-tighter"
-            style={{ background: "linear-gradient(135deg, #a78bfa, #ffcc00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+            style={{ background: "linear-gradient(135deg, #b79cff, #b79cff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
           >
             We'll Be Back
           </motion.h1>
@@ -65,7 +65,7 @@ export default function MaintenancePage() {
             animate={{ x: ["-100%", "100%"] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             className="h-full w-1/2 rounded-full"
-            style={{ background: "linear-gradient(90deg, transparent, #a78bfa, transparent)" }}
+            style={{ background: "linear-gradient(90deg, transparent, #b79cff, transparent)" }}
           />
         </div>
       </motion.div>

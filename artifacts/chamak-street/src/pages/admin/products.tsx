@@ -65,7 +65,7 @@ const BULK_ACTIONS = [
 ];
 
 /* ── Animated Toggle ── */
-function Toggle({ checked, onChange, color = "#a78bfa" }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
+function Toggle({ checked, onChange, color = "#b79cff" }: { checked: boolean; onChange: (v: boolean) => void; color?: string }) {
   return (
     <motion.button
       type="button"
@@ -231,19 +231,19 @@ function MediaZone({ items, onChange, uploading, onUpload }: {
     <div className="space-y-3">
       {/* Drop zone */}
       <motion.div
-        animate={{ borderColor: dragging ? "rgba(167,139,250,0.7)" : uploading ? "rgba(167,139,250,0.4)" : "rgba(255,255,255,0.12)" }}
+        animate={{ borderColor: dragging ? "rgba(183,156,255,0.7)" : uploading ? "rgba(183,156,255,0.4)" : "rgba(255,255,255,0.12)" }}
         onDragOver={e => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
         className="relative rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2.5 py-8 cursor-pointer transition-colors"
-        style={{ background: dragging ? "rgba(167,139,250,0.06)" : uploading ? "rgba(167,139,250,0.04)" : "rgba(255,255,255,0.02)" }}
+        style={{ background: dragging ? "rgba(183,156,255,0.06)" : uploading ? "rgba(183,156,255,0.04)" : "rgba(255,255,255,0.02)" }}
       >
         <motion.div
           animate={uploading ? { rotate: 360 } : { rotate: 0 }}
           transition={uploading ? { duration: 1.2, repeat: Infinity, ease: "linear" } : {}}
           className="w-10 h-10 rounded-xl flex items-center justify-center"
-          style={{ background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.25)" }}
+          style={{ background: "rgba(183,156,255,0.12)", border: "1px solid rgba(183,156,255,0.25)" }}
         >
           {uploading ? <Upload className="h-5 w-5 text-primary" /> : <ImageIcon className="h-5 w-5 text-primary/60" />}
         </motion.div>
@@ -684,9 +684,9 @@ export default function AdminProducts() {
                   {/* Badges */}
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {product.featured && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Featured</span>}
-                    {(product as ProductFormData).isPreOrder && <span className="bg-violet-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
-                    {(product as ProductFormData).sellingFast && <span className="bg-violet-500 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Hot</span>}
-                    {(product as ProductFormData).spotlight && <span className="bg-violet-400 text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Spotlight</span>}
+                    {(product as ProductFormData).isPreOrder && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Pre-Order</span>}
+                    {(product as ProductFormData).sellingFast && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Hot</span>}
+                    {(product as ProductFormData).spotlight && <span className="bg-primary text-black text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm">Spotlight</span>}
                   </div>
 
                   <div className="absolute bottom-2 right-2 flex items-center gap-1">
@@ -712,11 +712,11 @@ export default function AdminProducts() {
                       onClick={e => handleSetSpotlight(e, product as Product & ProductFormData)}
                       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all border ${
                         (product as ProductFormData).spotlight
-                          ? "bg-violet-400/15 text-violet-400 border-violet-400/30 cursor-default"
-                          : "bg-transparent text-muted-foreground border-transparent hover:bg-violet-400/8 hover:text-violet-400 hover:border-violet-400/20"
+                          ? "bg-primary/15 text-primary border-primary/30 cursor-default"
+                          : "bg-transparent text-muted-foreground border-transparent hover:bg-primary/8 hover:text-primary hover:border-primary/20"
                       }`}
                     >
-                      <Star className={`h-3 w-3 ${(product as ProductFormData).spotlight ? "fill-violet-400" : ""}`} />
+                      <Star className={`h-3 w-3 ${(product as ProductFormData).spotlight ? "fill-primary" : ""}`} />
                       {(product as ProductFormData).spotlight ? "Spotlight" : "Set"}
                     </button>
                     <div className="ml-auto flex gap-1">
@@ -856,7 +856,7 @@ export default function AdminProducts() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-black transition-all disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg, #a78bfa, #7c3aed)", boxShadow: "0 4px 16px rgba(167,139,250,0.35)" }}
+                style={{ background: "linear-gradient(135deg, #b79cff, #b79cff)", boxShadow: "0 4px 16px rgba(183,156,255,0.35)" }}
               >
                 {isPending ? (
                   <><motion.span animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} className="inline-block w-3 h-3 border-2 border-black/30 border-t-black rounded-full" /> Saving…</>
@@ -873,7 +873,7 @@ export default function AdminProducts() {
             style={{ WebkitOverflowScrolling: "touch" }}>
 
             {/* Media */}
-            <Section title="Product Media" icon={ImageIcon} accent="rgba(167,139,250,0.18)">
+            <Section title="Product Media" icon={ImageIcon} accent="rgba(183,156,255,0.18)">
               <MediaZone items={mediaItems} onChange={handleMediaChange} uploading={uploading} onUpload={handleUpload} />
             </Section>
 
@@ -986,34 +986,34 @@ export default function AdminProducts() {
             </Section>
 
             {/* Badges & Flags */}
-            <Section title="Badges & Flags" icon={Sparkles} accent="rgba(167,139,250,0.18)">
+            <Section title="Badges & Flags" icon={Sparkles} accent="rgba(183,156,255,0.18)">
               <div className="grid grid-cols-2 gap-2">
                 <PillToggle checked={formData.featured ?? false} onChange={v => set({ featured: v })}
-                  label="Featured" icon={Star} color="#a78bfa" />
+                  label="Featured" icon={Star} color="#b79cff" />
                 <PillToggle checked={formData.sellingFast ?? false} onChange={v => set({ sellingFast: v })}
-                  label="Selling Fast" icon={Flame} color="#a78bfa" />
+                  label="Selling Fast" icon={Flame} color="#b79cff" />
                 <PillToggle checked={formData.spotlight ?? false} onChange={v => set({ spotlight: v })}
-                  label="Spotlight" icon={Sparkles} color="#a78bfa" />
+                  label="Spotlight" icon={Sparkles} color="#b79cff" />
                 <PillToggle checked={formData.hidden ?? false} onChange={v => set({ hidden: v })}
                   label="Hidden" icon={EyeOff} color="#94a3b8" />
                 <PillToggle checked={formData.bestSeller ?? false} onChange={v => set({ bestSeller: v })}
-                  label="Best Seller" icon={Star} color="#a78bfa" />
+                  label="Best Seller" icon={Star} color="#b79cff" />
                 <PillToggle checked={formData.trending ?? false} onChange={v => set({ trending: v })}
                   label="Trending" icon={Zap} color="#06b6d4" />
                 <PillToggle checked={formData.newArrival ?? false} onChange={v => set({ newArrival: v })}
                   label="New Arrival" icon={Sparkles} color="#10b981" />
                 <PillToggle checked={formData.limitedEdition ?? false} onChange={v => set({ limitedEdition: v })}
-                  label="Limited Edition" icon={Package} color="#8b5cf6" />
+                  label="Limited Edition" icon={Package} color="#b79cff" />
                 <PillToggle checked={formData.comingSoon ?? false} onChange={v => set({ comingSoon: v })}
                   label="Coming Soon" icon={Timer} color="#a855f7" />
               </div>
             </Section>
 
             {/* Pre-Order — collapsible */}
-            <Section title="Pre-Order" icon={Calendar} accent="rgba(167,139,250,0.18)" collapsible>
+            <Section title="Pre-Order" icon={Calendar} accent="rgba(183,156,255,0.18)" collapsible>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/60 font-bold">Enable Pre-Order Mode</span>
-                <Toggle checked={formData.isPreOrder ?? false} onChange={v => set({ isPreOrder: v })} color="#a78bfa" />
+                <Toggle checked={formData.isPreOrder ?? false} onChange={v => set({ isPreOrder: v })} color="#b79cff" />
               </div>
               <AnimatePresence>
                 {formData.isPreOrder && (

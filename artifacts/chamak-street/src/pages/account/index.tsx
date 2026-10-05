@@ -14,125 +14,19 @@ type Address = { id: number; label: string; address: string; isDefault: boolean 
 export const AccountContext = createContext<{ customer: Customer | null; reload: () => void }>({ customer: null, reload: () => {} });
 
 // ── Notification onboarding card ──────────────────────────────────────────────
-function NotificationOnboarding({ customer }: { customer: Customer }) {
-  const [permission, setPermission] = useState<NotificationPermission>(
-    typeof Notification !== "undefined" ? Notification.permission : "default"
-  );
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem("fp_notif_dismissed") === "1");
-  const [subscribing, setSubscribing] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [step, setStep] = useState<"home-screen" | "notify">("home-screen");
-
-  useEffect(() => {
-    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    setIsIOS(ios);
-    const installed = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone;
-    setIsInstalled(!!installed);
-    if (installed || !ios) setStep("notify");
-  }, []);
-
-  const subscribe = useCallback(async () => {
-    setSubscribing(true);
-    try {
-      const perm = await Notification.requestPermission();
-      setPermission(perm);
-      if (perm !== "granted") return;
-
-      // Get VAPID key
-      const vapidRes = await fetch(`${BASE}/api/push/vapid-public-key`, { credentials: "include" });
-      if (!vapidRes.ok) return;
-      const { publicKey } = await vapidRes.json() as { publicKey: string };
-
-      // Subscribe via service worker
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
-      });
-      const { endpoint, keys } = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } };
-
-      // Save subscription with customer identity
-      await fetch(`${BASE}/api/push/customer-subscribe`, {
-        method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint, p256dh: keys.p256dh, auth: keys.auth, customerPhone: customer.phone ?? undefined, customerEmail: customer.email }),
-      });
-
-      // Send welcome notification via service worker
-      const reg2 = await navigator.serviceWorker.ready;
-      reg2.showNotification("IMAGINATE", {
-        body: "Notifications are on. We’ll keep you updated about your orders and account.",
-        icon: "/icon-192.png",
-        badge: "/icon-192.png",
-      });
-    } catch { } finally { setSubscribing(false); }
-  }, [customer]);
-
-  if (dismissed || permission === "denied") return null;
-  if (permission === "granted") return null;
-
+function NotificationOnboarding(_props: { customer: Customer }) {
   return (
-    <AnimatePresence>
-      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
-        className="mb-5 rounded-2xl border border-primary/20 overflow-hidden relative"
-        style={{ background: "rgba(167,139,250,0.05)", backdropFilter: "blur(20px)" }}>
-        <button onClick={() => { setDismissed(true); localStorage.setItem("fp_notif_dismissed", "1"); }}
-          className="absolute top-3 right-3 text-muted-foreground hover:text-white transition-colors z-10">
-          <X className="h-4 w-4" />
+    <div className="glass-card rounded-2xl p-5 flex items-start gap-3" data-testid="card-notification-settings">
+      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0"><Bell className="h-5 w-5 text-primary" /></div>
+      <div className="flex-1">
+        <p className="font-black text-sm mb-0.5">Notifications</p>
+        <p className="text-xs text-muted-foreground mb-3">Choose order updates and drop alerts for this device.</p>
+        <button type="button" onClick={() => window.dispatchEvent(new Event("imaginate:open-notification-settings"))}
+          className="px-4 py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest rounded-xl hover:opacity-90 transition-opacity" data-testid="button-open-notification-settings">
+          Notification settings
         </button>
-
-        {/* Step 1: Add to Home Screen (iOS only, not installed) */}
-        {isIOS && !isInstalled && step === "home-screen" && (
-          <div className="p-5">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-                <Smartphone className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-black text-sm">Add IMAGINATE to your Home Screen</p>
-                <p className="text-xs text-muted-foreground mt-0.5">For the best experience and order notifications, add us to your home screen first.</p>
-              </div>
-            </div>
-            <div className="space-y-2 mb-4">
-              {[
-                { n: "1", t: 'Tap the Share button (⬆️) at the bottom of Safari' },
-                { n: "2", t: 'Scroll down and tap "Add to Home Screen"' },
-                { n: "3", t: 'Tap "Add" in the top right corner' },
-                { n: "4", t: "Open IMAGINATE from your Home Screen" },
-              ].map(s => (
-                <div key={s.n} className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">{s.n}</span>
-                  <p className="text-xs text-muted-foreground">{s.t}</p>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setStep("notify")}
-              className="text-xs font-bold text-primary hover:opacity-70 transition-opacity">
-              I've already added it →
-            </button>
-          </div>
-        )}
-
-        {/* Step 2: Enable notifications */}
-        {(step === "notify" || !isIOS || isInstalled) && step !== "home-screen" && (
-          <div className="p-5 flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-              <Bell className="h-5 w-5 text-primary animate-bounce" />
-            </div>
-            <div className="flex-1">
-              <p className="font-black text-sm mb-0.5">Enable Order Notifications</p>
-              <p className="text-xs text-muted-foreground mb-3">Get notified when your order is shipped, out for delivery, and more.</p>
-              <button onClick={subscribe} disabled={subscribing}
-                className="px-4 py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center gap-2">
-                <Bell className="h-3.5 w-3.5" />
-                {subscribing ? "Setting up…" : "Enable Notifications"}
-              </button>
-            </div>
-          </div>
-        )}
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </div>
   );
 }
 
@@ -146,12 +40,12 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 const STATUS_STYLE: Record<string, { cls: string; label: string; dot: string }> = {
-  pending:          { cls: "text-violet-400 bg-violet-500/10 border-violet-500/30",  label: "Pending",          dot: "#a78bfa" },
+  pending:          { cls: "text-primary bg-primary/10 border-primary/30",  label: "Pending",          dot: "#b79cff" },
   confirmed:        { cls: "text-blue-400 bg-blue-500/10 border-blue-500/30",        label: "Confirmed",        dot: "#60a5fa" },
   preparing:        { cls: "text-purple-400 bg-purple-500/10 border-purple-500/30",  label: "Preparing",        dot: "#c084fc" },
   packed:           { cls: "text-purple-400 bg-purple-500/10 border-purple-500/30",  label: "Packed",           dot: "#c084fc" },
-  shipped:          { cls: "text-primary bg-primary/10 border-primary/30",           label: "Shipped",          dot: "#7c3aed" },
-  out_for_delivery: { cls: "text-violet-300 bg-violet-500/10 border-violet-400/30",  label: "Out for Delivery", dot: "#a78bfa" },
+  shipped:          { cls: "text-primary bg-primary/10 border-primary/30",           label: "Shipped",          dot: "#b79cff" },
+  out_for_delivery: { cls: "text-primary bg-primary/10 border-primary/30",  label: "Out for Delivery", dot: "#b79cff" },
   delivered:        { cls: "text-green-400 bg-green-500/10 border-green-500/30",     label: "Delivered",        dot: "#4ade80" },
   cancelled:        { cls: "text-red-400 bg-red-500/10 border-red-500/30",           label: "Cancelled",        dot: "#f87171" },
 };

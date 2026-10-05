@@ -15,7 +15,7 @@
 - [Framer-motion ease types](framer-motion-ease-types.md) — ease: number[] fails TS inside Variants objects; use `const EASE_CURVE: any = [...]` or cast `as any` on ease. Move transitions out of variants into direct motion props when possible.
 - [Delivery price config](delivery-price-config.md) — Delivery is always paid; standard UAE checkout delivery is AED 25 and must stay aligned in settings, frontend, and backend fallbacks.
 - [GitHub push setup](github-push-setup.md) — Remote is HTTPS github.com/shayxn/Chamakos-Bazaar; no SSH keys; no token in env. push-to-github.sh in repo root handles token-based push with force-with-lease. User needs GITHUB_TOKEN secret.
-- [Uploads lost on git push](uploads-git-warning.md) — uploads/ folder is not git-tracked; hero images and product images uploaded via admin are wiped on fresh clone/push. Always reset DB hero_image to static /chamako-hero.png as fallback.
+- [Legacy media durability](uploads-git-warning.md) — preserve original media and stable URLs; never hide missing files by replacing the owner's saved assets.
 - [Vite Fast Refresh mixed exports](vite-fast-refresh-mixed.md) — files exporting both a React component AND a hook (useXxx) crash React on HMR; fix with `/* @refresh reset */` at top of file or split into two files.
 - [IMAGINATE storefront rules](firstpick-rebrand.md) — preserve the supplied logo and real catalog; UAE-only/AED, no public worldwide shipping or invented claims and deadlines.
 - [Basics collection](basics-collection.md) — `collection` text col on products table; null=main store, 'basics'=Basics; API always filters by it; admin/basics.tsx + /basics route.
@@ -61,3 +61,7 @@
 - [Development transforms](development-transforms.md) — passing TypeScript and production builds does not guarantee that development JSX modules load.
 - [Transaction response contracts](transaction-response-contracts.md) — raw-SQL receipt fields must survive ORM selection; validate the breakdown, not only the total.
 - [SQL arrays in Drizzle](sql-array-interpolation.md) — an interpolated JavaScript array expands to a row; use bound IN elements for membership tests.
+- [Customer marketing consent](customer-marketing-consent.md) — five per rolling seven days is a ceiling, not a target; real transactional updates are exempt.
+- [Server clock caches](server-clock-cache.md) — cached server time must retain its monotonic response anchor across route remounts, or countdowns move backward.
+- [Boot readiness events](boot-readiness-events.md) — check the durable readiness flag when subscribing; a cached loader can dispatch before sibling listeners mount.
+- [Browser media codecs](browser-media-codecs.md) — confirm decoder support before blaming MP4 serving; automated playback may need a compatible WebM fixture.

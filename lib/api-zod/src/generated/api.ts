@@ -395,6 +395,8 @@ export const listProductsQueryLimitMax = 100;
 
 
 export const ListProductsQueryParams = zod.object({
+  "collection": zod.coerce.string().optional(),
+  "preorderOnly": zod.coerce.boolean().optional().describe('Available pre-orders across the main store and Basics.'),
   "categoryId": zod.coerce.number().optional(),
   "search": zod.coerce.string().optional(),
   "featured": zod.coerce.boolean().optional(),
@@ -804,7 +806,11 @@ export const ListOrdersResponseItem = zod.object({
   "paymentMethod": zod.string().nullish(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
-  "status": zod.enum(['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled']),
+  "delayReason": zod.string().nullish(),
+  "delayedUntil": zod.string().nullish(),
+  "cancelReason": zod.string().nullish(),
+  "refundInitiated": zod.boolean().nullish(),
+  "status": zod.enum(['pending', 'confirmed', 'packed', 'preparing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'delayed', 'pre_order']),
   "total": zod.number(),
   "hasPreOrder": zod.boolean().optional(),
   "trackingNote": zod.string().nullish(),
@@ -844,7 +850,11 @@ export const CreateOrderResponse = zod.object({
   "paymentMethod": zod.string().nullish(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
-  "status": zod.enum(['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled']),
+  "delayReason": zod.string().nullish(),
+  "delayedUntil": zod.string().nullish(),
+  "cancelReason": zod.string().nullish(),
+  "refundInitiated": zod.boolean().nullish(),
+  "status": zod.enum(['pending', 'confirmed', 'packed', 'preparing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'delayed', 'pre_order']),
   "total": zod.number(),
   "hasPreOrder": zod.boolean().optional(),
   "trackingNote": zod.string().nullish(),
@@ -920,7 +930,11 @@ export const GetOrderResponse = zod.object({
   "paymentMethod": zod.string().nullish(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
-  "status": zod.enum(['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled']),
+  "delayReason": zod.string().nullish(),
+  "delayedUntil": zod.string().nullish(),
+  "cancelReason": zod.string().nullish(),
+  "refundInitiated": zod.boolean().nullish(),
+  "status": zod.enum(['pending', 'confirmed', 'packed', 'preparing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'delayed', 'pre_order']),
   "total": zod.number(),
   "hasPreOrder": zod.boolean().optional(),
   "trackingNote": zod.string().nullish(),
@@ -967,7 +981,11 @@ export const UpdateOrderResponse = zod.object({
   "paymentMethod": zod.string().nullish(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
-  "status": zod.enum(['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled']),
+  "delayReason": zod.string().nullish(),
+  "delayedUntil": zod.string().nullish(),
+  "cancelReason": zod.string().nullish(),
+  "refundInitiated": zod.boolean().nullish(),
+  "status": zod.enum(['pending', 'confirmed', 'packed', 'preparing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'delayed', 'pre_order']),
   "total": zod.number(),
   "hasPreOrder": zod.boolean().optional(),
   "trackingNote": zod.string().nullish(),
@@ -1006,7 +1024,11 @@ export const UpdateOrderStatusParams = zod.object({
 })
 
 export const UpdateOrderStatusBody = zod.object({
-  "status": zod.enum(['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'])
+  "status": zod.enum(['pending', 'confirmed', 'packed', 'preparing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'delayed', 'pre_order']),
+  "delayReason": zod.string().optional(),
+  "delayedUntil": zod.string().optional(),
+  "cancelReason": zod.string().optional(),
+  "refundInitiated": zod.boolean().optional()
 })
 
 export const UpdateOrderStatusResponse = zod.object({
@@ -1019,7 +1041,11 @@ export const UpdateOrderStatusResponse = zod.object({
   "paymentMethod": zod.string().nullish(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
-  "status": zod.enum(['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled']),
+  "delayReason": zod.string().nullish(),
+  "delayedUntil": zod.string().nullish(),
+  "cancelReason": zod.string().nullish(),
+  "refundInitiated": zod.boolean().nullish(),
+  "status": zod.enum(['pending', 'confirmed', 'packed', 'preparing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'delayed', 'pre_order']),
   "total": zod.number(),
   "hasPreOrder": zod.boolean().optional(),
   "trackingNote": zod.string().nullish(),
@@ -1116,7 +1142,11 @@ export const GetStoreStatsResponse = zod.object({
   "paymentMethod": zod.string().nullish(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
-  "status": zod.enum(['pending', 'confirmed', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled']),
+  "delayReason": zod.string().nullish(),
+  "delayedUntil": zod.string().nullish(),
+  "cancelReason": zod.string().nullish(),
+  "refundInitiated": zod.boolean().nullish(),
+  "status": zod.enum(['pending', 'confirmed', 'packed', 'preparing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'delayed', 'pre_order']),
   "total": zod.number(),
   "hasPreOrder": zod.boolean().optional(),
   "trackingNote": zod.string().nullish(),
@@ -1409,5 +1439,124 @@ export const DeleteTiktokVideoParams = zod.object({
 export const DeleteTiktokVideoResponse = zod.object({
   "message": zod.string()
 })
+
+
+export const GetLaunchStateResponse = zod.record(zod.string(), zod.unknown())
+
+
+export const TrackAnonymousTrafficBody = zod.object({
+  "visitorId": zod.string(),
+  "page": zod.string(),
+  "deviceType": zod.enum(['desktop', 'mobile', 'tablet']).optional(),
+  "pageChanged": zod.boolean().optional()
+})
+
+export const TrackAnonymousTrafficResponse = zod.object({
+  "ok": zod.boolean().optional()
+})
+
+
+export const GetLiveTrafficResponse = zod.record(zod.string(), zod.unknown())
+
+
+export const GetCustomerNotificationPreferencesResponse = zod.object({
+  "marketingEnabled": zod.boolean(),
+  "orderUpdatesEnabled": zod.boolean(),
+  "subscribed": zod.boolean().optional()
+})
+
+
+export const UpdateCustomerNotificationPreferencesBody = zod.object({
+  "marketingEnabled": zod.boolean(),
+  "orderUpdatesEnabled": zod.boolean(),
+  "subscribed": zod.boolean().optional()
+})
+
+export const UpdateCustomerNotificationPreferencesResponse = zod.object({
+  "marketingEnabled": zod.boolean(),
+  "orderUpdatesEnabled": zod.boolean(),
+  "subscribed": zod.boolean().optional()
+})
+
+
+export const SubscribeCustomerNotificationsBody = zod.object({
+  "endpoint": zod.string().url(),
+  "consent": zod.literal(true),
+  "marketingEnabled": zod.boolean(),
+  "orderUpdatesEnabled": zod.boolean(),
+  "keys": zod.object({
+  "p256dh": zod.string(),
+  "auth": zod.string()
+})
+})
+
+export const SubscribeCustomerNotificationsResponse = zod.object({
+  "marketingEnabled": zod.boolean(),
+  "orderUpdatesEnabled": zod.boolean(),
+  "subscribed": zod.boolean().optional()
+})
+
+
+export const GetCustomerNotificationCampaignsResponse = zod.record(zod.string(), zod.unknown())
+
+
+export const createCustomerNotificationCampaignBodyTitleMax = 100;
+
+export const createCustomerNotificationCampaignBodyBodyMax = 1000;
+
+export const createCustomerNotificationCampaignBodyUrlRegExp = new RegExp('^/(?!/)');
+
+
+export const CreateCustomerNotificationCampaignBody = zod.object({
+  "title": zod.string().min(1).max(createCustomerNotificationCampaignBodyTitleMax),
+  "body": zod.string().min(1).max(createCustomerNotificationCampaignBodyBodyMax),
+  "category": zod.enum(['drop', 'restock', 'preorder', 'release', 'promotion', 'news', 'reminder']),
+  "url": zod.string().regex(createCustomerNotificationCampaignBodyUrlRegExp),
+  "status": zod.enum(['draft', 'scheduled']),
+  "dueAt": zod.coerce.date().nullish()
+})
+
+export const CreateCustomerNotificationCampaignResponse = zod.record(zod.string(), zod.unknown())
+
+
+export const GetCustomerNotificationTemplatesResponseItem = zod.record(zod.string(), zod.unknown())
+export const GetCustomerNotificationTemplatesResponse = zod.array(GetCustomerNotificationTemplatesResponseItem)
+
+
+export const EditCustomerNotificationCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const editCustomerNotificationCampaignBodyTitleMax = 100;
+
+export const editCustomerNotificationCampaignBodyBodyMax = 1000;
+
+export const editCustomerNotificationCampaignBodyUrlRegExp = new RegExp('^/(?!/)');
+
+
+export const EditCustomerNotificationCampaignBody = zod.object({
+  "title": zod.string().min(1).max(editCustomerNotificationCampaignBodyTitleMax),
+  "body": zod.string().min(1).max(editCustomerNotificationCampaignBodyBodyMax),
+  "category": zod.enum(['drop', 'restock', 'preorder', 'release', 'promotion', 'news', 'reminder']),
+  "url": zod.string().regex(editCustomerNotificationCampaignBodyUrlRegExp),
+  "status": zod.enum(['draft', 'scheduled']),
+  "dueAt": zod.coerce.date().nullish()
+})
+
+export const EditCustomerNotificationCampaignResponse = zod.record(zod.string(), zod.unknown())
+
+
+export const DeleteCustomerNotificationCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteCustomerNotificationCampaignResponse = zod.void()
+
+
+export const SendCustomerNotificationCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SendCustomerNotificationCampaignResponse = zod.record(zod.string(), zod.unknown())
 
 

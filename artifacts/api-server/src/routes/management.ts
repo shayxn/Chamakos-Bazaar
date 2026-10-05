@@ -70,8 +70,14 @@ async function save(req: import("express").Request, res: import("express").Respo
   if (kind === "pages" && !["collection", "our-story"].includes(String(b.data.template))) {
     res.status(400).json({ error: "Choose Collection or Our Story." }); return;
   }
-  if(kind==="launch"&&b.data.deadline&&(!/(?:Z|[+-]\d{2}:\d{2})$/.test(String(b.data.deadline))||!Number.isFinite(Date.parse(String(b.data.deadline))))){
+  if(kind==="launch"&&b.data.enabled!==false&&b.data.deadline&&(!/(?:Z|[+-]\d{2}:\d{2})$/.test(String(b.data.deadline))||!Number.isFinite(Date.parse(String(b.data.deadline))))){
     res.status(400).json({error:"Launch deadline requires a valid date and an explicit timezone."});return;
+  }
+  if(kind==="launch"&&b.data.enabled!==false){
+    const start=b.data.startsAt?Date.parse(String(b.data.startsAt)):Date.now();
+    if(!b.data.deadline||!Number.isFinite(start)||!/(?:Z|[+-]\d{2}:\d{2})$/.test(String(b.data.startsAt??new Date().toISOString()))||Date.parse(String(b.data.deadline))<=start){
+      res.status(400).json({error:"Countdown requires a valid start and a later end, with explicit timezone offsets."});return;
+    }
   }
   if(kind==="shipping"&&(!Number.isFinite(b.data.amount)||Number(b.data.amount)<=0)){res.status(400).json({error:"Shipping amount must be a positive AED amount."});return;}
   if (kind === "pages" && ["admin", "shop", "cart", "checkout", "account", "support", "news", "login", "maintenance", "wishlist"].includes(b.slug)) {
@@ -89,13 +95,21 @@ async function save(req: import("express").Request, res: import("express").Respo
     res.status(400).json({ error: "Worldwide Shipping is off. International configurations must remain drafts." }); return;
   }
   try {
-    const result = req.params.id
-      ? await db.execute(sql`UPDATE imaginate_documents SET title=${b.title},slug=${b.slug},status=${b.status},
+    const result = await db.transaction(async tx=>{
+      if(kind==="launch")await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('imaginate-launch'))`);
+      const saved=req.params.id
+      ? await tx.execute(sql`UPDATE imaginate_documents SET title=${b.title},slug=${b.slug},status=${b.status},
           featured=${b.featured},show_in_navigation=${b.showInNavigation},publish_at=${b.publishAt ?? null},
           unpublish_at=${b.unpublishAt ?? null},data=${JSON.stringify(b.data)}::jsonb,updated_at=NOW()
           WHERE id=${Number(req.params.id)} AND kind=${kind} RETURNING *`)
-      : await db.execute(sql`INSERT INTO imaginate_documents (kind,title,slug,status,featured,show_in_navigation,publish_at,unpublish_at,data)
+      : await tx.execute(sql`INSERT INTO imaginate_documents (kind,title,slug,status,featured,show_in_navigation,publish_at,unpublish_at,data)
           VALUES (${kind},${b.title},${b.slug},${b.status},${b.featured},${b.showInNavigation},${b.publishAt ?? null},${b.unpublishAt ?? null},${JSON.stringify(b.data)}::jsonb) RETURNING *`);
+      const launch=rows(saved)[0];
+      if(kind==="launch"&&launch&&b.data.enabled!==false&&b.status==="published")
+        await tx.execute(sql`UPDATE imaginate_documents SET data=jsonb_set(data,'{enabled}','false'::jsonb)
+          WHERE kind='launch' AND id<>${launch.id} AND COALESCE(data->>'enabled','true')='true'`);
+      return saved;
+    });
     const doc = rows(result)[0];
     if (!doc) { res.sendStatus(404); return; }
     await logAdminActivity(`Admin ${req.session?.userId}`, `${kind} ${req.params.id ? "updated" : "created"} (${b.status})`, `${kind}:${doc.id}`, b.title);
@@ -108,6 +122,11 @@ async function save(req: import("express").Request, res: import("express").Respo
 router.post("/manage/:kind", requireAdmin, save);
 router.patch("/manage/:kind/:id", requireAdmin, save);
 router.delete("/manage/:kind/:id", requireAdmin, async (req, res): Promise<void> => {
+  if(req.query.permanent==="true"){
+    await ensureManagement();
+    const deleted=rows(await db.execute(sql`DELETE FROM imaginate_documents WHERE kind=${String(req.params.kind)} AND id=${Number(req.params.id)} RETURNING id`));
+    if(!deleted.length){res.sendStatus(404);return;}res.json({ok:true});return;
+  }
   await ensureManagement();
   await db.execute(sql`UPDATE imaginate_documents SET status='archived',updated_at=NOW() WHERE kind=${String(req.params.kind)} AND id=${Number(req.params.id)}`);
   await logAdminActivity(`Admin ${req.session?.userId}`, `${String(req.params.kind)} archived`, String(req.params.id));

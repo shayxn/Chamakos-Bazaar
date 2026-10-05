@@ -23,7 +23,9 @@ const productFields = z.object({
     stock:z.number().int().nonnegative(),price:z.number().finite().nonnegative().nullable()})).max(500).optional(),
 }).passthrough();
 router.use(async (req,res,next)=>{
-  if(!["POST","PATCH"].includes(req.method)||req.path.includes("bulk-action")){next();return;}
+  const productWrite=(req.method==="POST"&&/^\/products\/?$/.test(req.path))||
+    (req.method==="PATCH"&&/^\/products\/\d+\/?$/.test(req.path));
+  if(!productWrite){next();return;}
   const parsed=productFields.safeParse(req.body);
   if(!parsed.success){res.status(400).json({error:"Check product price, stock, variants, and fields."});return;}
   const b=parsed.data;
@@ -165,9 +167,14 @@ router.get("/products", async (req, res) => {
   if (categoryId !== undefined) conditions.push(eq(productsTable.categoryId, categoryId));
   if (search) conditions.push(ilike(productsTable.name, `%${search}%`));
   if (featured !== undefined) conditions.push(eq(productsTable.featured, featured));
+  const preorderOnly=req.query.preorderOnly==="true";
+  if(preorderOnly){
+    conditions.push(eq(productsTable.isPreOrder,true),eq(productsTable.comingSoon,false));
+    conditions.push(or(isNull(productsTable.collection),eq(productsTable.collection,"basics"))!);
+  }
   if (collection !== undefined) {
     conditions.push(eq(productsTable.collection, collection));
-  } else {
+  } else if(!preorderOnly) {
     // Default: main store only (collection IS NULL)
     // Basics products must be accessed explicitly via ?collection=basics
     conditions.push(isNull(productsTable.collection));

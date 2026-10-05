@@ -15,8 +15,7 @@ function isChatMediaPath(value: string) {
   return /^admin-chat\/[0-9a-f-]{36}$/i.test(value);
 }
 
-async function signedUrl(objectPath: string, method: "GET" | "PUT" | "HEAD") {
-  if (!isChatMediaPath(objectPath)) throw new Error("Invalid chat media path.");
+async function signObject(objectPath: string, method: "GET" | "PUT" | "HEAD" | "DELETE") {
   const { bucketName, basePath } = privateLocation();
   const objectName = [basePath, objectPath].filter(Boolean).join("/");
   const response = await fetch(SIDECAR_URL, {
@@ -34,6 +33,17 @@ async function signedUrl(objectPath: string, method: "GET" | "PUT" | "HEAD") {
   const data = await response.json() as { signed_url?: string };
   if (!data.signed_url) throw new Error("Storage did not return a media URL.");
   return data.signed_url;
+}
+
+async function signedUrl(objectPath:string,method:"GET"|"PUT"|"HEAD"){
+  if(!isChatMediaPath(objectPath))throw new Error("Invalid chat media path.");
+  return signObject(objectPath,method);
+}
+
+/** Public store assets have a separate, tightly validated namespace from private chat. */
+export function storeMediaSignedUrl(filename:string,method:"GET"|"PUT"|"DELETE"){
+  if(!/^[a-f0-9]{24}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/.test(filename))throw new Error("Invalid store media filename.");
+  return signObject(`store-media/${filename}`,method);
 }
 
 export async function createChatMediaUpload() {

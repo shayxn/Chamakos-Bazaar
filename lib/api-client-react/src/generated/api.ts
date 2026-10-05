@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AnonymousTrafficInput,
   AuthUser,
   Cart,
   CartItemInput,
@@ -29,6 +30,15 @@ import type {
   CategoryUpdate,
   ContentPage,
   ContentPageInput,
+  CreateCustomerNotificationCampaign201,
+  CustomerNotificationCampaignInput,
+  CustomerNotificationPreferences,
+  CustomerPushSubscriptionInput,
+  EditCustomerNotificationCampaign200,
+  GetCustomerNotificationCampaigns200,
+  GetCustomerNotificationTemplates200Item,
+  GetLaunchState200,
+  GetLiveTraffic200,
   HealthStatus,
   ListProductsParams,
   LoginInput,
@@ -47,6 +57,7 @@ import type {
   Review,
   ReviewInput,
   ReviewUpdate,
+  SendCustomerNotificationCampaign200,
   Setting,
   SettingInput,
   SettingsMap,
@@ -56,6 +67,7 @@ import type {
   TiktokVideo,
   TiktokVideoInput,
   TiktokVideoUpdate,
+  TrackAnonymousTraffic200,
   TrackOrderParams,
   TrackingEvent,
   TrackingEventInput,
@@ -3696,5 +3708,809 @@ export const useDeleteTiktokVideo = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteTiktokVideoMutationOptions(options));
+    }
+
+export const getGetLaunchStateUrl = () => {
+
+
+
+
+  return `/api/launch-state`
+}
+
+export const getLaunchState = async ( options?: RequestInit): Promise<GetLaunchState200> => {
+
+  return customFetch<GetLaunchState200>(getGetLaunchStateUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLaunchStateQueryKey = () => {
+    return [
+    `/api/launch-state`
+    ] as const;
+    }
+
+
+export const getGetLaunchStateQueryOptions = <TData = Awaited<ReturnType<typeof getLaunchState>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLaunchState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLaunchStateQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLaunchState>>> = ({ signal }) => getLaunchState({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLaunchState>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLaunchStateQueryResult = NonNullable<Awaited<ReturnType<typeof getLaunchState>>>
+export type GetLaunchStateQueryError = ErrorType<unknown>
+
+
+
+export function useGetLaunchState<TData = Awaited<ReturnType<typeof getLaunchState>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLaunchState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLaunchStateQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getTrackAnonymousTrafficUrl = () => {
+
+
+
+
+  return `/api/traffic/track`
+}
+
+export const trackAnonymousTraffic = async (anonymousTrafficInput: AnonymousTrafficInput, options?: RequestInit): Promise<TrackAnonymousTraffic200> => {
+
+  return customFetch<TrackAnonymousTraffic200>(getTrackAnonymousTrafficUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(anonymousTrafficInput)
+  }
+);}
+
+
+
+
+export const getTrackAnonymousTrafficMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trackAnonymousTraffic>>, TError,{data: BodyType<AnonymousTrafficInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof trackAnonymousTraffic>>, TError,{data: BodyType<AnonymousTrafficInput>}, TContext> => {
+
+const mutationKey = ['trackAnonymousTraffic'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof trackAnonymousTraffic>>, {data: BodyType<AnonymousTrafficInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  trackAnonymousTraffic(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TrackAnonymousTrafficMutationResult = NonNullable<Awaited<ReturnType<typeof trackAnonymousTraffic>>>
+    export type TrackAnonymousTrafficMutationBody = BodyType<AnonymousTrafficInput>
+    export type TrackAnonymousTrafficMutationError = ErrorType<unknown>
+
+    export const useTrackAnonymousTraffic = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trackAnonymousTraffic>>, TError,{data: BodyType<AnonymousTrafficInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof trackAnonymousTraffic>>,
+        TError,
+        {data: BodyType<AnonymousTrafficInput>},
+        TContext
+      > => {
+      return useMutation(getTrackAnonymousTrafficMutationOptions(options));
+    }
+
+export const getGetLiveTrafficUrl = () => {
+
+
+
+
+  return `/api/admin/live-traffic`
+}
+
+export const getLiveTraffic = async ( options?: RequestInit): Promise<GetLiveTraffic200> => {
+
+  return customFetch<GetLiveTraffic200>(getGetLiveTrafficUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLiveTrafficQueryKey = () => {
+    return [
+    `/api/admin/live-traffic`
+    ] as const;
+    }
+
+
+export const getGetLiveTrafficQueryOptions = <TData = Awaited<ReturnType<typeof getLiveTraffic>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLiveTraffic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLiveTrafficQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLiveTraffic>>> = ({ signal }) => getLiveTraffic({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLiveTraffic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLiveTrafficQueryResult = NonNullable<Awaited<ReturnType<typeof getLiveTraffic>>>
+export type GetLiveTrafficQueryError = ErrorType<unknown>
+
+
+
+export function useGetLiveTraffic<TData = Awaited<ReturnType<typeof getLiveTraffic>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLiveTraffic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLiveTrafficQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetCustomerNotificationPreferencesUrl = () => {
+
+
+
+
+  return `/api/customer-notifications/preferences`
+}
+
+export const getCustomerNotificationPreferences = async ( options?: RequestInit): Promise<CustomerNotificationPreferences> => {
+
+  return customFetch<CustomerNotificationPreferences>(getGetCustomerNotificationPreferencesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCustomerNotificationPreferencesQueryKey = () => {
+    return [
+    `/api/customer-notifications/preferences`
+    ] as const;
+    }
+
+
+export const getGetCustomerNotificationPreferencesQueryOptions = <TData = Awaited<ReturnType<typeof getCustomerNotificationPreferences>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerNotificationPreferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCustomerNotificationPreferencesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerNotificationPreferences>>> = ({ signal }) => getCustomerNotificationPreferences({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomerNotificationPreferences>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCustomerNotificationPreferencesQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerNotificationPreferences>>>
+export type GetCustomerNotificationPreferencesQueryError = ErrorType<unknown>
+
+
+
+export function useGetCustomerNotificationPreferences<TData = Awaited<ReturnType<typeof getCustomerNotificationPreferences>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerNotificationPreferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCustomerNotificationPreferencesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateCustomerNotificationPreferencesUrl = () => {
+
+
+
+
+  return `/api/customer-notifications/preferences`
+}
+
+export const updateCustomerNotificationPreferences = async (customerNotificationPreferences: CustomerNotificationPreferences, options?: RequestInit): Promise<CustomerNotificationPreferences> => {
+
+  return customFetch<CustomerNotificationPreferences>(getUpdateCustomerNotificationPreferencesUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(customerNotificationPreferences)
+  }
+);}
+
+
+
+
+export const getUpdateCustomerNotificationPreferencesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCustomerNotificationPreferences>>, TError,{data: BodyType<CustomerNotificationPreferences>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCustomerNotificationPreferences>>, TError,{data: BodyType<CustomerNotificationPreferences>}, TContext> => {
+
+const mutationKey = ['updateCustomerNotificationPreferences'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCustomerNotificationPreferences>>, {data: BodyType<CustomerNotificationPreferences>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateCustomerNotificationPreferences(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCustomerNotificationPreferencesMutationResult = NonNullable<Awaited<ReturnType<typeof updateCustomerNotificationPreferences>>>
+    export type UpdateCustomerNotificationPreferencesMutationBody = BodyType<CustomerNotificationPreferences>
+    export type UpdateCustomerNotificationPreferencesMutationError = ErrorType<unknown>
+
+    export const useUpdateCustomerNotificationPreferences = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCustomerNotificationPreferences>>, TError,{data: BodyType<CustomerNotificationPreferences>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCustomerNotificationPreferences>>,
+        TError,
+        {data: BodyType<CustomerNotificationPreferences>},
+        TContext
+      > => {
+      return useMutation(getUpdateCustomerNotificationPreferencesMutationOptions(options));
+    }
+
+export const getSubscribeCustomerNotificationsUrl = () => {
+
+
+
+
+  return `/api/customer-notifications/subscribe`
+}
+
+export const subscribeCustomerNotifications = async (customerPushSubscriptionInput: CustomerPushSubscriptionInput, options?: RequestInit): Promise<CustomerNotificationPreferences> => {
+
+  return customFetch<CustomerNotificationPreferences>(getSubscribeCustomerNotificationsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(customerPushSubscriptionInput)
+  }
+);}
+
+
+
+
+export const getSubscribeCustomerNotificationsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof subscribeCustomerNotifications>>, TError,{data: BodyType<CustomerPushSubscriptionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof subscribeCustomerNotifications>>, TError,{data: BodyType<CustomerPushSubscriptionInput>}, TContext> => {
+
+const mutationKey = ['subscribeCustomerNotifications'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof subscribeCustomerNotifications>>, {data: BodyType<CustomerPushSubscriptionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  subscribeCustomerNotifications(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubscribeCustomerNotificationsMutationResult = NonNullable<Awaited<ReturnType<typeof subscribeCustomerNotifications>>>
+    export type SubscribeCustomerNotificationsMutationBody = BodyType<CustomerPushSubscriptionInput>
+    export type SubscribeCustomerNotificationsMutationError = ErrorType<unknown>
+
+    export const useSubscribeCustomerNotifications = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof subscribeCustomerNotifications>>, TError,{data: BodyType<CustomerPushSubscriptionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof subscribeCustomerNotifications>>,
+        TError,
+        {data: BodyType<CustomerPushSubscriptionInput>},
+        TContext
+      > => {
+      return useMutation(getSubscribeCustomerNotificationsMutationOptions(options));
+    }
+
+export const getGetCustomerNotificationCampaignsUrl = () => {
+
+
+
+
+  return `/api/admin/customer-notifications`
+}
+
+export const getCustomerNotificationCampaigns = async ( options?: RequestInit): Promise<GetCustomerNotificationCampaigns200> => {
+
+  return customFetch<GetCustomerNotificationCampaigns200>(getGetCustomerNotificationCampaignsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCustomerNotificationCampaignsQueryKey = () => {
+    return [
+    `/api/admin/customer-notifications`
+    ] as const;
+    }
+
+
+export const getGetCustomerNotificationCampaignsQueryOptions = <TData = Awaited<ReturnType<typeof getCustomerNotificationCampaigns>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerNotificationCampaigns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCustomerNotificationCampaignsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerNotificationCampaigns>>> = ({ signal }) => getCustomerNotificationCampaigns({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomerNotificationCampaigns>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCustomerNotificationCampaignsQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerNotificationCampaigns>>>
+export type GetCustomerNotificationCampaignsQueryError = ErrorType<unknown>
+
+
+
+export function useGetCustomerNotificationCampaigns<TData = Awaited<ReturnType<typeof getCustomerNotificationCampaigns>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerNotificationCampaigns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCustomerNotificationCampaignsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateCustomerNotificationCampaignUrl = () => {
+
+
+
+
+  return `/api/admin/customer-notifications`
+}
+
+export const createCustomerNotificationCampaign = async (customerNotificationCampaignInput: CustomerNotificationCampaignInput, options?: RequestInit): Promise<CreateCustomerNotificationCampaign201> => {
+
+  return customFetch<CreateCustomerNotificationCampaign201>(getCreateCustomerNotificationCampaignUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(customerNotificationCampaignInput)
+  }
+);}
+
+
+
+
+export const getCreateCustomerNotificationCampaignMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCustomerNotificationCampaign>>, TError,{data: BodyType<CustomerNotificationCampaignInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCustomerNotificationCampaign>>, TError,{data: BodyType<CustomerNotificationCampaignInput>}, TContext> => {
+
+const mutationKey = ['createCustomerNotificationCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCustomerNotificationCampaign>>, {data: BodyType<CustomerNotificationCampaignInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCustomerNotificationCampaign(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCustomerNotificationCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof createCustomerNotificationCampaign>>>
+    export type CreateCustomerNotificationCampaignMutationBody = BodyType<CustomerNotificationCampaignInput>
+    export type CreateCustomerNotificationCampaignMutationError = ErrorType<unknown>
+
+    export const useCreateCustomerNotificationCampaign = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCustomerNotificationCampaign>>, TError,{data: BodyType<CustomerNotificationCampaignInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCustomerNotificationCampaign>>,
+        TError,
+        {data: BodyType<CustomerNotificationCampaignInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCustomerNotificationCampaignMutationOptions(options));
+    }
+
+export const getGetCustomerNotificationTemplatesUrl = () => {
+
+
+
+
+  return `/api/admin/customer-notifications/templates`
+}
+
+export const getCustomerNotificationTemplates = async ( options?: RequestInit): Promise<GetCustomerNotificationTemplates200Item[]> => {
+
+  return customFetch<GetCustomerNotificationTemplates200Item[]>(getGetCustomerNotificationTemplatesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCustomerNotificationTemplatesQueryKey = () => {
+    return [
+    `/api/admin/customer-notifications/templates`
+    ] as const;
+    }
+
+
+export const getGetCustomerNotificationTemplatesQueryOptions = <TData = Awaited<ReturnType<typeof getCustomerNotificationTemplates>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerNotificationTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCustomerNotificationTemplatesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerNotificationTemplates>>> = ({ signal }) => getCustomerNotificationTemplates({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomerNotificationTemplates>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCustomerNotificationTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerNotificationTemplates>>>
+export type GetCustomerNotificationTemplatesQueryError = ErrorType<unknown>
+
+
+
+export function useGetCustomerNotificationTemplates<TData = Awaited<ReturnType<typeof getCustomerNotificationTemplates>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerNotificationTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCustomerNotificationTemplatesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getEditCustomerNotificationCampaignUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/customer-notifications/${id}`
+}
+
+export const editCustomerNotificationCampaign = async (id: number,
+    customerNotificationCampaignInput: CustomerNotificationCampaignInput, options?: RequestInit): Promise<EditCustomerNotificationCampaign200> => {
+
+  return customFetch<EditCustomerNotificationCampaign200>(getEditCustomerNotificationCampaignUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(customerNotificationCampaignInput)
+  }
+);}
+
+
+
+
+export const getEditCustomerNotificationCampaignMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editCustomerNotificationCampaign>>, TError,{id: number;data: BodyType<CustomerNotificationCampaignInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof editCustomerNotificationCampaign>>, TError,{id: number;data: BodyType<CustomerNotificationCampaignInput>}, TContext> => {
+
+const mutationKey = ['editCustomerNotificationCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof editCustomerNotificationCampaign>>, {id: number;data: BodyType<CustomerNotificationCampaignInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  editCustomerNotificationCampaign(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EditCustomerNotificationCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof editCustomerNotificationCampaign>>>
+    export type EditCustomerNotificationCampaignMutationBody = BodyType<CustomerNotificationCampaignInput>
+    export type EditCustomerNotificationCampaignMutationError = ErrorType<unknown>
+
+    export const useEditCustomerNotificationCampaign = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof editCustomerNotificationCampaign>>, TError,{id: number;data: BodyType<CustomerNotificationCampaignInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof editCustomerNotificationCampaign>>,
+        TError,
+        {id: number;data: BodyType<CustomerNotificationCampaignInput>},
+        TContext
+      > => {
+      return useMutation(getEditCustomerNotificationCampaignMutationOptions(options));
+    }
+
+export const getDeleteCustomerNotificationCampaignUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/customer-notifications/${id}`
+}
+
+export const deleteCustomerNotificationCampaign = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteCustomerNotificationCampaignUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteCustomerNotificationCampaignMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCustomerNotificationCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCustomerNotificationCampaign>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCustomerNotificationCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCustomerNotificationCampaign>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCustomerNotificationCampaign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCustomerNotificationCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCustomerNotificationCampaign>>>
+
+    export type DeleteCustomerNotificationCampaignMutationError = ErrorType<unknown>
+
+    export const useDeleteCustomerNotificationCampaign = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCustomerNotificationCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCustomerNotificationCampaign>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCustomerNotificationCampaignMutationOptions(options));
+    }
+
+export const getSendCustomerNotificationCampaignUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/customer-notifications/${id}/send`
+}
+
+export const sendCustomerNotificationCampaign = async (id: number, options?: RequestInit): Promise<SendCustomerNotificationCampaign200> => {
+
+  return customFetch<SendCustomerNotificationCampaign200>(getSendCustomerNotificationCampaignUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSendCustomerNotificationCampaignMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendCustomerNotificationCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendCustomerNotificationCampaign>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['sendCustomerNotificationCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendCustomerNotificationCampaign>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  sendCustomerNotificationCampaign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendCustomerNotificationCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof sendCustomerNotificationCampaign>>>
+
+    export type SendCustomerNotificationCampaignMutationError = ErrorType<unknown>
+
+    export const useSendCustomerNotificationCampaign = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendCustomerNotificationCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendCustomerNotificationCampaign>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getSendCustomerNotificationCampaignMutationOptions(options));
     }
 

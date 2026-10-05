@@ -89,7 +89,7 @@ export function ScrollFloatObject() {
           className="absolute inset-0 pointer-events-none"
           animate={{ rotate: -360 }}
           transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
-          style={{ background: "conic-gradient(from 180deg, transparent 72%, rgba(167,139,250,0.06) 85%, transparent 100%)" }}
+          style={{ background: "conic-gradient(from 180deg, transparent 72%, rgba(183,156,255,0.06) 85%, transparent 100%)" }}
         />
 
         {/* ── Giant background text ── */}
@@ -204,7 +204,7 @@ export function ScrollFloatObject() {
                 <p className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white mb-2.5">{hero.name}</p>
                 <p
                   className="text-xl font-black mb-4"
-                  style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+                  style={{ background: "linear-gradient(135deg,#b79cff,#b79cff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
                 >
                   AED {Number(hero.price).toFixed(2)}
                 </p>
@@ -214,7 +214,7 @@ export function ScrollFloatObject() {
                     whileTap={{ scale: 0.94 }}
                     transition={{ type: "spring", stiffness: 380, damping: 22 }}
                     className="px-8 py-3 rounded-full font-black uppercase tracking-widest text-sm text-white"
-                    style={{ background: "linear-gradient(135deg,#7c3aed,#a78bfa)", boxShadow: "0 6px 28px rgba(124,58,237,0.4)" }}
+                    style={{ background: "linear-gradient(135deg,#b79cff,#b79cff)", boxShadow: "0 6px 28px rgba(124,58,237,0.4)" }}
                   >
                     Shop Now →
                   </motion.button>

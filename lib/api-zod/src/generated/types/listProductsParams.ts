@@ -7,6 +7,11 @@
  */
 
 export type ListProductsParams = {
+collection?: string;
+/**
+ * Available pre-orders across the main store and Basics.
+ */
+preorderOnly?: boolean;
 categoryId?: number;
 search?: string;
 featured?: boolean;

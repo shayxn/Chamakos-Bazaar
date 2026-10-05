@@ -69,7 +69,7 @@ export default function GiftCardsPage() {
         <div className="relative overflow-hidden border-b border-white/8 py-10 px-4">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40"
-              style={{ background: "radial-gradient(ellipse, rgba(167,139,250,0.12) 0%, transparent 70%)", filter: "blur(20px)" }} />
+              style={{ background: "radial-gradient(ellipse, rgba(183,156,255,0.12) 0%, transparent 70%)", filter: "blur(20px)" }} />
           </div>
           <div className="relative max-w-5xl mx-auto text-center">
             <div className="flex items-center justify-center gap-2 mb-3">
@@ -103,7 +103,7 @@ export default function GiftCardsPage() {
                           ? "border-primary/60 text-primary"
                           : "border-white/10 text-white/50 hover:border-white/20"
                       }`}
-                      style={{ touchAction: "manipulation", background: !isCustom && amount === a ? "rgba(167,139,250,0.1)" : "rgba(255,255,255,0.03)" }}>
+                      style={{ touchAction: "manipulation", background: !isCustom && amount === a ? "rgba(183,156,255,0.1)" : "rgba(255,255,255,0.03)" }}>
                       {a}
                     </motion.button>
                   ))}
@@ -114,7 +114,7 @@ export default function GiftCardsPage() {
                   className={`flex items-center gap-2 rounded-xl border px-4 py-3 cursor-text transition-all ${
                     isCustom ? "border-primary/50" : "border-white/10 hover:border-white/20"
                   }`}
-                  style={{ background: isCustom ? "rgba(167,139,250,0.05)" : "rgba(255,255,255,0.02)" }}>
+                  style={{ background: isCustom ? "rgba(183,156,255,0.05)" : "rgba(255,255,255,0.02)" }}>
                   <span className="text-white/40 text-sm font-bold">AED</span>
                   <input
                     className="flex-1 bg-transparent text-sm font-bold text-white outline-none placeholder-white/25"
@@ -144,7 +144,7 @@ export default function GiftCardsPage() {
                         forSelf === opt.value ? "border-primary/50" : "border-white/10 hover:border-white/20"
                       }`}
                       // @ts-ignore
-                      style={{ touchAction: "manipulation", background: forSelf === opt.value ? "rgba(167,139,250,0.08)" : "rgba(255,255,255,0.02)" }}>
+                      style={{ touchAction: "manipulation", background: forSelf === opt.value ? "rgba(183,156,255,0.08)" : "rgba(255,255,255,0.02)" }}>
                       <div className={`text-sm font-black ${forSelf === opt.value ? "text-white" : "text-white/50"}`}>{opt.label}</div>
                       <div className="text-[10px] text-white/30 mt-0.5">{opt.sub}</div>
                     </motion.button>
@@ -193,7 +193,7 @@ export default function GiftCardsPage() {
                     style={{ touchAction: "manipulation" }}
                     className="w-full py-3 rounded-xl text-sm font-black uppercase tracking-wide text-white"
                     // @ts-ignore
-                    style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #5b21b6, #a78bfa)" }}>
+                    style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #5b21b6, #b79cff)" }}>
                     Sign In to Buy
                   </motion.button>
                 </div>
@@ -202,7 +202,7 @@ export default function GiftCardsPage() {
                   style={{ touchAction: "manipulation" }}
                   className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wide text-white flex items-center justify-center gap-2 disabled:opacity-60"
                   // @ts-ignore
-                  style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #5b21b6, #a78bfa)", boxShadow: "0 8px 32px rgba(124,58,237,0.3)" }}>
+                  style={{ touchAction: "manipulation", background: "linear-gradient(135deg, #5b21b6, #b79cff)", boxShadow: "0 8px 32px rgba(124,58,237,0.3)" }}>
                   {loading ? (
                     <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
                   ) : (

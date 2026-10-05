@@ -148,7 +148,7 @@ function GlobalSearch() {
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.1)",
           }}
-          onFocusCapture={e => (e.currentTarget.style.borderColor = "rgba(167,139,250,0.65)")}
+          onFocusCapture={e => (e.currentTarget.style.borderColor = "rgba(183,156,255,0.65)")}
           onBlurCapture={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
         />
         <AnimatePresence>
@@ -174,7 +174,7 @@ function GlobalSearch() {
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15, ease: EASE }}
             className="absolute left-3 right-3 top-full mt-1 z-50 rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto"
-            style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(167,139,250,0.2)", backdropFilter: "blur(12px)" }}
+            style={{ background: "rgba(12,12,12,0.97)", border: "1px solid rgba(183,156,255,0.2)", backdropFilter: "blur(12px)" }}
           >
             {!hasResults ? (
               <p className="text-xs text-muted-foreground px-4 py-3">No results for "{debouncedQuery}"</p>
@@ -373,7 +373,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <motion.div
               animate={{ rotate: -360 }}
               transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-1.5 rounded-full border border-transparent border-t-violet-300"
+              className="absolute inset-1.5 rounded-full border border-transparent border-t-primary"
             />
           </div>
           <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">Loading…</p>
@@ -393,6 +393,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/basics", label: "Basics", icon: Layers },
     { href: "/admin/categories", label: "Categories", icon: Tag },
     { href: "/admin/visitors", label: "Live Customers", icon: Users },
+    { href: "/admin/live-traffic", label: "Live Traffic", icon: Activity },
+    { href: "/admin/customer-notifications", label: "Customer Notifications", icon: BellRing },
     { href: "/admin/chat", label: "Chats", icon: MessageCircle },
     { href: "/admin/chat?view=calls", label: "Calls", icon: Phone },
     { href: "/admin/notifications", label: "Notifications", icon: BellRing },
@@ -422,10 +424,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if(access.isOwner)return true;
     if(/manage\/(?:team|countries|shipping|launch|reminders)/.test(link.href))return false;
     if(/chat|activity/.test(link.href))return true;
-    const permission=/products|basics|categories|stock-alerts/.test(link.href)?"products":
+    const permission=/customer-notifications/.test(link.href)?"notifications":/products|basics|categories|stock-alerts/.test(link.href)?"products":
       /orders|refund|abandoned/.test(link.href)?"orders":/support|product-requests/.test(link.href)?"support":
       /discount|coupon/.test(link.href)?"discounts":/customer|newsletter/.test(link.href)?"customers":
-      /visitors|sales|analytics/.test(link.href)||link.href==="/admin"?"analytics":
+      /visitors|live-traffic|sales|analytics/.test(link.href)||link.href==="/admin"?"analytics":
       /notification/.test(link.href)?"notifications":/manage|reviews|tiktok|terms|events|games/.test(link.href)?"content":"settings";
     return access.permissions.includes(permission);
   });
@@ -445,11 +447,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               className="w-full rounded-2xl p-4 space-y-4 text-left shadow-2xl"
-              style={{ background: "rgba(10,10,10,0.98)", border: "1px solid rgba(167,139,250,0.22)" }}
+              style={{ background: "rgba(10,10,10,0.98)", border: "1px solid rgba(183,156,255,0.22)" }}
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #5b21b6, #a78bfa)" }}>
+              style={{ background: "linear-gradient(135deg, #5b21b6, #b79cff)" }}>
                   <BellRing className="h-5 w-5 text-white" />
                 </div>
                 <div className="space-y-1 min-w-0">
@@ -573,7 +575,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <img src="/imaginate-icon-192.png" alt="" className="h-8 w-8 object-contain" />
                   <div className="leading-none">
                     <div className="text-sm font-bold tracking-wide text-white">IMAGINATE</div>
-                    <div className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#a78bfa]">Admin</div>
+                    <div className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#b79cff]">Admin</div>
                   </div>
                 </div>
                 <button type="button" onClick={() => setMobileNavOpen(false)} className="rounded-lg p-2 text-gray-400 hover:bg-[#161616] hover:text-white" aria-label="Close menu">
@@ -593,7 +595,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link key={link.href} href={link.href}>
                       <div
                         onClick={() => setMobileNavOpen(false)}
-                        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-medium transition-colors ${active ? "bg-[#7c3aed]/10 text-[#c4b5fd]" : "text-gray-400 hover:bg-[#111] hover:text-gray-200"}`}
+                        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-medium transition-colors ${active ? "bg-[#b79cff]/10 text-[#c4b5fd]" : "text-gray-400 hover:bg-[#111] hover:text-gray-200"}`}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         <span>{link.label}</span>
@@ -603,7 +605,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 })}
               </nav>
               <button type="button" onClick={() => { setMobileNavOpen(false); setShowSessions(true); }} className="m-4 flex items-center gap-3 rounded-xl border border-[#222] bg-[#111] px-3 py-3 text-left">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/15 text-xs font-bold text-violet-200">{user.username.slice(0, 2).toUpperCase()}</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">{user.username.slice(0, 2).toUpperCase()}</span>
                 <span><span className="block text-xs font-bold text-white">{user.username}</span><span className="block text-[10px] text-gray-500">Manage devices</span></span>
               </button>
             </motion.aside>
@@ -632,7 +634,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ── Sidebar ── */}
       <aside
-        className="w-full md:w-60 flex-shrink-0 flex-col relative overflow-hidden bg-[#0A0A0A] border-r border-[#1a1a1a] hidden md:flex"
+        className="w-full md:w-60 flex-shrink-0 flex-col relative overflow-hidden glass-heavy hidden md:flex"
       >
         {/* Header */}
         <div className="p-5 pb-4">
@@ -640,7 +642,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <img src="/imaginate-icon-192.png" alt="" className="h-8 w-8 object-contain" />
             <div className="leading-none">
               <div className="text-white font-bold text-sm tracking-wide">IMAGINATE</div>
-              <div className="text-[#a78bfa] text-[9px] font-bold tracking-[0.2em] uppercase mt-0.5">Admin</div>
+              <div className="text-[#b79cff] text-[9px] font-bold tracking-[0.2em] uppercase mt-0.5">Admin</div>
             </div>
             <a href="/" target="_blank" rel="noopener noreferrer" className="ml-auto text-gray-500 hover:text-white transition-colors">
               <Globe className="w-4 h-4" />
@@ -667,7 +669,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link key={link.href} href={link.href}>
                 <div
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wide cursor-pointer transition-colors ${
-                    isActive ? "text-[#c4b5fd] bg-[#7c3aed]/10" : "text-gray-400 hover:text-gray-200 hover:bg-[#111]"
+                    isActive ? "text-[#c4b5fd] bg-[#b79cff]/10" : "text-gray-400 hover:text-gray-200 hover:bg-[#111]"
                   }`}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
@@ -682,7 +684,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-4 border-t border-[#1a1a1a]">
           <div className="flex items-center justify-between cursor-pointer hover:bg-[#111] p-2 -mx-2 rounded-xl transition-colors" onClick={() => setShowSessions(true)}>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-violet-500/15 text-violet-200 flex items-center justify-center font-bold text-xs">
+              <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-xs">
                 {user.username.slice(0, 2).toUpperCase()}
               </div>
               <div>
@@ -707,7 +709,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             initial="initial"
             animate="enter"
             exit="exit"
-            className={isChat ? "flex-1 flex flex-col min-h-0 overflow-hidden p-2 md:p-4" : "p-6 md:p-8 flex-1 overflow-auto"}
+            className={`${isChat?"flex-1 flex flex-col min-h-0 overflow-hidden p-2 md:p-4":"p-4 md:p-8 flex-1 overflow-auto"} pt-[max(5rem,calc(env(safe-area-inset-top)+3.5rem))] md:pt-8`}
           >
             {children}
           </motion.div>

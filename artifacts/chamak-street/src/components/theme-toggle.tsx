@@ -31,7 +31,7 @@ export function ThemeToggle() {
         label="Imaginate"
         icon={<MoonIcon />}
         activeGlow={isGlass ? undefined : "rgba(124,58,237,0.25)"}
-        activeColor={isGlass ? undefined : "#7c3aed"}
+        activeColor={isGlass ? undefined : "#b79cff"}
       />
       <Segment
         active={isGlass}
@@ -76,7 +76,7 @@ function Segment({
           : "rgba(124,58,237,0.15)"
           : "transparent",
         color: active
-          ? (activeColor ?? (isGlass ? "#007AFF" : "#7c3aed"))
+          ? (activeColor ?? (isGlass ? "#007AFF" : "#b79cff"))
           : isGlass
             ? "rgba(50,60,100,0.45)"
             : "rgba(255,255,255,0.3)",

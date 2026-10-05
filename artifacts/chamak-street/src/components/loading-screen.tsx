@@ -34,18 +34,26 @@ export function LoadingScreen() {
       window.removeEventListener("firstpick:route-ready", onRoute);
     };
   }, [skip]);
-  useEffect(() => {
-    if (skip || !settings.isSuccess || !operational.isSuccess || !routeReady || !fontsReady) return;
-    try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
-    setVisible(false);
-    window.dispatchEvent(new Event("firstpick:boot-complete"));
-  }, [skip, settings.isSuccess, operational.isSuccess, routeReady, fontsReady]);
-
   const [leaving, setLeaving] = useState(false);
   useEffect(() => {
-    if (visible || skip) return;
-    setLeaving(false);
-  }, [visible, skip]);
+    if (skip || !settings.isSuccess || !operational.isSuccess || !routeReady || !fontsReady || leaving) return;
+    try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
+    setLeaving(true);
+    (window as Window & { __imaginateBooted?: boolean }).__imaginateBooted = true;
+    window.dispatchEvent(new Event("firstpick:boot-complete"));
+  }, [skip, settings.isSuccess, operational.isSuccess, routeReady, fontsReady, leaving]);
+  useEffect(() => {
+    if (!leaving) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const t = setTimeout(() => setVisible(false), reduce ? 220 : 650);
+    return () => clearTimeout(t);
+  }, [leaving]);
+  useEffect(() => {
+    if (skip) {
+      (window as Window & { __imaginateBooted?: boolean }).__imaginateBooted = true;
+      window.dispatchEvent(new Event("firstpick:boot-complete"));
+    }
+  }, [skip]);
   if (!visible) return null;
   const failed = settings.isError || operational.isError;
   return (
@@ -54,13 +62,13 @@ export function LoadingScreen() {
       <div className="imaginate-boot-logo relative">
         <img src={`${BASE}/imaginate-logo.png`} alt="IMAGINATE" width="200" className="relative z-10 h-auto w-44 object-contain" />
         <svg className="imaginate-bolt" viewBox="0 0 200 80" aria-hidden="true">
-          <polyline points="0,40 38,30 62,46 96,26 130,48 164,32 200,42" fill="none" stroke="#c4a7ff" strokeWidth="1.2" strokeLinejoin="round" />
+          <polyline points="0,40 38,30 62,46 96,26 130,48 164,32 200,42" fill="none" stroke="#b79cff" strokeWidth="1.2" strokeLinejoin="round" />
         </svg>
       </div>
       {(failed || slow) && (
         <>
           <p className="text-xs tracking-wide text-white/60">{failed ? "The store could not be loaded." : "Taking longer than expected."}</p>
-          <button className="rounded-lg border border-[rgba(124,58,237,0.5)] px-5 py-3 text-sm text-white hover:bg-white/5" onClick={() => window.location.reload()}>Retry loading</button>
+          <button className="rounded-lg border border-primary/50 px-5 py-3 text-sm text-white hover:bg-white/5" onClick={() => window.location.reload()}>Retry loading</button>
         </>
       )}
     </div>

@@ -56,7 +56,7 @@ function elementMotion(element: StudioElement) {
   const loop = preset === "float" ? { y: [0, -8, 0] } :
     preset === "pulse" ? { scale: [1, 1.035, 1] } :
     preset === "wiggle" ? { rotate: [0, -1.5, 1.5, 0] } :
-    preset === "glow-pulse" ? { filter: ["drop-shadow(0 0 0 rgba(167,139,250,0))", "drop-shadow(0 0 12px rgba(167,139,250,.65))", "drop-shadow(0 0 0 rgba(167,139,250,0))"] } : null;
+    preset === "glow-pulse" ? { filter: ["drop-shadow(0 0 0 rgba(183,156,255,0))", "drop-shadow(0 0 12px rgba(183,156,255,.65))", "drop-shadow(0 0 0 rgba(183,156,255,0))"] } : null;
   if (loop) return { initial: false, animate: loop, transition: { duration: Math.max(1.2, duration * 3), repeat: Infinity, ease: "easeInOut" as const } };
   return { initial, whileInView: { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0, rotateX: 0, filter: "blur(0px)" }, viewport: { once: true, amount: 0.15 }, transition: { delay, duration, ease: [0.16, 1, 0.3, 1] as const } };
 }
@@ -108,9 +108,9 @@ function ProductBinding({ id, onClick }: { id?: string | number; onClick: () => 
   if (!product) return <div className="rounded-2xl border border-white/10 p-5 text-xs text-white/45">Product unavailable.</div>;
   const image = product.imageUrl || product.image || product.images?.[0];
   return (
-    <Link href={`/product/${product.id}`} onClick={onClick} className="group flex max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] transition hover:border-violet-400/60">
+    <Link href={`/product/${product.id}`} onClick={onClick} className="group flex max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] transition hover:border-primary/60">
       {image && <img src={image} alt={product.name} className="h-28 w-28 shrink-0 object-cover transition-transform group-hover:scale-105" />}
-      <span className="flex min-w-0 flex-1 flex-col justify-center p-4"><b className="truncate text-sm text-white">{product.name}</b><span className="mt-1 text-xs font-black text-violet-300">AED {product.price}</span><span className="mt-3 text-[9px] font-black uppercase tracking-widest text-white/45">View product</span></span>
+      <span className="flex min-w-0 flex-1 flex-col justify-center p-4"><b className="truncate text-sm text-white">{product.name}</b><span className="mt-1 text-xs font-black text-primary">AED {product.price}</span><span className="mt-3 text-[9px] font-black uppercase tracking-widest text-white/45">View product</span></span>
     </Link>
   );
 }
@@ -138,7 +138,7 @@ function StudioElementView({ element, onEvent }: { element: StudioElement; onEve
     const href = element.href || element.url || "/shop";
       return wrap(
       <motion.div {...motionProps}>
-          <Link href={href} onClick={(event) => { if (onEvent("button-click", element.id)) event.preventDefault(); }} className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-black transition-transform hover:scale-[1.02]" style={{ background: "linear-gradient(100deg, #a78bfa, #ffca28)" }}>{element.text || element.label || "Explore"} <ArrowRight className="h-3.5 w-3.5" /></Link>
+          <Link href={href} onClick={(event) => { if (onEvent("button-click", element.id)) event.preventDefault(); }} className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-black transition-transform hover:scale-[1.02]" style={{ background: "linear-gradient(100deg, #b79cff, #ffca28)" }}>{element.text || element.label || "Explore"} <ArrowRight className="h-3.5 w-3.5" /></Link>
       </motion.div>
     );
   }
@@ -146,7 +146,7 @@ function StudioElementView({ element, onEvent }: { element: StudioElement; onEve
     return wrap(<motion.h2 {...motionProps} style={textStyle} className="text-3xl sm:text-5xl font-black tracking-[-0.05em] uppercase leading-[0.9]">{element.text || element.label}</motion.h2>);
   }
   if (type === "badge") {
-    return wrap(<motion.span {...motionProps} style={textStyle} className="inline-flex rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-violet-200">{element.text || element.label}</motion.span>);
+    return wrap(<motion.span {...motionProps} style={textStyle} className="inline-flex rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-primary">{element.text || element.label}</motion.span>);
   }
   if (type === "divider") return wrap(<motion.hr {...motionProps} className="max-w-2xl border-white/15" />);
   return wrap(<motion.p {...motionProps} style={textStyle} className="max-w-2xl text-base leading-7 text-white/65">{element.text || element.label}</motion.p>);
@@ -195,14 +195,14 @@ export default function CustomStorePage() {
   }, [page, runEvent]);
 
   if (state === "loading") {
-    return <div className="min-h-[55vh] flex items-center justify-center"><div className="h-8 w-8 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" /></div>;
+    return <div className="min-h-[55vh] flex items-center justify-center"><div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>;
   }
   if (state === "missing" || !page) {
     return (
       <div className="min-h-[58vh] flex flex-col items-center justify-center px-5 text-center">
-        <PackageOpen className="h-9 w-9 text-violet-400 mb-4" />
+        <PackageOpen className="h-9 w-9 text-primary mb-4" />
         <p className="text-xs font-black uppercase tracking-[0.28em] text-white/60">Page unavailable</p>
-        <Link href="/shop" className="mt-4 text-sm font-bold text-violet-300 hover:text-violet-200">Return to shop</Link>
+        <Link href="/shop" className="mt-4 text-sm font-bold text-primary hover:text-primary">Return to shop</Link>
       </div>
     );
   }
@@ -210,12 +210,12 @@ export default function CustomStorePage() {
   return (
     <main className="min-h-screen bg-black text-white">
       <title>{`${page.title} | IMAGINATE`}</title>
-      {notice && <button type="button" onClick={() => setNotice("")} className="fixed left-1/2 top-5 z-50 -translate-x-1/2 rounded-full border border-violet-400/30 bg-black/90 px-5 py-3 text-xs font-bold text-violet-100 shadow-2xl backdrop-blur">{notice} <span className="ml-2 text-violet-300">Dismiss</span></button>}
+      {notice && <button type="button" onClick={() => setNotice("")} className="fixed left-1/2 top-5 z-50 -translate-x-1/2 rounded-full border border-primary/30 bg-black/90 px-5 py-3 text-xs font-bold text-primary shadow-2xl backdrop-blur">{notice} <span className="ml-2 text-primary">Dismiss</span></button>}
       {page.content.sections.filter((section) => !section.hidden).map((section, index) => (
         <section key={section.id || `${section.type}-${index}`} className={`relative overflow-hidden px-5 py-16 sm:px-8 sm:py-24 ${section.type === "hero" || section.type === "full-screen" ? "min-h-[72vh] flex items-center" : ""}`}>
-          <div className="absolute inset-0 pointer-events-none" style={{ background: index % 2 ? "radial-gradient(circle at 80% 20%, rgba(167,139,250,0.12), transparent 36%)" : "radial-gradient(circle at 15% 25%, rgba(167,139,250,0.10), transparent 34%)" }} />
+          <div className="absolute inset-0 pointer-events-none" style={{ background: index % 2 ? "radial-gradient(circle at 80% 20%, rgba(183,156,255,0.12), transparent 36%)" : "radial-gradient(circle at 15% 25%, rgba(183,156,255,0.10), transparent 34%)" }} />
           <div className={`relative mx-auto w-full ${section.type === "full-screen" ? "max-w-6xl" : "max-w-5xl"} space-y-5`}>
-            {section.label && <p className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-300/80">{section.label}</p>}
+            {section.label && <p className="text-[10px] font-black uppercase tracking-[0.28em] text-primary/80">{section.label}</p>}
             {(section.elements ?? []).map((element, elementIndex) => <StudioElementView key={element.id || `${element.type}-${elementIndex}`} element={element} onEvent={runEvent} />)}
           </div>
         </section>

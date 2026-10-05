@@ -35,7 +35,7 @@ export function BackToTop() {
             style={{
               inset: -3,
               borderRadius: "9999px",
-              background: "conic-gradient(from 0deg, transparent 0%, rgba(167,139,250,0.85) 22%, rgba(167,139,250,0.55) 44%, transparent 60%)",
+              background: "conic-gradient(from 0deg, transparent 0%, rgba(183,156,255,0.85) 22%, rgba(183,156,255,0.55) 44%, transparent 60%)",
               mask: "radial-gradient(farthest-side, transparent calc(100% - 2.5px), black 100%)",
               WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 2.5px), black 100%)",
             }}
@@ -46,7 +46,7 @@ export function BackToTop() {
             animate={{ opacity: hovered ? 1 : 0.5 }}
             transition={{ duration: 0.3 }}
             style={{
-              background: "radial-gradient(circle, rgba(167,139,250,0.28) 0%, transparent 70%)",
+              background: "radial-gradient(circle, rgba(183,156,255,0.28) 0%, transparent 70%)",
               filter: "blur(8px)",
               margin: -6,
             }}
@@ -60,7 +60,7 @@ export function BackToTop() {
             transition={{ type: "spring", stiffness: 420, damping: 18 }}
             className="relative w-10 h-10 rounded-full glass-liquid flex items-center justify-center text-white hover:text-primary transition-colors duration-200"
             aria-label="Back to top"
-            style={{ boxShadow: "0 4px 28px rgba(167,139,250,0.28), 0 0 0 0.5px rgba(255,255,255,0.14)" }}
+            style={{ boxShadow: "0 4px 28px rgba(183,156,255,0.28), 0 0 0 0.5px rgba(255,255,255,0.14)" }}
           >
             <motion.div
               animate={{ y: hovered ? -2 : 0 }}

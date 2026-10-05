@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { db, customerAccountsTable, ordersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth-middleware";
 import { initPush, saveSubscription, removeOwnedSubscription, sendTestPush, saveCustomerSubscription, ensureCustomerSubTable, saveWishlistSubscription } from "../lib/push";
+import { subscribeCustomer } from "./customer-notifications";
+import { customerNotificationOwner,ensureCustomerNotificationSchema } from "../lib/customer-notification-delivery";
+import { rows } from "../lib/management-db";
 
 const router = Router();
 router.use((req,res,next)=>{
@@ -70,26 +73,18 @@ router.post("/push/test", requireAdmin, async (req, res) => {
 
 // Customer self-subscription
 router.post("/push/customer-subscribe", async (req, res) => {
-  const { endpoint, p256dh, auth } = req.body as Record<string, string>;
-  if (!endpoint || !p256dh || !auth) { res.status(400).json({ error: "Missing fields" }); return; }
-  const session=req.session as Record<string,unknown>;
-  let phone:string|null=null,email:string|null=null;
-  if(session.customerId){
-    const [customer]=await db.select({phone:customerAccountsTable.phone,email:customerAccountsTable.email}).from(customerAccountsTable).where(eq(customerAccountsTable.id,Number(session.customerId)));
-    email=customer?.email??null;
-  }else if(session.lastOrderId){
-    const [order]=await db.select({phone:ordersTable.customerPhone,email:ordersTable.customerEmail}).from(ordersTable).where(eq(ordersTable.id,Number(session.lastOrderId)));
-    phone=order?.phone??null;email=order?.email??null;
-  }
-  if(!phone&&!email){res.status(401).json({error:"Sign in or place an order before enabling order updates."});return;}
-  await saveCustomerSubscription(endpoint, p256dh, auth, phone??undefined, email??undefined,
-    session.customerId?Number(session.customerId):undefined,session.lastOrderId?Number(session.lastOrderId):undefined);
-  res.json({ ok: true });
+  // This legacy action was an explicit order-updates opt-in, never marketing consent.
+  const {endpoint,p256dh,auth}=req.body;
+  await ensureCustomerNotificationSchema();
+  const previous=rows(await db.execute(sql`SELECT BOOL_OR(marketing_enabled AND consent_at IS NOT NULL) AS marketing
+    FROM customer_push_subscriptions WHERE owner_key=${customerNotificationOwner(req)}`))[0];
+  req.body={endpoint,keys:{p256dh,auth},consent:true,marketingEnabled:previous?.marketing===true,orderUpdatesEnabled:true};
+  await subscribeCustomer(req,res);
 });
 
 router.get("/push/vapid-public-key", async (_req, res) => {
-  const key = await initPush();
-  res.json({ publicKey: key });
+  try {res.json({publicKey:await initPush()});}
+  catch(error){res.status(503).json({error:error instanceof Error?error.message:"Push is not configured."});}
 });
 
 // Wishlist "notify me on release" — links session_id to a push subscription
@@ -98,8 +93,12 @@ router.post("/push/wishlist-notify-subscribe", async (req, res) => {
   if (!endpoint || !p256dh || !auth) { res.status(400).json({ error: "Missing fields" }); return; }
   const sessionId = (req as any).session?.wishlistId as string | undefined;
   if (!sessionId) { res.status(400).json({ error: "No session — add something to wishlist first" }); return; }
-  await saveWishlistSubscription(endpoint, p256dh, auth, sessionId);
-  res.json({ ok: true });
+  // Wishlist release notices are marketing and go through the same consent/quota pipeline.
+  await ensureCustomerNotificationSchema();
+  const previous=rows(await db.execute(sql`SELECT BOOL_OR(order_updates_enabled) AS orders FROM customer_push_subscriptions
+    WHERE owner_key=${customerNotificationOwner(req)}`))[0];
+  req.body={endpoint,keys:{p256dh,auth},consent:true,marketingEnabled:true,orderUpdatesEnabled:previous?.orders===true};
+  await subscribeCustomer(req,res);
 });
 
 export default router;

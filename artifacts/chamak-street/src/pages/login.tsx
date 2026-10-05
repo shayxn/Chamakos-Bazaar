@@ -29,7 +29,7 @@ export default function Login() {
           className="absolute inset-0 pointer-events-none"
           animate={{ opacity: [0.04, 0.08, 0.04] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          style={{ background: "radial-gradient(ellipse at 50% 60%, #7c3aed, transparent 70%)" }}
+          style={{ background: "radial-gradient(ellipse at 50% 60%, #b79cff, transparent 70%)" }}
         />
         <motion.div
           initial={{ opacity: 0, y: 30, scale: 0.96 }}
@@ -37,13 +37,13 @@ export default function Login() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-md bg-card border border-border/60 p-8 rounded-xl shadow-[0_0_60px_rgba(124,58,237,0.1)] relative z-10 text-center"
         >
-          <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-gradient-to-r from-violet-700 via-violet-400 to-violet-700" />
+          <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-gradient-to-r from-primary via-primary to-primary" />
           <motion.div
             animate={{ rotate: [0, -8, 8, -8, 0] }}
             transition={{ duration: 1.2, delay: 0.4 }}
-            className="w-16 h-16 rounded-2xl bg-violet-500/15 border border-violet-400/30 flex items-center justify-center mx-auto mb-6"
+            className="w-16 h-16 rounded-2xl bg-primary/15 border border-primary/30 flex items-center justify-center mx-auto mb-6"
           >
-            <Smartphone className="h-8 w-8 text-violet-300" />
+            <Smartphone className="h-8 w-8 text-primary" />
           </motion.div>
           <h2 className="text-xl font-black uppercase tracking-widest mb-3">Maximum Devices Reached</h2>
           <p className="text-muted-foreground text-sm mb-1">
@@ -92,7 +92,7 @@ export default function Login() {
         className="absolute inset-0 pointer-events-none"
         animate={{ opacity: [0.04, 0.09, 0.04] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        style={{ background: "radial-gradient(ellipse at 50% 60%, #7c3aed, transparent 70%)" }}
+        style={{ background: "radial-gradient(ellipse at 50% 60%, #b79cff, transparent 70%)" }}
       />
 
       {/* Floating brand-colored particles */}
@@ -105,8 +105,8 @@ export default function Login() {
             height: 4 + i * 2,
             left: `${20 + i * 15}%`,
             bottom: `${5 + i * 8}%`,
-            background: i % 2 === 0 ? "#7c3aed" : "#c4b5fd",
-            boxShadow: `0 0 10px ${i % 2 === 0 ? "#7c3aed" : "#c4b5fd"}`,
+            background: i % 2 === 0 ? "#b79cff" : "#c4b5fd",
+            boxShadow: `0 0 10px ${i % 2 === 0 ? "#b79cff" : "#c4b5fd"}`,
           }}
           animate={{ y: [0, -(80 + i * 30), 0], opacity: [0, 0.7, 0] }}
           transition={{ duration: 2.5 + i * 0.5, repeat: Infinity, delay: i * 0.6, ease: "easeOut" }}
@@ -120,7 +120,7 @@ export default function Login() {
         className="w-full max-w-md bg-card border border-border/60 p-8 rounded-xl shadow-[0_0_60px_rgba(124,58,237,0.1)] relative z-10"
       >
         {/* Top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-gradient-to-r from-violet-700 via-violet-400 to-violet-700" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-gradient-to-r from-primary via-primary to-primary" />
 
         <div className="flex justify-center mb-8">
           <img src="/imaginate-logo.png" alt="IMAGINATE" className="h-16 w-48 object-contain" />

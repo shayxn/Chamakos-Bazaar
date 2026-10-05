@@ -48,7 +48,7 @@ class ErrorBoundary extends React.Component<
             style={{
               marginTop: "8px",
               padding: "10px 28px",
-              background: "#7c3aed",
+              background: "#b79cff",
               color: "#fff",
               border: "none",
               borderRadius: "8px",
@@ -73,6 +73,9 @@ import { useMobile } from "@/lib/use-mobile";
 import { useSettings } from "@/lib/use-settings";
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useVisitorTracking } from "@/lib/use-visitor-tracking";
+import { useTrafficTracker } from "@/lib/use-traffic-tracker";
+import { LaunchSequence } from "@/components/launch-sequence";
+import { CustomerNotificationPrompt } from "@/components/customer-notification-prompt";
 import { ScrollProgressBar } from "@/components/smooth-scroll";
 import { LoadingScreen } from "@/components/loading-screen";
 import { EmergencyShutdownOverlay } from "@/components/emergency-shutdown-overlay";
@@ -133,6 +136,8 @@ const AdminStockAlerts = lazy(() => import("@/pages/admin/stock-alerts"));
 const AdminSalesReports = lazy(() => import("@/pages/admin/sales-reports"));
 const AdminChat = lazy(() => import("@/pages/admin/chat"));
 const AdminActivityLog = lazy(() => import("@/pages/admin/activity-log"));
+const AdminLiveTraffic = lazy(() => import("@/pages/admin/live-traffic"));
+const AdminCustomerNotifications = lazy(() => import("@/pages/admin/customer-notifications"));
 const AdminCoupons = lazy(() => import("@/pages/admin/coupons"));
 
 // ── Suspense fallback ──
@@ -173,6 +178,8 @@ function AdminRouter() {
         <Route path="/admin/refund-requests" component={AdminRefundRequests} />
         <Route path="/admin/product-requests" component={AdminProductRequests} />
         <Route path="/admin/visitors" component={AdminVisitors} />
+        <Route path="/admin/live-traffic" component={AdminLiveTraffic} />
+        <Route path="/admin/customer-notifications" component={AdminCustomerNotifications} />
         <Route path="/admin/notifications" component={AdminNotificationSettings} />
         <Route path="/admin/abandoned-carts" component={AdminAbandonedCarts} />
         <Route path="/admin/stock-alerts" component={AdminStockAlerts} />
@@ -192,6 +199,7 @@ function AdminRouter() {
 function CustomerLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useMobile();
   useVisitorTracking();
+  useTrafficTracker();
   const settings = useSettings();
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000 } });
   const [location, navigate] = useLocation();
@@ -207,7 +215,10 @@ function CustomerLayout({ children }: { children: React.ReactNode }) {
     }
   }, [settings.maintenance_mode, user?.isAdmin, location]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return isMobile ? <MobileLayout>{children}</MobileLayout> : <Layout>{children}</Layout>;
+  return <>
+    {location!=="/maintenance"&&settings.maintenance_mode!=="true"&&<LaunchSequence />}
+    {isMobile ? <MobileLayout>{children}</MobileLayout> : <Layout>{children}</Layout>}
+  </>;
 }
 
 function MainRouter() {
@@ -217,6 +228,7 @@ function MainRouter() {
       <Route path="/login" component={Login} />
       <Route>
         <CustomerLayout>
+          <CustomerNotificationPrompt />
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/shop" component={Shop} />

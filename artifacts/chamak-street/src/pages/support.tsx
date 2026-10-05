@@ -19,8 +19,8 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return r.json();
 }
 
-const glass = "rounded-2xl border border-violet-500/30 bg-white/[0.04] backdrop-blur-xl";
-const field = "w-full rounded-xl border border-violet-500/30 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-400/40";
+const glass = "rounded-2xl border border-primary/30 bg-white/[0.04] backdrop-blur-xl";
+const field = "w-full rounded-xl border border-primary/30 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40";
 
 export default function SupportPage() {
   const qc = useQueryClient();
@@ -62,20 +62,20 @@ export default function SupportPage() {
             <div className="mt-4 flex flex-wrap gap-2" role="tablist">
               {categories.map((c) => (
                 <button key={c} role="tab" aria-selected={cat === c} onClick={() => setCat(c)} data-testid={`chip-faq-${c}`}
-                  className={`rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition ${cat === c ? "border-violet-300 bg-violet-500/30 text-white" : "border-violet-500/30 text-white/70 hover:border-violet-300"}`}>{c}</button>
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition ${cat === c ? "border-primary bg-primary/30 text-white" : "border-primary/30 text-white/70 hover:border-primary"}`}>{c}</button>
               ))}
             </div>
           )}
 
           <section className="mt-6 space-y-2" aria-live="polite">
             {faq.isLoading && [0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-2xl bg-white/5" />)}
-            {faq.isError && <div className={`${glass} p-5 text-sm`}>Questions could not load. <button onClick={() => faq.refetch()} className="ml-2 inline-flex items-center gap-1 font-bold text-violet-300"><RefreshCw className="h-3.5 w-3.5" />Retry</button></div>}
+            {faq.isError && <div className={`${glass} p-5 text-sm`}>Questions could not load. <button onClick={() => faq.refetch()} className="ml-2 inline-flex items-center gap-1 font-bold text-primary"><RefreshCw className="h-3.5 w-3.5" />Retry</button></div>}
             {faq.isSuccess && shown.length === 0 && <div className={`${glass} p-5 text-sm text-white/65`}>{faq.data.length === 0 ? "No questions have been published yet. Send us a request below." : "No questions match your search."}</div>}
             {shown.map((f) => (
               <div key={f.id} className={`${glass} overflow-hidden`}>
                 <button onClick={() => setOpen(open === f.id ? null : f.id)} aria-expanded={open === f.id} data-testid={`button-faq-${f.id}`} className="flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left">
                   <span className="text-sm font-bold">{f.title}</span>
-                  <ChevronDown className={`h-4 w-4 shrink-0 text-violet-300 transition-transform ${open === f.id ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-primary transition-transform ${open === f.id ? "rotate-180" : ""}`} />
                 </button>
                 {open === f.id && <p className="whitespace-pre-line px-4 pb-4 text-sm leading-relaxed text-white/70">{f.data?.answer}</p>}
               </div>
@@ -84,20 +84,20 @@ export default function SupportPage() {
 
           <section className={`${glass} mt-10 p-5 sm:p-6`}>
             <h2 className="text-lg font-black uppercase tracking-tight">Send a request</h2>
-            {sent && <p role="status" className="mt-3 rounded-xl border border-violet-400/40 bg-violet-500/15 p-3 text-sm" data-testid="status-ticket-sent">Request received. Replies appear below.</p>}
+            {sent && <p role="status" className="mt-3 rounded-xl border border-primary/40 bg-primary/15 p-3 text-sm" data-testid="status-ticket-sent">Request received. Replies appear below.</p>}
             <form className="mt-4 grid gap-3" onSubmit={(e) => { e.preventDefault(); setSent(false); if (valid) send.mutate(); }}>
               <input aria-label="Subject" placeholder="Subject" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className={field} data-testid="input-ticket-subject" />
               <input aria-label="Category" list="ticket-cats" placeholder="Category (for example Orders)" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={field} data-testid="input-ticket-category" />
               <datalist id="ticket-cats">{ticketCats.map((c) => <option key={c} value={c} />)}</datalist>
               <textarea aria-label="Message" rows={5} placeholder="How can we help?" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={field} data-testid="input-ticket-message" />
               {send.isError && <p role="alert" className="text-sm text-red-300">{(send.error as Error).message}</p>}
-              <button disabled={!valid || send.isPending} data-testid="button-ticket-send" className="inline-flex items-center justify-center gap-2 rounded-full bg-violet-500 px-6 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-violet-400 disabled:opacity-40">
+              <button disabled={!valid || send.isPending} data-testid="button-ticket-send" className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground transition hover:bg-primary disabled:opacity-40">
                 <Send className="h-4 w-4" />{send.isPending ? "Sending" : "Send request"}
               </button>
             </form>
           </section>
 
-          {tickets.isError && <div role="alert" className={`${glass} mt-8 p-4 text-sm text-red-200`}>Your previous requests could not load ({(tickets.error as Error).message}). <button onClick={() => tickets.refetch()} className="ml-2 font-bold text-violet-300">Retry</button></div>}
+          {tickets.isError && <div role="alert" className={`${glass} mt-8 p-4 text-sm text-red-200`}>Your previous requests could not load ({(tickets.error as Error).message}). <button onClick={() => tickets.refetch()} className="ml-2 font-bold text-primary">Retry</button></div>}
           {tickets.data && tickets.data.length > 0 && (
             <section className="mt-8 space-y-3">
               <h2 className="text-lg font-black uppercase tracking-tight">Your requests</h2>
@@ -105,10 +105,10 @@ export default function SupportPage() {
                 <article key={t.id} className={`${glass} p-4`} data-testid={`card-ticket-${t.id}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0"><p className="truncate font-bold">{t.subject}</p><p className="text-xs text-white/50">{t.category} / {new Date(t.createdAt).toLocaleDateString("en-GB")}</p></div>
-                    <span className="shrink-0 rounded-full border border-violet-400/50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-violet-200">{t.status}</span>
+                    <span className="shrink-0 rounded-full border border-primary/50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">{t.status}</span>
                   </div>
                   <p className="mt-3 whitespace-pre-line text-sm text-white/70">{t.message}</p>
-                  {t.reply && <div className="mt-3 rounded-xl border border-violet-400/40 bg-violet-500/10 p-3 text-sm"><p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-violet-300">Reply</p><p className="whitespace-pre-line">{t.reply}</p></div>}
+                  {t.reply && <div className="mt-3 rounded-xl border border-primary/40 bg-primary/10 p-3 text-sm"><p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-primary">Reply</p><p className="whitespace-pre-line">{t.reply}</p></div>}
                 </article>
               ))}
             </section>
@@ -116,7 +116,7 @@ export default function SupportPage() {
 
           {phone && (
             <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" data-testid="link-whatsapp"
-              className="mt-8 flex items-center justify-center gap-2 rounded-full border border-violet-400/50 bg-white/[0.04] px-6 py-3.5 text-sm font-bold backdrop-blur-xl hover:bg-violet-500/20">
+              className="mt-8 flex items-center justify-center gap-2 rounded-full border border-primary/50 bg-white/[0.04] px-6 py-3.5 text-sm font-bold backdrop-blur-xl hover:bg-primary/20">
               <MessageCircle className="h-5 w-5" />Chat on WhatsApp
             </a>
           )}

@@ -238,7 +238,7 @@ function CompleteTheLookSection({
           transition={{ duration: 0.45, delay: 0.35, ease: EASE }}
           className="relative group"
         >
-          <div className="relative aspect-square rounded-xl overflow-hidden bg-card border-2 border-primary/50 shadow-[0_0_20px_rgba(167,139,250,0.15)]">
+          <div className="relative aspect-square rounded-xl overflow-hidden bg-card border-2 border-primary/50 shadow-[0_0_20px_rgba(183,156,255,0.15)]">
             {currentMedia ? (
               <img
                 src={currentMedia.url}
@@ -273,7 +273,7 @@ function CompleteTheLookSection({
               className="relative group"
             >
               <Link href={`/product/${item.id}`}>
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-[0_6px_24px_rgba(167,139,250,0.18)]">
+                <div className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-[0_6px_24px_rgba(183,156,255,0.18)]">
                   {media ? (
                     <img
                       src={media.url}
@@ -335,7 +335,7 @@ function CompleteTheLookSection({
           className={`flex items-center gap-2.5 px-8 py-3.5 rounded-sm font-black uppercase tracking-widest text-sm transition-all ${
             allAdded
               ? "bg-green-500/15 border border-green-500/40 text-green-400"
-              : "fire-gradient text-primary-foreground shadow-[0_0_28px_rgba(167,139,250,0.3)] hover:shadow-[0_0_44px_rgba(167,139,250,0.5)]"
+              : "fire-gradient text-primary-foreground shadow-[0_0_28px_rgba(183,156,255,0.3)] hover:shadow-[0_0_44px_rgba(183,156,255,0.5)]"
           }`}
         >
           {allAdded ? (
@@ -645,7 +645,7 @@ export default function ProductDetail() {
                 initial={{ opacity: 0 }}
                 whileHover={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
-                style={{ background: "radial-gradient(ellipse at 50% 85%, rgba(167,139,250,0.25), transparent 65%)" }}
+                style={{ background: "radial-gradient(ellipse at 50% 85%, rgba(183,156,255,0.25), transparent 65%)" }}
               />
             </motion.div>
             {mediaItems.length > 1 && (
@@ -655,7 +655,7 @@ export default function ProductDetail() {
                     key={`${item.url}-${index}`}
                     type="button"
                     onClick={() => setSelectedMediaIndex(index)}
-                    className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-xl glass-thumb transition-all duration-300 ${selectedMediaIndex === index ? "thumb-selected !border-primary/70 !shadow-[0_0_16px_rgba(167,139,250,0.30),inset_0_2px_0_rgba(167,139,250,0.18)]" : ""}`}
+                    className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-xl glass-thumb transition-all duration-300 ${selectedMediaIndex === index ? "thumb-selected !border-primary/70 !shadow-[0_0_16px_rgba(183,156,255,0.30),inset_0_2px_0_rgba(183,156,255,0.18)]" : ""}`}
                   >
                     {item.type === "video" ? (
                       <>
@@ -682,7 +682,7 @@ export default function ProductDetail() {
                   <span className="text-xs font-black tracking-widest uppercase bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-sm backdrop-blur-sm">Featured</span>
                 )}
                 {(product as any).bestSeller && (
-                  <span className="text-xs font-black tracking-widest uppercase bg-violet-400/90 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">Best Seller</span>
+                  <span className="text-xs font-black tracking-widest uppercase bg-primary/90 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">Best Seller</span>
                 )}
                 {(product as any).trending && (
                   <span className="text-xs font-black tracking-widest uppercase bg-cyan-400/90 text-black px-3 py-1.5 rounded-sm backdrop-blur-sm">Trending</span>
@@ -813,7 +813,7 @@ export default function ProductDetail() {
                 <div className="flex items-center h-12 w-36 glass-qty rounded-xl overflow-hidden">
                   <motion.button
                     whileTap={{ scale: 0.82 }}
-                    whileHover={{ backgroundColor: "rgba(167,139,250,0.08)" }}
+                    whileHover={{ backgroundColor: "rgba(183,156,255,0.08)" }}
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     className="w-10 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
                     disabled={isOutOfStock}
@@ -826,7 +826,7 @@ export default function ProductDetail() {
                     </span>
                   <motion.button
                     whileTap={{ scale: 0.82 }}
-                    whileHover={{ backgroundColor: "rgba(167,139,250,0.08)" }}
+                    whileHover={{ backgroundColor: "rgba(183,156,255,0.08)" }}
                     onClick={() => setQuantity((q) => Math.min(isPreOrder ? 99 : effectiveStock, q + 1))}
                     className="w-10 h-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
                     disabled={isOutOfStock || quantity >= (isPreOrder ? 99 : effectiveStock)}
@@ -948,7 +948,7 @@ export default function ProductDetail() {
                   >
                     <Link href={`/product/${p.id}`}>
                       <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}>
-                        <div className="product-img-frame relative aspect-square mb-3 overflow-hidden rounded-xl glass-card group-hover:shadow-[0_0_24px_rgba(167,139,250,0.22)] transition-all duration-300">
+                        <div className="product-img-frame relative aspect-square mb-3 overflow-hidden rounded-xl glass-card group-hover:shadow-[0_0_24px_rgba(183,156,255,0.22)] transition-all duration-300">
                           {media ? (
                             <img
                               src={media.url}
@@ -1004,8 +1004,8 @@ export default function ProductDetail() {
               background: "rgba(8,8,8,0.82)",
               backdropFilter: "blur(56px) saturate(240%) brightness(1.05)",
               WebkitBackdropFilter: "blur(56px) saturate(240%) brightness(1.05)",
-              border: "1px solid rgba(167,139,250,0.30)",
-              boxShadow: "0 -2px 0 rgba(255,255,255,0.06) inset, 0 8px 48px rgba(0,0,0,0.72), 0 0 0 0.5px rgba(167,139,250,0.15)",
+              border: "1px solid rgba(183,156,255,0.30)",
+              boxShadow: "0 -2px 0 rgba(255,255,255,0.06) inset, 0 8px 48px rgba(0,0,0,0.72), 0 0 0 0.5px rgba(183,156,255,0.15)",
             }}
           >
             <div className="px-4 py-3 flex items-center gap-3">
@@ -1022,7 +1022,7 @@ export default function ProductDetail() {
                 onClick={handleAddToCart}
                 disabled={addToCart.isPending}
                 className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-sm text-white disabled:opacity-60"
-                style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}
+                style={{ background: "linear-gradient(135deg, #b79cff, #6d28d9)" }}
               >
                 <ShoppingCart className="h-4 w-4" />
                 <AnimatePresence mode="wait">
