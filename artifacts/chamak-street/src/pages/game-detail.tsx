@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import React, { useEffect, useState, useRef } from "react";
 import { useRoute, Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -151,7 +152,7 @@ export default function GameDetail() {
           {game.preOrderPrice != null && (
             <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, ease: EASE }}
               className="text-white/50 text-sm font-bold uppercase tracking-widest">
-              AED {game.preOrderPrice.toFixed(2)} · {game.preOrderDate ?? "Coming 2025"}
+              <Price v={game.preOrderPrice} /> · {game.preOrderDate ?? "Coming 2025"}
             </motion.p>
           )}
 

@@ -1,3 +1,5 @@
+import { formatPrice } from "@/lib/currency";
+import { Price } from "@/components/price";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRoute } from "wouter";
 import { useGetProduct, useAddToCart, useListProducts, getGetProductQueryKey, getGetCartQueryKey, getListProductsQueryKey } from "@workspace/api-client-react";
@@ -225,7 +227,7 @@ function CompleteTheLookSection({
         </div>
         <div className="sm:text-right shrink-0">
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Full Look Total</p>
-          <p className="text-2xl font-black font-mono text-primary">AED {lookTotal.toFixed(2)}</p>
+          <p className="text-2xl font-black font-mono text-primary"><Price v={lookTotal} /></p>
         </div>
       </div>
 
@@ -255,7 +257,7 @@ function CompleteTheLookSection({
           </div>
           <div className="mt-2.5 px-0.5">
             <p className="text-xs font-bold leading-tight line-clamp-2 mb-1">{currentProduct.name}</p>
-            <p className="text-sm font-mono font-bold text-primary">AED {currentProduct.price.toFixed(2)}</p>
+            <p className="text-sm font-mono font-bold text-primary"><Price v={currentProduct.price} /></p>
           </div>
         </motion.div>
 
@@ -304,7 +306,7 @@ function CompleteTheLookSection({
                 )}
                 <p className="text-xs font-bold leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">{item.name}</p>
                 <div className="flex items-center justify-between gap-1">
-                  <p className="text-sm font-mono font-bold text-primary">AED {item.price.toFixed(2)}</p>
+                  <p className="text-sm font-mono font-bold text-primary"><Price v={item.price} /></p>
                   <motion.button
                     whileHover={{ scale: 1.08 }}
                     whileTap={{ scale: 0.93 }}
@@ -341,11 +343,11 @@ function CompleteTheLookSection({
           {allAdded ? (
             <><Check className="h-4 w-4" /> Full Look Added to Cart</>
           ) : (
-            <><ShoppingCart className="h-4 w-4" /> {addingAll ? "Adding Pieces…" : `Add All Pieces — AED ${items.reduce((s, p) => s + p.price, 0).toFixed(2)}`}</>
+            <><ShoppingCart className="h-4 w-4" /> {addingAll ? "Adding Pieces…" : `Add All Pieces — ${formatPrice(items.reduce((s, p) => s + p.price, 0))}`}</>
           )}
         </motion.button>
         <p className="text-xs text-muted-foreground">
-          {items.length} complementary piece{items.length !== 1 ? "s" : ""} • Full look total AED {lookTotal.toFixed(2)}
+          {items.length} complementary piece{items.length !== 1 ? "s" : ""} • Full look total <Price v={lookTotal} />
         </p>
       </div>
     </motion.div>
@@ -715,8 +717,8 @@ export default function ProductDetail() {
 
             <MotionItem delay={0.29} className="mt-5">
               <div className="text-3xl font-mono font-black text-primary">
-                AED {effPrice.toFixed(2)}
-                {showCompare && <span className="ml-3 text-lg text-muted-foreground line-through" data-testid="text-compare-at">AED {compareAt!.toFixed(2)}</span>}
+                <Price v={effPrice} />
+                {showCompare && <span className="ml-3 text-lg text-muted-foreground line-through" data-testid="text-compare-at"><Price v={compareAt!} /></span>}
               </div>
               {variantStock !== null && !isPreOrder && (
                 <p className={`mt-1 text-xs font-bold ${variantStock > 0 ? "text-white/60" : "text-red-400"}`} data-testid="text-variant-stock">
@@ -977,7 +979,7 @@ export default function ProductDetail() {
                             <p className="text-[9px] text-muted-foreground uppercase tracking-widest mb-0.5">{p.categoryName}</p>
                           )}
                           <p className="text-xs font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">{p.name}</p>
-                          <p className="text-sm font-mono text-primary font-bold mt-1">AED {p.price.toFixed(2)}</p>
+                          <p className="text-sm font-mono text-primary font-bold mt-1"><Price v={p.price} /></p>
                         </div>
                       </motion.div>
                     </Link>
@@ -1011,7 +1013,7 @@ export default function ProductDetail() {
             <div className="px-4 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest truncate">{product.name}</p>
-                <p className="text-primary font-mono font-black text-base leading-tight">AED {effPrice.toFixed(2)}</p>
+                <p className="text-primary font-mono font-black text-base leading-tight"><Price v={effPrice} /></p>
                 {selectedSize && (
                   <p className="text-[10px] text-white/35 font-bold mt-0.5">Size: {selectedSize}</p>
                 )}

@@ -1,8 +1,10 @@
 import { PageTransition } from "@/components/page-transition";
 import { Truck } from "lucide-react";
 import { useSettings } from "@/lib/use-settings";
+import { useStoreContext } from "@/components/price";
 
 export default function Shipping() {
+  const globalOn = !!useStoreContext()?.enabled;
   const settings = useSettings();
   const standardFee = Number(settings.delivery_standard_price);
 
@@ -19,7 +21,7 @@ export default function Shipping() {
               <div>
                 <h2 className="text-sm font-medium uppercase tracking-[.16em]">Delivery options at checkout</h2>
                 <p className="mt-2 max-w-xl text-sm leading-6 text-white/55">
-                  Delivery is currently available within the United Arab Emirates. {Number.isFinite(standardFee) && standardFee > 0 ? `The standard delivery fee is AED ${standardFee.toFixed(2)}. ` : ""}Available options and prices are shown before you place your order.
+                  {globalOn ? "Delivery to the countries listed in the country chooser is available. UAE delivery fees are shown at checkout; international orders use a single standard rate, and every charge is made in AED. " : "Delivery is currently available within the United Arab Emirates. "}{Number.isFinite(standardFee) && standardFee > 0 ? `The standard delivery fee is AED ${standardFee.toFixed(2)}. ` : ""}Available options and prices are shown before you place your order.
                 </p>
               </div>
             </div>

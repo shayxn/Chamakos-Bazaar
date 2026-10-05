@@ -8,6 +8,175 @@
 import * as zod from 'zod';
 
 
+export const GetGlobalStoreContextResponse = zod.object({
+  "enabled": zod.boolean(),
+  "country": zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "currency": zod.string(),
+  "enabled": zod.boolean(),
+  "shippingAED": zod.number().nullable()
+}),
+  "countries": zod.array(zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "currency": zod.string(),
+  "enabled": zod.boolean(),
+  "shippingAED": zod.number().nullable()
+})),
+  "paymentMethods": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "provider": zod.enum(['cod', 'ziina']),
+  "enabled": zod.boolean(),
+  "countries": zod.array(zod.string()).describe('Empty means all enabled countries for Ziina. COD is always AE only.'),
+  "configured": zod.boolean().optional()
+})),
+  "fx": zod.object({
+  "base": zod.enum(['AED']),
+  "rates": zod.record(zod.string(), zod.number()),
+  "fetchedAt": zod.string().nullable(),
+  "stale": zod.boolean(),
+  "available": zod.boolean(),
+  "attribution": zod.string()
+}),
+  "settlementCurrency": zod.enum(['AED'])
+})
+
+
+export const selectStoreCountryBodyCodeMin = 2;
+export const selectStoreCountryBodyCodeMax = 2;
+
+
+
+export const SelectStoreCountryBody = zod.object({
+  "code": zod.string().min(selectStoreCountryBodyCodeMin).max(selectStoreCountryBodyCodeMax)
+})
+
+export const SelectStoreCountryResponse = zod.object({
+  "enabled": zod.boolean(),
+  "country": zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "currency": zod.string(),
+  "enabled": zod.boolean(),
+  "shippingAED": zod.number().nullable()
+}),
+  "countries": zod.array(zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "currency": zod.string(),
+  "enabled": zod.boolean(),
+  "shippingAED": zod.number().nullable()
+})),
+  "paymentMethods": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "provider": zod.enum(['cod', 'ziina']),
+  "enabled": zod.boolean(),
+  "countries": zod.array(zod.string()).describe('Empty means all enabled countries for Ziina. COD is always AE only.'),
+  "configured": zod.boolean().optional()
+})),
+  "fx": zod.object({
+  "base": zod.enum(['AED']),
+  "rates": zod.record(zod.string(), zod.number()),
+  "fetchedAt": zod.string().nullable(),
+  "stale": zod.boolean(),
+  "available": zod.boolean(),
+  "attribution": zod.string()
+}),
+  "settlementCurrency": zod.enum(['AED'])
+})
+
+
+export const GetGlobalStoreAdminResponse = zod.object({
+  "config": zod.object({
+  "enabled": zod.boolean(),
+  "revision": zod.number(),
+  "countries": zod.array(zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "currency": zod.string(),
+  "enabled": zod.boolean(),
+  "shippingAED": zod.number().nullable()
+})),
+  "paymentMethods": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "provider": zod.enum(['cod', 'ziina']),
+  "enabled": zod.boolean(),
+  "countries": zod.array(zod.string()).describe('Empty means all enabled countries for Ziina. COD is always AE only.'),
+  "configured": zod.boolean().optional()
+}))
+}),
+  "countryCatalog": zod.array(zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "currency": zod.string(),
+  "enabled": zod.boolean(),
+  "shippingAED": zod.number().nullable()
+})),
+  "providers": zod.object({
+  "cod": zod.boolean(),
+  "ziina": zod.boolean()
+})
+})
+
+
+export const SaveGlobalStoreConfigBody = zod.object({
+  "enabled": zod.boolean(),
+  "revision": zod.number(),
+  "countries": zod.array(zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "currency": zod.string(),
+  "enabled": zod.boolean(),
+  "shippingAED": zod.number().nullable()
+})),
+  "paymentMethods": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "provider": zod.enum(['cod', 'ziina']),
+  "enabled": zod.boolean(),
+  "countries": zod.array(zod.string()).describe('Empty means all enabled countries for Ziina. COD is always AE only.'),
+  "configured": zod.boolean().optional()
+}))
+})
+
+export const SaveGlobalStoreConfigResponse = zod.object({
+  "config": zod.object({
+  "enabled": zod.boolean(),
+  "revision": zod.number(),
+  "countries": zod.array(zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "currency": zod.string(),
+  "enabled": zod.boolean(),
+  "shippingAED": zod.number().nullable()
+})),
+  "paymentMethods": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "provider": zod.enum(['cod', 'ziina']),
+  "enabled": zod.boolean(),
+  "countries": zod.array(zod.string()).describe('Empty means all enabled countries for Ziina. COD is always AE only.'),
+  "configured": zod.boolean().optional()
+}))
+}),
+  "countryCatalog": zod.array(zod.object({
+  "code": zod.string(),
+  "name": zod.string(),
+  "currency": zod.string(),
+  "enabled": zod.boolean(),
+  "shippingAED": zod.number().nullable()
+})),
+  "providers": zod.object({
+  "cod": zod.boolean(),
+  "ziina": zod.boolean()
+})
+})
+
+
 export const ListPublishedContentParams = zod.object({
   "kind": zod.coerce.string()
 })
@@ -804,6 +973,8 @@ export const ListOrdersResponseItem = zod.object({
   "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "countryCode": zod.string().optional(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
   "delayReason": zod.string().nullish(),
@@ -833,10 +1004,20 @@ export const ListOrdersResponse = zod.array(ListOrdersResponseItem)
 /**
  * @summary Create order (checkout)
  */
+export const createOrderBodyTipMin = 0;
+export const createOrderBodyTipMax = 500;
+
+
+
 export const CreateOrderBody = zod.object({
   "customerName": zod.string(),
   "customerPhone": zod.string(),
   "customerAddress": zod.string(),
+  "country": zod.string().optional(),
+  "paymentMethodId": zod.string().optional(),
+  "deliveryMethod": zod.enum(['standard', 'express', 'priority']).optional(),
+  "tip": zod.number().min(createOrderBodyTipMin).max(createOrderBodyTipMax).optional(),
+  "couponCode": zod.string().optional(),
   "paymentMethod": zod.string().optional()
 })
 
@@ -848,6 +1029,8 @@ export const CreateOrderResponse = zod.object({
   "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "countryCode": zod.string().optional(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
   "delayReason": zod.string().nullish(),
@@ -928,6 +1111,8 @@ export const GetOrderResponse = zod.object({
   "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "countryCode": zod.string().optional(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
   "delayReason": zod.string().nullish(),
@@ -979,6 +1164,8 @@ export const UpdateOrderResponse = zod.object({
   "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "countryCode": zod.string().optional(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
   "delayReason": zod.string().nullish(),
@@ -1039,6 +1226,8 @@ export const UpdateOrderStatusResponse = zod.object({
   "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "countryCode": zod.string().optional(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
   "delayReason": zod.string().nullish(),
@@ -1102,10 +1291,20 @@ export const CreateZiinaPaymentIntentResponse = zod.object({
 /**
  * @summary Create order + Ziina intent
  */
+export const createZiinaCheckoutBodyTipMin = 0;
+export const createZiinaCheckoutBodyTipMax = 500;
+
+
+
 export const CreateZiinaCheckoutBody = zod.object({
   "customerName": zod.string(),
   "customerPhone": zod.string(),
   "customerAddress": zod.string(),
+  "country": zod.string().optional(),
+  "paymentMethodId": zod.string().optional(),
+  "deliveryMethod": zod.enum(['standard', 'express', 'priority']).optional(),
+  "tip": zod.number().min(createZiinaCheckoutBodyTipMin).max(createZiinaCheckoutBodyTipMax).optional(),
+  "couponCode": zod.string().optional(),
   "paymentMethod": zod.string().optional()
 })
 
@@ -1140,6 +1339,8 @@ export const GetStoreStatsResponse = zod.object({
   "customerPhone": zod.string().nullish(),
   "customerAddress": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "countryCode": zod.string().optional(),
   "courierName": zod.string().nullish(),
   "estimatedDelivery": zod.string().nullish(),
   "delayReason": zod.string().nullish(),

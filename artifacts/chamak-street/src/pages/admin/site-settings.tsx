@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { useBulkUpsertSettings, useListProducts } from "@workspace/api-client-react";
 import type { Product } from "@workspace/api-client-react";
@@ -9,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Save, Globe, Flame, Type, Image, Star, Video, Truck, Eye, EyeOff, Upload, MessageCircle, Music2, Megaphone, Plus, Trash2, ChevronUp, ChevronDown, Images, Link2, Search, BookOpen, ExternalLink, ShieldAlert, Radio } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SETTING_DEFAULTS, cleanHeroImages, isLegacyHeroImage } from "@/lib/use-settings";
+import { TopBannerSettings } from "@/components/admin/top-banner-settings";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +52,7 @@ type SettingsMap = Record<string, string>;
 type AdminProduct = Product & { collection?: string | null; sourceUrl?: string | null };
 
 const TABS = [
+  { id: "top-banner", label: "Top Banner", icon: Image },
   { id: "announcement", label: "Announcement", icon: Megaphone },
   { id: "hero", label: "Hero Section", icon: Flame },
   { id: "live", label: "IMAGINATE Live", icon: Radio },
@@ -523,6 +526,8 @@ export default function AdminSiteSettings() {
   const [hasChanges, setHasChanges] = useState(false);
   const [emergencyConfirmOpen, setEmergencyConfirmOpen] = useState(false);
   const originalSettingsRef = useRef<SettingsMap>({});
+  const latestSettingsRef = useRef(settings);
+  latestSettingsRef.current = settings;
 
   useEffect(() => {
     if (dbSettings) {
@@ -647,6 +652,18 @@ export default function AdminSiteSettings() {
 
       <div className="bg-card border border-border/60 rounded-2xl p-6 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-px fire-gradient opacity-60" />
+
+        {activeTab === "top-banner" && <TopBannerSettings value={settings.top_banner}
+          onChange={value => onChange("top_banner",value)} upload={uploadImageFile}
+          onSave={async value => {
+            await bulkUpsert.mutateAsync({ data: { top_banner: value } });
+            const next = { ...latestSettingsRef.current, top_banner: value };
+            originalSettingsRef.current = { ...originalSettingsRef.current, top_banner: value };
+            setSettings(next);
+            setHasChanges(Object.entries(next).some(([key,v]) => originalSettingsRef.current[key]!==v));
+            void queryClient.invalidateQueries({ queryKey: ["settings", "all"] });
+            toast({ title: "Top Banner saved" });
+          }} />}
 
         {activeTab === "announcement" && (
           <div className="space-y-5">
@@ -986,11 +1003,11 @@ export default function AdminSiteSettings() {
             <div className="rounded-2xl border border-primary/20 bg-primary/[0.04] p-5">
               <h2 className="font-black uppercase tracking-wider text-primary">Delivery destinations</h2>
               <p className="mt-2 text-sm leading-relaxed text-white/60">
-                United Arab Emirates only. Worldwide shipping is OFF and hidden from customers. International countries, rates, and any currency conversion have not been configured.
+                Manage international countries, shipping rates, currencies and payment methods on the Global Switch page. UAE delivery fees are set here and in the delivery prices.
               </p>
               <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
-                <span className="text-sm font-bold text-white/80">Worldwide shipping</span>
-                <span role="status" aria-label="Worldwide shipping is off" className="rounded-full border border-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white/50">Off</span>
+                <span className="text-sm font-bold text-white/80">International shipping</span>
+                <Link href="/admin/global-switch" className="rounded-full border border-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white/70 underline">Open Global Switch</Link>
               </div>
             </div>
             <div className="border-t border-border/40 pt-6 space-y-5">

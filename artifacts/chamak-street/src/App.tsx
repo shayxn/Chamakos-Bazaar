@@ -1,6 +1,7 @@
+import { GlobalStoreProvider } from "@/components/global-store-provider";
 import React, { Suspense, lazy, useEffect } from "react";
 import RouteSeo from "@/components/route-seo";
-import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
+import { Switch, Route, Redirect, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -136,6 +137,9 @@ const AdminStockAlerts = lazy(() => import("@/pages/admin/stock-alerts"));
 const AdminSalesReports = lazy(() => import("@/pages/admin/sales-reports"));
 const AdminChat = lazy(() => import("@/pages/admin/chat"));
 const AdminActivityLog = lazy(() => import("@/pages/admin/activity-log"));
+const AdminGlobalSwitch = lazy(() => import("@/pages/admin/global-store").then((m) => ({ default: m.GlobalSwitchPage })));
+const AdminPaymentMethods = lazy(() => import("@/pages/admin/global-store").then((m) => ({ default: m.PaymentMethodsPage })));
+const InstallGuide = lazy(() => import("@/pages/install-guide"));
 const AdminLiveTraffic = lazy(() => import("@/pages/admin/live-traffic"));
 const AdminCustomerNotifications = lazy(() => import("@/pages/admin/customer-notifications"));
 const AdminCoupons = lazy(() => import("@/pages/admin/coupons"));
@@ -178,6 +182,8 @@ function AdminRouter() {
         <Route path="/admin/refund-requests" component={AdminRefundRequests} />
         <Route path="/admin/product-requests" component={AdminProductRequests} />
         <Route path="/admin/visitors" component={AdminVisitors} />
+        <Route path="/admin/global-switch" component={AdminGlobalSwitch} />
+        <Route path="/admin/payment-methods" component={AdminPaymentMethods} />
         <Route path="/admin/live-traffic" component={AdminLiveTraffic} />
         <Route path="/admin/customer-notifications" component={AdminCustomerNotifications} />
         <Route path="/admin/notifications" component={AdminNotificationSettings} />
@@ -188,6 +194,7 @@ function AdminRouter() {
         <Route path="/admin/chat" component={AdminChat} />
         <Route path="/admin/coupons" component={AdminCoupons} />
         <Route path="/admin/discount-codes" component={AdminCoupons} />
+        <Route path="/admin/manage/countries"><Redirect to="/admin/global-switch" /></Route>
         <Route path="/admin/manage/:kind" component={ContentManagement} />
 
         <Route component={NotFound} />
@@ -254,6 +261,7 @@ function MainRouter() {
             <Route path="/news" component={ManagedContent} />
             <Route path="/news/:slug" component={ManagedContent} />
             <Route path="/wishlist" component={WishlistPage} />
+            <Route path="/install" component={InstallGuide} />
             <Route path="/maintenance" component={MaintenancePage} />
             <Route path="/:slug" component={ManagedContent} />
 
@@ -288,7 +296,7 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <MotionConfig reducedMotion="user">
           <TooltipProvider>
-            <AccountProvider>
+            <GlobalStoreProvider><AccountProvider>
               <CartFlyProvider>
                 <SiteEffects />
                 <LoadingScreen />
@@ -304,7 +312,7 @@ function App() {
                 </WouterRouter>
                 <Toaster />
               </CartFlyProvider>
-            </AccountProvider>
+            </AccountProvider></GlobalStoreProvider>
           </TooltipProvider>
           </MotionConfig>
         </QueryClientProvider>

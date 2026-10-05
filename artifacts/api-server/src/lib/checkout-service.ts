@@ -7,13 +7,15 @@ import { rows } from "./management-db";
 import { getDeliveryCharges } from "./delivery";
 import { validateDiscount, ensureDiscounts } from "./discount-validation";
 import { ensureCommerceSchema } from "./commerce-schema";
+import { validateCheckoutCountry, selectedStoreCountry } from "./global-store";
 
 const checkoutInput = z.object({
   customerName: z.string().trim().min(2).max(150), customerPhone: z.string().trim().min(7).max(30),
   customerAddress: z.string().trim().min(5).max(1000),
   deliveryMethod: z.enum(["standard","express","priority"]).default("standard"),
   tip: z.coerce.number().finite().min(0).max(500).default(0),
-  country: z.enum(["AE","UAE","United Arab Emirates"]).default("AE"),
+  country: z.string().trim().max(100).optional(),
+  paymentMethodId: z.string().regex(/^[a-zA-Z0-9_-]{1,40}$/).optional(),
   couponCode: z.string().trim().max(80).optional(),
 });
 export class CheckoutError extends Error {}
@@ -21,15 +23,28 @@ export class CheckoutError extends Error {}
 export async function createValidatedOrder(req: Request, paymentMethod: "cod" | "ziina", clearCart = true) {
   await ensureCommerceSchema();
   const parsed = checkoutInput.safeParse(req.body);
-  if (!parsed.success) throw new CheckoutError("Check your name, phone, address, delivery option, and UAE delivery country.");
+  if (!parsed.success) throw new CheckoutError("Check your name, phone, address, delivery option, and country.");
   const b = parsed.data;
   const session = req.session as Record<string, unknown>;
+  const normalizeCountry = (value: unknown) => {
+    const code = String(value ?? "AE").toUpperCase();
+    return ["UAE","UNITED ARAB EMIRATES"].includes(code) ? "AE" : code;
+  };
+  const selected = selectedStoreCountry(req);
+  const code = normalizeCountry(b.country ?? selected);
+  let country;
+  try { country = await validateCheckoutCountry(code, paymentMethod, b.paymentMethodId,
+    selected ? normalizeCountry(selected) : undefined); }
+  catch (error) { throw new CheckoutError((error as Error).message); }
+  if (code !== "AE" && b.deliveryMethod !== "standard")
+    throw new CheckoutError("Only standard delivery is configured outside the UAE.");
   const cartId = String(session.cartId ?? "");
   if (!cartId) throw new CheckoutError("Cart is empty.");
   await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS coupon_code TEXT, ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10,2) DEFAULT 0`);
   if (b.couponCode) await ensureDiscounts();
   const charges = await getDeliveryCharges();
-  const deliveryCharge = charges[b.deliveryMethod];
+  const deliveryCharge = code === "AE" ? charges[b.deliveryMethod] : country.shippingAED;
+  if (deliveryCharge === null) throw new CheckoutError("Delivery pricing has not been configured for your country.");
   if (!Number.isFinite(deliveryCharge) || deliveryCharge < 0) throw new CheckoutError("This delivery option is not configured.");
   const [customer] = session.customerId ? await db.select({ email:customerAccountsTable.email }).from(customerAccountsTable).where(eq(customerAccountsTable.id, Number(session.customerId))) : [];
   return db.transaction(async tx => {
@@ -78,11 +93,13 @@ export async function createValidatedOrder(req: Request, paymentMethod: "cod" | 
     }
     const itemsSubtotal = items.reduce((sum,i)=>sum+i.price*i.quantity,0);
     const customerKey = session.customerId ? `customer:${session.customerId}` : `phone:${b.customerPhone.replace(/\D/g,"")}`;
-    const discount = b.couponCode ? await validateDiscount(b.couponCode,{items:items as any,customerKey,country:"AE"},true,tx) : null;
+    const discount = b.couponCode ? await validateDiscount(b.couponCode,{items:items as any,customerKey,country:code},true,tx) : null;
     const total = Math.round(Math.max(0,itemsSubtotal+deliveryCharge+b.tip-(discount?.discountAmount ?? 0))*100)/100;
     const orderNumber = `IMG-${randomBytes(6).toString("hex").toUpperCase()}`;
     const [order] = await tx.insert(ordersTable).values({
-      orderNumber,customerName:b.customerName,customerPhone:b.customerPhone,customerAddress:b.customerAddress,
+      orderNumber,customerName:b.customerName,customerPhone:b.customerPhone,
+      customerAddress:code === "AE" ? b.customerAddress : `${b.customerAddress}\n${country.name}`,
+      countryCode:code,
       customerId:session.customerId?Number(session.customerId):null,
       stockReserved:true,paymentStatus:paymentMethod==="ziina"?"initializing":null,
       paymentCartId:paymentMethod==="ziina"?cartId:null,discountCustomerKey:discount?customerKey:null,

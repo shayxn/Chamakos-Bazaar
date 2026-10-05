@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
@@ -151,7 +152,7 @@ export default function GamesPage() {
                               <div className="flex items-center gap-1.5 ml-auto">
                                 <ShoppingBag className="h-3.5 w-3.5 text-primary" />
                                 <span className="text-sm font-black text-primary font-mono">
-                                  AED {game.preOrderPrice.toFixed(2)}
+                                  <Price v={game.preOrderPrice} />
                                 </span>
                               </div>
                             )}

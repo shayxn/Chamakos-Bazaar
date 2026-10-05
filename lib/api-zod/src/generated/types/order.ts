@@ -23,6 +23,9 @@ export interface Order {
   /** @nullable */
   paymentMethod?: string | null;
   /** @nullable */
+  paymentStatus?: string | null;
+  countryCode?: string;
+  /** @nullable */
   courierName?: string | null;
   /** @nullable */
   estimatedDelivery?: string | null;

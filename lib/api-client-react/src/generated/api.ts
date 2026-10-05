@@ -30,6 +30,7 @@ import type {
   CategoryUpdate,
   ContentPage,
   ContentPageInput,
+  CountrySelection,
   CreateCustomerNotificationCampaign201,
   CustomerNotificationCampaignInput,
   CustomerNotificationPreferences,
@@ -39,6 +40,9 @@ import type {
   GetCustomerNotificationTemplates200Item,
   GetLaunchState200,
   GetLiveTraffic200,
+  GlobalStoreAdmin,
+  GlobalStoreConfig,
+  GlobalStoreContext,
   HealthStatus,
   ListProductsParams,
   LoginInput,
@@ -102,6 +106,276 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetGlobalStoreContextUrl = () => {
+
+
+
+
+  return `/api/storefront/global`
+}
+
+export const getGlobalStoreContext = async ( options?: RequestInit): Promise<GlobalStoreContext> => {
+
+  return customFetch<GlobalStoreContext>(getGetGlobalStoreContextUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGlobalStoreContextQueryKey = () => {
+    return [
+    `/api/storefront/global`
+    ] as const;
+    }
+
+
+export const getGetGlobalStoreContextQueryOptions = <TData = Awaited<ReturnType<typeof getGlobalStoreContext>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGlobalStoreContext>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGlobalStoreContextQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGlobalStoreContext>>> = ({ signal }) => getGlobalStoreContext({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGlobalStoreContext>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGlobalStoreContextQueryResult = NonNullable<Awaited<ReturnType<typeof getGlobalStoreContext>>>
+export type GetGlobalStoreContextQueryError = ErrorType<unknown>
+
+
+
+export function useGetGlobalStoreContext<TData = Awaited<ReturnType<typeof getGlobalStoreContext>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGlobalStoreContext>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGlobalStoreContextQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSelectStoreCountryUrl = () => {
+
+
+
+
+  return `/api/storefront/country`
+}
+
+export const selectStoreCountry = async (countrySelection: CountrySelection, options?: RequestInit): Promise<GlobalStoreContext> => {
+
+  return customFetch<GlobalStoreContext>(getSelectStoreCountryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(countrySelection)
+  }
+);}
+
+
+
+
+export const getSelectStoreCountryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof selectStoreCountry>>, TError,{data: BodyType<CountrySelection>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof selectStoreCountry>>, TError,{data: BodyType<CountrySelection>}, TContext> => {
+
+const mutationKey = ['selectStoreCountry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof selectStoreCountry>>, {data: BodyType<CountrySelection>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  selectStoreCountry(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SelectStoreCountryMutationResult = NonNullable<Awaited<ReturnType<typeof selectStoreCountry>>>
+    export type SelectStoreCountryMutationBody = BodyType<CountrySelection>
+    export type SelectStoreCountryMutationError = ErrorType<void>
+
+    export const useSelectStoreCountry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof selectStoreCountry>>, TError,{data: BodyType<CountrySelection>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof selectStoreCountry>>,
+        TError,
+        {data: BodyType<CountrySelection>},
+        TContext
+      > => {
+      return useMutation(getSelectStoreCountryMutationOptions(options));
+    }
+
+export const getGetGlobalStoreAdminUrl = () => {
+
+
+
+
+  return `/api/admin/global-store`
+}
+
+export const getGlobalStoreAdmin = async ( options?: RequestInit): Promise<GlobalStoreAdmin> => {
+
+  return customFetch<GlobalStoreAdmin>(getGetGlobalStoreAdminUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGlobalStoreAdminQueryKey = () => {
+    return [
+    `/api/admin/global-store`
+    ] as const;
+    }
+
+
+export const getGetGlobalStoreAdminQueryOptions = <TData = Awaited<ReturnType<typeof getGlobalStoreAdmin>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGlobalStoreAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGlobalStoreAdminQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGlobalStoreAdmin>>> = ({ signal }) => getGlobalStoreAdmin({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGlobalStoreAdmin>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGlobalStoreAdminQueryResult = NonNullable<Awaited<ReturnType<typeof getGlobalStoreAdmin>>>
+export type GetGlobalStoreAdminQueryError = ErrorType<unknown>
+
+
+
+export function useGetGlobalStoreAdmin<TData = Awaited<ReturnType<typeof getGlobalStoreAdmin>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGlobalStoreAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGlobalStoreAdminQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveGlobalStoreConfigUrl = () => {
+
+
+
+
+  return `/api/admin/global-store`
+}
+
+export const saveGlobalStoreConfig = async (globalStoreConfig: GlobalStoreConfig, options?: RequestInit): Promise<GlobalStoreAdmin> => {
+
+  return customFetch<GlobalStoreAdmin>(getSaveGlobalStoreConfigUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(globalStoreConfig)
+  }
+);}
+
+
+
+
+export const getSaveGlobalStoreConfigMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveGlobalStoreConfig>>, TError,{data: BodyType<GlobalStoreConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveGlobalStoreConfig>>, TError,{data: BodyType<GlobalStoreConfig>}, TContext> => {
+
+const mutationKey = ['saveGlobalStoreConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveGlobalStoreConfig>>, {data: BodyType<GlobalStoreConfig>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveGlobalStoreConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveGlobalStoreConfigMutationResult = NonNullable<Awaited<ReturnType<typeof saveGlobalStoreConfig>>>
+    export type SaveGlobalStoreConfigMutationBody = BodyType<GlobalStoreConfig>
+    export type SaveGlobalStoreConfigMutationError = ErrorType<void>
+
+    export const useSaveGlobalStoreConfig = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveGlobalStoreConfig>>, TError,{data: BodyType<GlobalStoreConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveGlobalStoreConfig>>,
+        TError,
+        {data: BodyType<GlobalStoreConfig>},
+        TContext
+      > => {
+      return useMutation(getSaveGlobalStoreConfigMutationOptions(options));
+    }
 
 export const getListPublishedContentUrl = (kind: string,) => {
 

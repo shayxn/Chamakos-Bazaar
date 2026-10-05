@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { playCashSound } from "@/hooks/use-admin-notifications";
+import { OrderSoundToggle } from "@/components/order-sound-toggle";
 
 const STATUS_COLORS: Record<string, string> = {
   pending:          "bg-primary/10 text-primary border-primary/30",
@@ -370,21 +370,6 @@ export default function AdminOrders() {
   const [refundInitiated, setRefundInitiated] = useState(false);
 
   // Polling new order detection — plays cash sound when new orders arrive
-  const lastCountRef = useRef<number | null>(null);
-  useEffect(() => {
-    const list = orders as Order[] | undefined;
-    if (!list) return;
-    const count = list.length;
-    if (lastCountRef.current !== null && count > lastCountRef.current) {
-      playCashSound();
-      toast({
-        title: "🛒 New order received!",
-        description: `${count - lastCountRef.current} new order(s) placed.`,
-      });
-    }
-    lastCountRef.current = count;
-  }, [orders, toast]);
-
   const invalidate = () => queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() });
 
   const handleStatusChange = (order: Order, status: OrderStatusUpdateStatus) => {
@@ -513,6 +498,7 @@ export default function AdminOrders() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Orders</h1>
+        <div className="mb-4"><OrderSoundToggle /></div>
         <p className="text-muted-foreground text-sm">Manage, fulfill, and track customer orders.</p>
       </div>
 

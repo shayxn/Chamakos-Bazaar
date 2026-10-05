@@ -10,7 +10,7 @@ export default function RouteSeo(){
     const meta=(key:string,value:string,property=false)=>{let e=document.head.querySelector<HTMLMetaElement>(`meta[${property?"property":"name"}="${key}"]`);if(!e){e=document.createElement("meta");e.setAttribute(property?"property":"name",key);document.head.appendChild(e);}e.content=value;};
     meta("description",settings.site_meta_description||"IMAGINATE — clothing and streetwear in the UAE.");
     meta("og:title",document.title,true);meta("og:description",settings.site_meta_description||"",true);
-    meta("og:image",settings.site_og_image||new URL(`${import.meta.env.BASE_URL}imaginate-logo.png`,window.location.origin).href,true);
+    meta("og:image",settings.site_og_image||new URL(`${import.meta.env.BASE_URL}opengraph.jpg`,window.location.origin).href,true);
     meta("robots",/^\/(?:admin|account|checkout|cart|receipt|order\/|maintenance)/.test(path)?"noindex,nofollow":"index,follow");
     let canonical=document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if(!canonical){canonical=document.createElement("link");canonical.rel="canonical";document.head.appendChild(canonical);}

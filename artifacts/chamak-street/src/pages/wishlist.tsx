@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -140,7 +141,7 @@ export default function WishlistPage() {
                     <Link href={`/product/${item.id}`}>
                       <p className="font-black text-sm uppercase tracking-wide line-clamp-2 hover:text-primary transition-colors">{item.name}</p>
                     </Link>
-                    <p className="font-mono font-black text-primary">AED {item.price.toFixed(0)}</p>
+                    <p className="font-mono font-black text-primary"><Price v={item.price} /></p>
 
                     {item.stock === 0 && !item.isPreOrder ? (
                       <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Out of Stock</p>

@@ -18,6 +18,8 @@ import { Lock, ArrowRight, MessageCircle, Truck, X, Zap, Clock, Star, Tag, Check
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
 import { getPrimaryProductMedia } from "@/lib/product-media";
+import { Price, useStoreContext } from "@/components/price";
+import { formatAED, getActiveRate } from "@/lib/currency";
 import { trackCheckout, trackOrder } from "@/lib/use-visitor-tracking";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
@@ -68,12 +70,14 @@ async function createZiinaCheckout(
   deliveryMethod: DeliveryMethod,
   tip: number,
   couponCode?: string,
+  countryCode = "AE",
+  paymentMethodId?: string,
 ): Promise<string> {
   const res = await fetch(`${BASE}/api/payments/ziina-checkout`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...values, deliveryMethod, tip, couponCode }),
+    body: JSON.stringify({ ...values, deliveryMethod, tip, couponCode, country: countryCode, paymentMethodId }),
   });
   const result = await res.json() as { redirectUrl?: string; error?: string };
   if (!res.ok || !result.redirectUrl) throw new Error(result.error ?? "Ziina payment link could not be created");
@@ -164,12 +168,29 @@ export default function Checkout() {
     defaultValues: { customerName: "", customerPhone: "", customerAddress: "" },
   });
 
+  const storeCtx = useStoreContext();
+  const global = !!storeCtx?.enabled;
+  const countryCode = global ? storeCtx!.country.code : "AE";
+  const isAE = countryCode === "AE";
+  const [methodId, setMethodId] = useState<string | null>(null);
+  const methods = global ? storeCtx!.paymentMethods.filter((m) => m.enabled && (m.provider !== "cod" || isAE)) : [];
+  const chosen = methods.find((m) => m.id === methodId) ?? methods.find((m) => m.configured !== false) ?? null;
+  useEffect(() => {
+    if (!global) return;
+    if (chosen) { setPaymentMethod(chosen.provider); if (methodId !== chosen.id) setMethodId(chosen.id); }
+    else if (!isAE) setPaymentMethod("ziina");
+  }, [global, chosen, isAE, methodId]);
+  useEffect(() => { if (!isAE) setDeliveryMethod("standard"); }, [isAE]);
+
   if (isLoading) return <div className="p-20 text-center font-bold uppercase">Loading...</div>;
   if (!cart || cart.items.length === 0) return <Redirect href="/cart" />;
 
   // ── Totals ────────────────────────────────────────────────────────────────
   const subtotal = cart.total;
-  const selectedDelivery = deliveryOptions.find((o) => o.id === deliveryMethod) ?? deliveryOptions[0]!;
+  const foreignFee = storeCtx?.country.shippingAED;
+  const deliveryUnavailable = global && !isAE && !(typeof foreignFee === "number" && foreignFee > 0);
+  const shownOptions = global && !isAE ? deliveryOptions.filter((o) => o.id === "standard").map((o) => ({ ...o, detail: storeCtx!.country.name, price: deliveryUnavailable ? 0 : (foreignFee as number) })) : deliveryOptions;
+  const selectedDelivery = shownOptions.find((o) => o.id === deliveryMethod) ?? deliveryOptions[0]!;
   const deliveryCharge = selectedDelivery.price;
   const tipAmount =
     tipOption === "none" ? 0
@@ -197,6 +218,8 @@ export default function Checkout() {
         ...data,
         couponCode: couponData?.code ?? undefined,
         paymentMethod: "cod",
+        country: countryCode,
+        paymentMethodId: chosen?.id,
         deliveryMethod,
         tip: tipAmount,
       });
@@ -210,12 +233,12 @@ export default function Checkout() {
   };
 
   const onSubmit = async (data: CheckoutValues) => {
-    if (busy) return; // prevent double-submit
+    if (busy || deliveryUnavailable) return; // prevent double-submit
     setPaymentError(null);
     if (paymentMethod === "ziina") {
       setIsRedirectingToZiina(true);
       try {
-        const redirectUrl = await createZiinaCheckout(data, deliveryMethod, tipAmount, couponData?.code);
+        const redirectUrl = await createZiinaCheckout(data, deliveryMethod, tipAmount, couponData?.code, countryCode, chosen?.id);
         queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
         window.location.assign(redirectUrl);
       } catch (err) {
@@ -276,7 +299,7 @@ export default function Checkout() {
                     <FormItem>
                       <FormLabel className="uppercase text-[10px] font-black tracking-widest text-muted-foreground">Full Name</FormLabel>
                       <FormControl>
-                        <AnimatedInput placeholder="John Doe" className="glass-input h-11" {...field} />
+                        <AnimatedInput placeholder="Your full name" className="glass-input h-11" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -312,7 +335,7 @@ export default function Checkout() {
                     <FormItem>
                       <FormLabel className="uppercase text-[10px] font-black tracking-widest text-muted-foreground">Shipping Address</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Building, Street, Area, City, UAE" className="glass-input min-h-[90px]" {...field} />
+                        <Textarea placeholder={isAE ? "Building, Street, Area, City, UAE" : "Street address, city, state and postcode"} className="glass-input min-h-[90px]" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -323,11 +346,10 @@ export default function Checkout() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.36 }} className="space-y-3">
                   <p className="uppercase text-[10px] font-black tracking-widest text-muted-foreground">Delivery Method</p>
                   <div className="space-y-2.5">
-                    {deliveryOptions.map((opt) => {
+                    {shownOptions.map((opt) => {
                       const Icon = opt.icon;
                       const selected = deliveryMethod === opt.id;
-                      const isPriority = opt.id === "priority";
-                      const showGlow = selected && isPriority;
+                                            const showGlow = false;
 
                       return (
                         <div key={opt.id} className="relative">
@@ -346,43 +368,6 @@ export default function Checkout() {
                             {selected && !showGlow && (
                               <div className="absolute inset-0 pointer-events-none glass-shine" />
                             )}
-                            {/* Priority — slow-drifting orange & yellow aurora inside the button */}
-                            {showGlow && (
-                              <>
-                                {/* Dark base */}
-                                <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(10,6,2,0.82)" }} />
-                                {/* Orange blob — drifts left to right */}
-                                <motion.div
-                                  className="absolute inset-0 pointer-events-none"
-                                  animate={{ x: ["0%", "35%", "5%", "0%"], y: ["0%", "20%", "-15%", "0%"] }}
-                                  transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                                  style={{
-                                    background: "radial-gradient(ellipse 90px 65px at 15% 55%, rgba(183,156,255,0.6), transparent 70%)",
-                                    filter: "blur(6px)",
-                                  }}
-                                />
-                                {/* Yellow blob — drifts right to left */}
-                                <motion.div
-                                  className="absolute inset-0 pointer-events-none"
-                                  animate={{ x: ["0%", "-30%", "15%", "0%"], y: ["0%", "-20%", "30%", "0%"] }}
-                                  transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                                  style={{
-                                    background: "radial-gradient(ellipse 80px 55px at 78% 45%, rgba(183,156,255,0.55), transparent 70%)",
-                                    filter: "blur(8px)",
-                                  }}
-                                />
-                                {/* Amber centre — slow drift */}
-                                <motion.div
-                                  className="absolute inset-0 pointer-events-none"
-                                  animate={{ x: ["0%", "12%", "-8%", "0%"], y: ["0%", "-12%", "18%", "0%"], opacity: [0.3, 0.6, 0.3] }}
-                                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-                                  style={{
-                                    background: "radial-gradient(ellipse 65px 45px at 50% 50%, rgba(183,156,255,0.5), transparent 70%)",
-                                    filter: "blur(10px)",
-                                  }}
-                                />
-                              </>
-                            )}
                             <div className={`relative w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-primary" : "border-muted-foreground"}`}>
                               {selected && <div className="w-2 h-2 rounded-full bg-primary" />}
                             </div>
@@ -393,14 +378,14 @@ export default function Checkout() {
                                 {opt.badge && (
                                   <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full"
                                     style={{ background: "rgba(183,156,255,0.2)", color: "#b79cff", border: "1px solid rgba(183,156,255,0.4)" }}>
-                                    ⚡ {opt.badge}
+                                    {opt.badge}
                                   </span>
                                 )}
                               </div>
                               <p className="text-xs text-muted-foreground">{opt.detail}</p>
                             </div>
                             <div className={`relative font-mono font-black text-sm shrink-0 ${selected ? "text-primary" : "text-muted-foreground"}`}>
-                              AED {opt.price}
+                              {deliveryUnavailable ? "Unavailable" : <Price v={opt.price} />}
                             </div>
                           </button>
                         </div>
@@ -413,7 +398,7 @@ export default function Checkout() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.43 }} className="space-y-3">
                   <div>
                     <p className="uppercase text-[10px] font-black tracking-widest text-muted-foreground">Add a Tip</p>
-                    <p className="text-[11px] text-muted-foreground/60 mt-0.5">100% goes to our packing team</p>
+                    <p className="text-[11px] text-muted-foreground/60 mt-0.5">100% goes to our packing team. Tips are always charged in AED.</p>
                   </div>
                   <div className="grid grid-cols-4 gap-2">
                     {(["none", "5", "10", "custom"] as const).map((opt) => {
@@ -464,6 +449,18 @@ export default function Checkout() {
                 {/* ── Payment Method ── */}
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.50 }} className="space-y-3">
                   <p className="uppercase text-[10px] font-black tracking-widest text-muted-foreground">Payment Method</p>
+                  {global ? (
+                    <div className="grid grid-cols-1 gap-3" role="radiogroup" aria-label="Payment method">
+                      {methods.length === 0 && <p className="rounded-xl border border-white/15 p-4 text-sm text-muted-foreground">No payment method is available for {storeCtx!.country.name} yet.</p>}
+                      {methods.map((m) => (
+                        <button key={m.id} type="button" role="radio" aria-checked={chosen?.id === m.id} disabled={m.configured === false} onClick={() => setMethodId(m.id)}
+                          className={`jelly flex items-center gap-3 rounded-xl border-2 p-4 text-left ${chosen?.id === m.id ? "border-primary glass" : "border-border/40 glass-sm"} disabled:opacity-50`}>
+                          <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${chosen?.id === m.id ? "border-primary" : "border-muted-foreground"}`}>{chosen?.id === m.id && <div className="h-2 w-2 rounded-full bg-primary" />}</div>
+                          <div><p className="text-sm font-black uppercase tracking-wider">{m.label}</p><p className="text-xs text-muted-foreground">{m.configured === false ? "Setup unavailable right now" : m.provider === "cod" ? "Pay when your order arrives" : "Pay securely online"}</p></div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
                   <div className="grid grid-cols-1 gap-3">
                     <button
                       type="button" onClick={() => setPaymentMethod("cod")}
@@ -495,18 +492,26 @@ export default function Checkout() {
                       </div>
                     </button>
                   </div>
+                  )}
                   {paymentError && (
                     <p className="text-xs font-bold text-destructive">{paymentError}</p>
                   )}
                 </motion.div>
 
+                {global && !isAE && (
+                  <div role="note" className="space-y-1 rounded-xl border border-white/15 p-3 text-xs text-muted-foreground">
+                    <p className="font-bold text-foreground">You will be charged in AED: {formatAED(grandTotal)}</p>
+                    <p>{getActiveRate() ? "Amounts shown in your currency are estimates only." : "Live exchange rates are unavailable, so all amounts are shown in AED."}</p>
+                    {deliveryUnavailable && <p role="alert" className="font-bold text-destructive">Delivery to {storeCtx!.country.name} is not configured yet, so orders cannot be placed.</p>}
+                  </div>
+                )}
                 {/* Submit */}
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.57 }} className="pt-2">
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                     <Button
                       type="submit" size="lg"
                       className="w-full h-14 font-black uppercase tracking-widest fire-gradient border-none shadow-[0_0_20px_rgba(183,156,255,0.3)] hover:shadow-[0_0_35px_rgba(183,156,255,0.55)] transition-all"
-                      disabled={busy}
+                      disabled={busy || deliveryUnavailable || (global && !chosen)}
                     >
                       {busy ? (
                         <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>
@@ -514,7 +519,7 @@ export default function Checkout() {
                         </motion.span>
                       ) : (
                         <span className="flex items-center gap-2">
-                          Place Order · AED {grandTotal.toFixed(2)} <ArrowRight className="h-5 w-5" />
+                          Place Order · <Price v={grandTotal} /> <ArrowRight className="h-5 w-5" />
                         </span>
                       )}
                     </Button>
@@ -555,7 +560,7 @@ export default function Checkout() {
                           <p className="text-xs text-muted-foreground mt-1">Qty: {item.quantity}{item.size ? ` | Size: ${item.size}` : ""}{item.color ? ` | Color: ${item.color}` : ""}</p>
                         </div>
                       </div>
-                      <div className="font-mono font-bold text-sm shrink-0">AED {(item.price * item.quantity).toFixed(2)}</div>
+                      <div className="font-mono font-bold text-sm shrink-0"><Price v={item.price * item.quantity} /></div>
                     </motion.div>
                   );
                 })}
@@ -571,7 +576,7 @@ export default function Checkout() {
                       <div>
                         <p className="text-xs font-black text-green-400 tracking-widest">{couponData.code}</p>
                         <p className="text-[10px] text-muted-foreground">
-                          {couponData.discountType === "percent" ? `${couponData.discountValue}% off` : `AED ${couponData.discountValue.toFixed(0)} off`}
+                          {couponData.discountType === "percent" ? `${couponData.discountValue}% off` : `${formatAED(couponData.discountValue)} off`}
                         </p>
                       </div>
                     </div>
@@ -617,7 +622,7 @@ export default function Checkout() {
               <div className="border-t border-white/10 pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-mono font-bold">AED {subtotal.toFixed(2)}</span>
+                  <span className="font-mono font-bold"><Price v={subtotal} /></span>
                 </div>
 
                 <div className="flex justify-between text-sm">
@@ -625,7 +630,7 @@ export default function Checkout() {
                     {deliveryMethod === "priority" ? <Zap className="h-3 w-3 text-primary" /> : <Truck className="h-3 w-3" />}
                     {selectedDelivery.label}
                   </span>
-                  <span className="font-mono font-bold text-primary">AED {deliveryCharge.toFixed(2)}</span>
+                  <span className="font-mono font-bold text-primary">{deliveryUnavailable ? "Unavailable" : <Price v={deliveryCharge} />}</span>
                 </div>
 
                 {/* Coupon discount line */}
@@ -639,7 +644,7 @@ export default function Checkout() {
                       <span className="text-muted-foreground flex items-center gap-1">
                         <Tag className="h-3 w-3 text-green-400" /> Discount code <span className="text-green-400 font-mono font-bold text-xs">{couponData?.code}</span>
                       </span>
-                      <span className="font-mono font-bold text-green-400">−AED {discountAmount.toFixed(2)}</span>
+                      <span className="font-mono font-bold text-green-400">−<Price v={discountAmount} /></span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -654,7 +659,7 @@ export default function Checkout() {
                       <span className="text-muted-foreground flex items-center gap-1">
                         <Star className="h-3 w-3 text-primary" /> Tip
                       </span>
-                      <span className="font-mono font-bold text-primary">AED {tipAmount.toFixed(2)}</span>
+                      <span className="font-mono font-bold text-primary"><Price v={tipAmount} /></span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -666,7 +671,7 @@ export default function Checkout() {
                     initial={{ scale: 1.08, color: "#b79cff" }} animate={{ scale: 1, color: "#b79cff" }}
                     className="font-mono text-2xl font-black text-primary"
                   >
-                    AED {grandTotal.toFixed(2)}
+                    <Price v={grandTotal} />
                   </motion.span>
                 </div>
 

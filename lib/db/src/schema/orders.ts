@@ -18,6 +18,7 @@ export const ordersTable = pgTable("orders", {
   customerEmail: text("customer_email"),
   customerPhone: text("customer_phone"),
   customerAddress: text("customer_address"),
+  countryCode: text("country_code").notNull().default("AE"),
   paymentMethod: text("payment_method").default("cod"),
   deliveryMethod: text("delivery_method").default("standard"),
   deliveryCharge: numeric("delivery_charge", { precision: 10, scale: 2 }).default("25"),

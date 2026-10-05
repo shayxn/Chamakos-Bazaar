@@ -27,11 +27,23 @@ Keep legitimate semantic warning/error colors when replacing them would harm acc
 
 **How to apply:** Review the meaning of a color before replacing it; keep owner access independent from the visible staff directory.
 
-The storefront is UAE-only, with AED reporting. Worldwide shipping remains OFF and must not be advertised or discussed publicly.
+The storefront defaults to UAE-only when Global Switch is off. When the owner enables it, customers may choose enabled countries; the owner can remove and re-add any country and limit payment methods by country. COD is strictly UAE-only.
 
-**Why:** These are the user's stated shipping and reporting requirements.
+**Why:** The user explicitly replaced the permanent UAE-only restriction with an owner-controlled Global Switch.
 
-**How to apply:** Keep customer copy and checkout consistent with UAE delivery. Do not expose a speculative worldwide option.
+**How to apply:** Keep public delivery claims conditional on Global Switch. Foreign delivery needs a configured paid fee and supported payment method; do not invent free shipping or unavailable payment providers.
+
+Use live-source exchange-rate estimates for the selected country's currency, but charge Ziina and calculate orders, delivery, tips, discounts and reporting in AED.
+
+**Why:** The user chose live display conversion while keeping actual Ziina settlement in AED.
+
+**How to apply:** Label conversion as an estimate, retain truthful stale/unavailable states and provider attribution, and never treat a fulfillment status as proof of a paid online purchase.
+
+The supplied editorial reference is layout only. Do not use any Rockstar or GTA VI branding/content. The hero side panel is owner-controlled title, description and image content, not a product recommendation.
+
+**Why:** The user explicitly said “Do NOT use any rockstar branding, NOTHING related to rockstar or gta 6”.
+
+**How to apply:** Keep reference content out of new UI and use real published editorial cards; do not seed invented stories to fill an empty panel.
 
 A shipping month or date-only string must not become a countdown with an invented time or time zone.
 

@@ -177,6 +177,7 @@ export function CustomerNotificationPrompt() {
         </div>
         {!editingExisting && iosNeedsInstall && <p className="mt-4 rounded-xl border border-white/15 bg-white/5 p-3 text-xs text-white/70">On iPhone and iPad, notifications work after you add Imaginate to your Home Screen: tap Share, then Add to Home Screen, and open it from there.</p>}
         {!editingExisting && !iosNeedsInstall && !pushSupported() && <p className="mt-4 rounded-xl border border-white/15 bg-white/5 p-3 text-xs text-white/70">This browser does not support web notifications.</p>}
+        <a href={`${BASE}/install`} target="_blank" rel="noreferrer" className="mt-3 block text-xs text-[#c4adff] underline underline-offset-4" data-testid="link-install-guide">How to install and allow notifications on iPhone and Android</a>
         {msg && <p role={msg.ok ? "status" : "alert"} className={`mt-3 text-sm ${msg.ok ? "text-primary" : "text-red-300"}`}>{msg.text}</p>}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <button className="flex-1 rounded-full bg-primary px-5 py-3 text-xs font-black uppercase tracking-widest text-primary-foreground transition hover:brightness-110 disabled:opacity-40" disabled={busy || (!editingExisting && !supported)} onClick={allow} data-testid="button-allow-notifications">{busy ? "Working" : editingExisting ? "SAVE PREFERENCES" : "ALLOW NOTIFICATIONS"}</button>

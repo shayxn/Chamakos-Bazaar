@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useListProducts, useListCategories, getListProductsQueryKey, getListCategoriesQueryKey } from "@workspace/api-client-react";
@@ -470,7 +471,7 @@ export default function Shop() {
                             <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold">{product.categoryName || "Streetwear"}</p>
                             <h3 className="font-black text-white text-xs leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">{product.name}</h3>
                             <div className="flex items-center justify-between pt-0.5">
-                              <p className="font-black text-primary text-sm tabular-nums">AED {product.price.toFixed(2)}</p>
+                              <p className="font-black text-primary text-sm tabular-nums"><Price v={product.price} /></p>
                               {product.sizes && (
                                 <p className="text-[9px] text-white/25 font-bold hidden sm:block">
                                   {product.sizes.split(",").slice(0, 3).map(s => s.trim()).join(" · ")}

@@ -17,7 +17,7 @@
 - [GitHub push setup](github-push-setup.md) — Remote is HTTPS github.com/shayxn/Chamakos-Bazaar; no SSH keys; no token in env. push-to-github.sh in repo root handles token-based push with force-with-lease. User needs GITHUB_TOKEN secret.
 - [Legacy media durability](uploads-git-warning.md) — preserve original media and stable URLs; never hide missing files by replacing the owner's saved assets.
 - [Vite Fast Refresh mixed exports](vite-fast-refresh-mixed.md) — files exporting both a React component AND a hook (useXxx) crash React on HMR; fix with `/* @refresh reset */` at top of file or split into two files.
-- [IMAGINATE storefront rules](firstpick-rebrand.md) — preserve the supplied logo and real catalog; UAE-only/AED, no public worldwide shipping or invented claims and deadlines.
+- [IMAGINATE storefront rules](firstpick-rebrand.md) — supplied logo, editorial reference only; Global controls countries, COD UAE-only, live FX estimates but AED settlement; preserve history.
 - [Basics collection](basics-collection.md) — `collection` text col on products table; null=main store, 'basics'=Basics; API always filters by it; admin/basics.tsx + /basics route.
 - [Notification & real-time tracking](notification-realtime-tracking.md) — web-push VAPID, SSE stream, per-event toggles in site_settings, module-level tracker functions (trackSearch/trackCartUpdate/trackCheckout/trackOrder), admin /notifications page.
 - [Delivery, Tip & Receipt system](delivery-tip-receipt.md) — 3 delivery methods (standard/express/priority), optional tip, receipt page at /receipt/:id; total = itemsSubtotal + deliveryCharge + tip. Session auth: userId=admin, customerId=customer, lastOrderId=guest; GET /orders/:id enforces ownership.
@@ -65,3 +65,5 @@
 - [Server clock caches](server-clock-cache.md) — cached server time must retain its monotonic response anchor across route remounts, or countdowns move backward.
 - [Boot readiness events](boot-readiness-events.md) — check the durable readiness flag when subscribing; a cached loader can dispatch before sibling listeners mount.
 - [Browser media codecs](browser-media-codecs.md) — confirm decoder support before blaming MP4 serving; automated playback may need a compatible WebM fixture.
+- [Cookie session state](cookie-session-state.md) — permissive typings are not a runtime contract; preference reads must not overwrite newer signed-cookie selections.
+- [Top banner cropping](top-banner-cropping.md) — fixed 12:1 viewport and identical saved crop across devices; retain the original upload for later repositioning.

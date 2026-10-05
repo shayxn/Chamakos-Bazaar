@@ -1086,3 +1086,55 @@ input::selection, textarea::selection {
   .imaginate-boot-glow, .imaginate-bolt, .imaginate-boot-logo img { animation: none !important; }
   .imaginate-bolt { display: none; }
 }
+
+/* ── Lightweight liquid glass (no backdrop blur on large areas) ── */
+.liquid-pill, .liquid-panel {
+  background: linear-gradient(160deg, rgba(255,255,255,.2), rgba(183,156,255,.1) 55%, rgba(255,255,255,.06));
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -8px 14px rgba(120,90,220,.12), 0 6px 18px rgba(0,0,0,.28);
+  -webkit-tap-highlight-color: transparent;
+}
+.liquid-panel { background: linear-gradient(160deg, rgba(40,34,60,.96), rgba(22,20,32,.97)); backdrop-filter: blur(14px); }
+.liquid-pill { transition: transform .35s cubic-bezier(.34,1.7,.5,1), background-color .2s; touch-action: manipulation; }
+.liquid-pill:hover { background-color: rgba(255,255,255,.08); }
+.liquid-pill:active { transform: scale(.93, .88); transition-duration: .08s; }
+.liquid-pill:focus-visible, .jelly:focus-visible { outline: 2px solid #c4adff; outline-offset: 3px; }
+.jelly { transition: transform .35s cubic-bezier(.34,1.7,.5,1); touch-action: manipulation; }
+.jelly:active { transform: scale(.95, .92); transition-duration: .08s; }
+button:not(:disabled), [role="button"] { touch-action: manipulation; }
+@media (prefers-reduced-motion: reduce) { .liquid-pill, .jelly { transition: none; } .liquid-pill:active, .jelly:active { transform: none; } }
+
+/* ── Restrained liquid-glass pass: light blur, specular edge, small repaint area ── */
+.glass, .glass-sm, .glass-panel, .glass-modal, .glass-card, .glass-surface, .glass-frosted, .glass-orange, .glass-liquid {
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  background-image: linear-gradient(165deg, rgba(255,255,255,.10), rgba(183,156,255,.04) 45%, rgba(255,255,255,.015));
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -10px 18px rgba(110,80,210,.06), 0 8px 24px rgba(0,0,0,.28);
+}
+.glass-sm { backdrop-filter: blur(8px) saturate(130%); -webkit-backdrop-filter: blur(8px) saturate(130%); }
+.glass .glass, .glass .glass-sm, .glass-panel .glass-sm { backdrop-filter: none; -webkit-backdrop-filter: none; }
+.glass-nav, .glass-heavy, .glass-drawer, .glass-nav-float { backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%); }
+.admin-stat-card { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 6px 18px rgba(0,0,0,.25); }
+button, a, input, select, textarea, [role="button"] { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid #c4adff; outline-offset: 2px; }
+.hover-elevate:active:not(:disabled) { transition: transform .08s; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .liquid-panel, [role="dialog"] { max-height: calc(100dvh - 1rem); overflow-y: auto; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+
+/* ── Light glass form controls ── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select, .glass-input {
+  background-color: rgba(255,255,255,.055);
+  border-color: rgba(255,255,255,.16);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05);
+  transition: border-color .15s, background-color .15s;
+}
+input:focus-visible, textarea:focus-visible, select:focus-visible { border-color: rgba(196,173,255,.7); background-color: rgba(255,255,255,.08); }
+/* small-height landscape: keep fixed widgets from stacking on content */
+@media (max-height: 520px) {
+  [data-testid="button-order-sound-global"] { height: 2.25rem; width: 2.25rem; }
+  .fixed.bottom-\[max\(5rem\,env\(safe-area-inset-bottom\)\)\] { bottom: .5rem; }
+  [role="dialog"] { max-height: calc(100dvh - .75rem) !important; overflow-y: auto; }
+}

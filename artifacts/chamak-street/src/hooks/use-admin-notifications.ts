@@ -144,7 +144,8 @@ export function useAdminPushNotifications() {
     if (!("serviceWorker" in navigator)) return;
     const handler = (event: MessageEvent) => {
       if (event.data?.type === "NEW_ORDER") {
-        playCashSound();
+        // Never ring from the push payload: ask the order list, which knows COD vs paid Ziina.
+        window.dispatchEvent(new Event("imaginate:orders-refresh"));
       }
     };
     navigator.serviceWorker.addEventListener("message", handler);

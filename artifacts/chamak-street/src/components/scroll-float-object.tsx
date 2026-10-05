@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { Link } from "wouter";
@@ -130,7 +131,7 @@ export function ScrollFloatObject() {
               {m && <img src={m.url} alt={p.name} className="w-full aspect-square object-cover opacity-20" loading="lazy" />}
               <div className="px-2 py-1">
                 <p className="text-[8px] font-black uppercase tracking-widest text-white/15 truncate">{p.name}</p>
-                <p className="text-[8px] font-black text-primary/25">AED {Number(p.price).toFixed(0)}</p>
+                <p className="text-[8px] font-black text-primary/25"><Price v={Number(p.price)} /></p>
               </div>
             </motion.div>
           );
@@ -206,7 +207,7 @@ export function ScrollFloatObject() {
                   className="text-xl font-black mb-4"
                   style={{ background: "linear-gradient(135deg,#b79cff,#b79cff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
                 >
-                  AED {Number(hero.price).toFixed(2)}
+                  <Price v={Number(hero.price)} />
                 </p>
                 <Link href={`/product/${hero.id}`}>
                   <motion.button

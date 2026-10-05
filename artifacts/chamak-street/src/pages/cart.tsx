@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import { useGetCart, useUpdateCartItem, useRemoveCartItem, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -133,7 +134,7 @@ export default function Cart() {
         >
           <Truck className="h-4 w-4 text-primary shrink-0" />
           <span className="text-xs font-bold text-white/70">
-            Delivery from <span className="text-primary font-black">AED 20</span> · Choose your speed at checkout
+            Delivery rates shown at checkout · Choose your speed at checkout
           </span>
         </motion.div>
 
@@ -229,7 +230,7 @@ export default function Cart() {
                           transition={{ duration: 0.28, ease: EASE }}
                           className="font-mono font-black text-base text-primary"
                         >
-                          AED {(item.price * item.quantity).toFixed(2)}
+                          <Price v={(item.price * item.quantity)} />
                         </motion.div>
                       </div>
                     </div>
@@ -277,7 +278,7 @@ export default function Cart() {
               <div className="space-y-3 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-mono font-bold">AED {subtotal.toFixed(2)}</span>
+                  <span className="font-mono font-bold"><Price v={subtotal} /></span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Delivery</span>
@@ -297,7 +298,7 @@ export default function Cart() {
                       transition={{ duration: 0.26, ease: EASE }}
                       className="font-mono text-2xl font-black text-primary"
                     >
-                      AED {subtotal.toFixed(2)}
+                      <Price v={subtotal} />
                     </motion.span>
                   </AnimatePresence>
                 </div>

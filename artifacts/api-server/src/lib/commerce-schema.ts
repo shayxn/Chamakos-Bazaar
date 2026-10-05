@@ -10,6 +10,7 @@ export function ensureCommerceSchema() {
     await db.execute(sql`ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS color TEXT,ADD COLUMN IF NOT EXISTS variant_id TEXT`);
     await db.execute(sql`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS color TEXT,ADD COLUMN IF NOT EXISTS variant_id TEXT`);
     await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id INTEGER,
+      ADD COLUMN IF NOT EXISTS country_code TEXT NOT NULL DEFAULT 'AE',
       ADD COLUMN IF NOT EXISTS stock_reserved BOOLEAN NOT NULL DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS stock_released BOOLEAN NOT NULL DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS payment_intent_id TEXT,ADD COLUMN IF NOT EXISTS payment_status TEXT,

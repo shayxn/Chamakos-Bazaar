@@ -5,10 +5,20 @@
  * IMAGINATE e-commerce API
  * OpenAPI spec version: 0.2.0
  */
+import type { OrderInputDeliveryMethod } from './orderInputDeliveryMethod';
 
 export interface OrderInput {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  country?: string;
+  paymentMethodId?: string;
+  deliveryMethod?: OrderInputDeliveryMethod;
+  /**
+     * @minimum 0
+     * @maximum 500
+     */
+  tip?: number;
+  couponCode?: string;
   paymentMethod?: string;
 }

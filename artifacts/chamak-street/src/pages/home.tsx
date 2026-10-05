@@ -5,9 +5,10 @@ import LaunchPanel from "@/components/launch-panel";
 import { ArrowRight, Heart } from "lucide-react";
 import { useMemo } from "react";
 import { getPrimaryProductMedia } from "@/lib/product-media";
+import { useListPublishedContent } from "@workspace/api-client-react";
 import { useSettings } from "@/lib/use-settings";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { formatPrice } from "@/lib/currency";
+import { Price } from "@/components/price";
 
 function ProductTile({ product, index, wished, onWish }: {
   product: any;
@@ -53,7 +54,7 @@ function ProductTile({ product, index, wished, onWish }: {
             {product.name}
           </Link>
         </div>
-        <span className="shrink-0 pt-0.5 text-xs tabular-nums text-white/75">{formatPrice(product.price)}</span>
+        <span className="shrink-0 pt-0.5 text-xs tabular-nums text-white/75"><Price v={product.price} /></span>
       </div>
     </article>
   );
@@ -79,6 +80,13 @@ export default function Home() {
     return (settings.hero_image && settings.hero_image !== "/chamako-hero.png" ? settings.hero_image : undefined) ?? tryImages(settings.hero_images);
   }, [settings.hero_images, settings.hero_image]);
 
+  const panelQ = useListPublishedContent("hero-panel", { query: { queryKey: ["published-hero-panel"], staleTime: 30_000 } });
+  const panel = useMemo(() => {
+    const list = [...(panelQ.data ?? [])].sort((x, y) => Number(y.featured) - Number(x.featured));
+    return list;
+  }, [panelQ.data]);
+
+
   const liveEnabled = settings.live_event_enabled === "true";
   const liveDate = settings.live_event_date?.trim() || "";
   const liveTime = settings.live_event_time?.trim();
@@ -93,21 +101,21 @@ export default function Home() {
   return (
     <main className="min-h-[100dvh] overflow-hidden bg-[#111113] text-[#f4f2f7]">
       <section className="relative isolate border-b border-white/10" aria-label="Imaginate campaign">
-        <div className="mx-auto grid max-w-[1600px] lg:min-h-[calc(100svh-120px)] lg:grid-cols-[1.05fr_.95fr]">
-          <div className={`relative flex flex-col justify-end px-6 pb-10 pt-14 sm:px-10 lg:px-[5vw] lg:pb-14 ${settings.hero_alignment === "center" ? "text-center items-center" : settings.hero_alignment === "right" ? "text-right items-end" : ""}`}>
+        <div className="mx-auto grid max-w-[1600px] lg:min-h-[min(760px,calc(100svh-120px))] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)]">
+          <div className={`relative flex min-w-0 flex-col justify-end px-6 pb-10 pt-14 sm:px-10 lg:justify-center lg:px-[5vw] lg:pb-14 ${settings.hero_alignment === "center" ? "text-center items-center" : settings.hero_alignment === "right" ? "text-right items-end" : ""}`}>
             <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#b79cff]/15 blur-3xl" />
             <p className="relative mb-6 flex items-center gap-3 text-[10px] uppercase tracking-[.3em] text-white/65"><span className="h-px w-9 bg-[#b79cff]" />{settings.hero_small_text || "IMAGINATE · UAE"}</p>
-            <h1 className="relative text-[clamp(3.2rem,9vw,8.4rem)] font-semibold uppercase leading-[.84] tracking-[-.07em]" data-testid="text-hero-title">
+            <h1 className="relative break-words text-[clamp(2.4rem,12vw,6rem)] font-semibold uppercase leading-[.91] tracking-[-.06em] lg:text-[clamp(3rem,5.9vw,6.5rem)]" data-testid="text-hero-title">
               {settings.hero_headline?.trim() || settings.hero_title?.trim() || "IMAGINATE"}<br /><span className="text-[#b79cff]">{settings.hero_subheadline?.trim() || settings.hero_subtitle?.trim() || ""}</span>
             </h1>
             <p className="relative mt-7 max-w-md text-sm leading-6 text-white/65 sm:text-base">
               {settings.hero_description?.trim() || ""}
             </p>
             {settings.hero_cta_enabled !== "false" && <div className="relative mt-9 flex flex-wrap items-center gap-3">
-              <Link href={settings.hero_cta_url?.trim() || "/shop"} data-testid="link-hero-shop" className="group inline-flex items-center gap-4 bg-[#b79cff] px-7 py-4 text-[11px] font-semibold uppercase tracking-[.2em] text-[#111113] transition-colors hover:bg-white">
+              <Link href={settings.hero_cta_url?.trim() || "/shop"} data-testid="link-hero-shop" className="liquid-pill group inline-flex h-14 items-center gap-4 rounded-full px-8 text-[11px] font-semibold uppercase tracking-[.2em] text-white">
                 {settings.hero_cta_label?.trim() || settings.hero_cta_text?.trim() || "Shop the collection"} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
-              <Link href="/shop?new=1" className="inline-flex items-center border border-white/25 px-7 py-4 text-[11px] uppercase tracking-[.2em] transition-colors hover:border-white">New in</Link>
+              <Link href="/shop?new=1" className="liquid-pill inline-flex h-14 items-center rounded-full px-8 text-[11px] font-semibold uppercase tracking-[.2em] text-white">New in</Link>
             </div>}
           </div>
           <div className="relative min-h-[420px] overflow-hidden border-t border-white/10 bg-[#19191c] lg:border-l lg:border-t-0">
@@ -118,20 +126,30 @@ export default function Home() {
                 <img src={heroImage} alt="" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover" />
                 <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#111113]/70 via-transparent to-transparent" />
               </>
-            ) : products.length >= 2 ? (
-              <div className="grid h-full grid-cols-2 gap-px bg-white/10">
-                {products.slice(0, 4).map((p, i) => {
-                  const m = getPrimaryProductMedia(p.imageUrl);
-                  return (
-                    <Link key={p.id} href={`/product/${p.id}`} className={`relative block overflow-hidden bg-[#19191c] ${i === 0 ? "row-span-2" : ""}`}>
-                      {m?.type === "image" && <img src={m.url} alt={p.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-105" loading={i ? "lazy" : "eager"} />}
-                      <span className="absolute bottom-3 left-3 bg-black/70 px-2 py-1 text-[9px] uppercase tracking-[.18em]">{p.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
             ) : (
               <div className="absolute inset-0 grid place-items-center"><img src="/imaginate-logo.png" alt="Imaginate" className="w-48 opacity-90" /></div>
+            )}
+            {panel.length > 0 && (
+              <aside aria-label="Featured" className="absolute inset-x-3 bottom-3 z-10 flex max-h-[70%] flex-col gap-2 overflow-y-auto sm:inset-x-6 sm:bottom-6 lg:left-auto lg:w-[26rem] [@media(max-height:520px)]:static [@media(max-height:520px)]:max-h-none">
+                {panel.map((doc, i) => {
+                  const d = (doc.data ?? {}) as { description?: string; imageUrl?: string; url?: string };
+                  const main = i === 0;
+                  const inner = (
+                    <div className={`liquid-panel flex gap-3 rounded-3xl text-white ${main ? "p-3" : "p-2"}`}>
+                      {d.imageUrl && <img src={d.imageUrl} alt="" loading="lazy" className={`shrink-0 rounded-2xl object-cover ${main ? "h-24 w-24 sm:h-28 sm:w-28" : "h-14 w-14"}`} />}
+                      <div className="min-w-0 self-center pr-2">
+                        {main && <p className="mb-1 text-[9px] uppercase tracking-[.28em] text-[#c4adff]">Featured</p>}
+                        <h2 className={`font-semibold leading-tight tracking-tight ${main ? "text-lg" : "text-sm"}`}>{doc.title}</h2>
+                        {d.description && <p className={`mt-1 text-white/65 ${main ? "line-clamp-3 text-xs leading-5" : "line-clamp-2 text-[11px] leading-4"}`}>{d.description}</p>}
+                      </div>
+                    </div>
+                  );
+                  return d.url ? (/^https?:\/\//i.test(d.url)
+                    ? <a key={doc.id} href={d.url} target="_blank" rel="noopener noreferrer" className="jelly block">{inner}</a>
+                    : <Link key={doc.id} href={d.url} className="jelly block">{inner}</Link>)
+                    : <div key={doc.id}>{inner}</div>;
+                })}
+              </aside>
             )}
           </div>
         </div>

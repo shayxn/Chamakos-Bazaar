@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
@@ -194,7 +195,7 @@ export function SpotlightBanner() {
               WebkitTextFillColor: "transparent",
             }}
           >
-            AED {Number(spotlight.price).toFixed(2)}
+            <Price v={Number(spotlight.price)} />
           </motion.p>
 
           {/* Countdown */}

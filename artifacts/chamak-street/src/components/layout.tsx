@@ -1,3 +1,5 @@
+import { CountryChooser, FxAttribution } from "@/components/global-store-provider";
+import { TopBanner } from "@/components/top-banner";
 import { Link, useLocation } from "wouter";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe, useLogout } from "@workspace/api-client-react";
 import { ShoppingCart, Heart, User, Search, LogOut, Settings, MessageCircle, Headphones } from "lucide-react";
@@ -48,6 +50,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-[#0d0d0f] text-white overflow-x-hidden">
+      <TopBanner />
       <header
         className="sticky top-0 z-50 w-full glass-nav transition-all duration-300"
         style={{
@@ -56,9 +59,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         }}
       >
         {/* Row 1: Search | Logo (center) | User + Cart */}
-        <div className="max-w-[1440px] mx-auto px-6 h-[76px] grid grid-cols-[minmax(0,1fr)_104px_minmax(0,1fr)] items-center gap-4">
+        <div className="max-w-[1440px] mx-auto px-3 sm:px-6 h-[76px] flex justify-between md:grid md:grid-cols-[minmax(0,1fr)_104px_minmax(0,1fr)] items-center gap-1 md:gap-4">
           {/* Left: Search */}
-          <div className="flex-1 flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1">
             <SmartSearchModal />
           </div>
 
@@ -83,16 +86,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Heart className="h-5 w-5" strokeWidth={1.6} />
             </Link>
             {user?.isAdmin && (
-              <Link href="/admin" className="hidden md:block">
-                <Button variant="ghost" size="sm" className="text-[11px] font-black uppercase tracking-widest text-white/70 hover:text-primary transition-colors px-3">
-                  <Settings className="h-3.5 w-3.5 mr-1.5" />
-                  Admin
+              <Link href="/admin" className="hidden md:block" aria-label="Open Admin">
+                <Button variant="ghost" size="sm" className="text-[11px] font-black uppercase tracking-widest text-white/70 hover:text-primary transition-colors px-2 xl:px-3">
+                  <Settings className="h-3.5 w-3.5 xl:mr-1.5" />
+                  <span className="hidden xl:inline">Admin</span>
                 </Button>
               </Link>
             )}
             {user ? (
               <div className="hidden md:flex items-center gap-2">
-                <span className="max-w-28 truncate text-xs text-white/40">@{user.username}</span>
+                <span className="hidden xl:inline max-w-28 truncate text-xs text-white/40">@{user.username}</span>
                 <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout" className="text-white/60 hover:text-white transition-colors h-9 w-9">
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -128,6 +131,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               </motion.div>
             </Link>
+            <CountryChooser />
           </div>
         </div>
 
@@ -173,7 +177,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="relative mt-16 border-t border-white/[0.07]" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+      <footer className="relative mt-16 border-t border-white/[0.07]" style={{ background: "rgba(0,0,0,0.75)", }}>
 
         <div className="max-w-[1440px] mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-8">
           <motion.div
@@ -267,6 +271,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <span className="font-black tracking-widest uppercase text-white/40">IMAGINATE</span>
           <span className="text-right">{settings.footer_copyright || `© ${new Date().getFullYear()} IMAGINATE. All rights reserved.`}</span>
         </div>
+        <p className="px-4 pt-2 text-center text-[11px]"><Link href="/install" className="text-white/55 underline">Install the app (iPhone and Android)</Link></p>
+        <FxAttribution />
       </footer>
 
       <BackToTop />

@@ -1,5 +1,7 @@
 import { RefreshCw } from "lucide-react";
-import { useGetLiveTraffic } from "@workspace/api-client-react";
+import { useMemo } from "react";
+import { Link } from "wouter";
+import { useGetLiveTraffic, useListProducts } from "@workspace/api-client-react";
 
 type Traffic = {
   onlineVisitors: number;
@@ -19,6 +21,8 @@ function Stat({ label, value, sub }: { label: string; value: number; sub?: strin
 }
 
 export default function AdminLiveTraffic() {
+  const catalog = useListProducts({ limit: 100 }, { query: { queryKey: ["admin-live-products"], staleTime: 120_000 } as never });
+  const names = useMemo(() => new Map(((catalog.data as { id: number; name: string }[] | undefined) ?? []).map((p) => [p.id, p.name])), [catalog.data]);
   const q = useGetLiveTraffic({ query: { queryKey: ["live-traffic"], refetchInterval: 10_000, refetchOnWindowFocus: true } as never });
   const d = q.data as Traffic | undefined;
   if (q.isLoading) return <div className="space-y-3" aria-busy="true"><div className="glass-skeleton h-28 rounded-2xl" /><div className="grid gap-3 sm:grid-cols-3"><div className="glass-skeleton h-24 rounded-2xl" /><div className="glass-skeleton h-24 rounded-2xl" /><div className="glass-skeleton h-24 rounded-2xl" /></div></div>;
@@ -32,14 +36,14 @@ export default function AdminLiveTraffic() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <h1 className="text-2xl font-black uppercase tracking-tight sm:text-3xl">Live traffic</h1>
+        <h1 className="text-2xl font-black uppercase tracking-tight sm:text-3xl">Live Customers</h1>
         <p className="text-xs text-white/50">Updates every 10 seconds. Times in {d.timezone}. Last update {new Date(d.serverTime).toLocaleTimeString("en-GB", { timeZone: d.timezone })}</p>
       </div>
       <div className="glass-panel rounded-3xl p-5 sm:p-7" data-testid="text-online-now">
         <div className="flex items-center gap-3"><span className="relative flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" /><span className="relative inline-flex h-3 w-3 rounded-full bg-primary" /></span><p className="text-xl font-bold sm:text-2xl">{sentence}</p></div>
         {d.activeVisitors.length === 0 ? <p className="mt-4 text-sm text-white/55">No active visitors at the moment.</p> : (
-          <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[420px] text-left text-sm"><thead><tr className="text-[10px] uppercase tracking-widest text-white/50"><th className="py-2 pr-3">Session</th><th className="pr-3">Page</th><th className="pr-3">Device</th><th>Last seen</th></tr></thead>
-            <tbody>{d.activeVisitors.map((v) => <tr key={v.sessionId} className="border-t border-white/10"><td className="py-2 pr-3 font-mono text-xs">{v.sessionId}</td><td className="pr-3">{v.page}</td><td className="pr-3 capitalize">{v.deviceType}</td><td className="text-white/60">{new Date(v.lastSeenAt).toLocaleTimeString("en-GB", { timeZone: d.timezone })}</td></tr>)}</tbody></table></div>
+          <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[420px] text-left text-sm"><thead><tr className="text-[10px] uppercase tracking-widest text-white/50"><th className="py-2 pr-3">Session</th><th className="pr-3">Viewing</th><th className="pr-3">Device</th><th>Last seen</th></tr></thead>
+            <tbody>{d.activeVisitors.map((v) => <tr key={v.sessionId} className="border-t border-white/10"><td className="py-2 pr-3 font-mono text-xs">{v.sessionId}</td><td className="pr-3">{(() => { const m = /^\/product\/(\d+)/.exec(v.page); if (!m) return <span>{v.page}</span>; const id = Number(m[1]); const nm = names.get(id) ?? d.topProducts.find((p) => p.id === id)?.name; return <Link href={`/admin/products`} className="underline decoration-primary/60 underline-offset-4">{nm ? `Viewing: ${nm}` : `Viewing product #${id}`}</Link>; })()}</td><td className="pr-3 capitalize">{v.deviceType}</td><td className="text-white/60">{new Date(v.lastSeenAt).toLocaleTimeString("en-GB", { timeZone: d.timezone })}</td></tr>)}</tbody></table></div>
         )}
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

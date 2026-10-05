@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useGetAllSettings } from "@workspace/api-client-react";
+import { useGetAllSettings, useGetGlobalStoreContext, getGetGlobalStoreContextQueryKey } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOperationalSettings } from "@/lib/use-settings";
 
@@ -14,10 +14,13 @@ export function LoadingScreen() {
   });
   const settings = useGetAllSettings({ query: { queryKey: ["settings", "all"], staleTime: 30_000, enabled: !skip } });
   const operational = useQuery({ queryKey: ["operational-settings"], queryFn: fetchOperationalSettings, staleTime: 0, enabled: !skip, retry: 1 });
+  const country = useGetGlobalStoreContext({query:{queryKey:getGetGlobalStoreContextQueryKey(),enabled:!skip,staleTime:60_000,retry:1}});
   const [routeReady, setRouteReady] = useState(() => !!(window as Window & { __firstpickRouteReady?: boolean }).__firstpickRouteReady);
   const [fontsReady, setFontsReady] = useState(false);
   const [visible, setVisible] = useState(!skip);
   const [slow, setSlow] = useState(false);
+  const [minElapsed, setMinElapsed] = useState(false);
+  useEffect(() => { if (skip) return; const t = setTimeout(() => setMinElapsed(true), 5_000); return () => clearTimeout(t); }, [skip]);
   useEffect(() => {
     if (skip) return;
     let mounted = true;
@@ -36,12 +39,12 @@ export function LoadingScreen() {
   }, [skip]);
   const [leaving, setLeaving] = useState(false);
   useEffect(() => {
-    if (skip || !settings.isSuccess || !operational.isSuccess || !routeReady || !fontsReady || leaving) return;
+    if (skip || !settings.isSuccess || !operational.isSuccess || !country.isSuccess || !routeReady || !fontsReady || !minElapsed || leaving) return;
     try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
     setLeaving(true);
     (window as Window & { __imaginateBooted?: boolean }).__imaginateBooted = true;
     window.dispatchEvent(new Event("firstpick:boot-complete"));
-  }, [skip, settings.isSuccess, operational.isSuccess, routeReady, fontsReady, leaving]);
+  }, [skip, settings.isSuccess, operational.isSuccess, country.isSuccess, routeReady, fontsReady, minElapsed, leaving]);
   useEffect(() => {
     if (!leaving) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -55,12 +58,12 @@ export function LoadingScreen() {
     }
   }, [skip]);
   if (!visible) return null;
-  const failed = settings.isError || operational.isError;
+  const failed = settings.isError || operational.isError || country.isError;
   return (
     <div className="imaginate-boot fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-black px-6 text-center" role="status" aria-live="polite" data-leaving={leaving}>
       <div className="imaginate-boot-glow" aria-hidden="true" />
       <div className="imaginate-boot-logo relative">
-        <img src={`${BASE}/imaginate-logo.png`} alt="IMAGINATE" width="200" className="relative z-10 h-auto w-44 object-contain" />
+        <img src={`${BASE}/imaginate-logo.png`} alt="IMAGINATE" width="256" className="relative z-10 h-auto w-56 sm:w-64 object-contain" />
         <svg className="imaginate-bolt" viewBox="0 0 200 80" aria-hidden="true">
           <polyline points="0,40 38,30 62,46 96,26 130,48 164,32 200,42" fill="none" stroke="#b79cff" strokeWidth="1.2" strokeLinejoin="round" />
         </svg>

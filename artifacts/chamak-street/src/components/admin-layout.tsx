@@ -12,6 +12,8 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAdminPushNotifications } from "@/hooks/use-admin-notifications";
 import { motion, AnimatePresence } from "framer-motion";
+import { useOrderAlerts } from "@/hooks/use-order-alerts";
+import { OrderSoundToggle } from "@/components/order-sound-toggle";
 import { useToast } from "@/hooks/use-toast";
 
 const NOTIF_KEY = "firstpick_notif_asked";
@@ -37,7 +39,7 @@ function NotificationDeniedBanner({ onDismiss }: { onDismiss: () => void }) {
   } else if (isSafari && isMac) {
     instructions = "In Safari: go to Safari menu → Settings → Websites → Notifications → find this site → set to Allow.";
   } else if (!isSafari) {
-    instructions = "In Chrome/Edge: click the lock icon (🔒) in the address bar → Notifications → Allow.";
+    instructions = "In Chrome/Edge: click the lock icon in the address bar → Notifications → Allow.";
   }
 
   return (
@@ -52,7 +54,7 @@ function NotificationDeniedBanner({ onDismiss }: { onDismiss: () => void }) {
       <BellRing className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
         <p className="text-[11px] font-black uppercase tracking-wider text-red-400 mb-0.5">Notifications Blocked</p>
-        <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>{instructions}</p>
+        <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>{instructions} <a href={`${BASE}/install`} target="_blank" rel="noreferrer" className="underline text-primary">Full iPhone and Android guide</a></p>
       </div>
       <button onClick={onDismiss} className="shrink-0 text-white/20 hover:text-white/50 transition-colors mt-0.5">
         <X className="h-3.5 w-3.5" />
@@ -85,7 +87,7 @@ function AdminAvatar({ value, size = "sm" }: { value: string | null; size?: "sm"
   }
   return (
     <span className={`${dimension} flex items-center justify-center rounded-full border border-primary/30 bg-primary/15 font-black tracking-tight text-primary`}>
-      FP
+      IM
     </span>
   );
 }
@@ -259,6 +261,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: user, isLoading } = useGetMe({ query: { retry: false, queryKey: ["auth", "me"] } });
   const accessQuery=useQuery<{isOwner:boolean;permissions:string[]}>({queryKey:["admin-access",user?.id],enabled:!!user?.isAdmin,
     queryFn:async()=>{const r=await fetch(`${BASE}/api/admin/access`,{credentials:"include"});if(!r.ok)throw new Error("Your Admin access could not be verified.");return r.json();},staleTime:15000});
+  useOrderAlerts(!!user?.isAdmin && !!(accessQuery.data?.isOwner || accessQuery.data?.permissions.includes("orders")));
   const { permission, subscribe } = useAdminPushNotifications();
   const { toast } = useToast();
   const [showDeniedBanner, setShowDeniedBanner] = useState(false);
@@ -392,8 +395,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/products", label: "Products", icon: Package },
     { href: "/admin/basics", label: "Basics", icon: Layers },
     { href: "/admin/categories", label: "Categories", icon: Tag },
-    { href: "/admin/visitors", label: "Live Customers", icon: Users },
-    { href: "/admin/live-traffic", label: "Live Traffic", icon: Activity },
+    { href: "/admin/visitors", label: "Visitor Sessions", icon: Users },
+    { href: "/admin/live-traffic", label: "Live Customers", icon: Activity },
     { href: "/admin/customer-notifications", label: "Customer Notifications", icon: BellRing },
     { href: "/admin/chat", label: "Chats", icon: MessageCircle },
     { href: "/admin/chat?view=calls", label: "Calls", icon: Phone },
@@ -405,12 +408,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/manage/pages", label: "Website · Pages", icon: Layers },
     { href: "/admin/manage/navigation", label: "Website · Navigation", icon: Layers },
     { href: "/admin/manage/homepage", label: "Website · Homepage Hero", icon: LayoutDashboard },
+    { href: "/admin/manage/hero-panel", label: "Website · Hero Side Panel", icon: LayoutDashboard },
+    { href: "/admin/global-switch", label: "Global Switch", icon: Globe },
+    { href: "/admin/payment-methods", label: "Payment Methods", icon: Ticket },
     { href: "/admin/manage/launch", label: "Countdown & Launch", icon: Activity },
     { href: "/admin/manage/media", label: "Media", icon: Video },
     { href: "/admin/manage/support", label: "Support Requests", icon: MessageCircle },
     { href: "/admin/manage/faq", label: "Support · FAQ", icon: FileText },
     { href: "/admin/manage/newsletter", label: "Newsletter", icon: Users },
-    { href: "/admin/manage/countries", label: "Countries", icon: Layers },
     { href: "/admin/manage/shipping", label: "Shipping", icon: ShoppingBag },
     { href: "/admin/manage/team", label: "Admin Team & Permissions", icon: Users },
     { href: "/admin/sales-reports", label: "Analytics", icon: Activity },
@@ -420,9 +425,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/terms", label: "Policies & Legal", icon: FileText },
   ].filter(link=>{
     const access=accessQuery.data;
+    if(/global-switch|payment-methods/.test(link.href)&&!access?.isOwner)return false;
     if(!access)return ["/admin/chat","/admin/chat?view=calls","/admin/activity"].includes(link.href);
     if(access.isOwner)return true;
-    if(/manage\/(?:team|countries|shipping|launch|reminders)/.test(link.href))return false;
+    if(/manage\/(?:team|countries|shipping|launch|reminders)|global-switch|payment-methods/.test(link.href))return false;
     if(/chat|activity/.test(link.href))return true;
     const permission=/customer-notifications/.test(link.href)?"notifications":/products|basics|categories|stock-alerts/.test(link.href)?"products":
       /orders|refund|abandoned/.test(link.href)?"orders":/support|product-requests/.test(link.href)?"support":
@@ -457,7 +463,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="space-y-1 min-w-0">
                   <p className="font-black uppercase tracking-wider text-sm">Order Alerts</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Get notified instantly when a new order comes in.
+                    Get notified instantly when a new order comes in.{" "}
+                    <a href={`${BASE}/install`} target="_blank" rel="noreferrer" className="underline text-primary">Install and allow guide</a>
                   </p>
                 </div>
               </div>
@@ -631,6 +638,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <AdminAvatar value={adminPfp} />
       </button>
+
+      <OrderSoundToggle compact />
 
       {/* ── Sidebar ── */}
       <aside

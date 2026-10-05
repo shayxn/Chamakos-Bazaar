@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ensureDiscounts, validateDiscount, type DiscountContext } from "../lib/discount-validation";
 import { logAdminActivity } from "./admin-activity";
 import { logger } from "../lib/logger";
+import { availableCountries, getGlobalConfig, selectedStoreCountry } from "../lib/global-store";
 
 const router = Router();
 
@@ -56,11 +57,15 @@ router.post("/coupons/validate", async (req, res) => {
   const code = typeof req.body?.code === "string" ? req.body.code.trim() : "";
   if (!code) { res.status(400).json({ error: "Code is required" }); return; }
   const session = req.session as Record<string, unknown>;
+  const countries = availableCountries(await getGlobalConfig());
+  const countryCode = (countries.find(c=>c.code===selectedStoreCountry(req)) ??
+    countries.find(c=>c.code==="AE") ?? countries[0])?.code ?? "AE";
   const items = extractRows<any>(await db.execute(sql`SELECT p.id AS "productId",p.price,p.variants,c.variant_id AS "variantId",c.quantity,p.collection FROM cart_items c JOIN products p ON p.id=c.product_id WHERE c.session_id=${String(session.cartId ?? "")}`))
     .map(i => ({ ...i,price:Number(i.variants?.find((v:any)=>v.id===i.variantId)?.price ?? i.price),quantity:Number(i.quantity) }));
   try {
     res.json(await validateDiscount(code, { items, customerKey: session.customerId ? `customer:${session.customerId}` :
-      req.body.customerPhone?`phone:${String(req.body.customerPhone).replace(/\D/g,"")}`:`session:${session.cartId}`, country:"AE" }));
+      req.body.customerPhone?`phone:${String(req.body.customerPhone).replace(/\D/g,"")}`:`session:${session.cartId}`,
+      country:countryCode }));
   } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "Discount code unavailable." }); }
 });
 

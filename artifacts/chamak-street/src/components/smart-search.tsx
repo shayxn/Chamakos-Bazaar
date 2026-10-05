@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, Loader2, Sparkles, ArrowRight, Clock, TrendingUp, Tag, Package } from "lucide-react";
@@ -399,7 +400,7 @@ export function SmartSearch({ onClose }: { onClose?: () => void }) {
                                 {" · "}
                               </span>
                             )}
-                            AED {Number(p.price).toFixed(2)}
+                            <Price v={Number(p.price)} />
                             {p.stock === 0 && <span className="text-red-400/60 ml-2">Out of stock</span>}
                           </p>
                         </div>

@@ -9,6 +9,8 @@ import { useCartFly } from "./cart-fly-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { useManagedNavigation } from "@/hooks/use-managed-navigation";
 import { NewsletterForm } from "./newsletter-form";
+import { CountryChooser, FxAttribution } from "./global-store-provider";
+import { TopBanner } from "./top-banner";
 
 export function MobileLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -38,12 +40,14 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-[#0d0d0f] text-white overflow-x-hidden">
+      <TopBanner />
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#09080c]/90 backdrop-blur-xl">
         <div className="flex h-[62px] items-center justify-between px-4">
           <Link href="/" aria-label="IMAGINATE home" className="flex h-full items-center">
             <img src="/imaginate-logo.png" alt="IMAGINATE" className="h-[92px] w-[92px] object-contain" />
           </Link>
           <div className="flex items-center">
+            <CountryChooser compact />
             <Link href="/wishlist" aria-label="Wishlist" data-testid="link-nav-wishlist" className="grid h-11 w-11 place-items-center">
               <Heart className="h-5 w-5 text-white/75" strokeWidth={1.5} />
             </Link>
@@ -94,6 +98,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="flex-1 overflow-x-hidden">{children}</main>
+      <FxAttribution />
       <footer className="border-t border-primary/20 px-5 py-8"><NewsletterForm/><div className="mt-6 flex flex-wrap gap-4 text-xs text-white/60"><Link href="/support">Support</Link><Link href="/news">News</Link><Link href="/about">Our Story</Link><Link href="/terms">Policies</Link><button type="button" data-testid="button-notification-settings-mobile" onClick={() => window.dispatchEvent(new Event("imaginate:open-notification-settings"))}>Notification settings</button></div><p className="mt-5 text-[10px] text-white/40">{settings.footer_copyright || `© ${new Date().getFullYear()} IMAGINATE`}</p></footer>
 
       <AnimatePresence>

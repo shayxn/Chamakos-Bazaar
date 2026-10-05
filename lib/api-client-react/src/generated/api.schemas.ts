@@ -5,6 +5,94 @@
  * IMAGINATE e-commerce API
  * OpenAPI spec version: 0.2.0
  */
+export interface CountrySelection {
+  /**
+     * @minLength 2
+     * @maxLength 2
+     */
+  code: string;
+}
+
+export interface StoreCountry {
+  code: string;
+  name: string;
+  currency: string;
+  enabled: boolean;
+  /** @nullable */
+  shippingAED: number | null;
+}
+
+export type StorePaymentMethodProvider = typeof StorePaymentMethodProvider[keyof typeof StorePaymentMethodProvider];
+
+
+export const StorePaymentMethodProvider = {
+  cod: 'cod',
+  ziina: 'ziina',
+} as const;
+
+export interface StorePaymentMethod {
+  id: string;
+  label: string;
+  provider: StorePaymentMethodProvider;
+  enabled: boolean;
+  /** Empty means all enabled countries for Ziina. COD is always AE only. */
+  countries: string[];
+  configured?: boolean;
+}
+
+export interface GlobalStoreConfig {
+  enabled: boolean;
+  revision: number;
+  countries: StoreCountry[];
+  paymentMethods: StorePaymentMethod[];
+}
+
+export type StoreExchangeRatesBase = typeof StoreExchangeRatesBase[keyof typeof StoreExchangeRatesBase];
+
+
+export const StoreExchangeRatesBase = {
+  AED: 'AED',
+} as const;
+
+export type StoreExchangeRatesRates = {[key: string]: number};
+
+export interface StoreExchangeRates {
+  base: StoreExchangeRatesBase;
+  rates: StoreExchangeRatesRates;
+  /** @nullable */
+  fetchedAt: string | null;
+  stale: boolean;
+  available: boolean;
+  attribution: string;
+}
+
+export type GlobalStoreContextSettlementCurrency = typeof GlobalStoreContextSettlementCurrency[keyof typeof GlobalStoreContextSettlementCurrency];
+
+
+export const GlobalStoreContextSettlementCurrency = {
+  AED: 'AED',
+} as const;
+
+export interface GlobalStoreContext {
+  enabled: boolean;
+  country: StoreCountry;
+  countries: StoreCountry[];
+  paymentMethods: StorePaymentMethod[];
+  fx: StoreExchangeRates;
+  settlementCurrency: GlobalStoreContextSettlementCurrency;
+}
+
+export type GlobalStoreAdminProviders = {
+  cod: boolean;
+  ziina: boolean;
+};
+
+export interface GlobalStoreAdmin {
+  config: GlobalStoreConfig;
+  countryCatalog: StoreCountry[];
+  providers: GlobalStoreAdminProviders;
+}
+
 export type AnonymousTrafficInputDeviceType = typeof AnonymousTrafficInputDeviceType[keyof typeof AnonymousTrafficInputDeviceType];
 
 
@@ -430,6 +518,9 @@ export interface Order {
   /** @nullable */
   paymentMethod?: string | null;
   /** @nullable */
+  paymentStatus?: string | null;
+  countryCode?: string;
+  /** @nullable */
   courierName?: string | null;
   /** @nullable */
   estimatedDelivery?: string | null;
@@ -450,10 +541,28 @@ export interface Order {
   items: OrderItem[];
 }
 
+export type OrderInputDeliveryMethod = typeof OrderInputDeliveryMethod[keyof typeof OrderInputDeliveryMethod];
+
+
+export const OrderInputDeliveryMethod = {
+  standard: 'standard',
+  express: 'express',
+  priority: 'priority',
+} as const;
+
 export interface OrderInput {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  country?: string;
+  paymentMethodId?: string;
+  deliveryMethod?: OrderInputDeliveryMethod;
+  /**
+     * @minimum 0
+     * @maximum 500
+     */
+  tip?: number;
+  couponCode?: string;
   paymentMethod?: string;
 }
 

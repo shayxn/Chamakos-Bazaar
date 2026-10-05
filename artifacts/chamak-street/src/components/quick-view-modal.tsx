@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingCart, ExternalLink } from "lucide-react";
@@ -114,7 +115,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">{product.categoryName}</p>
                       )}
                       <h2 className="text-xl font-black uppercase tracking-tight leading-tight">{product.name}</h2>
-                      <p className="text-2xl font-mono text-primary font-bold mt-2">AED {product.price.toFixed(2)}</p>
+                      <p className="text-2xl font-mono text-primary font-bold mt-2"><Price v={product.price} /></p>
                     </div>
 
                     {product.description && (

@@ -36,6 +36,7 @@ import seoRouter from "./seo";
 import supportManagementRouter from "./support-management";
 import teamRouter from "./team";
 import adminNotificationsRouter from "./admin-notifications";
+import globalStoreRouter from "./global-store";
 import { emergencyShutdownGuard } from "../lib/operational-settings";
 
 
@@ -79,6 +80,7 @@ router.use(seoRouter);
 router.use(supportManagementRouter);
 router.use(teamRouter);
 router.use(adminNotificationsRouter);
+router.use(globalStoreRouter);
 
 
 export default router;

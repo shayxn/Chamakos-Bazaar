@@ -8,7 +8,7 @@ import { ensureManagement, rows, documentPayload } from "../lib/management-db";
 import { logAdminActivity } from "./admin-activity";
 
 const router = Router();
-const kinds = ["news", "pages", "faq", "navigation", "homepage", "countries", "shipping", "launch", "media"];
+const kinds = ["news", "pages", "faq", "navigation", "homepage", "countries", "shipping", "launch", "media", "hero-panel"];
 const input = z.object({
   title: z.string().trim().min(1).max(240), slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160),
   status: z.enum(["draft", "published", "archived"]).default("draft"),

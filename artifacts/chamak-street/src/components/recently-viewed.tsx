@@ -1,3 +1,4 @@
+import { Price } from "@/components/price";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
@@ -39,7 +40,7 @@ export function RecentlyViewedSection() {
                 )}
                 <div className="p-2">
                   <p className="text-[11px] font-bold truncate">{p.name}</p>
-                  <p className="text-[11px] text-primary font-mono font-bold">AED {p.price.toFixed(0)}</p>
+                  <p className="text-[11px] text-primary font-mono font-bold"><Price v={p.price} /></p>
                 </div>
               </div>
             </Link>
