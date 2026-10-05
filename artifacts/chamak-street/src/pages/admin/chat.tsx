@@ -13,6 +13,12 @@ type Admin={adminId:string;adminName:string};
 type RoomDevice={adminId:string;deviceId:string};
 type ChatMedia={kind:"image"|"audio";objectPath:string;contentType?:string;name?:string;durationSeconds?:number};
 type Message={id?:number;senderId:string;senderName:string;message:string;type?:"text"|"image"|"audio";metadata?:{media?:ChatMedia}|null;conversationId:string;createdAt:string;reactions:Record<string,string[]>;clientMessageId?:string};
+type Outgoing={message:string;type:"text"|"image"|"audio";metadata?:{media:ChatMedia};conversationId:string;clientMessageId:string};
+function mergeMessages(previous:Message[], next:Message[]) {
+  const rows = new Map<string,Message>();
+  for(const m of [...previous,...next]) rows.set(m.id ? `id:${m.id}` : `client:${m.clientMessageId}`,m);
+  return [...rows.values()].sort((a,b)=>new Date(a.createdAt).getTime()-new Date(b.createdAt).getTime() || (a.id??0)-(b.id??0));
+}
 
 const initials = (s:string) => s.slice(0,2).toUpperCase();
 const dm = (a:string,b:string) => `dm:${[a,b].sort((x,y) => Number(x)-Number(y)).join(":")}`;
@@ -26,12 +32,12 @@ export default function AdminChatPage() {
   const [me,setMe]=useState<Admin|null>(null); 
   const [admins,setAdmins]=useState<Admin[]>([]);
   const [online,setOnline]=useState<Admin[]>([]); 
-  const [conversation,setConversation]=useState("group"); 
+  const [conversation,setConversation]=useState(()=>new URLSearchParams(window.location.search).get("conversation")||"group");
   const [messages,setMessages]=useState<Message[]>([]);
   const [text,setText]=useState(""); 
   const [typing,setTyping]=useState<string[]>([]); 
   const [unread,setUnread]=useState<Record<string,number>>({}); 
-  const [mobileList,setMobileList]=useState(true);
+  const [mobileList,setMobileList]=useState(()=>!new URLSearchParams(window.location.search).has("conversation"));
   const [room,setRoom]=useState<string|null>(null); 
   const [members,setMembers]=useState<string[]>([]); 
   const [minimized,setMinimized]=useState(false); 
@@ -42,6 +48,17 @@ export default function AdminChatPage() {
   const [uploadingMedia,setUploadingMedia]=useState(false);
   const [recording,setRecording]=useState(false);
   const [recordSeconds,setRecordSeconds]=useState(0);
+  const [connection,setConnection]=useState<"connecting"|"connected"|"reconnecting">("connecting");
+  const [loadError,setLoadError]=useState("");
+  const [loadingMessages,setLoadingMessages]=useState(false);
+  const [sending,setSending]=useState(false);
+  const [failed,setFailed]=useState<Record<string,Outgoing>>({});
+  const failedRef=useRef<Record<string,Outgoing>>({});
+  const sendLock=useRef(false);
+  const draftStore=useRef<Record<string,string>>({});
+  const mounted=useRef(true);
+  const nearBottom=useRef(true);
+  const [newMessages,setNewMessages]=useState(false);
   const device=useRef(crypto.randomUUID());
   const es=useRef<EventSource|null>(null); 
   const stream=useRef<MediaStream|null>(null); 
@@ -59,7 +76,7 @@ export default function AdminChatPage() {
   const localVideo=useRef<HTMLVideoElement>(null); 
   const ice=useRef<RTCIceServer[]>([{urls:"stun:stun.l.google.com:19302"}]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const conversationRef = useRef("group");
+  const conversationRef = useRef(conversation);
   const loadVersion = useRef(0);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingActive = useRef(false);
@@ -70,11 +87,26 @@ export default function AdminChatPage() {
   const recordingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const cancelRecording = useRef(false);
 
-  const load=useCallback(async(id:string)=>{const version=++loadVersion.current;const r=await fetch(`${BASE}/api/admin/chat/messages?conversationId=${encodeURIComponent(id)}`,{credentials:"include"});const data=r.ok?await r.json():null;if(data&&version===loadVersion.current)setMessages(data);},[]);
+  const changeText=(value:string)=>{draftStore.current[conversationRef.current]=value;setText(value);};
+  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;loadVersion.current++;};},[]);
+  const load=useCallback(async(id:string)=>{
+    const version=++loadVersion.current;setLoadingMessages(true);
+    try {
+      const r=await fetch(`${BASE}/api/admin/chat/messages?conversationId=${encodeURIComponent(id)}`,{credentials:"include"});
+      if(!r.ok)throw new Error(r.status===401||r.status===403 ? "Your session or conversation access has changed. Sign in again." : "Messages could not be loaded. Retry when your connection returns.");
+      const data=await r.json();if(!Array.isArray(data))throw new Error("The server returned an invalid message history.");
+      if(mounted.current&&version===loadVersion.current&&id===conversationRef.current){setMessages(current=>mergeMessages(data,current.filter(m=>m.conversationId===id)));setLoadError("");}
+    } catch(error) {if(mounted.current&&version===loadVersion.current)setLoadError(error instanceof Error?error.message:"Could not load messages.");}
+    finally {if(mounted.current&&version===loadVersion.current)setLoadingMessages(false);}
+  },[]);
   useEffect(()=>{fetch(`${BASE}/api/admin/chat/conversations`,{credentials:"include"}).then(r=>r.ok?r.json():null).then(d=>{if(d){setMe({adminId:d.me.id,adminName:d.me.name});setAdmins(d.admins);}});fetch(`${BASE}/api/admin/chat/ice-config`,{credentials:"include"}).then(r=>r.json()).then(d=>{if(d.iceServers)ice.current=d.iceServers}).catch(()=>{});},[]);
   useEffect(()=>{const invited=new URLSearchParams(window.location.search).get("room");if(invited){roomRef.current=invited;setRoom(invited);}},[]);
-  useEffect(()=>{const activeConversation=conversation;conversationRef.current=conversation;load(conversation);setTyping([]);return()=>{if(typingTimer.current)clearTimeout(typingTimer.current);if(typingActive.current){typingActive.current=false;fetch(`${BASE}/api/admin/chat/typing`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({typing:false,conversationId:activeConversation})}).catch(()=>{});}};},[conversation,load]);
-  useEffect(() => { const frame=requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "auto" })); return () => cancelAnimationFrame(frame); }, [messages.length]);
+  useEffect(()=>{const refresh=()=>void load(conversationRef.current);window.addEventListener("imaginate:chat-refresh",refresh);return()=>window.removeEventListener("imaginate:chat-refresh",refresh);},[load]);
+  useEffect(()=>{const activeConversation=conversation;conversationRef.current=conversation;setMessages([]);setText(draftStore.current[conversation]||"");nearBottom.current=true;setNewMessages(false);load(conversation);setTyping([]);return()=>{if(typingTimer.current)clearTimeout(typingTimer.current);if(typingActive.current){typingActive.current=false;fetch(`${BASE}/api/admin/chat/typing`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({typing:false,conversationId:activeConversation})}).catch(()=>{});}};},[conversation,load]);
+  useEffect(() => {
+    if(!nearBottom.current){setNewMessages(true);return;}
+    const frame=requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "auto" })); return () => cancelAnimationFrame(frame);
+  }, [messages.length]);
 
   const closeRoom=useCallback(async()=>{const id=roomRef.current;const wasJoined=joinedRoomRef.current===id;roomRef.current=null;joinedRoomRef.current=null;for(const pc of pcs.current.values())pc.close();pcs.current.clear();pendingIce.current.clear();videos.current.clear();cameraTrack.current?.stop();screenTrack.current?.stop();cameraTrack.current=null;screenTrack.current=null;stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;cameraState.current=false;sharingState.current=false;setRemote({});setRoom(null);setMembers([]);setCamera(false);setSharing(false);if(id&&wasJoined)fetch(`${BASE}/api/admin/chat/rooms/${id}/leave?deviceId=${encodeURIComponent(device.current)}`,{method:"POST",credentials:"include"}).catch(()=>{});},[]);
   const sendSignal=useCallback(async(id:string,to:string,toDeviceId:string,signal:any)=>{const response=await fetch(`${BASE}/api/admin/chat/rooms/${id}/signal`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({to,toDeviceId,signal,deviceId:device.current})});if(!response.ok)throw new Error("Call signaling failed");},[]);
@@ -96,10 +128,12 @@ export default function AdminChatPage() {
     if(!me)return;
     const source=new EventSource(`${BASE}/api/admin/chat/stream?deviceId=${device.current}`,{withCredentials:true});
     es.current=source;
+    source.onopen=()=>{setConnection("connected");setTyping([]);void load(conversationRef.current);};
+    source.onerror=()=>{setConnection("reconnecting");setOnline([]);setTyping([]);};
     source.onmessage=async e=>{
       const d=JSON.parse(e.data);
       if(d.type==="PRESENCE")setOnline(d.onlineAdmins||[]);
-      if(d.type==="MESSAGE"){if(d.message.conversationId===conversationRef.current)setMessages(p=>p.some(x=>x.id===d.message.id)?p:[...p,d.message]);else setUnread(p=>({...p,[d.message.conversationId]:(p[d.message.conversationId]||0)+1}));}
+      if(d.type==="MESSAGE"){if(d.message.conversationId===conversationRef.current)setMessages(p=>mergeMessages(p,[d.message]));else setUnread(p=>({...p,[d.message.conversationId]:(p[d.message.conversationId]||0)+1}));}
       if(d.type==="REACTION"&&d.conversationId===conversationRef.current)setMessages(p=>p.map(x=>x.id===d.messageId?{...x,reactions:d.reactions}:x));
       if(d.type==="TYPING"&&d.conversationId===conversationRef.current&&d.adminId!==me.adminId)setTyping(p=>d.typing?[...new Set([...p,d.adminName])]:p.filter(x=>x!==d.adminName));
       if(d.type==="ROOM_INVITE"){if(roomRef.current&&roomRef.current!==d.roomId)await closeRoom();toast({title:`Call from ${d.from.name}`,description:"Join the team room from the call bar."});roomRef.current=d.roomId;setRoom(d.roomId);setMembers([]);setMinimized(false);}
@@ -107,27 +141,43 @@ export default function AdminChatPage() {
        if(d.type==="ROOM_SIGNAL"&&d.roomId===roomRef.current){const remoteDevice={adminId:d.from,deviceId:d.fromDeviceId};const peerId=`${remoteDevice.adminId}:${remoteDevice.deviceId}`;let pc=pcs.current.get(peerId);if(d.signal.type==="offer"){pc=await peer(remoteDevice,d.roomId,false);await pc!.setRemoteDescription(d.signal.offer);await flushPendingIce(peerId,pc!);const answer=await pc!.createAnswer();await pc!.setLocalDescription(answer);await sendSignal(d.roomId,remoteDevice.adminId,remoteDevice.deviceId,{type:"answer",answer});}else if(pc&&d.signal.type==="answer"){await pc.setRemoteDescription(d.signal.answer);await flushPendingIce(peerId,pc);}else if(d.signal.type==="ice"){if(pc?.remoteDescription){try{await pc.addIceCandidate(d.signal.candidate);}catch{pendingIce.current.set(peerId,[...(pendingIce.current.get(peerId)??[]),d.signal.candidate]);}}else pendingIce.current.set(peerId,[...(pendingIce.current.get(peerId)??[]),d.signal.candidate]);}}
     };
     return()=>source.close();
-  },[me,peer,sendSignal,connectToMembers,flushPendingIce,toast]);
+  },[me,peer,sendSignal,connectToMembers,flushPendingIce,toast,load]);
   useEffect(()=>()=>{closeRoom();},[closeRoom]);
   useEffect(()=>()=>{if(typingTimer.current)clearTimeout(typingTimer.current);},[]);
   useEffect(()=>()=>{cancelRecording.current=true;recorder.current?.state==="recording"&&recorder.current.stop();recorderStream.current?.getTracks().forEach(track=>track.stop());if(recordingTimer.current)clearInterval(recordingTimer.current);},[]);
   useEffect(()=>{const leaveOnPageHide=()=>{const id=roomRef.current;if(id&&joinedRoomRef.current===id){roomRef.current=null;joinedRoomRef.current=null;fetch(`${BASE}/api/admin/chat/rooms/${id}/leave?deviceId=${encodeURIComponent(device.current)}`,{method:"POST",credentials:"include",keepalive:true}).catch(()=>{});}};window.addEventListener("pagehide",leaveOnPageHide);return()=>window.removeEventListener("pagehide",leaveOnPageHide);},[]);
   
   const select=(id:string)=>{setConversation(id);setUnread(p=>{const next={...p};delete next[id];return next});setMobileList(false)};
-  const send=async(input?:{message?:string;type?:"text"|"image"|"audio";metadata?:{media:ChatMedia}})=>{
+  const send=async(input?:{message?:string;type?:"text"|"image"|"audio";metadata?:{media:ChatMedia}},retry?:Outgoing)=>{
     if(!me)return;
+    if(sendLock.current){if(input)throw new Error("Wait for the current message to finish before sending media.");return;}
     const message=input?.message??text;
     const type=input?.type??"text";
-    if(type==="text"&&!message.trim())return;
-    const body={message,type,metadata:input?.metadata,conversationId:conversation,clientMessageId:crypto.randomUUID()};
-    if(!input)setText("");
-    const r=await fetch(`${BASE}/api/admin/chat/messages`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok){
-      if(!input)setText(message);
-      const data=await r.json().catch(()=>null) as {error?:string}|null;
-      toast({title:"Message not sent",description:data?.error,variant:"destructive"});
-      throw new Error(data?.error||"Message not sent");
-    }
+    if(!retry&&type==="text"&&!message.trim())return;
+    const previous=failedRef.current[conversation];
+    const body:Outgoing=retry || (previous&&previous.message.trim()===message.trim()&&previous.type===type&&JSON.stringify(previous.metadata)===JSON.stringify(input?.metadata)
+      ? previous : {message,type,metadata:input?.metadata,conversationId:conversation,clientMessageId:crypto.randomUUID()});
+    sendLock.current=true;setSending(true);
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20_000);
+    try {
+      const r=await fetch(`${BASE}/api/admin/chat/messages`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:controller.signal});
+      const data=await r.json().catch(()=>null);
+      if(!r.ok)throw new Error(data?.error||`Message could not be confirmed (${r.status}).`);
+      if(!data?.id||data.conversationId!==body.conversationId)throw new Error("The server did not confirm this message.");
+      delete failedRef.current[body.conversationId];
+      if(mounted.current){
+        setFailed({...failedRef.current});
+        if(conversationRef.current===body.conversationId){nearBottom.current=true;setNewMessages(false);setMessages(p=>mergeMessages(p,[data]));}
+        if(body.type==="text"&&draftStore.current[body.conversationId]?.trim()===body.message.trim()){
+          draftStore.current[body.conversationId]="";
+          if(conversationRef.current===body.conversationId)setText("");
+        }
+      }
+    } catch(error) {
+      failedRef.current[body.conversationId]=body;
+      if(mounted.current){setFailed({...failedRef.current});toast({title:"Message not confirmed",description:error instanceof Error?error.message:"Connection lost. Your draft is preserved.",variant:"destructive"});}
+      throw error;
+    } finally {clearTimeout(timer);sendLock.current=false;if(mounted.current)setSending(false);}
   };
   const uploadAndSend=useCallback(async(file:File,kind:"image"|"audio")=>{
     setUploadingMedia(true);
@@ -191,7 +241,8 @@ export default function AdminChatPage() {
   
   const join=async(id:string,withVideo=camera)=>{try{const s=await navigator.mediaDevices.getUserMedia({audio:true,video:withVideo?{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:24,max:30}}:false});stream.current=s;cameraTrack.current=s.getVideoTracks()[0]??null;cameraState.current=withVideo;setCamera(withVideo);if(localVideo.current)localVideo.current.srcObject=s;roomRef.current=id;setRoom(id);setMinimized(false);const r=await fetch(`${BASE}/api/admin/chat/rooms/${id}/join`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({deviceId:device.current})});if(!r.ok)throw new Error("The room has ended");joinedRoomRef.current=id;const d=await r.json();setMembers(d.members);await connectToMembers(id,d.devices||[]);}catch(e){await closeRoom();toast({title:"Unable to join call",description:e instanceof Error?e.message:"Allow microphone access.",variant:"destructive"});}};
   const start=async()=>{const r=await fetch(`${BASE}/api/admin/chat/rooms`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({deviceId:device.current})});if(!r.ok){toast({title:"Could not start call",variant:"destructive"});return;}const d=await r.json();roomRef.current=d.roomId;joinedRoomRef.current=d.roomId;await join(d.roomId,true);};
-  const directName=(id:string)=>admins.find(a=>a.adminId!==(me?.adminId) && id.includes(`:${a.adminId}`))?.adminName||"Direct message";
+  const directName=(id:string)=>admins.find(a=>a.adminId!==me?.adminId && id.split(":").slice(1).includes(a.adminId))?.adminName||"Direct message";
+  const peerOnline=online.some(a=>a.adminId!==me?.adminId && conversation.split(":").slice(1).includes(a.adminId));
   const getAvatar=(name:string)=>{return <div className="w-10 h-10 rounded-full bg-[#111111] text-gray-300 flex items-center justify-center text-sm font-bold border border-[#222] shrink-0">{initials(name)}</div>};
 
   const totalUnread = Object.values(unread).reduce((a, b) => a + b, 0);
@@ -513,9 +564,9 @@ export default function AdminChatPage() {
                 })}
                 {messages.length === 0 && <div className="flex h-full items-center justify-center text-center text-[10px] text-gray-500">Your group conversation will appear here.</div>}
               </div>
-              <form onSubmit={e => { e.preventDefault(); void send(); }} className="mt-3 bg-[#111] rounded-full px-3 py-2 flex items-center gap-2 border border-[#222]">
-                <input value={text} onChange={event => { setText(event.target.value); void typingPost(true); }} onBlur={() => void typingPost(false)} className="bg-transparent border-none text-xs text-white flex-1 outline-none placeholder:text-gray-600" placeholder="Type a message..." />
-                <button type="submit" className="text-[#b79cff]" aria-label="Send in-call message"><Send className="w-4 h-4" /></button>
+              <form onSubmit={e => { e.preventDefault(); void send().catch(()=>{}); }} className="mt-3 bg-[#111] rounded-full px-3 py-2 flex items-center gap-2 border border-[#222]">
+                <input value={text} onChange={event => { changeText(event.target.value); void typingPost(true); }} maxLength={4000} onBlur={() => void typingPost(false)} className="bg-transparent border-none text-xs text-white flex-1 outline-none placeholder:text-gray-600" placeholder="Type a message..." />
+                <button type="submit" disabled={sending||uploadingMedia||recording} className="text-[#b79cff] disabled:opacity-50" aria-label="Send in-call message"><Send className="w-4 h-4" /></button>
               </form>
             </div>
           </motion.div>
@@ -548,15 +599,15 @@ export default function AdminChatPage() {
                 ) : (
                   <div className="relative">
                     {getAvatar(directName(conversation))}
-                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-black rounded-full" />
+                    <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 ${peerOnline?"bg-green-500":"bg-gray-500"} border-2 border-black rounded-full`} />
                   </div>
                 )}
                 <div>
                   <div className="text-sm font-bold text-white flex items-center gap-2">
                     {conversation === "group" ? "# Admin team" : directName(conversation)}
                   </div>
-                  <div className="text-[11px] text-green-400">
-                    {conversation === "group" ? `${online.length} online` : "Online"}
+                  <div className={`text-[11px] ${connection==="connected"&&(conversation==="group"||peerOnline)?"text-green-400":"text-gray-400"}`}>
+                    {connection!=="connected"?"Checking availability…":conversation === "group" ? `${online.length} online` : peerOnline?"Online":"Offline"}
                   </div>
                 </div>
               </div>
@@ -570,10 +621,16 @@ export default function AdminChatPage() {
               </div>
             </header>
 
-              <div className="flex-1 min-h-0 overflow-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+              <div role="status" className="flex items-center gap-2 px-4 py-2 text-xs text-white/60 border-b border-white/5">
+                <span className={`h-2 w-2 rounded-full ${connection==="connected"?"bg-green-400":"bg-amber-400 animate-pulse"}`} />
+                {connection==="connected"?"Live messages connected":connection==="reconnecting"?"Reconnecting — missed messages will reload":"Connecting to live messages"}
+              </div>
+              {loadError&&<div role="alert" className="px-4 py-2 text-sm text-red-300">{loadError} <button type="button" onClick={()=>void load(conversation)} className="underline">Retry loading</button></div>}
+              <div onScroll={e=>{const el=e.currentTarget;nearBottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<100;if(nearBottom.current)setNewMessages(false);}} className="flex-1 min-h-0 overflow-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+              {loadingMessages&&messages.length===0&&<p role="status" className="text-center text-sm text-white/50">Loading messages…</p>}
               <div className="flex justify-center mb-6">
                 <span className="px-3 py-1 rounded-full bg-[#1a1a1a] text-[10px] font-medium text-gray-400 border border-[#222]">
-                  Today
+                  Recent messages
                 </span>
               </div>
 
@@ -599,11 +656,11 @@ export default function AdminChatPage() {
                           <audio controls preload="metadata" className="h-9 w-full max-w-[260px]" src={mediaUrl}>Your browser cannot play this voice message.</audio>
                         </div>
                       ) : (
-                        <div className="whitespace-pre-wrap">{m.message}</div>
+                        <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{m.message}</div>
                       )}
                       <div className={`text-[9px] mt-1 flex justify-end items-center gap-1 ${isMe ? "text-black/60" : "text-gray-500"}`}>
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                        {isMe && <span className="text-[9px]">✓✓</span>}
+                        {isMe && <span title="Saved to the server" aria-label="Message saved" className="text-[9px]">✓</span>}
                       </div>
                       
                       {/* Reactions */}
@@ -640,17 +697,20 @@ export default function AdminChatPage() {
             </div>
 
             <div className="p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] sm:p-4 bg-[#0A0A0A] border-t border-[#1a1a1a]">
-              <form onSubmit={e => { e.preventDefault(); void send().catch(()=>{}); }} className="relative flex items-center gap-3 bg-[#111111] rounded-full px-4 py-2 border border-[#222]">
+              {newMessages&&<button type="button" onClick={()=>{nearBottom.current=true;setNewMessages(false);messagesEndRef.current?.scrollIntoView({behavior:"smooth"});}} className="mb-2 rounded-full bg-primary px-3 py-1 text-xs text-black">Jump to latest messages</button>}
+              {failed[conversation]&&<div role="alert" className="mb-2 flex items-center justify-between gap-2 text-xs text-amber-300"><span>Message not confirmed. Retry safely without sending duplicates.</span><button type="button" disabled={sending} className="shrink-0 rounded-full border border-amber-300/30 px-3 py-1" onClick={()=>void send(undefined,failed[conversation]).catch(()=>{})}>Retry message</button></div>}
+              <form onSubmit={e => { e.preventDefault(); void send().catch(()=>{}); }} className="relative flex items-center gap-3 bg-[#111111] rounded-2xl px-4 py-2 border border-[#222]">
                 <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={event => { selectPhoto(event.target.files?.[0]); event.target.value=""; }} />
-                <button type="button" onClick={() => fileInput.current?.click()} disabled={uploadingMedia || recording} className="text-gray-400 hover:text-white transition-colors disabled:opacity-40" aria-label="Send a photo">
+                <button type="button" onClick={() => fileInput.current?.click()} disabled={sending || uploadingMedia || recording} className="text-gray-400 hover:text-white transition-colors disabled:opacity-40" aria-label="Send a photo">
                   {uploadingMedia ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <ImageIcon className="w-5 h-5" />}
                 </button>
-                <input 
+                <textarea rows={2} maxLength={4000} aria-label="Message"
                   value={text} 
-                  onChange={e => { setText(e.target.value); typingPost(true) }} 
+                  onChange={e => { changeText(e.target.value); typingPost(true) }}
+                  onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();void send().catch(()=>{});}}}
                   onBlur={() => typingPost(false)} 
                   disabled={recording || uploadingMedia}
-                  className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-white placeholder:text-gray-600 disabled:opacity-50" 
+                  className="flex-1 min-w-0 max-h-36 resize-y bg-transparent border-none outline-none text-sm text-white placeholder:text-gray-600 disabled:opacity-50"
                   placeholder={recording ? `Recording ${String(Math.floor(recordSeconds / 60)).padStart(2,"0")}:${String(recordSeconds % 60).padStart(2,"0")}` : uploadingMedia ? "Sending media…" : "Type a message…"} 
                 />
                 <button type="button" onClick={() => setEmojiOpen(value=>!value)} disabled={recording || uploadingMedia} className="text-gray-400 hover:text-white transition-colors disabled:opacity-40" aria-label="Choose an emoji">
@@ -659,18 +719,18 @@ export default function AdminChatPage() {
                 <AnimatePresence>
                   {emojiOpen && (
                     <motion.div initial={{opacity:0,scale:.94,y:8}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.94,y:8}} className="absolute bottom-[calc(100%+0.5rem)] right-12 z-30 grid grid-cols-6 gap-1 rounded-2xl border border-[#333] bg-[#171717] p-2 shadow-2xl">
-                      {EMOJIS.map(emoji => <button key={emoji} type="button" onClick={() => { setText(value=>value+emoji); setEmojiOpen(false); }} className="h-8 w-8 rounded-lg text-lg transition-colors hover:bg-white/10" aria-label={`Add ${emoji}`}>{emoji}</button>)}
+                      {EMOJIS.map(emoji => <button key={emoji} type="button" onClick={() => { changeText(text+emoji); setEmojiOpen(false); }} className="h-8 w-8 rounded-lg text-lg transition-colors hover:bg-white/10" aria-label={`Add ${emoji}`}>{emoji}</button>)}
                     </motion.div>
                   )}
                 </AnimatePresence>
                 {text.trim() ? (
-                  <motion.button whileHover={{ scale: 1.1, rotate: -8 }} whileTap={{ scale: 0.9 }} type="submit" className="w-8 h-8 rounded-full bg-[#b79cff] flex items-center justify-center text-black ml-1 hover:bg-[#ff8833] transition-colors shadow-lg">
-                    <Send className="w-4 h-4 ml-0.5" />
+                  <motion.button aria-label="Send message" disabled={sending||uploadingMedia||recording} whileHover={{ scale: 1.1, rotate: -8 }} whileTap={{ scale: 0.9 }} type="submit" className="w-8 h-8 rounded-full bg-[#b79cff] flex items-center justify-center text-black ml-1 hover:bg-[#ff8833] transition-colors shadow-lg disabled:opacity-50">
+                    {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 ml-0.5" />}
                   </motion.button>
                 ) : (
                   <div className="flex items-center gap-1">
                     {recording && <button type="button" onClick={cancelVoice} className="text-gray-400 hover:text-white transition-colors" aria-label="Discard voice message"><X className="w-4 h-4" /></button>}
-                    <button type="button" onClick={recording ? stopRecording : () => void startRecording()} disabled={uploadingMedia} className={`${recording ? "bg-red-500 text-white animate-pulse" : "text-[#b79cff] hover:text-[#ff8833]"} flex h-8 w-8 items-center justify-center rounded-full transition-colors disabled:opacity-40`} aria-label={recording ? "Stop and send voice message" : "Record a voice message"}>
+                    <button type="button" onClick={recording ? stopRecording : () => void startRecording()} disabled={sending||uploadingMedia} className={`${recording ? "bg-red-500 text-white animate-pulse" : "text-[#b79cff] hover:text-[#ff8833]"} flex h-8 w-8 items-center justify-center rounded-full transition-colors disabled:opacity-40`} aria-label={recording ? "Stop and send voice message" : "Record a voice message"}>
                       {recording ? <Square className="w-3.5 h-3.5 fill-current" /> : <Mic className="w-5 h-5" />}
                     </button>
                   </div>

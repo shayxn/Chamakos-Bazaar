@@ -14,7 +14,22 @@ async function syncAdminChatSubscription(subscription: PushSubscription) {
       auth: json.keys?.auth,
     }),
   });
-  if (!response.ok) throw new Error("Failed to enable chat notifications for this browser.");
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.error || "Failed to enable chat notifications for this browser.");
+  }
+}
+
+async function syncAdminDeviceSubscription(subscription: PushSubscription) {
+  const response = await fetch(`${BASE}/api/push/subscribe`, {
+    method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ endpoint: subscription.endpoint, keys: subscription.toJSON().keys }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.error || "Could not save this device's order notifications.");
+  }
+  await syncAdminChatSubscription(subscription);
 }
 
 export function playCashSound() {
@@ -121,7 +136,10 @@ async function registerSW(): Promise<ServiceWorkerRegistration | null> {
     // scope must not exceed the SW file's own directory — use BASE_URL (e.g. /<artifact-base>/ in dev, / in prod)
     const swScope = import.meta.env.BASE_URL || "/";
     const reg = await navigator.serviceWorker.register(swUrl, { scope: swScope });
-    await navigator.serviceWorker.ready;
+    await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Notification setup timed out. Reload this page and try again.")), 15_000)),
+    ]);
     return reg;
   } catch (err) {
     console.warn("[Push] SW registration failed:", err);
@@ -130,6 +148,8 @@ async function registerSW(): Promise<ServiceWorkerRegistration | null> {
 }
 
 export type NotifPermission = "default" | "granted" | "denied" | "unsupported";
+const PUSH_OPT_OUT = "imaginate_admin_push_disabled";
+function optedOut() { return localStorage.getItem(PUSH_OPT_OUT) === "true"; }
 
 export function useAdminPushNotifications() {
   const [permission, setPermission] = useState<NotifPermission>(
@@ -138,6 +158,7 @@ export function useAdminPushNotifications() {
   const [subscribed, setSubscribed] = useState(false);
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const swRegRef = useRef<ServiceWorkerRegistration | null>(null);
+  const subscribing = useRef<Promise<boolean> | null>(null);
 
   // Listen for SW messages (NEW_ORDER) to play the cash register sound
   useEffect(() => {
@@ -147,6 +168,7 @@ export function useAdminPushNotifications() {
         // Never ring from the push payload: ask the order list, which knows COD vs paid Ziina.
         window.dispatchEvent(new Event("imaginate:orders-refresh"));
       }
+      if (event.data?.type === "ADMIN_CHAT") window.dispatchEvent(new Event("imaginate:chat-refresh"));
     };
     navigator.serviceWorker.addEventListener("message", handler);
     return () => navigator.serviceWorker.removeEventListener("message", handler);
@@ -156,6 +178,7 @@ export function useAdminPushNotifications() {
   // so the UI shows "Enabled" immediately on revisit instead of after async fetch
   useEffect(() => {
     const quickCheck = async () => {
+      if (optedOut()) return;
       if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
       if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
       try {
@@ -163,7 +186,7 @@ export function useAdminPushNotifications() {
         if (!reg) return;
         const sub = await reg.pushManager.getSubscription();
         if (sub) {
-          await syncAdminChatSubscription(sub);
+          await syncAdminDeviceSubscription(sub);
           setSubscribed(true);
           setSubscribeError(null);
           swRegRef.current = reg;
@@ -178,10 +201,16 @@ export function useAdminPushNotifications() {
 
   // Subscribe to push after permission is already granted (no dialog needed)
   const subscribeAfterGrant = useCallback(async (): Promise<boolean> => {
-    try {
+    if (optedOut()) { setSubscribed(false); return false; }
+    if (subscribing.current) return subscribing.current;
+    const operation = async () => { try {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+        throw new Error("Push is not available here. On iPhone or iPad, add IMAGINATE to the Home Screen and open it there.");
+      }
       const res = await fetch(`${BASE}/api/push/vapid-key`, { credentials: "include" });
       if (!res.ok) {
-        throw new Error(`Server returned ${res.status} — are you logged in as admin?`);
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || `Notification setup failed (${res.status}).`);
       }
       const { publicKey } = (await res.json()) as { publicKey: string };
 
@@ -197,27 +226,21 @@ export function useAdminPushNotifications() {
           applicationServerKey: urlBase64ToArrayBuffer(publicKey),
         }));
 
-      const subJson = sub.toJSON();
-      const saveRes = await fetch(`${BASE}/api/push/subscribe`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          endpoint: sub.endpoint,
-          keys: { p256dh: subJson.keys?.p256dh, auth: subJson.keys?.auth },
-        }),
-      });
-      if (!saveRes.ok) throw new Error("Failed to save subscription on the server.");
-      await syncAdminChatSubscription(sub);
+      if (optedOut()) return false;
+      await syncAdminDeviceSubscription(sub);
+      if (optedOut()) return false;
 
       setSubscribed(true);
       setSubscribeError(null);
       return true;
     } catch (err: any) {
+      setSubscribed(false);
       console.warn("[Push] Subscribe failed:", err);
       setSubscribeError(err?.message || "Unknown error — check browser console.");
       return false;
-    }
+    }};
+    subscribing.current = operation();
+    try { return await subscribing.current; } finally { subscribing.current = null; }
   }, []);
 
   // Request browser permission and subscribe if granted
@@ -227,6 +250,7 @@ export function useAdminPushNotifications() {
       return "unsupported";
     }
     try {
+      localStorage.removeItem(PUSH_OPT_OUT);
       setSubscribeError(null);
       const perm = await Notification.requestPermission();
       setPermission(perm as NotifPermission);
@@ -237,9 +261,9 @@ export function useAdminPushNotifications() {
         } else {
           // Confirmation notification — fires immediately after permission granted
           try {
-            new Notification("IMAGINATE Admin 🔔", {
+            await swRegRef.current?.showNotification("IMAGINATE Admin", {
               body: "Notifications are on. You'll receive real-time updates for new orders, customer activity, and important IMAGINATE alerts.",
-              icon: "/imaginate-icon-192.png",
+              icon: `${BASE}/imaginate-icon-192.png`,
               tag: "fp-notifications-enabled",
             });
           } catch { /* ignore if service worker context blocks direct Notification */ }
@@ -261,13 +285,16 @@ export function useAdminPushNotifications() {
   }, [subscribeAfterGrant]);
 
   const unsubscribe = useCallback(async () => {
+    const previousOptOut = localStorage.getItem(PUSH_OPT_OUT);
     try {
+      localStorage.setItem(PUSH_OPT_OUT, "true");
+      if (subscribing.current) await subscribing.current;
       const reg =
         swRegRef.current ||
         (await navigator.serviceWorker?.getRegistration(`${BASE}/sw.js`));
-      if (!reg) return;
+      if (!reg) { setSubscribed(false); return; }
       const sub = await reg.pushManager.getSubscription();
-      if (!sub) return;
+      if (!sub) { setSubscribed(false); return; }
       await fetch(`${BASE}/api/push/subscribe`, {
         method: "DELETE",
         credentials: "include",
@@ -288,7 +315,10 @@ export function useAdminPushNotifications() {
       setSubscribed(false);
       setSubscribeError(null);
     } catch (err) {
+      if (previousOptOut === null) localStorage.removeItem(PUSH_OPT_OUT);
+      else localStorage.setItem(PUSH_OPT_OUT, previousOptOut);
       console.warn("[Push] Unsubscribe failed:", err);
+      setSubscribeError(err instanceof Error ? err.message : "Could not disable this device's notifications.");
     }
   }, []);
 
@@ -319,6 +349,23 @@ export function useAdminPushNotifications() {
       subscribeAfterGrant();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const refresh = () => {
+      if (typeof Notification === "undefined" || document.visibilityState === "hidden") return;
+      setPermission(Notification.permission as NotifPermission);
+      if (Notification.permission === "granted") void subscribeAfterGrant();
+      else setSubscribed(false);
+    };
+    window.addEventListener("focus", refresh);
+    window.addEventListener("imaginate:push-config-saved", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("imaginate:push-config-saved", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [subscribeAfterGrant]);
 
   return { permission, subscribed, subscribeError, subscribe, subscribeAfterGrant, unsubscribe, sendTest };
 }

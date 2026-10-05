@@ -11,7 +11,7 @@ export default function PushConfiguration(){
     if(!/^(mailto:[^\s@]+@[^\s@]+\.[^\s@]+|https:\/\/[^\s]+)$/.test(normalized))throw new Error("Enter your real contact email or HTTPS website.");
     const r=await fetch(`${base}/api/settings/bulk`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({push_contact:normalized,owner_activity_push:String(alerts)})});
     const d=await r.json();if(!r.ok)throw new Error(d.error||"Configuration could not be saved.");return d;
-  }});
+  },onSuccess:()=>{window.dispatchEvent(new Event("imaginate:push-config-saved"));}});
   return <section className="space-y-4 rounded-2xl border border-primary/30 bg-white/[0.035] p-6">
     <h2 className="text-sm font-bold uppercase tracking-wider">Push configuration · owner only</h2>
     <p className="text-sm text-white/60">Set a real contact for the browser push service before enabling notifications. This is not an API key. Browser permission and a saved device subscription are still required.</p>

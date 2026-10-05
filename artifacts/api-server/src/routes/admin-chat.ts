@@ -219,6 +219,7 @@ router.post("/admin/chat/messages", requireAdmin, async (req, res) => {
   const metadata = req.body?.metadata && typeof req.body.metadata === "object" ? req.body.metadata : null;
   const media = metadata?.media;
   if (type === "text" && !message) return void res.status(400).json({ error: "Empty message" });
+  if (message.length > 4000) return void res.status(400).json({ error: "Messages can contain up to 4,000 characters." });
   if (type !== "text" && (!media || media.kind !== type || !isValidChatMediaPath(media.objectPath))) {
     return void res.status(400).json({ error: "Invalid chat media" });
   }
@@ -229,6 +230,7 @@ router.post("/admin/chat/messages", requireAdmin, async (req, res) => {
   const cmid = typeof req.body?.clientMessageId === "string" ? req.body.clientMessageId : null;
   const old = cmid ? await db.execute<any>(sql`SELECT * FROM admin_chat_messages WHERE sender_id=${admin.id} AND client_message_id=${cmid} LIMIT 1`).then(r => (Array.isArray(r)?r:(r as any).rows??[])[0]) : null;
   if (old) {
+    if (old.conversation_id !== c.id) return void res.status(409).json({ error: "This message ID belongs to another conversation." });
     const output = chatMessage(old);
     emit({ type:"MESSAGE", message:output }, c.members);
     return void res.status(200).json(output);
@@ -253,10 +255,15 @@ router.post("/admin/chat/messages", requireAdmin, async (req, res) => {
       return void res.status(400).json({ error: "Uploaded media could not be verified. Please send it again." });
     }
   }
-  const row = await db.execute<any>(sql`INSERT INTO admin_chat_messages(sender_id,sender_name,message,type,conversation_id,client_message_id,metadata) VALUES(${admin.id},${admin.name},${message},${type},${c.id},${cmid},${persistedMetadata ? JSON.stringify(persistedMetadata) : null}) RETURNING *`).then(r => (Array.isArray(r)?r:(r as any).rows??[])[0]);
+  const row = await db.execute<any>(sql`INSERT INTO admin_chat_messages(sender_id,sender_name,message,type,conversation_id,client_message_id,metadata) VALUES(${admin.id},${admin.name},${message},${type},${c.id},${cmid},${persistedMetadata ? JSON.stringify(persistedMetadata) : null}) ON CONFLICT(sender_id,client_message_id) WHERE client_message_id IS NOT NULL DO NOTHING RETURNING *`).then(r => (Array.isArray(r)?r:(r as any).rows??[])[0]);
+  if (!row && cmid) {
+    const existing = await db.execute<any>(sql`SELECT * FROM admin_chat_messages WHERE sender_id=${admin.id} AND client_message_id=${cmid}`).then(r => (Array.isArray(r)?r:(r as any).rows??[])[0]);
+    if (!existing || existing.conversation_id !== c.id) return void res.status(409).json({error:"The message could not be confirmed in this conversation."});
+    return void res.status(200).json(chatMessage(existing));
+  }
   if (type !== "text") await db.execute(sql`UPDATE admin_chat_uploads SET consumed_at=NOW() WHERE object_path=${media.objectPath} AND uploader_id=${admin.id} AND consumed_at IS NULL`);
   const output = chatMessage(row);
-  emit({ type:"MESSAGE", message:output }, c.members); sendAdminChatPush(admin.name, type === "image" ? "📷 Photo" : type === "audio" ? "🎤 Voice message" : message, admin.id, c.members ? [...c.members].filter(id => id !== admin.id) : undefined).catch(() => {});
+  emit({ type:"MESSAGE", message:output }, c.members); sendAdminChatPush(admin.name, type === "image" ? "📷 Photo" : type === "audio" ? "🎤 Voice message" : message, admin.id, c.members ? [...c.members].filter(id => id !== admin.id) : undefined, c.id).catch(() => {});
   res.status(201).json(output);
 });
 

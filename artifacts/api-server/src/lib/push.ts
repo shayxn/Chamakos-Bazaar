@@ -309,7 +309,7 @@ export async function sendAdminCallPush(callerName: string, callerAdminId: strin
   } catch {}
 }
 
-export async function sendAdminChatPush(senderName: string, message: string, senderId: string, recipientAdminIds?: string[]) {
+export async function sendAdminChatPush(senderName: string, message: string, senderId: string, recipientAdminIds?: string[], conversationId = "group") {
   try {
     if (!_initialized) await initPush();
     const subs = (await getAdminSubscriptions(senderId)).filter((sub: any) => !recipientAdminIds || recipientAdminIds.includes(sub.admin_id));
@@ -318,10 +318,10 @@ export async function sendAdminChatPush(senderName: string, message: string, sen
       title: `💬 ${senderName}`,
       body: message.length > 100 ? message.slice(0, 97) + "…" : message,
       type: "ADMIN_CHAT",
-      data: { url: "/admin/chat" }
+      data: { url: `/admin/chat?conversation=${encodeURIComponent(conversationId)}`, conversationId }
     });
     await deliver(subs, payload);
-  } catch {}
+  } catch (error) { console.error("[Push] Admin chat delivery failed:", error instanceof Error ? error.message : "Unknown error"); }
 }
 
 export async function sendAdminActivityPush(adminName: string, action: string, orderRef?: string) {

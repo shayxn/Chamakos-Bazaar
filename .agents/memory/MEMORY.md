@@ -67,3 +67,4 @@
 - [Browser media codecs](browser-media-codecs.md) — confirm decoder support before blaming MP4 serving; automated playback may need a compatible WebM fixture.
 - [Cookie session state](cookie-session-state.md) — permissive typings are not a runtime contract; preference reads must not overwrite newer signed-cookie selections.
 - [Top banner cropping](top-banner-cropping.md) — fixed 12:1 viewport and identical saved crop across devices; retain the original upload for later repositioning.
+- [Chat delivery truth](chat-delivery-truth.md) — confirm sends from saved responses; uncertain failures retry the same identity, and reconnects recover missed history.
