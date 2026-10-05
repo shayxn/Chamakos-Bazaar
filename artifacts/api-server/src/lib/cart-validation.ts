@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 export async function validateCartProduct(productId: number, quantity: number, size?: string | null, color?:string|null,variantId?:string|null) {
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) throw new Error("Quantity must be between 1 and 99.");
   const [p] = await db.select().from(productsTable).where(eq(productsTable.id,productId));
-  if (!p || p.hidden || p.comingSoon || p.collection === "back_to_school" ||
+  if (!p || p.hidden || p.comingSoon || (p.collection != null && p.collection !== "basics") ||
     (p.publishAt && p.publishAt.getTime()>Date.now()) || (p.unpublishAt && p.unpublishAt.getTime()<=Date.now()))
     throw new Error("This product is not available.");
   const variant = p.variants.find(v=>v.id===variantId && v.size===(size??"") && v.color===(color??""));

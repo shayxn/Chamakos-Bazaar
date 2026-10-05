@@ -6,9 +6,9 @@ export type ProductMedia = {
 };
 
 function normalizeMediaUrl(url: string): string {
-  if (!url.startsWith("/back-to-school/")) return url;
+  if (!url.startsWith("/") || url.startsWith("//")) return url;
   const base = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
-  return `${base}${url}`;
+  return base && !url.startsWith(`${base}/`) ? `${base}${url}` : url;
 }
 
 function inferMediaType(url: string): ProductMediaType {

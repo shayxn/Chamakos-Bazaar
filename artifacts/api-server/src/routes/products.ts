@@ -7,7 +7,6 @@ import { eq, ilike, and, inArray, ne, isNotNull, isNull, or, type SQL, sql } fro
 import { requireAdmin } from "../lib/auth-middleware";
 import { touchAdminSession } from "../lib/admin-sessions";
 import { adminAccess } from "../lib/admin-permissions";
-import { getOperationalSettings } from "../lib/operational-settings";
 import { createTtlCache, setPublicReadCacheHeaders } from "../lib/response-cache";
 import { sendComingSoonReleasePush } from "../lib/push";
 
@@ -144,7 +143,7 @@ router.get("/products", async (req, res) => {
   }
   const isAdmin = await hasVerifiedAdminSession(req as any);
   const collection = typeof req.query.collection === "string" ? req.query.collection : undefined;
-  if (!isAdmin && collection === "back_to_school") {
+  if (!isAdmin && collection && collection !== "basics") {
     res.setHeader("Cache-Control", "no-store");
     res.json([]);
     return;
@@ -224,9 +223,7 @@ router.get("/products", async (req, res) => {
 
   const filtered = isAdmin ? products : products.filter(p => isPublished(p as any));
   const result = filtered.map((product) => serializeProduct(product, { includeSourceUrl: isAdmin }));
-  if (collection === "back_to_school") {
-    res.setHeader("Cache-Control", "no-store");
-  } else if (cacheKey) {
+  if (cacheKey) {
     productListCache.set(cacheKey, result);
     setPublicReadCacheHeaders(res);
   }
@@ -355,15 +352,11 @@ router.get("/products/:id", async (req, res) => {
     const cached = productDetailCache.get(cacheKey);
     if (cached) {
       const cachedProduct = cached as { collection?: string | null };
-      if (cachedProduct.collection === "back_to_school") {
-        if (!(await getOperationalSettings()).backToSchoolEnabled) {
-          res.status(404).json({ error: "Not found" });
-          return;
-        }
-        res.setHeader("Cache-Control", "no-store");
-      } else {
-        setPublicReadCacheHeaders(res);
+      if (cachedProduct.collection != null && cachedProduct.collection !== "basics") {
+        res.status(404).json({ error: "Not found" });
+        return;
       }
+      setPublicReadCacheHeaders(res);
       res.json(cached);
       return;
     }
@@ -410,17 +403,12 @@ router.get("/products/:id", async (req, res) => {
     .where(eq(productsTable.id, id));
 
   if (!product) { res.status(404).json({ error: "Not found" }); return; }
-  const isSchoolProduct = product.collection === "back_to_school";
-  if (!isAdmin && isSchoolProduct) { res.status(404).json({ error: "Not found" }); return; }
+  if (!isAdmin && product.collection != null && product.collection !== "basics") { res.status(404).json({ error: "Not found" }); return; }
   if (!isAdmin && !isPublished(product as any)) { res.status(404).json({ error: "Not found" }); return; }
   const result = serializeProduct(product, { includeSourceUrl: isAdmin });
   if (cacheKey) {
-    if (isSchoolProduct) {
-      res.setHeader("Cache-Control", "no-store");
-    } else {
-      productDetailCache.set(cacheKey, result);
-      setPublicReadCacheHeaders(res);
-    }
+    productDetailCache.set(cacheKey, result);
+    setPublicReadCacheHeaders(res);
   }
   res.json(result);
 });

@@ -607,7 +607,7 @@ export default function ProductDetail() {
               initial={{ opacity: 0, scale: 1.04 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.75, ease: EASE }}
-              className="product-img-frame relative aspect-square md:aspect-[4/5] bg-card rounded-lg overflow-hidden border border-border group"
+              className="product-img-frame relative aspect-square md:aspect-[4/5] bg-card rounded-2xl overflow-hidden border border-border group"
             >
               <AnimatePresence mode="sync">
                 {selectedMedia ? (

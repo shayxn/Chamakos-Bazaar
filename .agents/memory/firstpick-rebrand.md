@@ -39,11 +39,23 @@ Use live-source exchange-rate estimates for the selected country's currency, but
 
 **How to apply:** Label conversion as an estimate, retain truthful stale/unavailable states and provider attribution, and never treat a fulfillment status as proof of a paid online purchase.
 
-The supplied editorial reference is layout only. Do not use any Rockstar or GTA VI branding/content. The hero side panel is owner-controlled title, description and image content, not a product recommendation.
+The supplied editorial reference is layout only. Do not use any Rockstar or GTA VI branding/content.
 
 **Why:** The user explicitly said “Do NOT use any rockstar branding, NOTHING related to rockstar or gta 6”.
 
-**How to apply:** Keep reference content out of new UI and use real published editorial cards; do not seed invented stories to fill an empty panel.
+**How to apply:** Keep reference content out of new UI; do not seed invented stories.
+
+The owner wants the featured hero cards, repeating streetwear strip, IMAGINATE Live block, and “Not made to fit in / Made to feel like you” section removed. Keep the main hero and news.
+
+**Why:** The owner supplied screenshots identifying those homepage elements for deletion.
+
+**How to apply:** Do not restore these sections during future homepage work.
+
+School retirement includes all school-related features, references, and unused school-supply categories—not just the campaign banner.
+
+**Why:** The owner repeated that anything about school should be deleted after finding school categories still in the shop.
+
+**How to apply:** Do not reintroduce school campaigns or categories through old task plans, seed data, or redesigns. Preserve current merchandise and historical orders.
 
 A shipping month or date-only string must not become a countdown with an invented time or time zone.
 

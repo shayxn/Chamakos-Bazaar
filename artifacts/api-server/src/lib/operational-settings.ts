@@ -6,7 +6,6 @@ const OPERATIONAL_SETTING_KEYS = ["emergency_shutdown", "maintenance_mode", "sto
 
 export type OperationalSettings = {
   emergencyShutdown: boolean;
-  backToSchoolEnabled: boolean;
 };
 
 export async function getOperationalSettings(): Promise<OperationalSettings> {
@@ -18,13 +17,12 @@ export async function getOperationalSettings(): Promise<OperationalSettings> {
 
   return {
     emergencyShutdown: values.emergency_shutdown === "true" || values.maintenance_mode === "true" || values.store_enabled === "false",
-    backToSchoolEnabled: false,
   };
 }
 
 export function invalidateOperationalSettings() {
   // Operational controls intentionally read directly from PostgreSQL so every
-  // API instance observes the same emergency and seasonal state immediately.
+  // API instance observes the same emergency state immediately.
 }
 
 async function isVerifiedAdmin(req: Request) {

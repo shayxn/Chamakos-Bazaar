@@ -1071,8 +1071,8 @@ input::selection, textarea::selection {
 
 @keyframes launch-fade-in { from { background-color: transparent; } to { background-color: #000; } }
 @keyframes boot-fade-out { to { opacity: 0; } }
-.imaginate-boot[data-leaving="true"] { animation: boot-fade-out 0.6s ease forwards; pointer-events: none; }
-.imaginate-boot[data-leaving="true"] .imaginate-boot-logo { animation: none; opacity: 0.9; transform: scale(1.02); transition: transform .6s ease; }
+.imaginate-boot[data-leaving="true"] { animation: boot-fade-out 0.2s ease forwards; pointer-events: none; }
+.imaginate-boot[data-leaving="true"] .imaginate-boot-logo { animation: none; opacity: 0.9; transform: scale(1.02); transition: transform .2s ease; }
 @media (prefers-reduced-motion: reduce) { .imaginate-boot[data-leaving="true"] { animation-duration: .2s; } }
 
 /* Loader: occasional faint lightning that briefly lights the logo and nudges it. Transform/opacity/filter only. */

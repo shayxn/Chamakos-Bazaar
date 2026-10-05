@@ -59,7 +59,7 @@ export async function createValidatedOrder(req: Request, paymentMethod: "cod" | 
     for (const item of items) {
       if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 99 || !Number.isFinite(Number(item.price)) || Number(item.price) < 0)
         throw new CheckoutError("An item in your bag has an invalid quantity or price.");
-      if (item.hidden || item.coming_soon || item.collection === "back_to_school" ||
+      if (item.hidden || item.coming_soon || (item.collection != null && item.collection !== "basics") ||
         (item.publish_at && new Date(item.publish_at).getTime() > Date.now()) ||
         (item.unpublish_at && new Date(item.unpublish_at).getTime() <= Date.now()))
         throw new CheckoutError(`${item.productName} is no longer available. Remove it from your bag.`);

@@ -5,7 +5,6 @@ import LaunchPanel from "@/components/launch-panel";
 import { ArrowRight, Heart } from "lucide-react";
 import { useMemo } from "react";
 import { getPrimaryProductMedia } from "@/lib/product-media";
-import { useListPublishedContent } from "@workspace/api-client-react";
 import { useSettings } from "@/lib/use-settings";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Price } from "@/components/price";
@@ -19,7 +18,7 @@ function ProductTile({ product, index, wished, onWish }: {
   const media = getPrimaryProductMedia(product.imageUrl);
   return (
     <article className="group" data-testid={`card-product-${product.id}`}>
-      <div className="relative overflow-hidden bg-[#19191c]">
+      <div className="relative overflow-hidden rounded-2xl bg-[#19191c]">
         <Link href={`/product/${product.id}`} className="block">
           <div className="aspect-[4/5] overflow-hidden">
             {media ? (
@@ -80,20 +79,6 @@ export default function Home() {
     return (settings.hero_image && settings.hero_image !== "/chamako-hero.png" ? settings.hero_image : undefined) ?? tryImages(settings.hero_images);
   }, [settings.hero_images, settings.hero_image]);
 
-  const panelQ = useListPublishedContent("hero-panel", { query: { queryKey: ["published-hero-panel"], staleTime: 30_000 } });
-  const panel = useMemo(() => {
-    const list = [...(panelQ.data ?? [])].sort((x, y) => Number(y.featured) - Number(x.featured));
-    return list;
-  }, [panelQ.data]);
-
-
-  const liveEnabled = settings.live_event_enabled === "true";
-  const liveDate = settings.live_event_date?.trim() || "";
-  const liveTime = settings.live_event_time?.trim();
-  const liveCtaUrl = settings.live_event_live_url?.trim() || settings.live_event_cta_url?.trim();
-  const eventDateLabel = /^\d{4}-\d{2}-\d{2}$/.test(liveDate)
-    ? new Intl.DateTimeFormat("en-AE", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${liveDate}T00:00:00`))
-    : liveDate;
   const products = featured?.length ? featured.slice(0, 8) : (catalog ?? []).slice(0, 8);
   const productsLoading = catalogLoading;
   const productsError = catalogError;
@@ -129,71 +114,12 @@ export default function Home() {
             ) : (
               <div className="absolute inset-0 grid place-items-center"><img src="/imaginate-logo.png" alt="Imaginate" className="w-48 opacity-90" /></div>
             )}
-            {panel.length > 0 && (
-              <aside aria-label="Featured" className="absolute inset-x-3 bottom-3 z-10 flex max-h-[70%] flex-col gap-2 overflow-y-auto sm:inset-x-6 sm:bottom-6 lg:left-auto lg:w-[26rem] [@media(max-height:520px)]:static [@media(max-height:520px)]:max-h-none">
-                {panel.map((doc, i) => {
-                  const d = (doc.data ?? {}) as { description?: string; imageUrl?: string; url?: string };
-                  const main = i === 0;
-                  const inner = (
-                    <div className={`liquid-panel flex gap-3 rounded-3xl text-white ${main ? "p-3" : "p-2"}`}>
-                      {d.imageUrl && <img src={d.imageUrl} alt="" loading="lazy" className={`shrink-0 rounded-2xl object-cover ${main ? "h-24 w-24 sm:h-28 sm:w-28" : "h-14 w-14"}`} />}
-                      <div className="min-w-0 self-center pr-2">
-                        {main && <p className="mb-1 text-[9px] uppercase tracking-[.28em] text-[#c4adff]">Featured</p>}
-                        <h2 className={`font-semibold leading-tight tracking-tight ${main ? "text-lg" : "text-sm"}`}>{doc.title}</h2>
-                        {d.description && <p className={`mt-1 text-white/65 ${main ? "line-clamp-3 text-xs leading-5" : "line-clamp-2 text-[11px] leading-4"}`}>{d.description}</p>}
-                      </div>
-                    </div>
-                  );
-                  return d.url ? (/^https?:\/\//i.test(d.url)
-                    ? <a key={doc.id} href={d.url} target="_blank" rel="noopener noreferrer" className="jelly block">{inner}</a>
-                    : <Link key={doc.id} href={d.url} className="jelly block">{inner}</Link>)
-                    : <div key={doc.id}>{inner}</div>;
-                })}
-              </aside>
-            )}
-          </div>
-        </div>
-        <div className="overflow-hidden border-t border-white/10 bg-[#0d0d0f] py-3" aria-hidden="true">
-          <div className="imag-marquee flex w-max gap-10 text-[10px] uppercase tracking-[.35em] text-white/45">
-            {Array.from({ length: 12 }).map((_, i) => <span key={i}>Imaginate / UAE / Streetwear</span>)}
           </div>
         </div>
       </section>
       <HomepageNews />
 
       <LaunchPanel />
-      {liveEnabled && (
-        <section className="relative isolate overflow-hidden border-y border-white/10 bg-[#17161a]" aria-label="IMAGINATE Live">
-          {settings.live_event_background && (
-            <>
-              <img src={settings.live_event_background} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-20" loading="lazy" />
-              <div aria-hidden="true" className="absolute inset-0 bg-[#111113]/75" />
-            </>
-          )}
-          <div className="relative mx-auto flex max-w-[1600px] flex-col gap-7 px-6 py-9 sm:px-10 md:flex-row md:items-center md:justify-between lg:px-[8vw]">
-            <div className="flex items-start gap-5">
-              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#c3a9ff]" />
-              <div>
-                <p className="mb-2 text-[9px] uppercase tracking-[.3em] text-[#c3a9ff]">IMAGINATE Live</p>
-                <h2 className="text-2xl font-medium tracking-[-.04em] sm:text-3xl">{settings.live_event_title || "A moment in the making."}</h2>
-                {settings.live_event_description && <p className="mt-2 max-w-xl text-sm leading-6 text-white/55">{settings.live_event_description}</p>}
-              </div>
-            </div>
-            <div className="flex shrink-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-8">
-              {(liveDate || liveTime) && (
-                <p className="text-[10px] uppercase tracking-[.17em] text-white/65">
-                  {eventDateLabel}{liveTime ? ` · ${liveTime}${settings.live_event_timezone ? ` ${settings.live_event_timezone}` : ""}` : ""}
-                </p>
-              )}
-              {liveCtaUrl && (
-                <a href={liveCtaUrl} className="group inline-flex items-center gap-3 text-[10px] uppercase tracking-[.2em] text-white hover:text-[#c6b2f0]" data-testid="link-live-event">
-                  {settings.live_event_cta_text || "Discover the event"} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </a>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
 
       <section id="collection" className="mx-auto max-w-[1600px] px-6 pb-24 pt-24 sm:px-10 sm:pb-32 sm:pt-32 lg:px-[8vw]">
         <div className="mb-10 flex flex-col justify-between gap-5 sm:mb-14 sm:flex-row sm:items-end">
@@ -225,20 +151,6 @@ export default function Home() {
         )}
       </section>
 
-      <section className="relative overflow-hidden border-y border-white/10 bg-[#17161a] px-6 py-24 sm:px-10 sm:py-36">
-        <div aria-hidden="true" className="absolute -right-20 top-1/2 h-[440px] w-[440px] -translate-y-1/2 rounded-full border border-[#bba4f4]/10 sm:right-[8%]" />
-        <div aria-hidden="true" className="absolute -right-5 top-1/2 h-[320px] w-[320px] -translate-y-1/2 rounded-full border border-white/[.06] sm:right-[14%]" />
-        <div className="relative mx-auto max-w-[1600px] lg:px-[8vw]">
-          <p className="mb-6 text-[9px] uppercase tracking-[.3em] text-[#bba4f4]">A different kind of statement</p>
-          <h2 className="max-w-5xl text-[clamp(2.8rem,8vw,7.6rem)] font-medium uppercase leading-[.88] tracking-[-.075em]">
-            Not made to fit in.<br /><span className="text-white/38">Made to feel like you.</span>
-          </h2>
-          <div className="mt-10 flex flex-col justify-between gap-8 sm:flex-row sm:items-end">
-            <p className="max-w-sm text-sm leading-6 text-white/55">We believe what you wear should leave room for who you are becoming. IMAGINATE starts there.</p>
-            <img src="/imaginate-logo.png" alt="Imaginate" className="h-auto w-40 object-contain sm:w-52" loading="lazy" />
-          </div>
-        </div>
-      </section>
 
       <section className="mx-auto flex max-w-[1600px] flex-col gap-7 px-6 py-16 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-20 lg:px-[8vw]">
         <div>

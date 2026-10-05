@@ -11,7 +11,7 @@ import { ensureManagement, rows as extractRows } from "../lib/management-db";
 
 const router = Router();
 const settingsCache = createTtlCache<Record<string, string>>(30_000);
-const privateKey = /private|secret|password|token|api_key|vapid|smtp|owner_|admin_|reminder|worldwide|country_|currency_|exchange|global_store|supplier|source|back_to_school|notification|push_/i;
+const privateKey = /private|secret|password|token|api_key|vapid|smtp|owner_|admin_|reminder|worldwide|country_|currency_|exchange|global_store|supplier|source|notification|push_/i;
 const secretKey = /private|secret|password|token|api_key|smtp_pass/i;
 const ownerKey = /worldwide|shipping|delivery_|country|currency|exchange|global_store|owner_|security|emergency_shutdown|maintenance_mode|store_enabled|push_/i;
 

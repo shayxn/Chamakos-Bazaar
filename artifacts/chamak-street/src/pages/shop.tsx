@@ -370,7 +370,7 @@ export default function Shop() {
                       <TiltCard>
                       <div className="group cursor-pointer" data-testid={`card-product-${product.id}`}>
                         {/* Image */}
-                        <div className="relative aspect-square mb-3 overflow-hidden rounded-xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(183,156,255,0.2)]">
+                        <div className="relative aspect-square mb-3 overflow-hidden rounded-2xl glass-card transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_28px_rgba(183,156,255,0.2)]">
                           <Link href={`/product/${product.id}`} className="block w-full h-full">
                             {primaryMedia ? (
                               primaryMedia.type === "video" ? (

@@ -20,7 +20,7 @@ const PROTECTED_SLUGS = new Set(["", "home", "shop", "cart", "checkout", "accoun
 const SAFE_EVENT_TRIGGERS = new Set(["page-open", "button-click", "product-click", "product-added", "scroll-to-section", "element-enters", "admin-page-open"]);
 const SAFE_EVENT_ACTIONS = new Set(["show-notification", "navigate", "open-product", "play-sound", "trigger-animation"]);
 const SYSTEM_PAGE_ROUTES = new Set([
-  "/", "/shop", "/basics", "/back-to-school", "/cart", "/order-tracking", "/terms", "/privacy", "/shipping",
+  "/", "/shop", "/basics", "/cart", "/order-tracking", "/terms", "/privacy", "/shipping",
   "/account", "/account/login", "/account/register", "/returns", "/request-product", "/games", "/support", "/wishlist", "/maintenance",
   "/checkout", "/product/:id", "/order/:id", "/receipt/:id", "/games/:id",
   "/admin", "/admin/products", "/admin/basics", "/admin/orders", "/admin/categories", "/admin/site-settings", "/admin/reviews",

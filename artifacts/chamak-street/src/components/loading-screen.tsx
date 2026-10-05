@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchOperationalSettings } from "@/lib/use-settings";
 
 const SESSION_KEY = "firstpick_loaded";
+const LOADING_DURATION_MS = 3_000;
+const EXIT_DURATION_MS = 200;
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
 export function LoadingScreen() {
@@ -20,7 +22,7 @@ export function LoadingScreen() {
   const [visible, setVisible] = useState(!skip);
   const [slow, setSlow] = useState(false);
   const [minElapsed, setMinElapsed] = useState(false);
-  useEffect(() => { if (skip) return; const t = setTimeout(() => setMinElapsed(true), 5_000); return () => clearTimeout(t); }, [skip]);
+  useEffect(() => { if (skip) return; const t = setTimeout(() => setMinElapsed(true), LOADING_DURATION_MS - EXIT_DURATION_MS); return () => clearTimeout(t); }, [skip]);
   useEffect(() => {
     if (skip) return;
     let mounted = true;
@@ -47,8 +49,7 @@ export function LoadingScreen() {
   }, [skip, settings.isSuccess, operational.isSuccess, country.isSuccess, routeReady, fontsReady, minElapsed, leaving]);
   useEffect(() => {
     if (!leaving) return;
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const t = setTimeout(() => setVisible(false), reduce ? 220 : 650);
+    const t = setTimeout(() => setVisible(false), EXIT_DURATION_MS);
     return () => clearTimeout(t);
   }, [leaving]);
   useEffect(() => {
