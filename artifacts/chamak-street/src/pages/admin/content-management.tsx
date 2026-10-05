@@ -188,12 +188,12 @@ function FieldEditor({ f, value, onChange }: { f: F; value: any; onChange: (v: a
 }
 
 /* ---------- document editor ---------- */
-const blank = (): DocInput => ({ title: "", slug: "", status: "draft", featured: false, showInNavigation: false, publishAt: null, unpublishAt: null, data: {} });
+const blank = (status: Status = "draft"): DocInput => ({ title: "", slug: "", status, featured: false, showInNavigation: false, publishAt: null, unpublishAt: null, data: {} });
 
 function Editor({ kind, doc, onClose }: { kind: string; doc: Doc | null; onClose: () => void }) {
   const qc = useQueryClient();
   const cfg = KINDS[kind];
-  const [form, setForm] = useState<DocInput>(() => doc ? { title: doc.title, slug: doc.slug, status: doc.status, featured: doc.featured, showInNavigation: doc.showInNavigation, publishAt: doc.publishAt, unpublishAt: doc.unpublishAt, data: doc.data ?? {} } : blank());
+  const [form, setForm] = useState<DocInput>(() => doc ? { title: doc.title, slug: doc.slug, status: doc.status, featured: doc.featured, showInNavigation: doc.showInNavigation, publishAt: doc.publishAt, unpublishAt: doc.unpublishAt, data: doc.data ?? {} } : blank(kind === "news" ? "published" : "draft"));
   const [slugTouched, setSlugTouched] = useState(!!doc);
   const [preview, setPreview] = useState(false);
   const save = useMutation({
@@ -209,6 +209,7 @@ function Editor({ kind, doc, onClose }: { kind: string; doc: Doc | null; onClose
   return (
     <div className={`${glass} space-y-4 p-4 sm:p-6`} data-testid="editor-document">
       <div className="flex items-center justify-between"><h2 className="text-lg font-black uppercase">{doc ? "Edit" : "New"} {cfg.label}</h2><button className={btn} onClick={onClose}><X className="h-3.5 w-3.5" />Close</button></div>
+      {kind === "news" && <p className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm text-white/75" data-testid="text-news-publishing-help">Published news appears directly below the homepage hero. Drafts stay private. A future publish time schedules the story instead of showing it immediately.</p>}
       <div className="grid gap-3 sm:grid-cols-2">
         <Lbl t={cfg.titleLabel ?? "Title"}><input className={inp} value={form.title} data-testid="input-doc-title" onChange={(e) => setForm({ ...form, title: e.target.value, slug: slugTouched ? form.slug : slugify(e.target.value) })} /></Lbl>
         <Lbl t="Slug"><input className={inp} value={form.slug} onChange={(e) => { setSlugTouched(true); setForm({ ...form, slug: slugify(e.target.value) }); }} /></Lbl>
@@ -239,8 +240,9 @@ function Editor({ kind, doc, onClose }: { kind: string; doc: Doc | null; onClose
       )}
       {save.isError && <Err e={save.error} />}
       <div className="flex flex-wrap gap-2">
-        <button className={btnP} disabled={save.isPending || !form.title.trim() || !!launchBad} onClick={() => submit()} data-testid="button-doc-save"><Save className="h-4 w-4" />{save.isPending ? "Saving" : "Save"}</button>
-        {form.status !== "published" && <button className={btn} disabled={save.isPending || !form.title.trim() || !!launchBad} onClick={() => submit("published")}>Save and publish</button>}
+        <button className={btnP} disabled={save.isPending || !form.title.trim() || !!launchBad} onClick={() => submit()} data-testid="button-doc-save"><Save className="h-4 w-4" />{save.isPending ? "Saving…" : kind !== "news" ? "Save" : form.status === "draft" ? "Save draft" : form.status === "archived" ? "Save archived story" : form.publishAt && Date.parse(form.publishAt) > Date.now() ? "Schedule news" : doc?.status === "published" ? "Save changes" : "Publish news"}</button>
+        {form.status !== "published" && <button className={btn} disabled={save.isPending || !form.title.trim() || !!launchBad} onClick={() => submit("published")} data-testid="button-doc-publish">{kind === "news" ? "Publish news" : "Save and publish"}</button>}
+        {kind === "news" && form.status === "published" && !doc && <button className={btn} disabled={save.isPending || !form.title.trim()} onClick={() => submit("draft")} data-testid="button-news-save-draft">Save draft instead</button>}
         {form.status === "published" && <button className={btn} disabled={save.isPending} onClick={() => submit("draft")}>Unpublish</button>}
       </div>
     </div>

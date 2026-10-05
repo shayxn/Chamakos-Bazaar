@@ -4,28 +4,31 @@ import { Link } from "wouter";
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
 export type NewsDoc = {
-  id: number; title: string; slug: string; featured: boolean; publishAt: string | null;
+  id: number; title: string; slug: string; featured: boolean; publishAt: string | null; createdAt?: string;
   data: { category?: string; summary?: string; imageUrl?: string; date?: string };
 };
 
 function fmt(doc: NewsDoc) {
-  const raw = doc.data?.date || doc.publishAt;
+  const raw = doc.data?.date || doc.publishAt || doc.createdAt;
   if (!raw) return "";
   const d = new Date(raw);
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 }
 
 export default function HomepageNews() {
-  const { data } = useQuery<NewsDoc[]>({
+  const { data, isError, refetch } = useQuery<NewsDoc[]>({
     queryKey: ["published", "news"],
-    queryFn: async () => {
-      const r = await fetch(`${BASE}/api/published/news`, { credentials: "include" });
+    queryFn: async ({ signal }) => {
+      const r = await fetch(`${BASE}/api/published/news`, { credentials: "include", cache: "no-store", signal });
       if (!r.ok) throw new Error("Could not load news");
       return r.json();
     },
-    staleTime: 60_000,
-    refetchInterval:30_000,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
+    refetchInterval: 5_000,
   });
+  if (isError && !data) return <section aria-label="News" className="px-4 py-8 sm:px-6 lg:px-8"><div className="mx-auto max-w-7xl rounded-2xl border border-white/10 p-5"><h2 className="text-xl font-bold text-white">News</h2><p role="alert" className="mt-2 text-sm text-white/60">News could not be loaded.</p><button type="button" onClick={() => void refetch()} className="mt-3 text-sm text-primary" data-testid="button-news-retry">Try again</button></div></section>;
   if (!data || data.length === 0) return null;
   const featured = data.find((d) => d.featured) ?? data[0];
   const rest = data.filter((d) => d.id !== featured.id).slice(0, 4);
@@ -49,8 +52,9 @@ export default function HomepageNews() {
             <div className="flex-1 p-5 sm:p-7">
               {featured.data?.category && <p className="text-[11px] font-bold uppercase tracking-widest text-primary">{featured.data.category}</p>}
               <h3 className="mt-3 text-xl font-semibold leading-tight text-white sm:text-3xl">{featured.title}</h3>
-              {featured.data?.summary && solo && <p className="mt-3 line-clamp-3 text-sm text-white/65">{featured.data.summary}</p>}
+              {featured.data?.summary && <p className="mt-3 line-clamp-3 text-sm text-white/65">{featured.data.summary}</p>}
               <p className="mt-4 text-sm text-white/55">{fmt(featured)}</p>
+              <span className="mt-5 inline-block text-xs font-bold uppercase tracking-widest text-primary">Read story →</span>
             </div>
           </Link>
           {rest.length > 0 && (
