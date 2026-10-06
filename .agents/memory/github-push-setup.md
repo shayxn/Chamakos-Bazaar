@@ -1,23 +1,10 @@
 ---
 name: GitHub push setup
-description: How to push Chamak Street to GitHub from Replit
+description: Distinguish GitHub connection status from actual workspace push authorization.
 ---
 
-## Setup
-- Remote: `https://github.com/shayxn/Chamakos-Bazaar` (HTTPS, no SSH keys)
-- git user: aboodie040 / aboodie040@gmail.com
-- Branch: main (90+ commits ahead of origin/main; 2 behind)
+An active/healthy GitHub source-control connection is not proof that workspace Git can push. Public fetches can succeed without authenticated write access.
 
-## Pushing
-A helper script `push-to-github.sh` exists in the repo root. Run:
-```bash
-bash push-to-github.sh
-```
+**Why:** The source-control connection reported healthy OAuth and repository scope, but HTTPS push rejected authentication and the GitHub CLI had no logged-in host. The normal integration reconnect form did not support this special source-control connection.
 
-The user needs `GITHUB_TOKEN` set as a Replit Secret with `repo` scope. The script:
-1. Sets remote URL with embedded token
-2. Fetches latest
-3. Force-pushes with `--force-with-lease`
-4. Restores clean remote URL (no token stored in config)
-
-**Why:** HTTPS push requires a GitHub PAT. The token is never stored in git config — it's only used for the push command then reverted.
+**How to apply:** Prefer the authorized source-control connection and a normal, non-force push. If authentication fails, keep verified commits local and state that they are not live. Official Replit guidance points to reconnecting GitHub in account settings → Connected Services. Never expose tokens or use the historical force-push helper merely to work around missing authentication.

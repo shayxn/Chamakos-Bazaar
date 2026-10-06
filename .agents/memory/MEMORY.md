@@ -14,7 +14,7 @@
 - [Brand logos CDN](brand-logos-cdn.md) — Clearbit CDN (logo.clearbit.com/{domain}) unreachable from sandbox; falls back to SVG via onError; apply filter:brightness(0)invert(1) for white-on-dark. All brand card links use /shop?search= (not ?q=).
 - [Framer-motion ease types](framer-motion-ease-types.md) — ease: number[] fails TS inside Variants objects; use `const EASE_CURVE: any = [...]` or cast `as any` on ease. Move transitions out of variants into direct motion props when possible.
 - [Delivery price config](delivery-price-config.md) — Delivery is always paid; standard UAE checkout delivery is AED 25 and must stay aligned in settings, frontend, and backend fallbacks.
-- [GitHub push setup](github-push-setup.md) — Remote is HTTPS github.com/shayxn/Chamakos-Bazaar; no SSH keys; no token in env. push-to-github.sh in repo root handles token-based push with force-with-lease. User needs GITHUB_TOKEN secret.
+- [GitHub push authorization](github-push-setup.md) — healthy source-control OAuth is not proof of CLI push access; preserve local commits and avoid force-push workarounds.
 - [Legacy media durability](uploads-git-warning.md) — preserve original media and stable URLs; never hide missing files by replacing the owner's saved assets.
 - [Vite Fast Refresh mixed exports](vite-fast-refresh-mixed.md) — files exporting both a React component AND a hook (useXxx) crash React on HMR; fix with `/* @refresh reset */` at top of file or split into two files.
 - [IMAGINATE storefront rules](firstpick-rebrand.md) — supplied logo, editorial reference only; Global controls countries, COD UAE-only, live FX estimates but AED settlement; preserve history.
