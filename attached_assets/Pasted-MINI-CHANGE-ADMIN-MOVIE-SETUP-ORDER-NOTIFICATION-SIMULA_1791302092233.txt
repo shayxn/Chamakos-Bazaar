@@ -1,0 +1,181 @@
+MINI CHANGE — ADMIN “MOVIE SETUP” ORDER NOTIFICATION SIMULATOR
+
+Add a new OWNER/ADMIN section called:
+
+MOVIE SETUP
+
+This is ONLY for filming the Imaginate launch movie.
+
+IMPORTANT:
+This must be completely isolated from REAL orders, REAL sales, REAL customers, REAL inventory, REAL analytics, REAL revenue, and REAL order history.
+
+Do NOT create fake orders in the production database.
+Do NOT change sales totals.
+Do NOT change inventory.
+Do NOT trigger customer notifications.
+Do NOT trigger fulfillment/payment/email systems.
+
+--------------------------------------------------
+MOVIE ORDER SPAM
+--------------------------------------------------
+
+Add a large button:
+
+START MOVIE ORDER SPAM
+
+When pressed, show a serious confirmation:
+
+“Start the movie order notification sequence?
+
+This is a filming simulation only. It will NOT create real orders or affect store analytics.”
+
+Buttons:
+CANCEL
+START MOVIE MODE
+
+After confirmation, start a dramatic simulated order sequence for ALL currently logged-in Admin/Owner movie-mode screens.
+
+The purpose is to film a scene where it looks like Imaginate suddenly receives a huge amount of orders.
+
+Simulate AT LEAST 3,000 order-notification events.
+
+Each event should display:
+
+“Well done! You got an order!”
+
+And play a premium:
+
+“CHA-CHING!”
+
+order sound.
+
+The sequence should begin slightly slower:
+
+CHA-CHING
+
+small pause
+
+CHA-CHING
+
+then accelerate rapidly:
+
+CHA-CHING
+CHA-CHING
+CHA-CHING
+CHA-CHING CHA-CHING CHA-CHING
+
+until the screen feels like orders are exploding.
+
+IMPORTANT:
+Do NOT attempt to send 3,000 individual operating-system/Web Push notifications.
+
+Instead, build an efficient MOVIE SIMULATION overlay/event system capable of visually representing 3,000+ notifications without creating thousands of network requests, database rows, push deliveries, timers, or DOM elements.
+
+The visual counter can increase rapidly:
+
+1 ORDER
+2 ORDERS
+5 ORDERS
+12 ORDERS
+38 ORDERS
+100 ORDERS
+500 ORDERS
+1,000 ORDERS
+2,000 ORDERS
+3,000+ ORDERS
+
+while notification cards rapidly appear/disappear saying:
+
+“Well done! You got an order!”
+
+Keep playing the CHA-CHING effect rapidly enough for the filming scene.
+
+Make it intentionally chaotic and exciting but technically lightweight.
+
+--------------------------------------------------
+ADMIN DEVICES
+--------------------------------------------------
+
+Movie Mode should synchronize across currently connected Owner/Admin movie-mode sessions where practical.
+
+It must NEVER send these movie notifications to customers.
+
+Clearly label simulated notifications internally as:
+
+MOVIE_SIMULATION
+
+so they can never be confused with real order events.
+
+--------------------------------------------------
+EMERGENCY STOP
+--------------------------------------------------
+
+While Movie Mode is running, show a clearly accessible:
+
+STOP MOVIE MODE
+
+button.
+
+Pressing it must immediately stop:
+- simulated notifications
+- sounds
+- counters
+- animation
+- synchronization
+
+Do not leave thousands of pending timers/events running afterward.
+
+--------------------------------------------------
+TEST BUTTON
+--------------------------------------------------
+
+Below the real Movie Mode button add:
+
+TEST — 10 NOTIFICATIONS
+
+This is for checking the filming setup before we record.
+
+When pressed:
+
+Send/show exactly 10 rapid test notifications to the Admin/Owner device running the test.
+
+Each says:
+
+“Well done! You got an order!”
+
+Play:
+
+CHA-CHING!
+
+for each notification.
+
+If the existing Admin Web Push system is properly configured and permission has been granted, the TEST button may use the existing real Admin notification delivery system for these 10 test notifications.
+
+If real push is unavailable, clearly say that push is unavailable and use the in-app simulation instead.
+
+Do NOT fake successful OS push delivery.
+
+--------------------------------------------------
+DESIGN
+--------------------------------------------------
+
+Movie Setup should match the existing Imaginate Admin:
+
+- Black
+- Exact Imaginate purple
+- Liquid Glass
+- Thin purple outlines
+- Premium typography
+- Responsive on iPad/iPhone/desktop
+
+Add a clear label:
+
+FILMING TOOL — DOES NOT AFFECT REAL STORE DATA
+
+Movie Setup should be Owner/Admin only and completely inaccessible to customers.
+
+Do not change the existing real order notification system.
+
+Do not rebuild anything else.
+
+This is a small isolated addition for filming purposes.

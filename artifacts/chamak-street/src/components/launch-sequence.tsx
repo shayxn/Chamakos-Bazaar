@@ -1,169 +1,130 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getAllSettings, getLaunchState, getListProductsQueryKey, getGetLaunchStateQueryKey, listProducts } from "@workspace/api-client-react";
+import { useLocation } from "wouter";
+import { ShieldCheck } from "lucide-react";
+import { getLaunchState, getGetLaunchStateQueryKey, useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useLaunchClock } from "@/lib/use-launch-clock";
-import { fetchOperationalSettings } from "@/lib/use-settings";
+import { CountdownView } from "@/components/launch-panel";
 
-type Phase = "idle" | "blackout" | "video" | "fading-video" | "black" | "message" | "reveal";
-const seenKey = (d: number) => `imaginate_launch_seen_${d}`;
+type Phase = "idle" | "zero" | "black" | "reveal";
+const AUTO_KEY = "imaginate_auto_catalog_done";
+const doneKey = (d: number) => `imaginate_launch_done_${d}`;
+const adminKey = (d: number) => `imaginate_launch_admin_${d}`;
+const preKey = "imaginate_launch_preorder";
 const isBooted = () => !!(window as Window & { __imaginateBooted?: boolean }).__imaginateBooted;
-const FADE = 900;
+const lget = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
+const sget = (k: string) => { try { return sessionStorage.getItem(k); } catch { return null; } };
+const PRE_PATHS = /^\/(?:shop|product|products|game|cart|checkout|order|orders|track)(?:\/|$)/;
+const OPEN_PATHS = /^\/(?:login|admin\/login|maintenance)(?:\/|$)/;
 
-/**
- * Plays once, only for visitors who watch the countdown reach zero in this session.
- * Late/repeat visitors never see it. Readiness is real: settings, operational settings,
- * products and launch state must all load successfully before the store is revealed.
- */
 export function LaunchSequence() {
   const c = useLaunchClock();
   const qc = useQueryClient();
+  const [path, navigate] = useLocation();
   const [phase, setPhase] = useState<Phase>("idle");
   const [booted, setBooted] = useState(isBooted);
-  const [needsTap, setNeedsTap] = useState(false);
-  const [videoFailed, setVideoFailed] = useState(false);
-  const [prepError, setPrepError] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0);
+  const [, bump] = useState(0);
   const armed = useRef<number | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const activeVideo=useRef<string|undefined>(undefined);
+  const sequenceDeadline = useRef<number | null>(null);
+  const run = useRef(0);
+  const retryAt = useRef(0);
+  const confirming = useRef(false);
   const reduce = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  const fade = reduce ? 150 : FADE;
+  const fade = reduce ? 150 : 900;
+
+  const me = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false, staleTime: 60_000, enabled: booted && c.enabled } as never });
+  const isAdmin = !!(me.data as { isAdmin?: boolean } | undefined)?.isAdmin;
 
   useEffect(() => {
     if (booted) return;
-    // A skipped loader can finish in an earlier sibling effect before this listener mounts.
-    if(isBooted()){setBooted(true);return;}
+    if (isBooted()) { setBooted(true); return; }
     const on = () => setBooted(true);
     window.addEventListener("firstpick:boot-complete", on);
     return () => window.removeEventListener("firstpick:boot-complete", on);
   }, [booted]);
 
-  // Arm only when the countdown is genuinely still running as we observe it after boot.
-  useEffect(() => {
-    if (!booted || !c.enabled) { armed.current=null;return; }
-    if (armed.current !== null && armed.current !== c.deadline) armed.current=null;
-    if (armed.current === c.deadline) return;
-    const n = c.now();
-    const started = !Number.isFinite(c.startsAt) || n >= c.startsAt;
-    let seen = false;
-    try { seen = !!localStorage.getItem(seenKey(c.deadline)); } catch { /* ignore */ }
-    if (started && n < c.deadline && !seen) armed.current = c.deadline;
-  });
+  const n = c.enabled ? c.now() : 0;
+  const started = !Number.isFinite(c.startsAt) || n >= c.startsAt;
+  const counting = booted && c.enabled && started && n < c.deadline && !lget(doneKey(c.deadline));
+  const zeroPending = booted && c.enabled && armed.current === c.deadline && n >= c.deadline && phase === "idle" && !lget(doneKey(c.deadline));
 
-  // At estimated zero, confirm against the real server clock before launching.
-  const confirming = useRef(false);
+  // Cleanup when the deadline changes or the countdown is switched off.
   useEffect(() => {
-    if (phase !== "idle" || armed.current === null || confirming.current) return;
-    const deadline = armed.current;
-    if (c.now() < deadline) return;
+    if (sequenceDeadline.current !== null && (!c.enabled || sequenceDeadline.current !== c.deadline)) {
+      armed.current = null; run.current++; retryAt.current = 0; confirming.current = false;
+      sequenceDeadline.current = null;
+      setPhase("idle");
+    }
+  }, [c.enabled, c.deadline]);
+
+  useEffect(() => { if (counting && armed.current === null) { armed.current = c.deadline; sequenceDeadline.current = c.deadline; } });
+
+  const adminBypass = isAdmin && c.enabled && sget(adminKey(c.deadline)) === "1";
+  const preBypass = sget(preKey) === String(c.deadline) && PRE_PATHS.test(path);
+  const hidden = OPEN_PATHS.test(path) || adminBypass || preBypass;
+
+  // At estimated zero, confirm once against the fresh server clock.
+  useEffect(() => {
+    if (!zeroPending || confirming.current || performance.now() < retryAt.current) return;
+    const deadline = armed.current as number;
+    const id = run.current;
     confirming.current = true;
     void (async () => {
+      let wait = 0;
       try {
         const fresh = await qc.fetchQuery({ queryKey: getGetLaunchStateQueryKey(), queryFn: () => getLaunchState(), staleTime: 0 });
+        if (id !== run.current) return;
         const serverNow = Date.parse((fresh as { serverTime?: string }).serverTime ?? "");
-        const current=(fresh as {launch?:{data?:{enabled?:boolean;deadline?:string;videoUrl?:string}}}).launch?.data;
-        if(!current?.enabled||Date.parse(current.deadline??"")!==deadline){armed.current=null;return;}
-        if (!Number.isFinite(serverNow)) return;
+        const cur = (fresh as { launch?: { data?: { enabled?: boolean; deadline?: string } } }).launch?.data;
+        if (!cur?.enabled || Date.parse(cur.deadline ?? "") !== deadline) return; // effect above cleans up
+        if (!Number.isFinite(serverNow)) { wait = 5000; return; }
         const left = deadline - serverNow;
-        if (left > 0) { await new Promise((r) => setTimeout(r, Math.min(left, 5000))); return; }
-        try { localStorage.setItem(seenKey(deadline), "1"); } catch { /* ignore */ }
-        activeVideo.current=current.videoUrl;
+        if (left > 0) { wait = Math.min(Math.max(left, 1000), 5000); return; }
         armed.current = null;
-        setPhase("blackout");
-      } catch { /* network error: stay idle and retry on next tick */ await new Promise((r) => setTimeout(r, 2000)); }
-      finally { confirming.current = false; }
+        try { localStorage.setItem(doneKey(deadline), "1"); } catch { /* ignore */ }
+        if (OPEN_PATHS.test(window.location.pathname) || sget(adminKey(deadline)) === "1" || (sget(preKey) === String(deadline) && PRE_PATHS.test(window.location.pathname))) { bump((x) => x + 1); return; }
+        setPhase("zero");
+      } catch { wait = 5000; }
+      finally { retryAt.current = performance.now() + wait; if (id === run.current) confirming.current = false; }
     })();
   });
 
-  const next = useCallback(() => setPhase((p) => (p === "video" ? "fading-video" : p)), []);
-
   useEffect(() => {
-    if (phase === "blackout") {
-      const t = setTimeout(() => { setVideoFailed(false); setNeedsTap(false); setPhase(activeVideo.current ? "video" : "message"); }, fade);
-      return () => clearTimeout(t);
-    }
-    if (phase === "fading-video") {
-      const t = setTimeout(() => setPhase("black"), fade);
-      return () => clearTimeout(t);
-    }
-    if (phase === "black") {
-      const t = setTimeout(() => { setPrepError(null); setPhase("message"); }, fade);
-      return () => clearTimeout(t);
-    }
-    if (phase === "message") {
-      let cancelled = false;
-      setPrepError(null);
-      void (async () => {
-        try {
-          await Promise.all([
-            qc.fetchQuery({ queryKey: ["settings", "all"], queryFn: () => getAllSettings(), staleTime: 0 }),
-            qc.fetchQuery({ queryKey: ["operational-settings"], queryFn: fetchOperationalSettings, staleTime: 0 }),
-            qc.fetchQuery({ queryKey: getListProductsQueryKey(), queryFn: () => listProducts(), staleTime: 0 }),
-            qc.fetchQuery({ queryKey: getGetLaunchStateQueryKey(), queryFn: () => getLaunchState(), staleTime: 0 }),
-          ]);
-          await Promise.all([
-            qc.invalidateQueries({queryKey:getListProductsQueryKey()},{throwOnError:true}),
-            qc.invalidateQueries({queryKey:["published"]},{throwOnError:true}),
-            qc.invalidateQueries({queryKey:["/api/cart"]},{throwOnError:true}),
-          ]);
-          if (!cancelled) setPhase("reveal");
-        } catch (e) {
-          if (!cancelled) setPrepError((e as Error)?.message || "The store could not be prepared.");
-        }
-      })();
-      return () => { cancelled = true; };
-    }
-    if (phase === "reveal") {
-      const t = setTimeout(() => setPhase("idle"), fade);
-      return () => clearTimeout(t);
-    }
-    return undefined;
-  }, [phase, attempt]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (phase === "idle") return undefined;
+    // Warm the catalog chunk during the three-second message, before revealing it.
+    if (phase === "zero") void import("@/pages/shop").catch(() => undefined);
+    const ms = phase === "zero" ? 3000 : fade;
+    const t = setTimeout(() => {
+      if (phase === "zero") setPhase("black");
+      else if (phase === "black") {
+        if (!lget(AUTO_KEY)) { try { localStorage.setItem(AUTO_KEY, "1"); } catch { /* ignore */ } navigate("/shop"); }
+        setPhase("reveal");
+      } else setPhase("idle");
+    }, ms);
+    return () => clearTimeout(t);
+  }, [phase, fade]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (phase !== "video") return;
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = false;
-    v.play().catch((e: unknown) => { if ((e as Error)?.name === "NotAllowedError") setNeedsTap(true); else setVideoFailed(true); });
-  }, [phase]);
-
-  if (phase === "idle") return null;
-  const videoUrl = activeVideo.current;
-  const showText = phase === "message" || phase === "reveal";
-  const videoOpacity = phase === "video" ? 1 : 0;
+  const showOverlay = phase !== "idle" || ((counting || zeroPending) && !hidden);
+  const showAdmin = isAdmin && phase === "idle" && !hidden && counting;
+  if (!showOverlay) return null;
+  const inZero = phase !== "idle" || zeroPending;
+  const contentOpacity = phase === "black" || phase === "reveal" ? 0 : 1;
+  const remaining = c.deadline - c.now();
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black text-center" role="dialog" aria-modal="true" aria-label="Launch"
-      style={{ opacity: phase === "reveal" ? 0 : 1, transition: `opacity ${fade}ms ease`, pointerEvents: phase === "reveal" ? "none" : "auto", animation: phase === "blackout" ? `launch-fade-in ${fade}ms ease both` : undefined }}>
-      {(phase === "video" || phase === "fading-video") && videoUrl && (
-        <>
-          <video ref={videoRef} src={videoUrl} playsInline preload="auto" onEnded={next} onError={() => setVideoFailed(true)}
-            className="h-full w-full bg-black object-contain" style={{ opacity: videoOpacity, transition: `opacity ${fade}ms ease` }} data-testid="video-launch" />
-          <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 p-5" style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))", opacity: videoOpacity, transition: `opacity ${fade}ms ease` }}>
-            {videoFailed && <p role="alert" className="text-sm text-white/70">The launch video could not be played.</p>}
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              {needsTap && !videoFailed && (
-                <button className="glass rounded-full px-6 py-3 text-xs font-black uppercase tracking-widest text-white" data-testid="button-launch-play"
-                  onClick={() => { const v = videoRef.current; if (!v) return; v.muted = false; v.play().then(() => setNeedsTap(false)).catch(() => { v.muted = true; v.play().then(() => setNeedsTap(false)).catch(() => setVideoFailed(true)); }); }}>
-                  Tap to play with sound
-                </button>
-              )}
-              <button className="glass-sm rounded-full px-5 py-3 text-xs font-bold uppercase tracking-widest text-white/85" onClick={next} data-testid="button-launch-skip">{videoFailed ? "Continue" : "Skip"}</button>
-            </div>
-          </div>
-        </>
-      )}
-      {showText && (
-        <div className="px-6">
-          <p className="text-2xl font-semibold text-white sm:text-4xl" data-testid="text-launch-wait">We know you’re excited, just a few moments!</p>
-          <p className="mt-3 text-sm text-white/55">This may take a few minutes.</p>
-          {prepError && (
-            <div role="alert" className="mt-6 space-y-3">
-              <p className="text-sm text-red-300">The store could not be loaded: {prepError}</p>
-              <button className="glass rounded-full px-6 py-3 text-xs font-black uppercase tracking-widest text-white" onClick={() => { setPrepError(null); setAttempt((n) => n + 1); }} data-testid="button-launch-retry">Retry</button>
-            </div>
-          )}
-        </div>
+    <div className="fixed inset-0 z-[10000] overflow-y-auto bg-black" role="dialog" aria-modal="true" aria-label="Launch countdown"
+      style={{ opacity: phase === "reveal" ? 0 : 1, transition: `opacity ${fade}ms ease`, pointerEvents: phase === "reveal" ? "none" : "auto" }} data-testid="overlay-launch">
+      <div className="flex min-h-[100dvh] w-full" style={{ opacity: contentOpacity, transition: `opacity ${fade}ms ease` }}>
+        <CountdownView fill data={c.data ?? {}} remaining={remaining} zero={inZero && phase !== "idle" ? true : zeroPending ? false : false}
+          preOrder={c.preOrderCount > 0 && phase === "idle"}
+          onPreOrder={() => { try { sessionStorage.setItem(preKey, String(c.deadline)); } catch { /* ignore */ } }} />
+      </div>
+      {showAdmin && (
+        <button type="button" aria-label="Admin access" title="Admin access" data-testid="button-launch-admin"
+          className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-primary/50 bg-white/5 text-primary transition hover:bg-white/10"
+          style={{ top: "max(1rem, env(safe-area-inset-top))" }}
+          onClick={() => { try { sessionStorage.setItem(adminKey(c.deadline), "1"); } catch { /* ignore */ } bump((x) => x + 1); navigate("/admin"); }}>
+          <ShieldCheck className="h-5 w-5" />
+        </button>
       )}
     </div>
   );

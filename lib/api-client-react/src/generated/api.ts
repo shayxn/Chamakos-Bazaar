@@ -56,6 +56,12 @@ import type {
   ManagedDocument,
   ManagedDocumentInput,
   MessageResponse,
+  MovieDeviceConsent,
+  MovieFilmingDevice,
+  MovieFilmingDevices,
+  MoviePushInput,
+  MovieSetupStartInput,
+  MovieSetupState,
   NewsletterConsent,
   Order,
   OrderInput,
@@ -4794,6 +4800,475 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getSendCustomerNotificationCampaignMutationOptions(options));
     }
+
+export const getGetMovieFilmingDevicesUrl = () => {
+
+
+
+
+  return `/api/admin/movie-setup/devices`
+}
+
+export const getMovieFilmingDevices = async ( options?: RequestInit): Promise<MovieFilmingDevices> => {
+
+  return customFetch<MovieFilmingDevices>(getGetMovieFilmingDevicesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMovieFilmingDevicesQueryKey = () => {
+    return [
+    `/api/admin/movie-setup/devices`
+    ] as const;
+    }
+
+
+export const getGetMovieFilmingDevicesQueryOptions = <TData = Awaited<ReturnType<typeof getMovieFilmingDevices>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMovieFilmingDevices>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMovieFilmingDevicesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMovieFilmingDevices>>> = ({ signal }) => getMovieFilmingDevices({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMovieFilmingDevices>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMovieFilmingDevicesQueryResult = NonNullable<Awaited<ReturnType<typeof getMovieFilmingDevices>>>
+export type GetMovieFilmingDevicesQueryError = ErrorType<unknown>
+
+
+
+export function useGetMovieFilmingDevices<TData = Awaited<ReturnType<typeof getMovieFilmingDevices>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMovieFilmingDevices>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMovieFilmingDevicesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getOptInMovieFilmingDeviceUrl = () => {
+
+
+
+
+  return `/api/admin/movie-setup/devices`
+}
+
+export const optInMovieFilmingDevice = async (movieDeviceConsent: MovieDeviceConsent, options?: RequestInit): Promise<MovieFilmingDevice> => {
+
+  return customFetch<MovieFilmingDevice>(getOptInMovieFilmingDeviceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(movieDeviceConsent)
+  }
+);}
+
+
+
+
+export const getOptInMovieFilmingDeviceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof optInMovieFilmingDevice>>, TError,{data: BodyType<MovieDeviceConsent>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof optInMovieFilmingDevice>>, TError,{data: BodyType<MovieDeviceConsent>}, TContext> => {
+
+const mutationKey = ['optInMovieFilmingDevice'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof optInMovieFilmingDevice>>, {data: BodyType<MovieDeviceConsent>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  optInMovieFilmingDevice(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OptInMovieFilmingDeviceMutationResult = NonNullable<Awaited<ReturnType<typeof optInMovieFilmingDevice>>>
+    export type OptInMovieFilmingDeviceMutationBody = BodyType<MovieDeviceConsent>
+    export type OptInMovieFilmingDeviceMutationError = ErrorType<unknown>
+
+    export const useOptInMovieFilmingDevice = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof optInMovieFilmingDevice>>, TError,{data: BodyType<MovieDeviceConsent>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof optInMovieFilmingDevice>>,
+        TError,
+        {data: BodyType<MovieDeviceConsent>},
+        TContext
+      > => {
+      return useMutation(getOptInMovieFilmingDeviceMutationOptions(options));
+    }
+
+export const getSendMovieFilmingBurstUrl = () => {
+
+
+
+
+  return `/api/admin/movie-setup/push`
+}
+
+export const sendMovieFilmingBurst = async (moviePushInput: MoviePushInput, options?: RequestInit): Promise<MovieSetupState> => {
+
+  return customFetch<MovieSetupState>(getSendMovieFilmingBurstUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(moviePushInput)
+  }
+);}
+
+
+
+
+export const getSendMovieFilmingBurstMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendMovieFilmingBurst>>, TError,{data: BodyType<MoviePushInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendMovieFilmingBurst>>, TError,{data: BodyType<MoviePushInput>}, TContext> => {
+
+const mutationKey = ['sendMovieFilmingBurst'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendMovieFilmingBurst>>, {data: BodyType<MoviePushInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendMovieFilmingBurst(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendMovieFilmingBurstMutationResult = NonNullable<Awaited<ReturnType<typeof sendMovieFilmingBurst>>>
+    export type SendMovieFilmingBurstMutationBody = BodyType<MoviePushInput>
+    export type SendMovieFilmingBurstMutationError = ErrorType<unknown>
+
+    export const useSendMovieFilmingBurst = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendMovieFilmingBurst>>, TError,{data: BodyType<MoviePushInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendMovieFilmingBurst>>,
+        TError,
+        {data: BodyType<MoviePushInput>},
+        TContext
+      > => {
+      return useMutation(getSendMovieFilmingBurstMutationOptions(options));
+    }
+
+export const getGetMovieSetupStateUrl = () => {
+
+
+
+
+  return `/api/admin/movie-setup/state`
+}
+
+export const getMovieSetupState = async ( options?: RequestInit): Promise<MovieSetupState> => {
+
+  return customFetch<MovieSetupState>(getGetMovieSetupStateUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMovieSetupStateQueryKey = () => {
+    return [
+    `/api/admin/movie-setup/state`
+    ] as const;
+    }
+
+
+export const getGetMovieSetupStateQueryOptions = <TData = Awaited<ReturnType<typeof getMovieSetupState>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMovieSetupState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMovieSetupStateQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMovieSetupState>>> = ({ signal }) => getMovieSetupState({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMovieSetupState>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMovieSetupStateQueryResult = NonNullable<Awaited<ReturnType<typeof getMovieSetupState>>>
+export type GetMovieSetupStateQueryError = ErrorType<unknown>
+
+
+
+export function useGetMovieSetupState<TData = Awaited<ReturnType<typeof getMovieSetupState>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMovieSetupState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMovieSetupStateQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getStartMovieSetupUrl = () => {
+
+
+
+
+  return `/api/admin/movie-setup/start`
+}
+
+export const startMovieSetup = async (movieSetupStartInput: MovieSetupStartInput, options?: RequestInit): Promise<MovieSetupState> => {
+
+  return customFetch<MovieSetupState>(getStartMovieSetupUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(movieSetupStartInput)
+  }
+);}
+
+
+
+
+export const getStartMovieSetupMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startMovieSetup>>, TError,{data: BodyType<MovieSetupStartInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startMovieSetup>>, TError,{data: BodyType<MovieSetupStartInput>}, TContext> => {
+
+const mutationKey = ['startMovieSetup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startMovieSetup>>, {data: BodyType<MovieSetupStartInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  startMovieSetup(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartMovieSetupMutationResult = NonNullable<Awaited<ReturnType<typeof startMovieSetup>>>
+    export type StartMovieSetupMutationBody = BodyType<MovieSetupStartInput>
+    export type StartMovieSetupMutationError = ErrorType<unknown>
+
+    export const useStartMovieSetup = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startMovieSetup>>, TError,{data: BodyType<MovieSetupStartInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startMovieSetup>>,
+        TError,
+        {data: BodyType<MovieSetupStartInput>},
+        TContext
+      > => {
+      return useMutation(getStartMovieSetupMutationOptions(options));
+    }
+
+export const getStopMovieSetupUrl = () => {
+
+
+
+
+  return `/api/admin/movie-setup/stop`
+}
+
+export const stopMovieSetup = async ( options?: RequestInit): Promise<MovieSetupState> => {
+
+  return customFetch<MovieSetupState>(getStopMovieSetupUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getStopMovieSetupMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopMovieSetup>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof stopMovieSetup>>, TError,void, TContext> => {
+
+const mutationKey = ['stopMovieSetup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stopMovieSetup>>, void> = () => {
+
+
+          return  stopMovieSetup(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StopMovieSetupMutationResult = NonNullable<Awaited<ReturnType<typeof stopMovieSetup>>>
+
+    export type StopMovieSetupMutationError = ErrorType<unknown>
+
+    export const useStopMovieSetup = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopMovieSetup>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof stopMovieSetup>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getStopMovieSetupMutationOptions(options));
+    }
+
+export const getStreamMovieSetupUrl = () => {
+
+
+
+
+  return `/api/admin/movie-setup/stream`
+}
+
+export const streamMovieSetup = async ( options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getStreamMovieSetupUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getStreamMovieSetupQueryKey = () => {
+    return [
+    `/api/admin/movie-setup/stream`
+    ] as const;
+    }
+
+
+export const getStreamMovieSetupQueryOptions = <TData = Awaited<ReturnType<typeof streamMovieSetup>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof streamMovieSetup>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStreamMovieSetupQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof streamMovieSetup>>> = ({ signal }) => streamMovieSetup({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof streamMovieSetup>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type StreamMovieSetupQueryResult = NonNullable<Awaited<ReturnType<typeof streamMovieSetup>>>
+export type StreamMovieSetupQueryError = ErrorType<unknown>
+
+
+
+export function useStreamMovieSetup<TData = Awaited<ReturnType<typeof streamMovieSetup>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof streamMovieSetup>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getStreamMovieSetupQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getCreateAdminInvitationUrl = () => {
 

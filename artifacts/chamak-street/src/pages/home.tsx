@@ -1,7 +1,6 @@
 import { useListProducts, getListProductsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import HomepageNews from "@/components/homepage-news";
-import LaunchPanel from "@/components/launch-panel";
 import { ArrowRight, Heart } from "lucide-react";
 import { useMemo } from "react";
 import { getPrimaryProductMedia } from "@/lib/product-media";
@@ -119,7 +118,6 @@ export default function Home() {
       </section>
       <HomepageNews />
 
-      <LaunchPanel />
 
       <section id="collection" className="mx-auto max-w-[1600px] px-6 pb-24 pt-24 sm:px-10 sm:pb-32 sm:pt-32 lg:px-[8vw]">
         <div className="mb-10 flex flex-col justify-between gap-5 sm:mb-14 sm:flex-row sm:items-end">

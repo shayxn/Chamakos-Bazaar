@@ -1,6 +1,42 @@
 import webpush from "web-push";
 import { db, siteSettingsTable } from "@workspace/db";
 import { inArray, sql } from "drizzle-orm";
+import https from "node:https";
+
+// Movie delivery is explicitly targeted. It never uses the real-order fan-out,
+// customer subscriptions, order IDs, activity log or analytics.
+export async function prepareMoviePush() {
+  await ensureAdminPushTable();
+  await initPush();
+}
+export function validMovieEndpoint(endpoint: string) {
+  try {
+    const url = new URL(endpoint);
+    return url.protocol === "https:" && !url.username && !url.password && !url.port &&
+      (["fcm.googleapis.com", "gcm-http.googleapis.com"].includes(url.hostname) || /(?:^|\.)push\.services\.mozilla\.com$|(?:^|\.)push\.apple\.com$|(?:^|\.)notify\.windows\.com$/.test(url.hostname));
+  } catch { return false; }
+}
+export async function deliverMoviePush(deviceId: string, jobId: string, number: number, signal: AbortSignal) {
+  if (signal.aborted) throw new Error("Burst stopped.");
+  const result = await db.execute(sql`SELECT d.endpoint,COALESCE(a.p256dh,p.p256dh) AS p256dh,COALESCE(a.auth,p.auth) AS auth
+    FROM admin_movie_devices d JOIN users u ON u.id=d.admin_id AND u.is_admin=TRUE
+    JOIN admin_device_sessions s ON s.id=d.admin_session_id AND s.user_id=d.admin_id AND s.revoked_at IS NULL AND s.last_seen_at>NOW()-INTERVAL '30 days'
+    LEFT JOIN admin_push_subscriptions a ON a.endpoint=d.endpoint AND a.admin_id=d.admin_id::text
+    LEFT JOIN push_subscriptions p ON p.endpoint=d.endpoint AND p.admin_id=d.admin_id
+    WHERE d.id=${deviceId} AND d.opted_in=TRUE`);
+  const sub = (Array.isArray(result) ? result : (result as any).rows ?? [])[0];
+  if (!sub?.p256dh || !sub.auth || !validMovieEndpoint(sub.endpoint)) throw new Error("Selected filming device is no longer opted in or its admin subscription is unavailable.");
+  if (signal.aborted) throw new Error("Burst stopped.");
+  const agent = new https.Agent({ keepAlive: false, maxSockets: 1 });
+  const cancel = () => agent.destroy();
+  signal.addEventListener("abort", cancel, { once: true });
+  try {
+    await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, JSON.stringify({
+      title: "Well done! You got an order!", body: "",
+      type: "MOVIE_SIMULATION", tag: `movie-${jobId}-${number}`, data: { url: "/admin/movie-setup", kind: "MOVIE_SIMULATION" },
+    }), { TTL: 60, urgency: "normal", timeout: 3000, agent });
+  } finally { signal.removeEventListener("abort", cancel); agent.destroy(); }
+}
 
 let _initialized = false;
 

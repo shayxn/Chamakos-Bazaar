@@ -44,6 +44,11 @@ self.addEventListener("push", (event) => {
     tag = `order-${data?.orderNumber || Date.now()}`;
     url = baseSafeUrl(data?.url || "/admin/orders");
     requireInteraction = true;
+  } else if (type === "MOVIE_SIMULATION") {
+    // Separate namespace: never wake real-order refresh/analytics behavior.
+    tag = payload.tag || `movie-${Date.now()}`;
+    url = baseSafeUrl("/admin/movie-setup");
+    requireInteraction = true;
   } else if (type === "CUSTOMER_SEARCH") {
     tag = "search-notif";
     url = baseSafeUrl(data?.url || "/admin/visitors");

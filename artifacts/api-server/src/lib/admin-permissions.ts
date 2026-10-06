@@ -46,7 +46,7 @@ export async function enforceAdminPermission(req: Request, res: Response, next: 
   else if (/push|notification|reminder/.test(path)) permission = "notifications";
   else if (/manage|content|tiktok|reviews|events|games/.test(path)) permission = "content";
   // Device self-service remains available to every authenticated admin.
-  if (path.startsWith("/auth/") || path.startsWith("/admin/access") || path.startsWith("/admin/chat") || path.startsWith("/admin/profile") || path.startsWith("/admin/activity")) { next(); return; }
+  if (path.startsWith("/auth/") || path.startsWith("/admin/access") || path.startsWith("/admin/chat") || path.startsWith("/admin/profile") || path.startsWith("/admin/activity") || /^\/admin\/movie-setup\/(?:state|stream|start|stop|devices|push)$/.test(path)) { next(); return; }
   if (!access.permissions.includes(permission)) {
     res.status(403).json({ error: `You do not have ${permission} permission.` }); return;
   }

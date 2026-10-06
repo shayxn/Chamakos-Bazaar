@@ -40,13 +40,17 @@ export function LoadingScreen() {
     };
   }, [skip]);
   const [leaving, setLeaving] = useState(false);
+  const failed = settings.isError || operational.isError || country.isError;
+  const settled = (settings.isSuccess || settings.isError) && (operational.isSuccess || operational.isError) && (country.isSuccess || country.isError);
   useEffect(() => {
-    if (skip || !settings.isSuccess || !operational.isSuccess || !country.isSuccess || !routeReady || !fontsReady || !minElapsed || leaving) return;
-    try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
+    // A failed optional/location request must not permanently cover the real UI.
+    // The app keeps its own honest data errors and the API still enforces store safety.
+    if (skip || (!settled && !slow) || (!routeReady && !slow) || !fontsReady || !minElapsed || leaving) return;
+    if (!failed && settled) { try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {} }
     setLeaving(true);
     (window as Window & { __imaginateBooted?: boolean }).__imaginateBooted = true;
     window.dispatchEvent(new Event("firstpick:boot-complete"));
-  }, [skip, settings.isSuccess, operational.isSuccess, country.isSuccess, routeReady, fontsReady, minElapsed, leaving]);
+  }, [skip, settled, slow, failed, routeReady, fontsReady, minElapsed, leaving]);
   useEffect(() => {
     if (!leaving) return;
     const t = setTimeout(() => setVisible(false), EXIT_DURATION_MS);
@@ -58,8 +62,12 @@ export function LoadingScreen() {
       window.dispatchEvent(new Event("firstpick:boot-complete"));
     }
   }, [skip]);
-  if (!visible) return null;
-  const failed = settings.isError || operational.isError || country.isError;
+  if (!visible) return !skip && failed ? (
+    <div role="alert" className="fixed inset-x-3 bottom-3 z-[90] flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/40 bg-black/95 p-4 text-xs text-white" data-testid="store-service-warning">
+      <span>{settings.isError || operational.isError ? "Store services could not be reached. The website’s /api connection needs to be checked." : "Location preferences are unavailable. Please retry before checking out."}</span>
+      <button className="rounded-lg border border-primary/50 px-3 py-2" onClick={() => window.location.reload()}>Retry connection</button>
+    </div>
+  ) : null;
   return (
     <div className="imaginate-boot fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-6 bg-black px-6 text-center" role="status" aria-live="polite" data-leaving={leaving}>
       <div className="imaginate-boot-glow" aria-hidden="true" />

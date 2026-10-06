@@ -117,6 +117,7 @@ const ContentManagement = lazy(() => import("@/pages/admin/content-management"))
 
 // ── Admin pages (lazy — customers never load these) ──
 const AdminInvite = lazy(() => import("@/pages/admin-invite"));
+const AdminMovieSetup = lazy(() => import("@/pages/admin/movie-setup"));
 const AdminLayout = lazy(() => import("@/components/admin-layout"));
 const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const AdminProducts = lazy(() => import("@/pages/admin/products"));
@@ -170,6 +171,7 @@ function AdminRouter() {
     <AdminLayout>
       <Switch>
         <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/movie-setup" component={AdminMovieSetup} />
         <Route path="/admin/products" component={AdminProducts} />
         <Route path="/admin/basics" component={AdminBasics} />
         <Route path="/admin/orders" component={AdminOrders} />

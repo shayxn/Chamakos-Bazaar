@@ -1113,6 +1113,88 @@ paths:
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
+  /admin/movie-setup/devices:
+    get:
+      operationId: getMovieFilmingDevices
+      responses:
+        "200":
+          description: Opted-in registered admin devices and truthful push readiness
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MovieFilmingDevices" }
+    post:
+      operationId: optInMovieFilmingDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MovieDeviceConsent" }
+      responses:
+        "200":
+          description: This authenticated admin's device consent saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MovieFilmingDevice" }
+  /admin/movie-setup/push:
+    post:
+      operationId: sendMovieFilmingBurst
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MoviePushInput" }
+      responses:
+        "200":
+          description: Controlled burst queued; provider acceptance is not proof of OS display
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MovieSetupState" }
+  /admin/movie-setup/state:
+    get:
+      operationId: getMovieSetupState
+      responses:
+        "200":
+          description: Ephemeral filming session, never real order data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieSetupState"
+  /admin/movie-setup/start:
+    post:
+      operationId: startMovieSetup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovieSetupStartInput"
+      responses:
+        "200":
+          description: Start or join the current simulated sequence
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieSetupState"
+  /admin/movie-setup/stop:
+    post:
+      operationId: stopMovieSetup
+      responses:
+        "200":
+          description: All connected filming screens stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieSetupState"
+  /admin/movie-setup/stream:
+    get:
+      operationId: streamMovieSetup
+      responses:
+        "200":
+          description: Authenticated SSE; only snapshots, never individual order events
+          content:
+            text/event-stream:
+              schema:
+                type: string
   /admin/invitations:
     post:
       operationId: createAdminInvitation
@@ -1193,6 +1275,90 @@ paths:
 
 components:
   schemas:
+    MovieSetupStartInput:
+      type: object
+      required: [expectedRevision, deviceIds]
+      properties:
+        expectedRevision: { type: integer, minimum: 0 }
+        deviceIds:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items: { type: string, format: uuid }
+    MovieDeviceConsent:
+      type: object
+      required: [endpoint, label, optedIn]
+      properties:
+        endpoint: { type: string, format: uri, maxLength: 4096 }
+        label: { type: string, minLength: 1, maxLength: 100 }
+        optedIn: { type: boolean }
+    MovieFilmingDevice:
+      type: object
+      required: [id, label, adminName, isOwn, optedIn]
+      properties:
+        id: { type: string, format: uuid }
+        label: { type: string }
+        adminName: { type: string }
+        isOwn: { type: boolean }
+        optedIn: { type: boolean }
+    MovieFilmingDevices:
+      type: object
+      required: [devices, configured, reason]
+      properties:
+        devices:
+          type: array
+          items: { $ref: "#/components/schemas/MovieFilmingDevice" }
+        configured: { type: boolean }
+        reason: { type: ["string", "null"] }
+    MoviePushInput:
+      type: object
+      required: [expectedRevision, deviceIds, mode]
+      properties:
+        expectedRevision: { type: integer, minimum: 0 }
+        deviceIds:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items: { type: string, format: uuid }
+        mode: { type: string, enum: [test, movie] }
+    MoviePushJob:
+      type: object
+      required: [id, mode, status, total, attempted, accepted, failed, reason]
+      properties:
+        id: { type: string }
+        mode: { type: string, enum: [test, movie] }
+        status: { type: string, enum: [running, completed, stopped, failed] }
+        total: { type: integer }
+        attempted: { type: integer }
+        accepted: { type: integer }
+        failed: { type: integer }
+        reason: { type: ["string", "null"] }
+    MovieSetupRun:
+      type: object
+      required: [id, startsAt, durationMs, eventCount]
+      properties:
+        id: { type: string }
+        startsAt: { type: number }
+        durationMs: { type: number }
+        eventCount: { type: integer }
+    MovieSetupState:
+      type: object
+      required: [kind, run, serverNow, revision, connectedScreens, pushJob]
+      properties:
+        kind:
+          type: string
+          enum: [MOVIE_SIMULATION]
+        run:
+          anyOf:
+            - $ref: "#/components/schemas/MovieSetupRun"
+            - type: "null"
+        serverNow: { type: number }
+        revision: { type: integer }
+        connectedScreens: { type: integer }
+        pushJob:
+          anyOf:
+            - $ref: "#/components/schemas/MoviePushJob"
+            - type: "null"
     AdminInvitationInput:
       type: object
       required: [permissions]

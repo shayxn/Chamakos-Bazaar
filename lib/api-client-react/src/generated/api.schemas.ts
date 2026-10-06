@@ -5,6 +5,114 @@
  * IMAGINATE e-commerce API
  * OpenAPI spec version: 0.2.0
  */
+export interface MovieSetupStartInput {
+  /** @minimum 0 */
+  expectedRevision: number;
+  /**
+     * @minItems 1
+     * @maxItems 10
+     */
+  deviceIds: string[];
+}
+
+export interface MovieDeviceConsent {
+  /** @maxLength 4096 */
+  endpoint: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  label: string;
+  optedIn: boolean;
+}
+
+export interface MovieFilmingDevice {
+  id: string;
+  label: string;
+  adminName: string;
+  isOwn: boolean;
+  optedIn: boolean;
+}
+
+export interface MovieFilmingDevices {
+  devices: MovieFilmingDevice[];
+  configured: boolean;
+  /** @nullable */
+  reason: string | null;
+}
+
+export type MoviePushInputMode = typeof MoviePushInputMode[keyof typeof MoviePushInputMode];
+
+
+export const MoviePushInputMode = {
+  test: 'test',
+  movie: 'movie',
+} as const;
+
+export interface MoviePushInput {
+  /** @minimum 0 */
+  expectedRevision: number;
+  /**
+     * @minItems 1
+     * @maxItems 10
+     */
+  deviceIds: string[];
+  mode: MoviePushInputMode;
+}
+
+export type MoviePushJobMode = typeof MoviePushJobMode[keyof typeof MoviePushJobMode];
+
+
+export const MoviePushJobMode = {
+  test: 'test',
+  movie: 'movie',
+} as const;
+
+export type MoviePushJobStatus = typeof MoviePushJobStatus[keyof typeof MoviePushJobStatus];
+
+
+export const MoviePushJobStatus = {
+  running: 'running',
+  completed: 'completed',
+  stopped: 'stopped',
+  failed: 'failed',
+} as const;
+
+export interface MoviePushJob {
+  id: string;
+  mode: MoviePushJobMode;
+  status: MoviePushJobStatus;
+  total: number;
+  attempted: number;
+  accepted: number;
+  failed: number;
+  /** @nullable */
+  reason: string | null;
+}
+
+export interface MovieSetupRun {
+  id: string;
+  startsAt: number;
+  durationMs: number;
+  eventCount: number;
+}
+
+export type MovieSetupStateKind = typeof MovieSetupStateKind[keyof typeof MovieSetupStateKind];
+
+
+export const MovieSetupStateKind = {
+  MOVIE_SIMULATION: 'MOVIE_SIMULATION',
+} as const;
+
+export interface MovieSetupState {
+  kind: MovieSetupStateKind;
+  run: MovieSetupRun | null;
+  serverNow: number;
+  revision: number;
+  connectedScreens: number;
+  pushJob: MoviePushJob | null;
+}
+
 export type AdminInvitationInputPermissionsItem = typeof AdminInvitationInputPermissionsItem[keyof typeof AdminInvitationInputPermissionsItem];
 
 

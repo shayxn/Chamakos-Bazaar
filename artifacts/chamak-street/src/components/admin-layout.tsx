@@ -418,6 +418,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/manage/newsletter", label: "Newsletter", icon: Users },
     { href: "/admin/manage/shipping", label: "Shipping", icon: ShoppingBag },
     { href: "/admin/manage/team", label: "Admin Team & Permissions", icon: Users },
+    { href: "/admin/movie-setup", label: "Movie Setup", icon: Video },
     { href: "/admin/sales-reports", label: "Analytics", icon: Activity },
     { href: "/admin/site-settings", label: "Site Settings", icon: Settings },
     { href: "/admin/reviews", label: "Reviews", icon: Star },
@@ -429,7 +430,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if(!access)return ["/admin/chat","/admin/chat?view=calls","/admin/activity"].includes(link.href);
     if(access.isOwner)return true;
     if(/manage\/(?:team|countries|shipping|launch|reminders)|global-switch|payment-methods/.test(link.href))return false;
-    if(/chat|activity/.test(link.href))return true;
+    if(/chat|activity|movie-setup/.test(link.href))return true;
     const permission=/customer-notifications/.test(link.href)?"notifications":/products|basics|categories|stock-alerts/.test(link.href)?"products":
       /orders|refund|abandoned/.test(link.href)?"orders":/support|product-requests/.test(link.href)?"support":
       /discount|coupon/.test(link.href)?"discounts":/customer|newsletter/.test(link.href)?"customers":

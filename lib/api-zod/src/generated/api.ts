@@ -1761,6 +1761,162 @@ export const SendCustomerNotificationCampaignParams = zod.object({
 export const SendCustomerNotificationCampaignResponse = zod.record(zod.string(), zod.unknown())
 
 
+export const GetMovieFilmingDevicesResponse = zod.object({
+  "devices": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "label": zod.string(),
+  "adminName": zod.string(),
+  "isOwn": zod.boolean(),
+  "optedIn": zod.boolean()
+})),
+  "configured": zod.boolean(),
+  "reason": zod.string().nullable()
+})
+
+
+export const optInMovieFilmingDeviceBodyEndpointMax = 4096;
+
+export const optInMovieFilmingDeviceBodyLabelMax = 100;
+
+
+
+export const OptInMovieFilmingDeviceBody = zod.object({
+  "endpoint": zod.string().url().max(optInMovieFilmingDeviceBodyEndpointMax),
+  "label": zod.string().min(1).max(optInMovieFilmingDeviceBodyLabelMax),
+  "optedIn": zod.boolean()
+})
+
+export const OptInMovieFilmingDeviceResponse = zod.object({
+  "id": zod.string().uuid(),
+  "label": zod.string(),
+  "adminName": zod.string(),
+  "isOwn": zod.boolean(),
+  "optedIn": zod.boolean()
+})
+
+
+export const sendMovieFilmingBurstBodyExpectedRevisionMin = 0;
+
+export const sendMovieFilmingBurstBodyDeviceIdsMax = 10;
+
+
+
+export const SendMovieFilmingBurstBody = zod.object({
+  "expectedRevision": zod.number().min(sendMovieFilmingBurstBodyExpectedRevisionMin),
+  "deviceIds": zod.array(zod.string().uuid()).min(1).max(sendMovieFilmingBurstBodyDeviceIdsMax),
+  "mode": zod.enum(['test', 'movie'])
+})
+
+export const SendMovieFilmingBurstResponse = zod.object({
+  "kind": zod.enum(['MOVIE_SIMULATION']),
+  "run": zod.union([zod.object({
+  "id": zod.string(),
+  "startsAt": zod.number(),
+  "durationMs": zod.number(),
+  "eventCount": zod.number()
+}),zod.null()]),
+  "serverNow": zod.number(),
+  "revision": zod.number(),
+  "connectedScreens": zod.number(),
+  "pushJob": zod.union([zod.object({
+  "id": zod.string(),
+  "mode": zod.enum(['test', 'movie']),
+  "status": zod.enum(['running', 'completed', 'stopped', 'failed']),
+  "total": zod.number(),
+  "attempted": zod.number(),
+  "accepted": zod.number(),
+  "failed": zod.number(),
+  "reason": zod.string().nullable()
+}),zod.null()])
+})
+
+
+export const GetMovieSetupStateResponse = zod.object({
+  "kind": zod.enum(['MOVIE_SIMULATION']),
+  "run": zod.union([zod.object({
+  "id": zod.string(),
+  "startsAt": zod.number(),
+  "durationMs": zod.number(),
+  "eventCount": zod.number()
+}),zod.null()]),
+  "serverNow": zod.number(),
+  "revision": zod.number(),
+  "connectedScreens": zod.number(),
+  "pushJob": zod.union([zod.object({
+  "id": zod.string(),
+  "mode": zod.enum(['test', 'movie']),
+  "status": zod.enum(['running', 'completed', 'stopped', 'failed']),
+  "total": zod.number(),
+  "attempted": zod.number(),
+  "accepted": zod.number(),
+  "failed": zod.number(),
+  "reason": zod.string().nullable()
+}),zod.null()])
+})
+
+
+export const startMovieSetupBodyExpectedRevisionMin = 0;
+
+export const startMovieSetupBodyDeviceIdsMax = 10;
+
+
+
+export const StartMovieSetupBody = zod.object({
+  "expectedRevision": zod.number().min(startMovieSetupBodyExpectedRevisionMin),
+  "deviceIds": zod.array(zod.string().uuid()).min(1).max(startMovieSetupBodyDeviceIdsMax)
+})
+
+export const StartMovieSetupResponse = zod.object({
+  "kind": zod.enum(['MOVIE_SIMULATION']),
+  "run": zod.union([zod.object({
+  "id": zod.string(),
+  "startsAt": zod.number(),
+  "durationMs": zod.number(),
+  "eventCount": zod.number()
+}),zod.null()]),
+  "serverNow": zod.number(),
+  "revision": zod.number(),
+  "connectedScreens": zod.number(),
+  "pushJob": zod.union([zod.object({
+  "id": zod.string(),
+  "mode": zod.enum(['test', 'movie']),
+  "status": zod.enum(['running', 'completed', 'stopped', 'failed']),
+  "total": zod.number(),
+  "attempted": zod.number(),
+  "accepted": zod.number(),
+  "failed": zod.number(),
+  "reason": zod.string().nullable()
+}),zod.null()])
+})
+
+
+export const StopMovieSetupResponse = zod.object({
+  "kind": zod.enum(['MOVIE_SIMULATION']),
+  "run": zod.union([zod.object({
+  "id": zod.string(),
+  "startsAt": zod.number(),
+  "durationMs": zod.number(),
+  "eventCount": zod.number()
+}),zod.null()]),
+  "serverNow": zod.number(),
+  "revision": zod.number(),
+  "connectedScreens": zod.number(),
+  "pushJob": zod.union([zod.object({
+  "id": zod.string(),
+  "mode": zod.enum(['test', 'movie']),
+  "status": zod.enum(['running', 'completed', 'stopped', 'failed']),
+  "total": zod.number(),
+  "attempted": zod.number(),
+  "accepted": zod.number(),
+  "failed": zod.number(),
+  "reason": zod.string().nullable()
+}),zod.null()])
+})
+
+
+export const StreamMovieSetupResponse = zod.unknown()
+
+
 /**
  * @summary Create a single-use admin invitation (owner only)
  */
