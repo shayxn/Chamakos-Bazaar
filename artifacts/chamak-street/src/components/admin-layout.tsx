@@ -698,7 +698,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
               <div>
                 <div className="text-xs font-bold text-white">{user.username}</div>
-                <div className="text-[10px] text-gray-500">Owner</div>
+                <div className="text-[10px] text-gray-500">{accessQuery.data ? accessQuery.data.isOwner ? "Owner" : "Admin" : "Verifying access…"}</div>
               </div>
             </div>
             <ArrowLeft className="w-3 h-3 text-gray-500 -rotate-90" />

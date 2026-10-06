@@ -1113,8 +1113,163 @@ paths:
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
+  /admin/invitations:
+    post:
+      operationId: createAdminInvitation
+      summary: Create a single-use admin invitation (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminInvitationInput"
+      responses:
+        "201":
+          description: Invitation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminInvitationCreated"
+    get:
+      operationId: listAdminInvitations
+      summary: List admin invitations without secret tokens (owner only)
+      responses:
+        "200":
+          description: Invitations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminInvitationRecord"
+  /admin/invitations/{id}:
+    delete:
+      operationId: revokeAdminInvitation
+      summary: Revoke a pending invitation (owner only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Invitation revoked
+  /admin/invitations/inspect:
+    post:
+      operationId: inspectAdminInvitation
+      summary: Check a public invitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminInvitationToken"
+      responses:
+        "200":
+          description: Available invitation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminInvitationPublic"
+  /admin/invitations/accept:
+    post:
+      operationId: acceptAdminInvitation
+      summary: Create an admin account using a single-use invitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminInvitationJoinInput"
+      responses:
+        "201":
+          description: Admin account created; sign in with the chosen credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminInvitationMember"
+
 components:
   schemas:
+    AdminInvitationInput:
+      type: object
+      required: [permissions]
+      properties:
+        permissions:
+          type: array
+          maxItems: 9
+          items:
+            type: string
+            enum: [products, orders, content, support, customers, discounts, analytics, notifications, settings]
+    AdminInvitationPublic:
+      type: object
+      required: [permissions, expiresAt]
+      properties:
+        permissions:
+          type: array
+          items:
+            type: string
+        expiresAt:
+          type: string
+          format: date-time
+    AdminInvitationCreated:
+      allOf:
+        - $ref: "#/components/schemas/AdminInvitationPublic"
+        - type: object
+          required: [id, token]
+          properties:
+            id:
+              type: string
+              format: uuid
+            token:
+              type: string
+    AdminInvitationRecord:
+      allOf:
+        - $ref: "#/components/schemas/AdminInvitationPublic"
+        - type: object
+          required: [id, status, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [pending, accepted, expired, revoked]
+            createdAt:
+              type: string
+              format: date-time
+    AdminInvitationToken:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          pattern: "^[A-Za-z0-9_-]{43}$"
+    AdminInvitationJoinInput:
+      allOf:
+        - $ref: "#/components/schemas/AdminInvitationToken"
+        - type: object
+          required: [username, password]
+          properties:
+            username:
+              type: string
+              minLength: 3
+              maxLength: 80
+              pattern: "^[A-Za-z0-9_.-]+$"
+            password:
+              type: string
+              minLength: 12
+              maxLength: 128
+    AdminInvitationMember:
+      type: object
+      required: [id, username]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
     CountrySelection:
       type: object
       required: [code]

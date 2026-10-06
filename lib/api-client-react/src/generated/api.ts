@@ -20,6 +20,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminInvitationCreated,
+  AdminInvitationInput,
+  AdminInvitationJoinInput,
+  AdminInvitationMember,
+  AdminInvitationPublic,
+  AdminInvitationRecord,
+  AdminInvitationToken,
   AnonymousTrafficInput,
   AuthUser,
   Cart,
@@ -4786,5 +4793,362 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getSendCustomerNotificationCampaignMutationOptions(options));
+    }
+
+export const getCreateAdminInvitationUrl = () => {
+
+
+
+
+  return `/api/admin/invitations`
+}
+
+/**
+ * @summary Create a single-use admin invitation (owner only)
+ */
+export const createAdminInvitation = async (adminInvitationInput: AdminInvitationInput, options?: RequestInit): Promise<AdminInvitationCreated> => {
+
+  return customFetch<AdminInvitationCreated>(getCreateAdminInvitationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminInvitationInput)
+  }
+);}
+
+
+
+
+export const getCreateAdminInvitationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminInvitation>>, TError,{data: BodyType<AdminInvitationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminInvitation>>, TError,{data: BodyType<AdminInvitationInput>}, TContext> => {
+
+const mutationKey = ['createAdminInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminInvitation>>, {data: BodyType<AdminInvitationInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAdminInvitation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminInvitation>>>
+    export type CreateAdminInvitationMutationBody = BodyType<AdminInvitationInput>
+    export type CreateAdminInvitationMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a single-use admin invitation (owner only)
+ */
+export const useCreateAdminInvitation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminInvitation>>, TError,{data: BodyType<AdminInvitationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminInvitation>>,
+        TError,
+        {data: BodyType<AdminInvitationInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAdminInvitationMutationOptions(options));
+    }
+
+export const getListAdminInvitationsUrl = () => {
+
+
+
+
+  return `/api/admin/invitations`
+}
+
+/**
+ * @summary List admin invitations without secret tokens (owner only)
+ */
+export const listAdminInvitations = async ( options?: RequestInit): Promise<AdminInvitationRecord[]> => {
+
+  return customFetch<AdminInvitationRecord[]>(getListAdminInvitationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminInvitationsQueryKey = () => {
+    return [
+    `/api/admin/invitations`
+    ] as const;
+    }
+
+
+export const getListAdminInvitationsQueryOptions = <TData = Awaited<ReturnType<typeof listAdminInvitations>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminInvitations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminInvitationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminInvitations>>> = ({ signal }) => listAdminInvitations({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminInvitations>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminInvitationsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminInvitations>>>
+export type ListAdminInvitationsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List admin invitations without secret tokens (owner only)
+ */
+
+export function useListAdminInvitations<TData = Awaited<ReturnType<typeof listAdminInvitations>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminInvitations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminInvitationsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRevokeAdminInvitationUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/invitations/${id}`
+}
+
+/**
+ * @summary Revoke a pending invitation (owner only)
+ */
+export const revokeAdminInvitation = async (id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRevokeAdminInvitationUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getRevokeAdminInvitationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeAdminInvitation>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeAdminInvitation>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['revokeAdminInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeAdminInvitation>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  revokeAdminInvitation(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeAdminInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof revokeAdminInvitation>>>
+
+    export type RevokeAdminInvitationMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Revoke a pending invitation (owner only)
+ */
+export const useRevokeAdminInvitation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeAdminInvitation>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof revokeAdminInvitation>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRevokeAdminInvitationMutationOptions(options));
+    }
+
+export const getInspectAdminInvitationUrl = () => {
+
+
+
+
+  return `/api/admin/invitations/inspect`
+}
+
+/**
+ * @summary Check a public invitation
+ */
+export const inspectAdminInvitation = async (adminInvitationToken: AdminInvitationToken, options?: RequestInit): Promise<AdminInvitationPublic> => {
+
+  return customFetch<AdminInvitationPublic>(getInspectAdminInvitationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminInvitationToken)
+  }
+);}
+
+
+
+
+export const getInspectAdminInvitationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inspectAdminInvitation>>, TError,{data: BodyType<AdminInvitationToken>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inspectAdminInvitation>>, TError,{data: BodyType<AdminInvitationToken>}, TContext> => {
+
+const mutationKey = ['inspectAdminInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inspectAdminInvitation>>, {data: BodyType<AdminInvitationToken>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  inspectAdminInvitation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InspectAdminInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof inspectAdminInvitation>>>
+    export type InspectAdminInvitationMutationBody = BodyType<AdminInvitationToken>
+    export type InspectAdminInvitationMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Check a public invitation
+ */
+export const useInspectAdminInvitation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inspectAdminInvitation>>, TError,{data: BodyType<AdminInvitationToken>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof inspectAdminInvitation>>,
+        TError,
+        {data: BodyType<AdminInvitationToken>},
+        TContext
+      > => {
+      return useMutation(getInspectAdminInvitationMutationOptions(options));
+    }
+
+export const getAcceptAdminInvitationUrl = () => {
+
+
+
+
+  return `/api/admin/invitations/accept`
+}
+
+/**
+ * @summary Create an admin account using a single-use invitation
+ */
+export const acceptAdminInvitation = async (adminInvitationJoinInput: AdminInvitationJoinInput, options?: RequestInit): Promise<AdminInvitationMember> => {
+
+  return customFetch<AdminInvitationMember>(getAcceptAdminInvitationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(adminInvitationJoinInput)
+  }
+);}
+
+
+
+
+export const getAcceptAdminInvitationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptAdminInvitation>>, TError,{data: BodyType<AdminInvitationJoinInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptAdminInvitation>>, TError,{data: BodyType<AdminInvitationJoinInput>}, TContext> => {
+
+const mutationKey = ['acceptAdminInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptAdminInvitation>>, {data: BodyType<AdminInvitationJoinInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  acceptAdminInvitation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptAdminInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof acceptAdminInvitation>>>
+    export type AcceptAdminInvitationMutationBody = BodyType<AdminInvitationJoinInput>
+    export type AcceptAdminInvitationMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create an admin account using a single-use invitation
+ */
+export const useAcceptAdminInvitation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptAdminInvitation>>, TError,{data: BodyType<AdminInvitationJoinInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acceptAdminInvitation>>,
+        TError,
+        {data: BodyType<AdminInvitationJoinInput>},
+        TContext
+      > => {
+      return useMutation(getAcceptAdminInvitationMutationOptions(options));
     }
 

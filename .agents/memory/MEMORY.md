@@ -69,3 +69,4 @@
 - [Top banner cropping](top-banner-cropping.md) — fixed 12:1 viewport and identical saved crop across devices; retain the original upload for later repositioning.
 - [Chat delivery truth](chat-delivery-truth.md) — confirm sends from saved responses; uncertain failures retry the same identity, and reconnects recover missed history.
 - [News publishing intent](news-publishing-intent.md) — news added in Admin should appear below the main hero; drafts are an explicit choice, not a silent default.
+- [Admin invitation safety](admin-invitation-links.md) — link previews must not consume invitations; username conflicts stay recoverable; retain existing admin sign-in.

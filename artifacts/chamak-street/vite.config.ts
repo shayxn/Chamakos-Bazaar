@@ -85,6 +85,7 @@ export default defineConfig({
       "/robots.txt":{target:"http://localhost:8080",changeOrigin:true,rewrite:()=>"/api/robots.txt"},
       "/sitemap.xml":{target:"http://localhost:8080",changeOrigin:true,rewrite:()=>"/api/sitemap.xml"},
       "/api": {
+        xfwd: true,
         target: "http://localhost:8080",
         changeOrigin: true,
         secure: false,

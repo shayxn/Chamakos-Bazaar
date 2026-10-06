@@ -44,7 +44,8 @@ async function isVerifiedAdmin(req: Request) {
  */
 export async function emergencyShutdownGuard(req: Request, res: Response, next: NextFunction) {
   const isBackgroundTracking = req.method === "POST" && req.path === "/visitor-sessions/track";
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method) || req.path.startsWith("/auth") || isBackgroundTracking) {
+  const isInvitationJoin = req.method === "POST" && ["/admin/invitations/inspect", "/admin/invitations/accept"].includes(req.path);
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method) || req.path.startsWith("/auth") || isInvitationJoin || isBackgroundTracking) {
     next();
     return;
   }

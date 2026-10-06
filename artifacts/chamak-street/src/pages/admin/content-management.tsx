@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import LaunchAdmin from "@/components/launch-admin";
+import AdminTeamInvitations from "@/components/admin-team-invitations";
 import { Archive, Eye, GripVertical, Plus, RefreshCw, Save, Trash2, Upload, X } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
@@ -293,8 +294,8 @@ function DocManager({ kind }: { kind: string }) {
 
 /* ---------- special panels ---------- */
 function useList<T>(key: string, path: string) { return useQuery({ queryKey: ["admin-x", key], queryFn: () => api<T[]>(path) }); }
-function Wrap({ title, q, children }: { title: string; q: { isLoading: boolean; isError: boolean; error: unknown; refetch: () => void }; children: React.ReactNode }) {
-  return <div className="space-y-4"><h1 className="text-2xl font-black uppercase tracking-tight sm:text-3xl">{title}</h1>{q.isLoading ? <Skel /> : q.isError ? <Err e={q.error} retry={() => q.refetch()} /> : children}</div>;
+function Wrap({ title, q, children, actions }: { title: string; q: { isLoading: boolean; isError: boolean; error: unknown; refetch: () => void }; children: React.ReactNode; actions?: React.ReactNode }) {
+  return <div className="space-y-4"><div className="flex items-center justify-between gap-3"><h1 className="text-2xl font-black uppercase tracking-tight sm:text-3xl">{title}</h1>{actions}</div>{q.isLoading ? <Skel /> : q.isError ? <Err e={q.error} retry={() => q.refetch()} /> : children}</div>;
 }
 const when = (s: string) => new Date(s).toLocaleString();
 
@@ -398,27 +399,16 @@ const PERMS = ["products", "orders", "content", "support", "customers", "discoun
 function TeamPanel() {
   const qc = useQueryClient();
   type M = { id: number; username: string; role: string; permissions: string[] };
-  const q = useList<M>("team", "/admin/team");
-  const [nu, setNu] = useState({ username: "", password: "", role: "admin", permissions: [] as string[] });
+  const q = useQuery({ queryKey: ["admin-x", "team"], queryFn: () => api<M[]>("/admin/team"), staleTime: 0, refetchInterval: 5_000 });
+  const [inviteOpen, setInviteOpen] = useState(false);
   const inv = () => qc.invalidateQueries({ queryKey: ["admin-x", "team"] });
-  const add = useMutation({ mutationFn: () => api("/admin/team", { method: "POST", body: JSON.stringify(nu) }), onSuccess: () => { inv(); setNu({ username: "", password: "", role: "admin", permissions: [] }); } });
   const upd = useMutation({ mutationFn: (m: M) => api(`/admin/team/${m.id}`, { method: "PATCH", body: JSON.stringify({ role: m.role, permissions: m.permissions }) }), onSuccess: inv });
   const remove=useMutation({mutationFn:(id:number)=>api(`/admin/team/${id}`,{method:"DELETE"}),onSuccess:inv});
   const toggle = (arr: string[], p: string) => arr.includes(p) ? arr.filter((x) => x !== p) : [...arr, p];
   const permBox = (sel: string[], on: (p: string) => void) => <div className="flex flex-wrap gap-3">{PERMS.map((p) => <label key={p} className="flex items-center gap-1.5 text-xs"><input type="checkbox" className="accent-primary" checked={sel.includes(p)} onChange={() => on(p)} />{p}</label>)}</div>;
   return (
-    <Wrap title="Team" q={q}>
-      <div className={`${glass} space-y-3 p-4`}>
-        <p className="text-xs font-black uppercase tracking-widest text-white/60">Add member (owner only). Team management itself is owner-only.</p>
-        <div className="grid gap-2 sm:grid-cols-3">
-          <input aria-label="Username" className={inp} placeholder="Username" value={nu.username} onChange={(e) => setNu({ ...nu, username: e.target.value })} />
-          <input aria-label="Password" type="password" className={inp} placeholder="Password" value={nu.password} onChange={(e) => setNu({ ...nu, password: e.target.value })} />
-          <select aria-label="Role" className={inp} value={nu.role} onChange={(e) => setNu({ ...nu, role: e.target.value })}><option value="admin">admin</option></select>
-        </div>
-        {permBox(nu.permissions, (p) => setNu({ ...nu, permissions: toggle(nu.permissions, p) }))}
-        {add.isError && <Err e={add.error} />}
-        <button className={btnP} disabled={!nu.username || !nu.password || add.isPending} onClick={() => add.mutate()}>Add</button>
-      </div>
+    <Wrap title="Team & Permissions" q={q} actions={<button className={btnP} disabled={q.isLoading || q.isError} onClick={() => setInviteOpen(true)} data-testid="button-add-team-invitation"><Plus className="h-4 w-4" />Add</button>}>
+      <AdminTeamInvitations open={inviteOpen} onOpenChange={setInviteOpen} />
       {upd.isError && <Err e={upd.error} />}
       {remove.isError&&<Err e={remove.error}/>}
       {q.data?.length === 0 && <Empty t="No team members." />}

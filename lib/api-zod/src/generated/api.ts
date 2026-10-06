@@ -1761,3 +1761,90 @@ export const SendCustomerNotificationCampaignParams = zod.object({
 export const SendCustomerNotificationCampaignResponse = zod.record(zod.string(), zod.unknown())
 
 
+/**
+ * @summary Create a single-use admin invitation (owner only)
+ */
+export const createAdminInvitationBodyPermissionsMax = 9;
+
+
+
+export const CreateAdminInvitationBody = zod.object({
+  "permissions": zod.array(zod.enum(['products', 'orders', 'content', 'support', 'customers', 'discounts', 'analytics', 'notifications', 'settings'])).max(createAdminInvitationBodyPermissionsMax)
+})
+
+export const CreateAdminInvitationResponse = zod.object({
+  "permissions": zod.array(zod.string()),
+  "expiresAt": zod.coerce.date()
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "token": zod.string()
+}))
+
+
+/**
+ * @summary List admin invitations without secret tokens (owner only)
+ */
+export const ListAdminInvitationsResponseItem = zod.object({
+  "permissions": zod.array(zod.string()),
+  "expiresAt": zod.coerce.date()
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "status": zod.enum(['pending', 'accepted', 'expired', 'revoked']),
+  "createdAt": zod.coerce.date()
+}))
+export const ListAdminInvitationsResponse = zod.array(ListAdminInvitationsResponseItem)
+
+
+/**
+ * @summary Revoke a pending invitation (owner only)
+ */
+export const RevokeAdminInvitationParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const RevokeAdminInvitationResponse = zod.unknown()
+
+
+/**
+ * @summary Check a public invitation
+ */
+export const inspectAdminInvitationBodyTokenRegExp = new RegExp('^[A-Za-z0-9_-]{43}$');
+
+
+export const InspectAdminInvitationBody = zod.object({
+  "token": zod.string().regex(inspectAdminInvitationBodyTokenRegExp)
+})
+
+export const InspectAdminInvitationResponse = zod.object({
+  "permissions": zod.array(zod.string()),
+  "expiresAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Create an admin account using a single-use invitation
+ */
+export const acceptAdminInvitationBodyOneTokenRegExp = new RegExp('^[A-Za-z0-9_-]{43}$');
+export const acceptAdminInvitationBodyTwoUsernameMin = 3;
+export const acceptAdminInvitationBodyTwoUsernameMax = 80;
+
+
+export const acceptAdminInvitationBodyTwoUsernameRegExp = new RegExp('^[A-Za-z0-9_.-]+$');
+export const acceptAdminInvitationBodyTwoPasswordMin = 12;
+export const acceptAdminInvitationBodyTwoPasswordMax = 128;
+
+
+
+export const AcceptAdminInvitationBody = zod.object({
+  "token": zod.string().regex(acceptAdminInvitationBodyOneTokenRegExp)
+}).and(zod.object({
+  "username": zod.string().min(acceptAdminInvitationBodyTwoUsernameMin).max(acceptAdminInvitationBodyTwoUsernameMax).regex(acceptAdminInvitationBodyTwoUsernameRegExp),
+  "password": zod.string().min(acceptAdminInvitationBodyTwoPasswordMin).max(acceptAdminInvitationBodyTwoPasswordMax)
+}))
+
+export const AcceptAdminInvitationResponse = zod.object({
+  "id": zod.number(),
+  "username": zod.string()
+})
+
+

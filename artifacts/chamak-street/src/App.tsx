@@ -116,6 +116,7 @@ const ManagedContent = lazy(() => import("@/pages/managed-content"));
 const ContentManagement = lazy(() => import("@/pages/admin/content-management"));
 
 // ── Admin pages (lazy — customers never load these) ──
+const AdminInvite = lazy(() => import("@/pages/admin-invite"));
 const AdminLayout = lazy(() => import("@/components/admin-layout"));
 const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const AdminProducts = lazy(() => import("@/pages/admin/products"));
@@ -231,6 +232,7 @@ function CustomerLayout({ children }: { children: React.ReactNode }) {
 function MainRouter() {
   return (
     <Switch>
+      <Route path="/admin/join" component={AdminInvite} />
       <Route path="/admin/*?" component={AdminRouter} />
       <Route path="/login" component={Login} />
       <Route>

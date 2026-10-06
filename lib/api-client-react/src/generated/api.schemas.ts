@@ -5,6 +5,76 @@
  * IMAGINATE e-commerce API
  * OpenAPI spec version: 0.2.0
  */
+export type AdminInvitationInputPermissionsItem = typeof AdminInvitationInputPermissionsItem[keyof typeof AdminInvitationInputPermissionsItem];
+
+
+export const AdminInvitationInputPermissionsItem = {
+  products: 'products',
+  orders: 'orders',
+  content: 'content',
+  support: 'support',
+  customers: 'customers',
+  discounts: 'discounts',
+  analytics: 'analytics',
+  notifications: 'notifications',
+  settings: 'settings',
+} as const;
+
+export interface AdminInvitationInput {
+  /** @maxItems 9 */
+  permissions: AdminInvitationInputPermissionsItem[];
+}
+
+export interface AdminInvitationPublic {
+  permissions: string[];
+  expiresAt: string;
+}
+
+export type AdminInvitationCreated = AdminInvitationPublic & {
+  id: string;
+  token: string;
+};
+
+export type AdminInvitationRecordStatus = typeof AdminInvitationRecordStatus[keyof typeof AdminInvitationRecordStatus];
+
+
+export const AdminInvitationRecordStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  expired: 'expired',
+  revoked: 'revoked',
+} as const;
+
+export type AdminInvitationRecord = AdminInvitationPublic & {
+  id: string;
+  status: AdminInvitationRecordStatus;
+  createdAt: string;
+};
+
+export interface AdminInvitationToken {
+  /** @pattern ^[A-Za-z0-9_-]{43}$ */
+  token: string;
+}
+
+export type AdminInvitationJoinInput = AdminInvitationToken & {
+  /**
+     * @minLength 3
+     * @maxLength 80
+     * @pattern ^[A-Za-z0-9_.-]+$
+     */
+  username: string;
+  /**
+     * @minLength 12
+     * @maxLength 128
+     */
+  password: string;
+};
+
+export interface AdminInvitationMember {
+  id: number;
+  username: string;
+}
+
 export interface CountrySelection {
   /**
      * @minLength 2
