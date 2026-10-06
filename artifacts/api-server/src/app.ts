@@ -33,7 +33,15 @@ app.use(
 app.use(requestSecurity);
 app.use(cors({ origin: false, credentials: true }));
 
-app.use("/api/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
+// Keep the historical production URLs and repository media working after the
+// monorepo move. Existing root/persistent uploads remain the first choice.
+const uploadRoots = [
+  path.join(process.cwd(), "public", "uploads"),
+  path.join(process.cwd(), "artifacts", "api-server", "public", "uploads"),
+];
+for (const root of uploadRoots) {
+  app.use(["/api/uploads", "/uploads"], express.static(root));
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

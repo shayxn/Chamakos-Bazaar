@@ -3,7 +3,7 @@ services:
     name: chamakos-bazaar
     runtime: node
     buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run render:build
-    startCommand: node --enable-source-maps ./artifacts/api-server/dist/index.mjs
+    startCommand: pnpm run render:start
     healthCheckPath: /api/healthz
     envVars:
       - key: NODE_ENV
