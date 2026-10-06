@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: chamakos-bazaar
+    runtime: node
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run render:build
+    startCommand: node --enable-source-maps ./artifacts/api-server/dist/index.mjs
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "24"
+      # Keep the existing production database and session-signing secret.
+      # These are supplied privately in Render, never stored in this file.
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false

@@ -72,3 +72,4 @@
 - [Admin invitation safety](admin-invitation-links.md) — link previews must not consume invitations; username conflicts stay recoverable; retain existing admin sign-in.
 - [Filming notification scope](filming-notification-scope.md) — opted-in admin devices only; 50 real pushes total; keep simulation out of business data and report provider truth.
 - [Countdown reveal intent](countdown-reveal-intent.md) — fullscreen countdown, exact three-second zero message, then website fade; automatic catalog opening only once per browser.
+- [External host deployment contract](external-host-deployment-contract.md) — Vercel success does not prove Render updated; preserve both hosting contracts during workspace changes.
