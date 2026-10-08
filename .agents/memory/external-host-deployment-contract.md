@@ -14,3 +14,9 @@ Production hosting repairs must preserve the existing database, secrets, and dat
 **Why:** The owner explicitly requires preservation of all existing production data and secrets.
 
 **How to apply:** Restore repository-side hosting compatibility without swapping storage or credentials. Any legacy schema compatibility must be additive and idempotent; never use a force-push schema command that can drop existing structures.
+
+Production build commands must explicitly install development build tools even when runtime `NODE_ENV` is production.
+
+**Why:** The backend bundler and logging build plugin are development dependencies. An implicit production-only pnpm install can omit them and prevent the updated backend from deploying, while Vercel still succeeds.
+
+**How to apply:** Keep this protection inside the repository's Render build entry point, not only its Blueprint command. Existing manually configured Render services may retain their saved commands rather than adopting changes in `render.yaml`.

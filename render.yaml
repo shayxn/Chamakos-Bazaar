@@ -2,7 +2,7 @@ services:
   - type: web
     name: chamakos-bazaar
     runtime: node
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run render:build
+    buildCommand: corepack enable && pnpm run render:build
     startCommand: pnpm run render:start
     healthCheckPath: /api/healthz
     envVars:
