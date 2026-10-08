@@ -3,6 +3,12 @@ name: IMAGINATE storefront constraints
 description: User requirements for the IMAGINATE identity, shipping, factual content, and redesign boundaries.
 ---
 
+Shared website links should be titled exactly "Imaginate", without "UAE Streetwear".
+
+**Why:** The user explicitly requested this wording and capitalization for link previews.
+
+**How to apply:** Keep the base website title and social sharing metadata aligned, while retaining useful titles for specific content pages.
+
 Use the supplied IMAGINATE logo unchanged. Do not invent products, photography, metrics, policies, delivery promises, exchange rates, or event times.
 
 **Why:** The user rejected earlier storefront work and asked that the supplied prompts and logo be respected.

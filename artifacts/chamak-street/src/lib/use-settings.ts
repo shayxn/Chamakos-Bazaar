@@ -69,7 +69,7 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   recommended_mode: "auto",
   footer_copyright: "",
   footer_links: "",
-  site_title: "IMAGINATE — UAE Streetwear",
+  site_title: "Imaginate",
   site_meta_description: "IMAGINATE is a UAE-based clothing and streetwear label.",
   site_og_image: "",
   maintenance_mode: "false",
@@ -105,6 +105,10 @@ export function cleanHeroImages(value: string | undefined): string {
 
 function normalizeSettings(input?: Record<string, string>): Record<string, string> {
   const resolved = { ...SETTING_DEFAULTS, ...(input ?? {}) };
+  // Older deployed settings must not restore the superseded sharing title.
+  if (/^imaginate(?:\s*[-–—]\s*uae streetwear)?$/i.test(resolved.site_title.trim())) {
+    resolved.site_title = "Imaginate";
+  }
   const hasLegacyBrand = (value: string | undefined) => /first[\s_-]?pick|chamak(?:os| street)?/i.test(value ?? "");
   for (const key of ["site_name", "site_tagline", "site_title", "site_meta_description", "footer_description", "footer_copyright", "about_text"]) {
     if (hasLegacyBrand(resolved[key])) resolved[key] = SETTING_DEFAULTS[key] ?? "";
