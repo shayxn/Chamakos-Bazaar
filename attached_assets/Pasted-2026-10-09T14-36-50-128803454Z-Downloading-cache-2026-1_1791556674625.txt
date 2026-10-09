@@ -1,0 +1,33 @@
+2026-10-09T14:36:50.128803454Z ==> Downloading cache...
+2026-10-09T14:36:50.156187366Z ==> Cloning from https://github.com/shayxn/Chamakos-Bazaar
+2026-10-09T14:37:19.008710123Z ==> Checking out commit 8dba49c8f1e34320486d21e031bd350340b48999 in branch main
+2026-10-09T14:37:24.18756186Z ==> Downloaded 125MB in 6s. Extraction took 5s.
+2026-10-09T14:37:24.478481208Z ==> Requesting Node.js version 24
+2026-10-09T14:37:24.579374708Z ==> Using Node.js version 24.21.0 via environment variable NODE_VERSION
+2026-10-09T14:37:24.57939125Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2026-10-09T14:37:24.613695672Z ==> Running build command 'corepack pnpm run render:start'...
+2026-10-09T14:37:25.629899223Z 
+2026-10-09T14:37:25.629916164Z > workspace@0.0.0 render:start /opt/render/project/src
+2026-10-09T14:37:25.629918901Z > node --enable-source-maps ./artifacts/api-server/dist/index.mjs
+2026-10-09T14:37:25.629920269Z 
+2026-10-09T14:37:25.660112828Z node:internal/modules/cjs/loader:1568
+2026-10-09T14:37:25.660120175Z   throw err;
+2026-10-09T14:37:25.66012169Z   ^
+2026-10-09T14:37:25.660123011Z 
+2026-10-09T14:37:25.660125597Z Error: Cannot find module '/opt/render/project/src/artifacts/api-server/dist/index.mjs'
+2026-10-09T14:37:25.660127214Z     at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+2026-10-09T14:37:25.660128585Z     at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+2026-10-09T14:37:25.660130063Z     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+2026-10-09T14:37:25.66013131Z     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+2026-10-09T14:37:25.660132843Z     at Module._load (node:internal/modules/cjs/loader:1341:5)
+2026-10-09T14:37:25.6601341Z     at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+2026-10-09T14:37:25.660135501Z     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+2026-10-09T14:37:25.66013679Z     at node:internal/main/run_main_module:33:47 {
+2026-10-09T14:37:25.660138318Z   code: 'MODULE_NOT_FOUND',
+2026-10-09T14:37:25.660139885Z   requireStack: []
+2026-10-09T14:37:25.660141268Z }
+2026-10-09T14:37:25.66014243Z 
+2026-10-09T14:37:25.660143679Z Node.js v24.21.0
+2026-10-09T14:37:25.674414069Z  ELIFECYCLE  Command failed with exit code 1.
+2026-10-09T14:37:25.720051644Z ==> Build failed 😞
+2026-10-09T14:37:25.720069259Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
