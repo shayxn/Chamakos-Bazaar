@@ -20,3 +20,9 @@ Production build commands must explicitly install development build tools even w
 **Why:** The backend bundler and logging build plugin are development dependencies. An implicit production-only pnpm install can omit them and prevent the updated backend from deploying, while Vercel still succeeds.
 
 **How to apply:** Keep this protection inside the repository's Render build entry point, not only its Blueprint command. Existing manually configured Render services may retain their saved commands rather than adopting changes in `render.yaml`.
+
+Run pnpm through Corepack directly on Render; do not run `corepack enable` or install shims into system directories.
+
+**Why:** Render's Node runtime has a read-only `/usr/bin/pnpm`; `corepack enable` fails before dependency installation and leaves the previous backend serving traffic.
+
+**How to apply:** Use `corepack pnpm run render:build` in both the Blueprint and the saved Render Build Command. Keep the explicit production-safe dependency install, and remove legacy database schema-push commands from the saved build command.
