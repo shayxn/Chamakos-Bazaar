@@ -86,7 +86,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Heart className="h-5 w-5" strokeWidth={1.6} />
             </Link>
             {user?.isAdmin && (
-              <Link href="/admin" className="hidden md:block" aria-label="Open Admin">
+              <Link href="/admin" aria-label="Open Admin" title="Admin">
                 <Button variant="ghost" size="sm" className="text-[11px] font-black uppercase tracking-widest text-white/70 hover:text-primary transition-colors px-2 xl:px-3">
                   <Settings className="h-3.5 w-3.5 xl:mr-1.5" />
                   <span className="hidden xl:inline">Admin</span>

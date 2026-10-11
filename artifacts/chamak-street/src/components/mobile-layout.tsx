@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Heart, MessageCircle, Menu, X, ArrowRight } from "lucide-react";
+import { ShoppingBag, Heart, MessageCircle, Menu, X, ArrowRight, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getGetCartQueryKey, getGetMeQueryKey, useGetCart, useGetMe } from "@workspace/api-client-react";
 import { useSettings } from "@/lib/use-settings";
@@ -51,6 +51,11 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
             <Link href="/wishlist" aria-label="Wishlist" data-testid="link-nav-wishlist" className="grid h-11 w-11 place-items-center">
               <Heart className="h-5 w-5 text-white/75" strokeWidth={1.5} />
             </Link>
+            {user?.isAdmin && (
+              <Link href="/admin" aria-label="Admin workspace" title="Admin" data-testid="link-mobile-admin" className="grid h-11 w-11 place-items-center text-white/75 hover:text-primary">
+                <Settings className="h-5 w-5" strokeWidth={1.6} />
+              </Link>
+            )}
             <Link href="/cart" aria-label={`Shopping bag${cartCount ? `, ${cartCount} items` : ""}`} className="relative grid h-11 w-11 place-items-center">
               <motion.span
                 key={`cart-bounce-${cartBounceKey}`}
@@ -151,7 +156,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
               ))}
               {user?.isAdmin && (
                 <Link href="/admin" onClick={() => setMenuOpen(false)} className="mt-7 inline-flex w-fit items-center gap-2 text-xs uppercase tracking-[.2em] text-white/50 hover:text-white">
-                  Admin workspace <ArrowRight className="h-3.5 w-3.5" />
+                  <Settings className="h-4 w-4" /> Admin workspace <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               )}
             </div>
