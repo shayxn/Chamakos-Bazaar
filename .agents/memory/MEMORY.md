@@ -1,4 +1,3 @@
-- [Pre-order flow](preorder-flow.md) — GTA VI pre-order opens a modal (name+phone+platform), then opens WhatsApp; not a real cart item.
 - [Announcement banner](announcement-banner.md) — uses site_settings keys: announcement_active/text/color/url; editable under Admin → Site Settings → Announcement tab.
 - [Import logic](import-logic.md) — all imported products are rep:true; featured alternates half/half by import index (even=featured).
 - [Splash popup](splash-popup.md) — mini card modal using IMG_0054 (box art) + IMG_0055 (packaging), sessionStorage gate, 6s auto-dismiss with progress bar.
@@ -34,8 +33,6 @@
 - [iOS tap delay fix](ios-tap-delay.md) — add touchAction:"manipulation" to all Link/button elements in tab bars to eliminate 300ms iOS double-tap delay; this is the root cause of "press multiple times" complaints.
 - [Priority truck animation](priority-truck-anim.md) — src/components/priority-order-animation.tsx; shows on COD priority orders only; 5.2s then navigates; SVG truck with conic-gradient spinning wheels + ⚡ exhaust smoke.
 - [Customer orders API](customer-orders-api.md) — GET /api/customers/orders now joins orderItemsTable and returns items[] per order; matched by email OR phone.
-- [Admin chat + calling](admin-chat-calling.md) — SSE at /admin/chat/stream; WebRTC signaling at /admin/chat/signal (broadcast:true rings all); sound effects via Web Audio API (no files); group call button in header rings all online admins.
-- [Admin push subscriptions](admin-push-subs.md) — admin_push_subscriptions table; POST /admin/chat/push-subscribe; sendAdminChatPush() + sendAdminActivityPush() in push.ts; both fire after save/log.
 - [Support page](support-page.md) — /support is a full FAQ + agent hero + WhatsApp CTA; headphones icon in mobile header; Support link in account sidebar; phone loaded from support_whatsapp setting via ref to avoid closure bug.
 - [Order delay/cancel flow](order-delay-cancel.md) — status "delayed"/"cancelled" open modal (reason + date); sends customer push via sendCustomerStatusPush(); logs to admin_activity_log; customer_push_log col prevents duplicates.
 - [Customer push subscriptions](customer-push-subs.md) — separate customer_push_subscriptions table (endpoint+phone+email); POST /api/push/customer-subscribe; GET /api/push/vapid-public-key; account page has onboarding banner.
@@ -52,7 +49,6 @@
 - [Coming Soon products](coming-soon-products.md) — coming_soon bool col; visible in shop with purple badge/overlay; wishlist → push sub via session_id JOIN; PATCH release triggers sendComingSoonReleasePush; prompt only on shop.tsx (not product detail yet).
 - [Order confirmation page](order-page.md) — pages/order.tsx fully rewritten: confetti + animated orange tick + "Order Placed, Thanks!" + items list + info + WhatsApp CTA + "Go back to shop". Priority animation removed from checkout; all orders navigate to /order/:id.
 - [iOS Notification guards](ios-notification-guard.md) — always wrap Notification.permission and Notification.requestPermission() with `typeof Notification !== "undefined"` check; iOS Safari crashes without it. Same for navigator.serviceWorker availability check.
-- [Admin group calls](admin-group-calls.md) — small authenticated admin teams use a WebRTC mesh room with SSE signaling and web-push invites; move to an SFU before scaling beyond that.
 - [Push delivery truth](push-delivery-truth.md) — admin push-test success means the current browser subscription was actually accepted by the provider.
 - [Admin chat media](admin-chat-media.md) — photos and voice messages are private direct uploads that must be verified before a chat record can reference them.
 - [Owner Studio security](owner-studio-security.md) — Studio access, publishing, per-page sharing, versions, and public links have strict server-side boundaries.

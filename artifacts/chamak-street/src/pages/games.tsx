@@ -28,14 +28,27 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 export default function GamesPage() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError(null);
     fetch(`${BASE}/api/games`)
-      .then((r) => r.json())
-      .then((data) => setGames(data as Game[]))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+      .then(async (response) => {
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.error || `Games could not be loaded (HTTP ${response.status}).`);
+        if (!Array.isArray(data)) throw new Error("The games response was invalid.");
+        return data as Game[];
+      })
+      .then((data) => { if (active) setGames(data); })
+      .catch((cause) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Games could not be loaded.");
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [retry]);
 
   return (
     <PageTransition>
@@ -70,6 +83,13 @@ export default function GamesPage() {
               {[1, 2, 3].map((i) => (
                 <div key={i} className="aspect-[3/4] rounded-2xl bg-card animate-pulse border border-border/40" />
               ))}
+            </div>
+          ) : error ? (
+            <div className="py-20 text-center" role="alert">
+              <p className="font-bold text-destructive">{error}</p>
+              <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-5 rounded-full border border-white/20 px-5 py-2 text-sm font-bold text-white hover:bg-white/10">
+                Try again
+              </button>
             </div>
           ) : games.length === 0 ? (
             <motion.div

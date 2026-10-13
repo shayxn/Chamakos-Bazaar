@@ -2,24 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 
-async function syncAdminChatSubscription(subscription: PushSubscription) {
-  const json = subscription.toJSON();
-  const response = await fetch(`${BASE}/api/admin/chat/push-subscribe`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      endpoint: subscription.endpoint,
-      p256dh: json.keys?.p256dh,
-      auth: json.keys?.auth,
-    }),
-  });
-  if (!response.ok) {
-    const data = await response.json().catch(() => null);
-    throw new Error(data?.error || "Failed to enable chat notifications for this browser.");
-  }
-}
-
 async function syncAdminDeviceSubscription(subscription: PushSubscription) {
   const response = await fetch(`${BASE}/api/push/subscribe`, {
     method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
@@ -29,7 +11,6 @@ async function syncAdminDeviceSubscription(subscription: PushSubscription) {
     const data = await response.json().catch(() => null);
     throw new Error(data?.error || "Could not save this device's order notifications.");
   }
-  await syncAdminChatSubscription(subscription);
 }
 
 export function playCashSound() {
@@ -168,7 +149,6 @@ export function useAdminPushNotifications() {
         // Never ring from the push payload: ask the order list, which knows COD vs paid Ziina.
         window.dispatchEvent(new Event("imaginate:orders-refresh"));
       }
-      if (event.data?.type === "ADMIN_CHAT") window.dispatchEvent(new Event("imaginate:chat-refresh"));
     };
     navigator.serviceWorker.addEventListener("message", handler);
     return () => navigator.serviceWorker.removeEventListener("message", handler);
@@ -302,14 +282,6 @@ export function useAdminPushNotifications() {
         body: JSON.stringify({ endpoint: sub.endpoint }),
       }).then(async response => {
         if (!response.ok) throw new Error("Could not remove this browser's notification subscription.");
-      });
-      await fetch(`${BASE}/api/admin/chat/push-subscribe`, {
-        method: "DELETE",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint: sub.endpoint }),
-      }).then(async response => {
-        if (!response.ok) throw new Error("Could not remove this browser's chat notification subscription.");
       });
       await sub.unsubscribe();
       setSubscribed(false);

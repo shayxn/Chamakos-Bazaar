@@ -1,7 +1,4 @@
-import { randomUUID } from "crypto";
-
 const SIDECAR_URL = "http://127.0.0.1:1106/object-storage/signed-object-url";
-const CHAT_MEDIA_PREFIX = "admin-chat";
 
 function privateLocation() {
   const raw = process.env.PRIVATE_OBJECT_DIR?.replace(/^\/+|\/+$/g, "");
@@ -9,10 +6,6 @@ function privateLocation() {
   const [bucketName, ...pathParts] = raw.split("/");
   if (!bucketName) throw new Error("Private object storage is not configured.");
   return { bucketName, basePath: pathParts.join("/") };
-}
-
-function isChatMediaPath(value: string) {
-  return /^admin-chat\/[0-9a-f-]{36}$/i.test(value);
 }
 
 async function signObject(objectPath: string, method: "GET" | "PUT" | "HEAD" | "DELETE") {
@@ -35,37 +28,8 @@ async function signObject(objectPath: string, method: "GET" | "PUT" | "HEAD" | "
   return data.signed_url;
 }
 
-async function signedUrl(objectPath:string,method:"GET"|"PUT"|"HEAD"){
-  if(!isChatMediaPath(objectPath))throw new Error("Invalid chat media path.");
-  return signObject(objectPath,method);
-}
-
-/** Public store assets have a separate, tightly validated namespace from private chat. */
+/** Store assets use a tightly validated namespace in private object storage. */
 export function storeMediaSignedUrl(filename:string,method:"GET"|"PUT"|"DELETE"){
   if(!/^[a-f0-9]{24}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/.test(filename))throw new Error("Invalid store media filename.");
   return signObject(`store-media/${filename}`,method);
-}
-
-export async function createChatMediaUpload() {
-  const objectPath = `${CHAT_MEDIA_PREFIX}/${randomUUID()}`;
-  return { objectPath, uploadURL: await signedUrl(objectPath, "PUT") };
-}
-
-export async function createChatMediaDownload(objectPath: string) {
-  return signedUrl(objectPath, "GET");
-}
-
-export async function inspectChatMedia(objectPath: string) {
-  const response = await fetch(await signedUrl(objectPath, "HEAD"), {
-    method: "HEAD",
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!response.ok) throw new Error("Uploaded chat media was not found.");
-  const size = Number(response.headers.get("content-length") ?? 0);
-  const contentType = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
-  return { size, contentType };
-}
-
-export function isValidChatMediaPath(value: unknown): value is string {
-  return typeof value === "string" && isChatMediaPath(value);
 }

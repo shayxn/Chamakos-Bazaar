@@ -65,10 +65,6 @@ self.addEventListener("push", (event) => {
   } else if (type === "NEW_ACCOUNT") {
     tag = "account-notif";
     url = `${BASE_PATH}/admin/visitors`;
-  } else if (type === "ADMIN_CALL") {
-    tag = `admin-call-${data?.roomId || "incoming"}`;
-    url = baseSafeUrl(data?.url || "/admin/chat");
-    requireInteraction = true;
   }
   if (data?.url) url = baseSafeUrl(data.url);
 

@@ -5,7 +5,7 @@ import {
   FileText, LayoutDashboard, Package, ShoppingBag, Layers,
   ArrowLeft, Tag, Settings, Star, Video, Globe, Search, X,
   Zap, Users, BellRing, MessageCircle, Activity, Ticket, Smartphone,
-  Phone, Menu
+  Menu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -256,8 +256,6 @@ const contentVariants = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const search = typeof window !== "undefined" ? window.location.search : "";
-  const isCalls = search.includes("view=calls");
   const { data: user, isLoading } = useGetMe({ query: { retry: false, queryKey: ["auth", "me"] } });
   const accessQuery=useQuery<{isOwner:boolean;permissions:string[]}>({queryKey:["admin-access",user?.id],enabled:!!user?.isAdmin,
     queryFn:async()=>{const r=await fetch(`${BASE}/api/admin/access`,{credentials:"include"});if(!r.ok)throw new Error("Your Admin access could not be verified.");return r.json();},staleTime:15000});
@@ -273,7 +271,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [adminPfp, setAdminPfp] = useState<string | null>(() => (
     typeof window !== "undefined" ? localStorage.getItem("fp_admin_pfp") : null
   ));
-  const isChat = location.split("?")[0] === "/admin/chat";
 
   useEffect(() => {
     const refreshAdminPfp = () => setAdminPfp(localStorage.getItem("fp_admin_pfp"));
@@ -398,8 +395,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/visitors", label: "Visitor Sessions", icon: Users },
     { href: "/admin/live-traffic", label: "Live Customers", icon: Activity },
     { href: "/admin/customer-notifications", label: "Customer Notifications", icon: BellRing },
-    { href: "/admin/chat", label: "Chats", icon: MessageCircle },
-    { href: "/admin/chat?view=calls", label: "Calls", icon: Phone },
     { href: "/admin/notifications", label: "Notifications", icon: BellRing },
     { href: "/admin/activity", label: "Activity Log", icon: Activity },
     { href: "/admin/discount-codes", label: "Discount Codes", icon: Ticket },
@@ -427,10 +422,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ].filter(link=>{
     const access=accessQuery.data;
     if(/global-switch|payment-methods/.test(link.href)&&!access?.isOwner)return false;
-    if(!access)return ["/admin/chat","/admin/chat?view=calls","/admin/activity"].includes(link.href);
+    if(!access)return ["/admin/activity"].includes(link.href);
     if(access.isOwner)return true;
     if(/manage\/(?:team|countries|shipping|launch|reminders)|global-switch|payment-methods/.test(link.href))return false;
-    if(/chat|activity|movie-setup/.test(link.href))return true;
+    if(/activity|movie-setup/.test(link.href))return true;
     const permission=/customer-notifications/.test(link.href)?"notifications":/products|basics|categories|stock-alerts/.test(link.href)?"products":
       /orders|refund|abandoned/.test(link.href)?"orders":/support|product-requests/.test(link.href)?"support":
       /discount|coupon/.test(link.href)?"discounts":/customer|newsletter/.test(link.href)?"customers":
@@ -594,11 +589,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
                 {allLinks.map((link) => {
                   const Icon = link.icon;
-                  const active = link.href === "/admin/chat?view=calls"
-                    ? isChat && isCalls
-                    : link.href === "/admin/chat"
-                      ? isChat && !isCalls
-                      : location === link.href;
+                  const active = location === link.href;
                   return (
                     <Link key={link.href} href={link.href}>
                       <div
@@ -667,13 +658,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {allLinks.map((link) => {
             const Icon = link.icon;
             let isActive = false;
-            if (link.href === "/admin/chat?view=calls") {
-              isActive = isChat && isCalls;
-            } else if (link.href === "/admin/chat") {
-              isActive = isChat && !isCalls;
-            } else {
-              isActive = location === link.href;
-            }
+            isActive = location === link.href;
 
             return (
               <Link key={link.href} href={link.href}>
@@ -714,12 +699,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className={`flex-1 flex flex-col min-h-0 min-w-0 bg-[#000000]`}>
         <AnimatePresence mode="wait">
           <motion.div
-            key={location + (isCalls ? "-calls" : "")}
+            key={location}
             variants={contentVariants}
             initial="initial"
             animate="enter"
             exit="exit"
-            className={`${isChat?"flex-1 flex flex-col min-h-0 overflow-hidden p-2 md:p-4":"p-4 md:p-8 flex-1 overflow-auto"} pt-[max(5rem,calc(env(safe-area-inset-top)+3.5rem))] md:pt-8`}
+            className="p-4 md:p-8 flex-1 overflow-auto pt-[max(5rem,calc(env(safe-area-inset-top)+3.5rem))] md:pt-8"
           >
             {children}
           </motion.div>

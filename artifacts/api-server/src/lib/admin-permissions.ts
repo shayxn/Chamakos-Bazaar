@@ -33,10 +33,8 @@ export async function enforceAdminPermission(req: Request, res: Response, next: 
   const access = await adminAccess(id);
   if (access.isOwner) { next(); return; }
   const path = req.path;
-  if(!path.startsWith("/admin/chat")&&/upload|storage/.test(path)&&access.permissions.some((p:string)=>["products","content"].includes(p))){next();return;}
   let permission = "settings";
-  if(path.startsWith("/admin/chat")) permission="chat";
-  else if (/products|categories|stock-alerts|uploads/.test(path)) permission = "products";
+  if (/products|categories|stock-alerts|uploads/.test(path)) permission = "products";
   else if (/orders|refund|abandoned/.test(path)) permission = "orders";
   else if (/support|product-requests/.test(path)) permission = "support";
   else if (/coupons|discount/.test(path)) permission = "discounts";
@@ -46,7 +44,7 @@ export async function enforceAdminPermission(req: Request, res: Response, next: 
   else if (/push|notification|reminder/.test(path)) permission = "notifications";
   else if (/manage|content|tiktok|reviews|events|games/.test(path)) permission = "content";
   // Device self-service remains available to every authenticated admin.
-  if (path.startsWith("/auth/") || path.startsWith("/admin/access") || path.startsWith("/admin/chat") || path.startsWith("/admin/profile") || path.startsWith("/admin/activity") || /^\/admin\/movie-setup\/(?:state|stream|start|stop|devices|push)$/.test(path)) { next(); return; }
+  if (path.startsWith("/auth/") || path.startsWith("/admin/access") || path.startsWith("/admin/profile") || path.startsWith("/admin/activity") || /^\/admin\/movie-setup\/(?:state|stream|start|stop|devices|push)$/.test(path)) { next(); return; }
   if (!access.permissions.includes(permission)) {
     res.status(403).json({ error: `You do not have ${permission} permission.` }); return;
   }

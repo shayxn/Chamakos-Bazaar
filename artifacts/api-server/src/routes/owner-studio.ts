@@ -26,11 +26,9 @@ const SYSTEM_PAGE_ROUTES = new Set([
   "/admin", "/admin/products", "/admin/basics", "/admin/orders", "/admin/categories", "/admin/site-settings", "/admin/reviews",
   "/admin/tiktok", "/admin/terms", "/admin/events", "/admin/games", "/admin/refund-requests", "/admin/product-requests",
   "/admin/visitors", "/admin/notifications", "/admin/abandoned-carts", "/admin/stock-alerts", "/admin/sales-reports",
-  "/admin/activity", "/admin/chat", "/admin/coupons",
+  "/admin/activity", "/admin/coupons",
 ]);
 const SOUND_KEYS = [
-  "messageSent", "messageReceived", "typing", "newGroupMessage", "newPrivateMessage",
-  "incomingCall", "outgoingRingback", "callConnected", "callEnded", "missedCall",
   "notification", "newOrder", "success", "error", "warning",
 ] as const;
 

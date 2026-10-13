@@ -330,36 +330,6 @@ async function getAdminSubscriptions(skipAdminId?: string): Promise<{ endpoint: 
   return Array.isArray(result) ? result : (result as any).rows ?? [];
 }
 
-export async function sendAdminCallPush(callerName: string, callerAdminId: string, roomUrl = "/admin/chat") {
-  try {
-    if (!_initialized) await initPush();
-    const subs = await getAdminSubscriptions(callerAdminId);
-    if (!subs.length) return;
-    const payload = JSON.stringify({
-      title: `📞 Incoming Call`,
-      body: `${callerName} is calling you on IMAGINATE Admin`,
-      type: "ADMIN_CALL",
-        data: { url: roomUrl },
-    });
-    await deliver(subs, payload);
-  } catch {}
-}
-
-export async function sendAdminChatPush(senderName: string, message: string, senderId: string, recipientAdminIds?: string[], conversationId = "group") {
-  try {
-    if (!_initialized) await initPush();
-    const subs = (await getAdminSubscriptions(senderId)).filter((sub: any) => !recipientAdminIds || recipientAdminIds.includes(sub.admin_id));
-    if (!subs.length) return;
-    const payload = JSON.stringify({
-      title: `💬 ${senderName}`,
-      body: message.length > 100 ? message.slice(0, 97) + "…" : message,
-      type: "ADMIN_CHAT",
-      data: { url: `/admin/chat?conversation=${encodeURIComponent(conversationId)}`, conversationId }
-    });
-    await deliver(subs, payload);
-  } catch (error) { console.error("[Push] Admin chat delivery failed:", error instanceof Error ? error.message : "Unknown error"); }
-}
-
 export async function sendAdminActivityPush(adminName: string, action: string, orderRef?: string) {
   try {
     if (!_initialized) await initPush();

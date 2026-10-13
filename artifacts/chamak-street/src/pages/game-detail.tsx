@@ -27,19 +27,35 @@ export default function GameDetail() {
   const id = params?.id ? parseInt(params.id) : 0;
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [muted, setMuted] = useState(true);
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+  const [preOrderError, setPreOrderError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (!id) return;
+    let active = true;
+    if (!id) {
+      setLoadError("This game link is invalid.");
+      setLoading(false);
+      return () => { active = false; };
+    }
     fetch(`${BASE}/api/games/${id}`)
-      .then((r) => r.json())
-      .then((data) => { setGame(data as Game); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(async (response) => {
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.error || `Game could not be loaded (HTTP ${response.status}).`);
+        if (!data || typeof data.id !== "number") throw new Error("The game response was invalid.");
+        return data as Game;
+      })
+      .then((data) => { if (active) setGame(data); })
+      .catch((cause) => {
+        if (active) setLoadError(cause instanceof Error ? cause.message : "Game could not be loaded.");
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [id]);
 
   useEffect(() => {
@@ -64,18 +80,21 @@ export default function GameDetail() {
   }, []);
 
   const handlePreOrder = async () => {
-    if (!game || adding || added) return;
+    if (!game || !game.isPreOrder || adding || added) return;
     setAdding(true);
+    setPreOrderError(null);
     try {
       const res = await fetch(`${BASE}/api/games/${game.id}/preorder-cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
-      if (res.ok) {
-        setAdded(true);
-        setTimeout(() => navigate("/cart"), 600);
-      }
-    } catch {
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || `Pre-order failed (HTTP ${res.status}).`);
+      setAdded(true);
+      setAdding(false);
+      setTimeout(() => navigate("/cart"), 600);
+    } catch (cause) {
+      setPreOrderError(cause instanceof Error ? cause.message : "The pre-order could not be added. Please try again.");
       setAdding(false);
     }
   };
@@ -93,7 +112,8 @@ export default function GameDetail() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
         <div className="text-center">
-          <p className="font-black uppercase text-xl mb-4">Game not found</p>
+            <p className="font-black uppercase text-xl mb-2">{loadError ? "Game unavailable" : "Game not found"}</p>
+            {loadError && <p className="mb-4 max-w-md text-sm text-white/60" role="alert">{loadError}</p>}
           <Link href="/games"><button className="px-6 py-3 border border-white/20 rounded text-sm">← Back</button></Link>
         </div>
       </div>
@@ -152,7 +172,7 @@ export default function GameDetail() {
           {game.preOrderPrice != null && (
             <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, ease: EASE }}
               className="text-white/50 text-sm font-bold uppercase tracking-widest">
-              <Price v={game.preOrderPrice} /> · {game.preOrderDate ?? "Coming 2025"}
+              <Price v={game.preOrderPrice} /> · {game.preOrderDate ?? "Release date TBA"}
             </motion.p>
           )}
 
@@ -163,14 +183,18 @@ export default function GameDetail() {
             whileHover={{ scale: adding || added ? 1 : 1.04 }}
             whileTap={{ scale: adding || added ? 1 : 0.97 }}
             onClick={handlePreOrder}
-            disabled={adding || added}
+            disabled={adding || added || !game.isPreOrder}
             className="flex items-center gap-3 px-12 py-5 font-black uppercase tracking-widest text-base text-white rounded-full transition-all disabled:cursor-default"
             style={{
               background: added
                 ? "#22c55e"
+                : !game.isPreOrder
+                  ? "#34343a"
                 : "linear-gradient(135deg, #e8405a 0%, #c020e0 50%, #6040f0 100%)",
               boxShadow: added
                 ? "0 0 30px rgba(34,197,94,0.4)"
+                : !game.isPreOrder
+                  ? "none"
                 : "0 0 40px rgba(232,64,90,0.5), 0 0 80px rgba(192,32,224,0.2)",
               minWidth: 260,
               justifyContent: "center",
@@ -180,10 +204,13 @@ export default function GameDetail() {
               <><Loader2 className="h-5 w-5 animate-spin" /> Adding…</>
             ) : added ? (
               <><ShoppingCart className="h-5 w-5" /> Added to Cart!</>
+            ) : !game.isPreOrder ? (
+              <>Pre-orders are closed</>
             ) : (
               <><ShoppingCart className="h-5 w-5" /> {game.preOrderButtonText || "Pre-Order Now"}</>
             )}
           </motion.button>
+          {preOrderError && <p className="max-w-sm text-center text-sm text-red-300" role="alert">{preOrderError}</p>}
 
           {game.description && (
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}

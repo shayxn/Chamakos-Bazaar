@@ -137,7 +137,6 @@ const AdminNotificationSettings = lazy(() => import("@/pages/admin/notification-
 const AdminAbandonedCarts = lazy(() => import("@/pages/admin/abandoned-carts"));
 const AdminStockAlerts = lazy(() => import("@/pages/admin/stock-alerts"));
 const AdminSalesReports = lazy(() => import("@/pages/admin/sales-reports"));
-const AdminChat = lazy(() => import("@/pages/admin/chat"));
 const AdminActivityLog = lazy(() => import("@/pages/admin/activity-log"));
 const AdminGlobalSwitch = lazy(() => import("@/pages/admin/global-store").then((m) => ({ default: m.GlobalSwitchPage })));
 const AdminPaymentMethods = lazy(() => import("@/pages/admin/global-store").then((m) => ({ default: m.PaymentMethodsPage })));
@@ -194,7 +193,6 @@ function AdminRouter() {
         <Route path="/admin/stock-alerts" component={AdminStockAlerts} />
         <Route path="/admin/sales-reports" component={AdminSalesReports} />
         <Route path="/admin/activity" component={AdminActivityLog} />
-        <Route path="/admin/chat" component={AdminChat} />
         <Route path="/admin/coupons" component={AdminCoupons} />
         <Route path="/admin/discount-codes" component={AdminCoupons} />
         <Route path="/admin/manage/countries"><Redirect to="/admin/global-switch" /></Route>
