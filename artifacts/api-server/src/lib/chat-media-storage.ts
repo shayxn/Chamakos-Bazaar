@@ -33,3 +33,17 @@ export function storeMediaSignedUrl(filename:string,method:"GET"|"PUT"|"DELETE")
   if(!/^[a-f0-9]{24}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/.test(filename))throw new Error("Invalid store media filename.");
   return signObject(`store-media/${filename}`,method);
 }
+
+/** One-off, path-scoped cleanup for legacy chat uploads; never exposed as an API route. */
+export async function deleteLegacyChatMedia(objectPath: string): Promise<boolean> {
+  if (!/^admin-chat\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(objectPath)) {
+    throw new Error("Refusing to delete an object outside the legacy chat-media namespace.");
+  }
+  const response = await fetch(await signObject(objectPath, "DELETE"), {
+    method: "DELETE",
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (response.status === 404) return false;
+  if (!response.ok) throw new Error("Could not delete a legacy chat-media object.");
+  return true;
+}

@@ -11,7 +11,6 @@ import { logAdminActivity } from "./admin-activity";
 
 const router = Router();
 const BCRYPT_ROUNDS = 12;
-const MAX_DEVICES = 3;
 
 function legacySha256Hash(password: string): string {
   return crypto.createHash("sha256").update(password + "chamak_salt_2024").digest("hex");
@@ -58,31 +57,19 @@ router.post("/auth/login", async (req, res) => {
     await db.update(usersTable).set({ passwordHash: newHash }).where(eq(usersTable.id, user.id));
   }
 
-  // ── Device session limit ───────────────────────────────────────────────────
+  // Admins may sign in on any number of devices. Keep per-device session
+  // tracking so admins can still review and revoke individual sessions.
   if (user.isAdmin) {
     await ensureAdminSessionsTable();
 
-    // Remove stale sessions (older than 7 days, matching cookie max-age)
+    // Remove expired and revoked rows; this is housekeeping, not a login cap.
     await db.execute(sql`
       DELETE FROM admin_device_sessions
       WHERE user_id = ${user.id}
         AND (last_seen_at < NOW() - INTERVAL '30 days' OR revoked_at IS NOT NULL)
     `);
 
-    // Count active device sessions
-    const countRows = extractRows<{ count: string }>(
-      await db.execute(sql`
-        SELECT COUNT(*) AS count FROM admin_device_sessions WHERE user_id = ${user.id}
-      `)
-    );
-    const activeCount = parseInt(countRows[0]?.count ?? "0", 10);
-
-    if (activeCount >= MAX_DEVICES) {
-      res.status(403).json({ error: "Maximum Devices Reached" });
-      return;
-    }
-
-    // Register this device
+    // Register this device without expiring or limiting other active devices.
     const deviceToken = crypto.randomUUID();
     const { userAgent, ipAddress } = getRequestDeviceDetails(req);
     await db.execute(sql`
