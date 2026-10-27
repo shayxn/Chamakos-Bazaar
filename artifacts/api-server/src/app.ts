@@ -44,6 +44,9 @@ for (const root of uploadRoots) {
   app.use(["/api/uploads", "/uploads"], express.static(root));
 }
 
+// A single setting may contain up to 150 KB of serialized content. Keep the
+// larger parser scoped to settings; Express's default 100 KB rejects valid edits.
+app.use("/api/settings", express.json({ limit: "1mb" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -100,6 +103,15 @@ async function seedAdminUser() {
 
 // Global error handler — catches any error thrown or passed via next(err) in route handlers
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  const parseError = err as { type?: string };
+  if (parseError?.type === "entity.too.large") {
+    res.status(413).json({ error: "This upload or settings update is too large. Save smaller changes separately." });
+    return;
+  }
+  if (parseError?.type === "entity.parse.failed") {
+    res.status(400).json({ error: "The request contained invalid JSON." });
+    return;
+  }
   logger.error({ err }, "Unhandled route error");
   if (res.headersSent) return;
   res.status(500).json({ error: "An unexpected error occurred. Please try again." });

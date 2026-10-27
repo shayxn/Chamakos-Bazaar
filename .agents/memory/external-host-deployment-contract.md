@@ -3,6 +3,12 @@ name: External host deployment contract
 description: Avoid frontend/backend version drift during workspace changes on the existing Vercel/Render hosting setup.
 ---
 
+Verify the active hosting target and its served frontend before assuming the historical Vercel/Render setup is the live deployment.
+
+**Why:** The custom domain was served by Replit autoscale while the repository still contained Vercel/Render configuration. Repeated settings-save failures persisted because tested workspace changes were not yet published.
+
+**How to apply:** Use current deployment metadata and inspect the live request contract. Distinguish workspace fixes from published fixes explicitly; do not treat a successful local test or an old successful deployment as evidence the new patch is live.
+
 Preserve external hosting build and start contracts during monorepo restructuring. Validate frontend and backend releases separately; a successful Vercel deployment does not prove the Render API updated.
 
 **Why:** The live storefront loaded new frontend code while the backend lacked required boot/countdown routes. A saved Render build contract had disappeared from the repository, while Vercel still built successfully.

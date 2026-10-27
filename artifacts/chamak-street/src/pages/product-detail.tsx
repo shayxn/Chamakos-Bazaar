@@ -160,11 +160,12 @@ function CompleteTheLookSection({
   currentProduct: { name: string; price: number; imageUrl: string | null; imageUrls: string | null };
 }) {
   const { items, loading } = useCompleteTheLook(productId);
-  const addToCart = useAddToCart();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
-  const [addingId, setAddingId] = useState<number | null>(null);
+  const [selectionQueue, setSelectionQueue] = useState<number[]>([]);
+  const selectionQueueRef = useRef(selectionQueue);
+  selectionQueueRef.current = selectionQueue;
+  const addingId = selectionQueue[0] ?? null;
   const [addingAll, setAddingAll] = useState(false);
   const [allAdded, setAllAdded] = useState(false);
 
@@ -175,37 +176,19 @@ function CompleteTheLookSection({
 
   const handleAddOne = (item: LookProduct) => {
     if (addedIds.has(item.id)) return;
-    setAddingId(item.id);
-    addToCart.mutate(
-      { data: { productId: item.id, quantity: 1 } },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
-          setAddedIds((prev) => new Set([...prev, item.id]));
-          setAddingId(null);
-          toast({ title: "Added to cart", description: item.name });
-        },
-        onError: () => { setAddingId(null); },
-      }
-    );
+    setAddingAll(false);
+    setSelectionQueue([item.id]);
   };
 
-  const handleAddAll = async () => {
-    setAddingAll(true);
-    for (const item of items) {
-      if (addedIds.has(item.id)) continue;
-      await new Promise<void>((resolve) => {
-        addToCart.mutate(
-          { data: { productId: item.id, quantity: 1 } },
-          { onSuccess: () => { setAddedIds((prev) => new Set([...prev, item.id])); resolve(); }, onError: () => resolve() }
-        );
-      });
+  const handleAddAll = () => {
+    const pendingIds = items.filter(item => !addedIds.has(item.id)).map(item => item.id);
+    if (!pendingIds.length) {
+      setAllAdded(true);
+      return;
     }
-    queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
-    setAddingAll(false);
-    setAllAdded(true);
-    toast({ title: "Full look added!", description: `${items.length} pieces added to your cart.` });
-    setTimeout(() => setAllAdded(false), 3000);
+    setAddingAll(true);
+    setSelectionQueue(pendingIds);
+    toast({ title: "Choose options for each piece", description: "Each item is added only after you confirm its size and colour." });
   };
 
   return (
@@ -343,13 +326,32 @@ function CompleteTheLookSection({
           {allAdded ? (
             <><Check className="h-4 w-4" /> Full Look Added to Cart</>
           ) : (
-            <><ShoppingCart className="h-4 w-4" /> {addingAll ? "Adding Pieces…" : `Add All Pieces — ${formatPrice(items.reduce((s, p) => s + p.price, 0))}`}</>
+            <><ShoppingCart className="h-4 w-4" /> {addingAll ? "Choose Options…" : `Add All Pieces — ${formatPrice(items.reduce((s, p) => s + p.price, 0))}`}</>
           )}
         </motion.button>
         <p className="text-xs text-muted-foreground">
           {items.length} complementary piece{items.length !== 1 ? "s" : ""} • Full look total <Price v={lookTotal} />
         </p>
       </div>
+      <QuickViewModal
+        productId={addingId}
+        onClose={() => {
+          selectionQueueRef.current = [];
+          setSelectionQueue([]);
+          setAddingAll(false);
+        }}
+        onAdded={(addedId) => {
+          if (selectionQueueRef.current[0] !== addedId) return;
+          setAddedIds(prev => new Set([...prev, addedId]));
+          const remaining = selectionQueueRef.current.slice(1);
+          selectionQueueRef.current = remaining;
+          setSelectionQueue(remaining);
+          if (!remaining.length && addingAll) {
+            setAllAdded(true);
+            setAddingAll(false);
+          }
+        }}
+      />
     </motion.div>
   );
 }
@@ -445,7 +447,7 @@ export default function ProductDetail() {
     (colors.length === 0 || (selectedColor && v.color === selectedColor) || !v.color) &&
     (!!selectedSize || sizes.length === 0) && (!!selectedColor || colors.length === 0)) ?? null;
   const variantStock = matchedVariant ? matchedVariant.stock : null;
-  const effectiveStock = variantStock ?? product?.stock ?? 0;
+  const effectiveStock = variantStock ?? (variants.length ? Math.max(0, ...variants.map(v => v.stock)) : product?.stock ?? 0);
   const effPrice = matchedVariant && matchedVariant.price != null ? Number(matchedVariant.price) : (product?.price ?? 0);
   const compareAt = ext.compareAtPrice != null && ext.compareAtPrice !== "" ? Number(ext.compareAtPrice) : null;
   const showCompare = compareAt !== null && Number.isFinite(compareAt) && compareAt > effPrice;
@@ -519,6 +521,10 @@ export default function ProductDetail() {
       toast({ title: "Out of stock", description: "This option is sold out.", variant: "destructive" });
       return;
     }
+    if (!isPreOrder && quantity > effectiveStock) {
+      toast({ title: "Not enough stock", description: `Only ${effectiveStock} available for this option. Lower the quantity to continue.`, variant: "destructive" });
+      return;
+    }
     addToCart.mutate(
       { data: { productId: product.id, quantity, size: selectedSize || undefined, color: selectedColor || undefined, variantId: matchedVariant?.id } as never },
       {
@@ -577,7 +583,7 @@ export default function ProductDetail() {
   }
 
   const isPreOrder = product.isPreOrder === true;
-  const isOutOfStock = product.stock === 0 && !isPreOrder;
+  const isOutOfStock = effectiveStock <= 0 && !isPreOrder;
   const productEvent = events.find((event) => event.countdownEnabled && event.ctaUrl?.replace(/\/$/, "").endsWith(`/product/${id}`));
   const preorderDate = productEvent?.endAt || product.preOrderDate;
   // Sticky bar: only after scroll AND (no sizes OR size already chosen)

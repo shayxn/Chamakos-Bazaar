@@ -507,11 +507,14 @@ function TrustCardSettings({ n, settings, onChange }: { n: number; settings: Set
 }
 
 export default function AdminSiteSettings() {
-  const { data: dbSettings, isLoading } = useQuery<Record<string, string>>({
+  const { data: dbSettings, isLoading, isError, error: loadError, refetch } = useQuery<Record<string, string>>({
     queryKey: ["admin", "site-settings"], staleTime: 0,
     queryFn: async () => {
       const r = await fetch(`${import.meta.env.BASE_URL.replace(/\/$/, "")}/api/admin/settings`, { credentials: "include", cache: "no-store" });
-      if (!r.ok) throw new Error("Could not load settings");
+      if (!r.ok) {
+        const body = await r.json().catch(() => null);
+        throw new Error(body?.error || `Could not load settings (${r.status})`);
+      }
       return r.json();
     },
   });
@@ -608,6 +611,17 @@ export default function AdminSiteSettings() {
     }
     persistSettings();
   };
+
+  if (isError) {
+    return (
+      <div className="py-20 text-center space-y-4" role="alert">
+        <h2 className="text-xl font-bold">Could not load settings</h2>
+        <p className="text-muted-foreground">{loadError.message}</p>
+        <p className="text-sm text-muted-foreground">Your saved settings have not been changed.</p>
+        <Button onClick={() => void refetch()}>Try again</Button>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

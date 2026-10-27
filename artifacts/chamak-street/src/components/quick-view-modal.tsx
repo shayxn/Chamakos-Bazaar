@@ -15,9 +15,10 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 interface QuickViewModalProps {
   productId: number | null;
   onClose: () => void;
+  onAdded?: (productId: number) => void;
 }
 
-export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
+export function QuickViewModal({ productId, onClose, onAdded }: QuickViewModalProps) {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [addedPulse, setAddedPulse] = useState(false);
@@ -44,7 +45,8 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
     (!v.size || v.size === selectedSize) && (!v.color || v.color === selectedColor)
   );
   const primaryMedia = product ? getPrimaryProductMedia(product.imageUrl, product.imageUrls) : null;
-  const isOutOfStock = !product || (!product.isPreOrder && (variant?.stock ?? product.stock) <= 0);
+  const availableStock = variant?.stock ?? (variants.length ? Math.max(0, ...variants.map(v => v.stock)) : product?.stock ?? 0);
+  const isOutOfStock = !product || (!product.isPreOrder && availableStock <= 0);
 
   const handleAdd = () => {
     if (!product || addToCart.isPending) return;
@@ -72,6 +74,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
           if (imgRef.current && primaryMedia?.url) {
             triggerFly(primaryMedia.url, imgRef.current);
           }
+          onAdded?.(product.id);
         },
         onError: (error) => toast({ title: "Could not add to cart", description: error.message, variant: "destructive" }),
       }
