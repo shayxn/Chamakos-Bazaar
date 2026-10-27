@@ -3,6 +3,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { Blob } from "node:buffer";
 import type { RequestHandler } from "express";
 import { db, usersTable } from "@workspace/db";
@@ -55,15 +57,48 @@ const router = Router();
 
 const requireAdmin: RequestHandler = authenticatedAdmin;
 
-router.get("/uploads/:filename",async(req,res)=>{
+export const serveStoredMedia: RequestHandler = async (req,res,next) => {
   if(!/^[a-f0-9]{24}\.(?:jpg|png|webp|gif|mp4|webm|mov)$/.test(String(req.params.filename))){res.sendStatus(404);return;}
   await ensureMedia();
   const asset=rows(await db.execute(sql`SELECT filename FROM imaginate_store_media WHERE filename=${req.params.filename}`))[0];
   if(!asset){res.sendStatus(404);return;}
   try{
-    res.set("Cache-Control","public,max-age=300").redirect(302,await storeMediaSignedUrl(asset.filename,"GET"));
-  }catch(error){logger.warn({error:"Store media URL unavailable"},"Persistent store media unavailable");res.status(503).json({error:"Media is temporarily unavailable."});}
-});
+    // Serve bytes at the stable product URL. Never cache a redirect containing
+    // an expiring storage signature in a product image or video element.
+    const headers: Record<string,string> = {};
+    if(req.get("range")) headers.Range = req.get("range")!;
+    if(req.get("if-none-match")) headers["If-None-Match"] = req.get("if-none-match")!;
+    const upstream = await fetch(await storeMediaSignedUrl(asset.filename,"GET"), {
+      headers, signal: AbortSignal.timeout(180_000),
+    });
+    if (upstream.status === 304) {
+      res.set("Cache-Control","public,max-age=86400,immutable").status(304).end();
+      return;
+    }
+    if (!upstream.ok) {
+      await upstream.body?.cancel();
+      res.status(upstream.status === 404 ? 404 : upstream.status === 416 ? 416 : 503).end();
+      return;
+    }
+    for (const key of ["content-type","content-length","content-range","accept-ranges","etag","last-modified"]) {
+      const value = upstream.headers.get(key);
+      if(value) res.set(key,value);
+    }
+    res.set("Cache-Control","public,max-age=86400,immutable").status(upstream.status);
+    if (req.method === "HEAD") {
+      await upstream.body?.cancel();
+      res.end();
+      return;
+    }
+    if (!upstream.body) throw new Error("Storage returned no media body.");
+    await pipeline(Readable.fromWeb(upstream.body as import("node:stream/web").ReadableStream),res);
+  }catch(error){
+    logger.warn({filename:asset.filename},"Persistent store media unavailable");
+    if(res.headersSent){next(error);return;}
+    res.set("Cache-Control","no-store").status(503).json({error:"Media is temporarily unavailable."});
+  }
+};
+router.get("/uploads/:filename",serveStoredMedia);
 
 function getMediaType(file: Express.Multer.File): "image" | "video" {
   return file.mimetype.startsWith("video/") ? "video" : "image";

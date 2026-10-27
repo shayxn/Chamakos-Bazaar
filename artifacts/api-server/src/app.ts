@@ -10,6 +10,7 @@ import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { requestSecurity } from "./lib/request-security";
+import { serveStoredMedia } from "./routes/uploads";
 
 const app: Express = express();
 app.set("trust proxy", 1);
@@ -63,6 +64,7 @@ app.use(
   }),
 );
 
+app.get("/uploads/:filename", serveStoredMedia);
 app.use("/api", router);
 
 async function seedAdminUser() {

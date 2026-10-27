@@ -364,7 +364,7 @@ export default function Shop() {
                 className={`grid ${gridCols} gap-3 sm:gap-4`}
               >
                 {pageProducts?.map((product) => {
-                  const primaryMedia = getPrimaryProductMedia(product.imageUrl);
+                  const primaryMedia = getPrimaryProductMedia(product.imageUrl, product.imageUrls);
                   return (
                     <motion.div key={product.id} variants={cardVariants} layout>
                       <TiltCard>

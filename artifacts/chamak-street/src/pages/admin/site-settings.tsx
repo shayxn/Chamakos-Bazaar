@@ -530,7 +530,7 @@ export default function AdminSiteSettings() {
   latestSettingsRef.current = settings;
 
   useEffect(() => {
-    if (dbSettings) {
+    if (dbSettings && !hasChanges) {
       const mergedSettings = { ...SETTING_DEFAULTS, ...dbSettings };
       const hasLegacyBrand = (value: string | undefined) => /first[\s_-]?pick|chamak(?:os| street)?/i.test(value ?? "");
       for (const key of ["site_name", "site_tagline", "site_title", "site_meta_description", "footer_description", "footer_copyright", "about_text"]) {
@@ -568,11 +568,19 @@ export default function AdminSiteSettings() {
   };
 
   const persistSettings = () => {
+    const snapshot = { ...settings };
+    const changes = Object.fromEntries(Object.entries(snapshot).filter(
+      ([key, value]) => originalSettingsRef.current[key] !== value
+    ));
+    if (!Object.keys(changes).length) {
+      setHasChanges(false);
+      return;
+    }
     bulkUpsert.mutate(
-      { data: settings },
+      { data: changes },
       {
         onSuccess: () => {
-          originalSettingsRef.current = settings;
+          originalSettingsRef.current = snapshot;
           setEmergencyConfirmOpen(false);
           toast({
             title: settings.emergency_shutdown === "true" ? "Emergency ShutDown is active" : "Settings saved!",
@@ -582,9 +590,9 @@ export default function AdminSiteSettings() {
           queryClient.invalidateQueries({ queryKey: ["customer", "emergency-shutdown"] });
           queryClient.invalidateQueries({ queryKey: ["operational-settings"] });
           queryClient.invalidateQueries({ queryKey: ["admin", "site-settings"] });
-          setHasChanges(false);
+          setHasChanges(Object.entries(latestSettingsRef.current).some(([key, value]) => snapshot[key] !== value));
         },
-        onError: () => toast({ title: "Error saving settings", variant: "destructive" }),
+        onError: (error) => toast({ title: "Error saving settings", description: error.message, variant: "destructive" }),
       }
     );
   };

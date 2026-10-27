@@ -1,5 +1,5 @@
 import { Price } from "@/components/price";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingCart, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,13 @@ interface QuickViewModalProps {
 
 export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
   const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
   const [addedPulse, setAddedPulse] = useState(false);
+  useEffect(() => {
+    setSelectedSize("");
+    setSelectedColor("");
+    setAddedPulse(false);
+  }, [productId]);
 
   const { data: product, isLoading } = useGetProduct(productId ?? 0, {
     query: { enabled: !!productId, queryKey: getGetProductQueryKey(productId ?? 0), staleTime: 30_000 },
@@ -32,17 +38,31 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
   const imgRef = useRef<HTMLDivElement>(null);
 
   const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [];
-  const primaryMedia = product ? getPrimaryProductMedia(product.imageUrl) : null;
-  const isOutOfStock = !product || product.stock === 0;
+  const colors = product?.colors?.split(",").map(c => c.trim()).filter(Boolean) ?? [];
+  const variants = Array.isArray(product?.variants) ? product.variants : [];
+  const variant = variants.find(v =>
+    (!v.size || v.size === selectedSize) && (!v.color || v.color === selectedColor)
+  );
+  const primaryMedia = product ? getPrimaryProductMedia(product.imageUrl, product.imageUrls) : null;
+  const isOutOfStock = !product || (!product.isPreOrder && (variant?.stock ?? product.stock) <= 0);
 
   const handleAdd = () => {
-    if (!product) return;
+    if (!product || addToCart.isPending) return;
     if (sizes.length > 0 && !selectedSize) {
       toast({ title: "Select a size", description: "Please choose a size first.", variant: "destructive" });
       return;
     }
+    if (colors.length > 0 && !selectedColor) {
+      toast({ title: "Select a colour", description: "Please choose a colour first.", variant: "destructive" });
+      return;
+    }
+    if (variants.length && !variant) {
+      toast({ title: "Combination unavailable", description: "Choose another size or colour.", variant: "destructive" });
+      return;
+    }
     addToCart.mutate(
-      { data: { productId: product.id, quantity: 1, size: selectedSize || undefined } },
+      { data: { productId: product.id, quantity: 1, size: selectedSize || undefined,
+        color: selectedColor || undefined, variantId: variant?.id } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
@@ -53,6 +73,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
             triggerFly(primaryMedia.url, imgRef.current);
           }
         },
+        onError: (error) => toast({ title: "Could not add to cart", description: error.message, variant: "destructive" }),
       }
     );
   };
@@ -143,6 +164,20 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
                       </div>
                     )}
 
+                    {colors.length > 0 && (
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-widest mb-2">Colour</p>
+                        <div className="flex flex-wrap gap-2">
+                          {colors.map(color => (
+                            <button key={color} onClick={() => setSelectedColor(color)}
+                              className={`px-3 py-1.5 text-xs font-bold border rounded-md ${
+                                selectedColor === color ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"
+                              }`}>{color}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex flex-col gap-2 mt-auto">
                       <motion.div
                         animate={addedPulse ? { scale: [1, 1.04, 1] } : {}}
@@ -157,7 +192,7 @@ export function QuickViewModal({ productId, onClose }: QuickViewModalProps) {
                           onClick={handleAdd}
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
-                          {isOutOfStock ? "Sold Out" : addToCart.isPending ? "Adding..." : "Add to Cart"}
+                          {isOutOfStock ? "Sold Out" : addToCart.isPending ? "Adding..." : product.isPreOrder ? "Pre-order now" : "Add to Cart"}
                         </Button>
                       </motion.div>
                       <Link href={`/product/${product.id}`} onClick={onClose}>

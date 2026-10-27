@@ -68,7 +68,7 @@ export async function createValidatedOrder(req: Request, paymentMethod: "cod" | 
       const colors = String(item.colors ?? "").split(",").map(v=>v.trim()).filter(Boolean);
       if (colors.length && !colors.includes(String(item.color??""))) throw new CheckoutError(`Choose a valid color for ${item.productName}.`);
       const variants: {id:string;size:string;color:string;price:number|null;stock:number}[] = item.variants ?? [];
-      const variant = variants.find(v=>v.id===item.variantId && v.size===(item.size??"") && v.color===(item.color??""));
+      const variant = variants.find(v=>v.id===item.variantId && (!v.size || v.size===(item.size??"")) && (!v.color || v.color===(item.color??"")));
       if (variants.length && !variant) throw new CheckoutError(`Choose a valid variant for ${item.productName}.`);
       if (variant) item.price=variant.price ?? item.price;
       quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);

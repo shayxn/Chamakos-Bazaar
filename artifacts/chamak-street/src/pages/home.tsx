@@ -14,7 +14,7 @@ function ProductTile({ product, index, wished, onWish }: {
   wished: boolean;
   onWish: (id: number) => void;
 }) {
-  const media = getPrimaryProductMedia(product.imageUrl);
+  const media = getPrimaryProductMedia(product.imageUrl, product.imageUrls);
   return (
     <article className="group" data-testid={`card-product-${product.id}`}>
       <div className="relative overflow-hidden rounded-2xl bg-[#19191c]">

@@ -429,7 +429,7 @@ export default function ProductDetail() {
     }
   };
 
-  const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()) : [];
+  const sizes = product?.sizes ? product.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [];
   const ext = (product ?? {}) as unknown as {
     colors?: string | string[] | null; variants?: PVariant[] | string | null; compareAtPrice?: number | string | null;
     seoTitle?: string | null; seoDescription?: string | null; socialImage?: string | null;
@@ -472,7 +472,10 @@ export default function ProductDetail() {
     };
   }, [product?.id, ext.seoTitle, ext.seoDescription, ext.socialImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const mediaItems = useMemo(() => parseProductMedia(product?.imageUrl ?? null), [product?.imageUrl]);
+  const mediaItems = useMemo(() => {
+    const all = [...parseProductMedia(product?.imageUrl), ...parseProductMedia(product?.imageUrls)];
+    return all.filter((media, index) => all.findIndex(other => other.url === media.url) === index);
+  }, [product?.imageUrl, product?.imageUrls]);
 
   // Show sticky ATC bar once scrolled past the main button — RAF-throttled
   useEffect(() => {
@@ -530,8 +533,8 @@ export default function ProductDetail() {
           // Track cart activity
           trackCartUpdate(quantity, Number(product.price) * quantity);
         },
-        onError: () => {
-          toast({ title: "Error", description: "Failed to add item to cart.", variant: "destructive" });
+        onError: (error) => {
+          toast({ title: "Could not add to cart", description: error.message, variant: "destructive" });
         }
       }
     );

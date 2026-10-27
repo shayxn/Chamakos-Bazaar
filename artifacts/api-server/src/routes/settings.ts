@@ -100,12 +100,12 @@ router.post("/settings/bulk", requireAdmin, async (req, res) => {
   if (entries.length > 100 || entries.some(([k,v]) => k.length > 100 || typeof v !== "string" || v.length > 150_000)) {
     res.status(400).json({ error: "Settings must be text values within the supported size." }); return;
   }
-  await Promise.all(entries.map(([k, v]) =>
-    db.execute(
-      sql`INSERT INTO site_settings (key, value, updated_at) VALUES (${k}, ${String(v)}, NOW())
-          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`
-    )
-  ));
+  await db.transaction(async (tx) => {
+    for (const [k, v] of entries) {
+      await tx.execute(sql`INSERT INTO site_settings (key, value, updated_at) VALUES (${k}, ${v}, NOW())
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`);
+    }
+  });
   invalidateSettings();
   await logAdminActivity(`Admin ${req.session?.userId}`, "Website settings updated", undefined, entries.map(([key]) => key).join(", "));
   if(entries.some(([key])=>key==="push_contact"))resetPushConfiguration();

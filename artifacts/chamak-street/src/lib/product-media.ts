@@ -6,6 +6,9 @@ export type ProductMedia = {
 };
 
 function normalizeMediaUrl(url: string): string {
+  url = url.trim();
+  // Old uploads use the same persistent media store, not the static SPA host.
+  if (url.startsWith("/uploads/")) url = `/api${url}`;
   if (!url.startsWith("/") || url.startsWith("//")) return url;
   const base = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
   return base && !url.startsWith(`${base}/`) ? `${base}${url}` : url;
@@ -25,7 +28,7 @@ export function parseProductMedia(value?: string | null): ProductMedia[] {
     if (Array.isArray(parsed)) {
       return parsed
         .map((item): ProductMedia | null => {
-          if (typeof item === "string") return { url: normalizeMediaUrl(item), type: inferMediaType(item) };
+          if (typeof item === "string") return item.trim() ? { url: normalizeMediaUrl(item), type: inferMediaType(item) } : null;
           if (!item || typeof item !== "object") return null;
           const candidate = item as { url?: unknown; type?: unknown };
           if (typeof candidate.url !== "string" || candidate.url.trim() === "") return null;
@@ -40,13 +43,13 @@ export function parseProductMedia(value?: string | null): ProductMedia[] {
     // Existing products store a plain URL in imageUrl.
   }
 
-  return [{ url: normalizeMediaUrl(value), type: inferMediaType(value) }];
+  return value.trim() ? [{ url: normalizeMediaUrl(value), type: inferMediaType(value) }] : [];
 }
 
 export function serializeProductMedia(media: ProductMedia[]): string {
   return JSON.stringify(media.filter((item) => item.url.trim() !== ""));
 }
 
-export function getPrimaryProductMedia(value?: string | null): ProductMedia | null {
-  return parseProductMedia(value)[0] ?? null;
+export function getPrimaryProductMedia(value?: string | null, gallery?: string | null): ProductMedia | null {
+  return parseProductMedia(value)[0] ?? parseProductMedia(gallery)[0] ?? null;
 }

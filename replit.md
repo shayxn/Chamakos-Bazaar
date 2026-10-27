@@ -14,11 +14,11 @@ A bold urban streetwear e-commerce site featuring the camel mascot Chamako — w
 - Product media uploads use Cloudinary in production. Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET`; optionally `CLOUDINARY_UPLOAD_FOLDER`.
 - Ziina checkout requires `ZIINA_ACCESS_TOKEN`. Optional: `ZIINA_TEST_MODE=true`, `ZIINA_CURRENCY_CODE`, `PUBLIC_SITE_URL`.
 
-## Admin Credentials
+## Admin Access
 
-- Username: `admin`
-- Password: `chamak2024`
 - Admin panel: `/admin`
+- Use the owner's existing credentials; do not assume a default password.
+- `ADMIN_PASSWORD` only seeds a new account when the initial admin does not exist. It does not reset an existing account.
 
 ## Stack
 

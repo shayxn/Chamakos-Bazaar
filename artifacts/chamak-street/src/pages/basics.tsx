@@ -225,7 +225,7 @@ export default function Basics() {
                 className={`grid ${gridCols} gap-3 sm:gap-4`}
               >
                 {products?.map((product) => {
-                  const primaryMedia = getPrimaryProductMedia(product.imageUrl);
+                  const primaryMedia = getPrimaryProductMedia(product.imageUrl, product.imageUrls);
                   return (
                     <motion.div key={product.id} variants={cardVariants} layout>
                       <div className="group cursor-pointer">

@@ -37,7 +37,7 @@ async function buildCart(sessionId: string) {
     productId: item.productId,
     productName: item.productName ?? "Unknown",
     productImageUrl: item.productImageUrl ?? null,
-    price: Number(item.variants?.find(v=>v.id===item.variantId)?.price ?? item.price ?? 0),
+    price: Number((Array.isArray(item.variants) ? item.variants : []).find(v=>v.id===item.variantId)?.price ?? item.price ?? 0),
     quantity: item.quantity,
     size: item.size ?? null,
     color:item.color ?? null,variantId:item.variantId ?? null,
