@@ -20,4 +20,9 @@ export interface CartItem {
   color?: string | null;
   /** @nullable */
   variantId?: string | null;
+  /** @nullable */
+  personalizationName?: string | null;
+  /** @nullable */
+  personalizationNumber?: string | null;
+  personalizationFee?: number;
 }

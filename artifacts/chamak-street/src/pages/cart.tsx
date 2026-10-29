@@ -1,3 +1,4 @@
+import { PersonalizationLine } from "@/components/personalization-line";
 import { Price } from "@/components/price";
 import { useGetCart, useUpdateCartItem, useRemoveCartItem, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -186,6 +187,7 @@ export default function Cart() {
                             Size: <span className="font-bold text-white/70 bg-white/8 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">{item.size}</span>
                           </p>
                         )}
+                        <PersonalizationLine item={item} testId={`text-personalization-${item.id}`} />
                       </div>
 
                       <div className="flex items-center justify-between gap-4 mt-3">

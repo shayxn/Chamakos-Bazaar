@@ -1,3 +1,4 @@
+import { PersonalizationLine } from "@/components/personalization-line";
 /* @refresh reset */
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -152,6 +153,7 @@ function OrderCard({ o, i }: { o: Order; i: number }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-white truncate">{item.productName}</p>
                     {item.size && <p className="text-[10px] text-muted-foreground">Size: {item.size}</p>}
+                    <PersonalizationLine item={item} />
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-xs font-mono font-black text-primary">AED {(item.price * item.quantity).toFixed(2)}</p>

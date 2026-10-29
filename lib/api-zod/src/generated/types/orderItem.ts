@@ -7,6 +7,11 @@
  */
 
 export interface OrderItem {
+  /** @nullable */
+  personalizationName?: string | null;
+  /** @nullable */
+  personalizationNumber?: string | null;
+  personalizationFee?: number;
   id: number;
   productId: number;
   productName: string;

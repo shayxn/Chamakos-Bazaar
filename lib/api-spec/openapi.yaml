@@ -1859,6 +1859,9 @@ components:
           type: ["string", "null"]
         color: { type: [string, "null"] }
         variantId: { type: [string, "null"] }
+        personalizationName: { type: [string, "null"] }
+        personalizationNumber: { type: [string, "null"] }
+        personalizationFee: { type: number }
 
     Cart:
       type: object
@@ -1885,6 +1888,8 @@ components:
           type: string
         color: { type: [string, "null"] }
         variantId: { type: [string, "null"] }
+        personalizationName: { type: [string, "null"], maxLength: 30 }
+        personalizationNumber: { type: [string, "null"], pattern: '^[0-9]{1,3}$' }
 
     CartItemUpdate:
       type: object
@@ -1899,6 +1904,9 @@ components:
       type: object
       required: [id, productId, productName, price, quantity]
       properties:
+        personalizationName: { type: [string, "null"] }
+        personalizationNumber: { type: [string, "null"] }
+        personalizationFee: { type: number }
         id:
           type: integer
         productId:

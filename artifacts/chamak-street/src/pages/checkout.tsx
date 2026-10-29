@@ -1,3 +1,4 @@
+import { PersonalizationLine } from "@/components/personalization-line";
 /* @refresh reset */
 import { useState, useEffect, useRef } from "react";
 import { useSettings } from "@/lib/use-settings";
@@ -558,6 +559,7 @@ export default function Checkout() {
                         <div>
                           <h4 className="font-bold text-sm uppercase leading-tight line-clamp-2">{item.productName}</h4>
                           <p className="text-xs text-muted-foreground mt-1">Qty: {item.quantity}{item.size ? ` | Size: ${item.size}` : ""}{item.color ? ` | Color: ${item.color}` : ""}</p>
+                          <PersonalizationLine item={item} testId={`text-personalization-${item.id}`} />
                         </div>
                       </div>
                       <div className="font-mono font-bold text-sm shrink-0"><Price v={item.price * item.quantity} /></div>

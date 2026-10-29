@@ -1,3 +1,4 @@
+import { personalizationText } from "@/components/personalization-line";
 /* @refresh reset */
 import { useRoute, Link } from "wouter";
 import { useGetOrder, getGetOrderQueryKey } from "@workspace/api-client-react";
@@ -274,6 +275,7 @@ function ReceiptContent({
             <div>
               <span style={{ fontWeight: 700 }}>{item.productName}</span>
               {item.size && <span style={{ marginLeft: "8px", fontSize: "11px", color: mutedColor, fontWeight: 600 }}>({item.size})</span>}
+              {personalizationText(item) && <div style={{ fontSize: "11px", color: mutedColor, fontWeight: 600, marginTop: "2px" }} data-testid={`text-personalization-${item.id}`}>{personalizationText(item)}</div>}
               {item.isPreOrder && <span style={{ marginLeft: "6px", fontSize: "9px", background: "rgba(183,156,255,0.15)", color: "#b79cff", padding: "2px 6px", borderRadius: "4px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>Pre-Order</span>}
             </div>
             <div style={{ textAlign: "center", fontWeight: 700 }}>{item.quantity}</div>

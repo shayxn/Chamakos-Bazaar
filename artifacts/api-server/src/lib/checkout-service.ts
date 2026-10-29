@@ -8,6 +8,7 @@ import { getDeliveryCharges } from "./delivery";
 import { validateDiscount, ensureDiscounts } from "./discount-validation";
 import { ensureCommerceSchema } from "./commerce-schema";
 import { validateCheckoutCountry, selectedStoreCountry } from "./global-store";
+import { personalizationInput, personalizationFee } from "./personalization";
 
 const checkoutInput = z.object({
   customerName: z.string().trim().min(2).max(150), customerPhone: z.string().trim().min(7).max(30),
@@ -51,7 +52,8 @@ export async function createValidatedOrder(req: Request, paymentMethod: "cod" | 
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${cartId}))`);
     if(paymentMethod==="ziina"&&rows(await tx.execute(sql`SELECT id FROM orders WHERE payment_cart_id=${cartId} AND payment_status IN ('initializing','pending') LIMIT 1`)).length)
       throw new CheckoutError("Online payment is already pending. Check your order before starting another payment.");
-    const items = rows(await tx.execute(sql`SELECT c.product_id AS "productId",c.quantity,c.size,c.color,c.variant_id AS "variantId",p.variants,p.colors,p.name AS "productName",
+    const items = rows(await tx.execute(sql`SELECT c.product_id AS "productId",c.quantity,c.size,c.color,c.variant_id AS "variantId",
+      c.personalization_name AS "personalizationName",c.personalization_number AS "personalizationNumber",p.variants,p.colors,p.name AS "productName",
       p.price,p.stock,p.sizes,p.collection,p.is_pre_order AS "isPreOrder",p.hidden,p.coming_soon,p.publish_at,p.unpublish_at
       FROM cart_items c JOIN products p ON p.id=c.product_id WHERE c.session_id=${cartId} ORDER BY p.id FOR UPDATE OF p,c`));
     if (!items.length) throw new CheckoutError("Cart is empty.");
@@ -72,7 +74,9 @@ export async function createValidatedOrder(req: Request, paymentMethod: "cod" | 
       if (variants.length && !variant) throw new CheckoutError(`Choose a valid variant for ${item.productName}.`);
       if (variant) item.price=variant.price ?? item.price;
       quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
-      item.price = Number(item.price);
+      if (!personalizationInput.safeParse(item).success) throw new CheckoutError(`Check personalisation for ${item.productName}.`);
+      item.personalizationFee = personalizationFee(item);
+      item.price = Number(item.price) + item.personalizationFee;
     }
     for (const [id, quantity] of quantities) {
       const product = items.find(i=>i.productId===id)!;
@@ -109,6 +113,7 @@ export async function createValidatedOrder(req: Request, paymentMethod: "cod" | 
     if (discount) await tx.execute(sql`UPDATE orders SET coupon_code=${discount.couponCode},discount_amount=${discount.discountAmount} WHERE id=${order.id}`);
     await tx.insert(orderItemsTable).values(items.map(i=>({
       orderId:order.id,productId:i.productId,productName:i.productName,price:String(i.price),quantity:i.quantity,size:i.size,color:i.color,variantId:i.variantId,isPreOrder:i.isPreOrder,
+      personalizationName:i.personalizationName,personalizationNumber:i.personalizationNumber,personalizationFee:String(i.personalizationFee),
     })));
     await tx.insert(orderTrackingEventsTable).values({orderId:order.id,status:"pending",note:paymentMethod==="cod" ? "Order placed successfully" : "Awaiting payment provider confirmation"});
     if (clearCart) await tx.delete(cartItemsTable).where(eq(cartItemsTable.sessionId,cartId));

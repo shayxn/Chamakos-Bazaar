@@ -5,9 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ShoppingCart, Trash2, ArrowRight, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
-import { getGetCartQueryKey } from "@workspace/api-client-react";
 import { PageTransition } from "@/components/page-transition";
+import { QuickViewModal } from "@/components/quick-view-modal";
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -21,9 +20,8 @@ export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState<number | null>(null);
-  const [addingToCart, setAddingToCart] = useState<number | null>(null);
+  const [quickViewProductId, setQuickViewProductId] = useState<number | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const fetchWishlist = useCallback(async () => {
     try {
@@ -44,22 +42,6 @@ export default function WishlistPage() {
     } catch {
       toast({ title: "Failed to remove", variant: "destructive" });
     } finally { setRemoving(null); }
-  };
-
-  const addToCart = async (item: WishlistItem) => {
-    setAddingToCart(item.productId);
-    try {
-      const res = await fetch(`${BASE}/api/cart`, {
-        method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: item.id, quantity: 1 }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
-      toast({ title: `${item.name} added to cart!` });
-    } catch {
-      toast({ title: "Could not add to cart", variant: "destructive" });
-    } finally { setAddingToCart(null); }
   };
 
   return (
@@ -148,15 +130,11 @@ export default function WishlistPage() {
                     ) : (
                       <Button
                         size="sm"
-                        onClick={() => addToCart(item)}
-                        disabled={addingToCart === item.productId}
+                        onClick={() => setQuickViewProductId(item.id)}
                         className="w-full fire-gradient border-none font-black uppercase tracking-wider text-xs gap-2"
                       >
-                        {addingToCart === item.productId ? (
-                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                            className="w-3.5 h-3.5 border border-white/40 border-t-white rounded-full" />
-                        ) : <ShoppingCart className="h-3.5 w-3.5" />}
-                        {addingToCart === item.productId ? "Adding…" : "Add to Cart"}
+                        <ShoppingCart className="h-3.5 w-3.5" />
+                        Choose options
                       </Button>
                     )}
                   </div>
@@ -166,6 +144,11 @@ export default function WishlistPage() {
           </motion.div>
         )}
       </div>
+      <QuickViewModal
+        productId={quickViewProductId}
+        onClose={() => setQuickViewProductId(null)}
+        onAdded={() => setQuickViewProductId(null)}
+      />
     </PageTransition>
   );
 }

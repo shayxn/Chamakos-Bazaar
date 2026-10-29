@@ -1,3 +1,4 @@
+import { PersonalizationLine } from "@/components/personalization-line";
 /* @refresh reset */
 import { useRoute, Link } from "wouter";
 import { useGetOrder, getGetOrderQueryKey } from "@workspace/api-client-react";
@@ -217,6 +218,7 @@ export default function OrderConfirmation() {
                       <p className="text-xs text-muted-foreground">
                          Qty {item.quantity}{item.size ? ` · ${item.size}` : ""}{(item as any).color ? ` · ${(item as any).color}` : ""}
                       </p>
+                      <PersonalizationLine item={item} testId={`text-personalization-${item.id}`} />
                     </div>
                   </div>
                   <p className="font-mono font-black text-sm shrink-0 text-primary">

@@ -42,6 +42,21 @@ export function LoadingScreen() {
   const [leaving, setLeaving] = useState(false);
   const failed = settings.isError || operational.isError || country.isError;
   const settled = (settings.isSuccess || settings.isError) && (operational.isSuccess || operational.isError) && (country.isSuccess || country.isError);
+  const readyChecks = [settings.isSuccess, operational.isSuccess, country.isSuccess, routeReady, fontsReady];
+  const readyPercent = Math.round((readyChecks.filter(Boolean).length / readyChecks.length) * 100);
+  const loadingMessage = settings.isPending
+    ? "Loading store details"
+    : operational.isPending
+      ? "Checking store availability"
+      : country.isPending
+        ? "Preparing your region"
+        : !routeReady
+          ? "Preparing your page"
+          : !fontsReady
+            ? "Finishing visual setup"
+            : failed
+              ? "Some store services need attention"
+              : "Your store is ready";
   useEffect(() => {
     // A failed optional/location request must not permanently cover the real UI.
     // The app keeps its own honest data errors and the API still enforces store safety.
@@ -76,6 +91,16 @@ export function LoadingScreen() {
         <svg className="imaginate-bolt" viewBox="0 0 200 80" aria-hidden="true">
           <polyline points="0,40 38,30 62,46 96,26 130,48 164,32 200,42" fill="none" stroke="#b79cff" strokeWidth="1.2" strokeLinejoin="round" />
         </svg>
+      </div>
+      <div className="imaginate-boot-caption">
+        <span>Getting your store ready</span>
+        <span className="imaginate-boot-dots" aria-hidden="true"><i /><i /><i /></span>
+      </div>
+      <div className="imaginate-boot-progress-wrap">
+        <div className="imaginate-boot-progress" role="progressbar" aria-label="Store setup progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readyPercent}>
+          <span style={{ width: `${readyPercent}%` }} />
+        </div>
+        <p className="imaginate-boot-message" aria-live="polite">{loadingMessage}</p>
       </div>
       {(failed || slow) && (
         <>

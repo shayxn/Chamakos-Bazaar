@@ -12,6 +12,9 @@ export const orderItemsTable = pgTable("order_items", {
   size: text("size"),
   color: text("color"),
   variantId: text("variant_id"),
+  personalizationName: text("personalization_name"),
+  personalizationNumber: text("personalization_number"),
+  personalizationFee: numeric("personalization_fee", { precision: 10, scale: 2 }).notNull().default("0"),
   isPreOrder: boolean("is_pre_order").notNull().default(false),
 });
 

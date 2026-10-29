@@ -71,3 +71,4 @@
 - [Countdown reveal intent](countdown-reveal-intent.md) — fullscreen countdown, exact three-second zero message, then website fade; automatic catalog opening only once per browser.
 - [External host deployment contract](external-host-deployment-contract.md) — Vercel success does not prove Render updated; preserve both hosting contracts during workspace changes.
 - [Settings edit boundaries](settings-edit-boundaries.md) — send only edited fields; whole-form saves can resubmit protected defaults and exceed bulk limits.
+- [Product personalisation](product-personalisation.md) — automatic on every product; name and number cost AED 10 each per physical item, with details retained for fulfilment.

@@ -1,3 +1,4 @@
+import { PersonalizationLine, hasPersonalization, personalizationText } from "@/components/personalization-line";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useDeleteOrder, useListOrders, useUpdateOrderStatus, useUpdateOrder, useAddTrackingEvent, getListOrdersQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -44,7 +45,7 @@ type Order = {
   trackingNote?: string | null;
   hasPreOrder?: boolean | null;
   createdAt: string;
-  items: { id: number; productName: string; quantity: number; price: number; size?: string | null; isPreOrder?: boolean | null }[];
+  items: { id: number; productName: string; quantity: number; price: number; size?: string | null; isPreOrder?: boolean | null; personalizationName?: string | null; personalizationNumber?: string | null; personalizationFee?: number }[];
   delayReason?: string | null;
   delayedUntil?: string | null;
   cancelReason?: string | null;
@@ -60,7 +61,7 @@ const DELIVERY_LABEL: Record<string, string> = {
 /* ─── Receipt Generator ─── */
 async function generateReceiptDataUrl(order: Order): Promise<string> {
   const W = 620;
-  const itemH = order.items.length * 32 + 20;
+  const itemH = order.items.length * 32 + order.items.filter(hasPersonalization).length * 18 + 20;
   const H = Math.max(720, 600 + itemH);
   const PAD = 40;
 
@@ -197,6 +198,12 @@ async function generateReceiptDataUrl(order: Order): Promise<string> {
     ctx.fillStyle = "#b79cff";
     ctx.font = "bold 13px 'Courier New', Courier, monospace";
     ctx.fillText(`AED ${(item.price * item.quantity).toFixed(2)}`, 455, y);
+    if (hasPersonalization(item)) {
+      y += 18;
+      ctx.fillStyle = "#555555";
+      ctx.font = "11px 'Courier New', Courier, monospace";
+      ctx.fillText(personalizationText(item).slice(0, 80), PAD + 8, y);
+    }
 
     ctx.strokeStyle = "#f7f7f7";
     ctx.beginPath();
@@ -615,7 +622,7 @@ export default function AdminOrders() {
                           <div key={item.id} className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1 text-sm py-2 border-b border-border/30 last:border-0">
                             <Package className="h-4 w-4 text-primary shrink-0" />
                             <span className="font-bold shrink-0">{item.quantity}×</span>
-                            <span className="min-w-0 flex-1 break-words">{item.productName}{item.size ? ` (${item.size})` : ""}</span>
+                            <span className="min-w-0 flex-1 break-words">{item.productName}{item.size ? ` (${item.size})` : ""}<PersonalizationLine item={item} testId={`text-admin-personalization-${item.id}`} /></span>
                             {item.isPreOrder && <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-black">Pre-Order</span>}
                             <span className="ml-auto whitespace-nowrap font-mono font-bold text-primary">AED {(item.price * item.quantity).toFixed(2)}</span>
                           </div>

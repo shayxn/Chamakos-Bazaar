@@ -1,3 +1,5 @@
+import { personalizationFee } from "../lib/personalization";
+import { ensureCommerceSchema } from "../lib/commerce-schema";
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
@@ -54,14 +56,17 @@ const discountInput = z.object({
 // Public: validate a coupon
 router.post("/coupons/validate", async (req, res) => {
   await ensureTable();
+  await ensureCommerceSchema();
   const code = typeof req.body?.code === "string" ? req.body.code.trim() : "";
   if (!code) { res.status(400).json({ error: "Code is required" }); return; }
   const session = req.session as Record<string, unknown>;
   const countries = availableCountries(await getGlobalConfig());
   const countryCode = (countries.find(c=>c.code===selectedStoreCountry(req)) ??
     countries.find(c=>c.code==="AE") ?? countries[0])?.code ?? "AE";
-  const items = extractRows<any>(await db.execute(sql`SELECT p.id AS "productId",p.price,p.variants,c.variant_id AS "variantId",c.quantity,p.collection FROM cart_items c JOIN products p ON p.id=c.product_id WHERE c.session_id=${String(session.cartId ?? "")}`))
-    .map(i => ({ ...i,price:Number(i.variants?.find((v:any)=>v.id===i.variantId)?.price ?? i.price),quantity:Number(i.quantity) }));
+  const items = extractRows<any>(await db.execute(sql`SELECT p.id AS "productId",p.price,p.variants,c.variant_id AS "variantId",c.quantity,p.collection,
+    c.personalization_name AS "personalizationName",c.personalization_number AS "personalizationNumber"
+    FROM cart_items c JOIN products p ON p.id=c.product_id WHERE c.session_id=${String(session.cartId ?? "")}`))
+    .map(i => ({ ...i,price:Number(i.variants?.find((v:any)=>v.id===i.variantId)?.price ?? i.price)+personalizationFee(i),quantity:Number(i.quantity) }));
   try {
     res.json(await validateDiscount(code, { items, customerKey: session.customerId ? `customer:${session.customerId}` :
       req.body.customerPhone?`phone:${String(req.body.customerPhone).replace(/\D/g,"")}`:`session:${session.cartId}`,

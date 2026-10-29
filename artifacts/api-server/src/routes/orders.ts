@@ -59,7 +59,7 @@ function serializeOrder(order: typeof ordersTable.$inferSelect, items: Array<typ
     deliveryCharge: Number(order.deliveryCharge ?? 25),
     tip: Number(order.tip ?? 0),
     createdAt: order.createdAt.toISOString(),
-    items: items.map((i) => ({ ...i, price: Number(i.price) })),
+    items: items.map((i) => ({ ...i, price: Number(i.price), personalizationFee: Number(i.personalizationFee ?? 0) })),
   };
 }
 

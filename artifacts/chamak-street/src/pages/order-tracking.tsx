@@ -1,3 +1,4 @@
+import { PersonalizationLine } from "@/components/personalization-line";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/page-transition";
@@ -273,6 +274,7 @@ export default function OrderTracking() {
                       <div>
                         <span className="font-bold">{item.productName}</span>
                         {item.size && <span className="text-muted-foreground ml-2">({item.size})</span>}
+                        <PersonalizationLine item={item} />
                         {item.isPreOrder && (
                           <span className="ml-2 text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-black uppercase">Pre-Order</span>
                         )}

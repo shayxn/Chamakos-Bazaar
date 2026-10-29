@@ -9,6 +9,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { getPrimaryProductMedia } from "@/lib/product-media";
+import { PersonalisationPanel, usePersonalisation } from "@/components/personalisation-panel";
+import { formatPrice } from "@/lib/currency";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -22,6 +24,7 @@ export function QuickViewModal({ productId, onClose, onAdded }: QuickViewModalPr
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [addedPulse, setAddedPulse] = useState(false);
+  const personal = usePersonalisation(productId);
   useEffect(() => {
     setSelectedSize("");
     setSelectedColor("");
@@ -62,9 +65,14 @@ export function QuickViewModal({ productId, onClose, onAdded }: QuickViewModalPr
       toast({ title: "Combination unavailable", description: "Choose another size or colour.", variant: "destructive" });
       return;
     }
+    if (personal.invalid) {
+      personal.setTouched(true);
+      toast({ title: "Finish personalisation", description: personal.errorMessage, variant: "destructive" });
+      return;
+    }
     addToCart.mutate(
       { data: { productId: product.id, quantity: 1, size: selectedSize || undefined,
-        color: selectedColor || undefined, variantId: variant?.id } },
+        color: selectedColor || undefined, variantId: variant?.id, ...personal.payload } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
@@ -139,7 +147,8 @@ export function QuickViewModal({ productId, onClose, onAdded }: QuickViewModalPr
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">{product.categoryName}</p>
                       )}
                       <h2 className="text-xl font-black uppercase tracking-tight leading-tight">{product.name}</h2>
-                      <p className="text-2xl font-mono text-primary font-bold mt-2"><Price v={product.price} /></p>
+                      <p className="text-2xl font-mono text-primary font-bold mt-2"><Price v={(variant?.price != null ? Number(variant.price) : product.price) + personal.fee} /></p>
+                      {personal.fee > 0 && <p className="text-[11px] text-muted-foreground mt-0.5" data-testid="text-quickview-personalise-fee">Includes {formatPrice(personal.fee)} personalisation</p>}
                     </div>
 
                     {product.description && (
@@ -181,6 +190,8 @@ export function QuickViewModal({ productId, onClose, onAdded }: QuickViewModalPr
                       </div>
                     )}
 
+                    <PersonalisationPanel label={product.categoryName?.trim() || product.name} {...personal.panelProps} />
+
                     <div className="flex flex-col gap-2 mt-auto">
                       <motion.div
                         animate={addedPulse ? { scale: [1, 1.04, 1] } : {}}
@@ -191,7 +202,7 @@ export function QuickViewModal({ productId, onClose, onAdded }: QuickViewModalPr
                           className={`w-full font-black uppercase tracking-widest ${
                             isOutOfStock ? "opacity-50 cursor-not-allowed" : "fire-gradient border-none shadow-[0_0_20px_rgba(183,156,255,0.35)]"
                           }`}
-                          disabled={isOutOfStock || addToCart.isPending}
+                          disabled={isOutOfStock || addToCart.isPending || personal.invalid}
                           onClick={handleAdd}
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />

@@ -4,6 +4,7 @@ import { eq, and, isNull } from "drizzle-orm";
 import { AddToCartBody, UpdateCartItemParams, UpdateCartItemBody, RemoveCartItemParams } from "@workspace/api-zod";
 import { validateCartProduct } from "../lib/cart-validation";
 import { ensureCommerceSchema } from "../lib/commerce-schema";
+import { personalizationInput, personalizationFee } from "../lib/personalization";
 
 const router = Router();
 router.use(async (_req,_res,next)=>{await ensureCommerceSchema();next();});
@@ -26,6 +27,8 @@ async function buildCart(sessionId: string) {
       price: productsTable.price,
       quantity: cartItemsTable.quantity,
       size: cartItemsTable.size,
+      personalizationName: cartItemsTable.personalizationName,
+      personalizationNumber: cartItemsTable.personalizationNumber,
       color: cartItemsTable.color,variantId:cartItemsTable.variantId,variants:productsTable.variants,
     })
     .from(cartItemsTable)
@@ -37,7 +40,10 @@ async function buildCart(sessionId: string) {
     productId: item.productId,
     productName: item.productName ?? "Unknown",
     productImageUrl: item.productImageUrl ?? null,
-    price: Number((Array.isArray(item.variants) ? item.variants : []).find(v=>v.id===item.variantId)?.price ?? item.price ?? 0),
+    price: Number((Array.isArray(item.variants) ? item.variants : []).find(v=>v.id===item.variantId)?.price ?? item.price ?? 0) + personalizationFee(item),
+    personalizationName: item.personalizationName,
+    personalizationNumber: item.personalizationNumber,
+    personalizationFee: personalizationFee(item),
     quantity: item.quantity,
     size: item.size ?? null,
     color:item.color ?? null,variantId:item.variantId ?? null,
@@ -61,6 +67,13 @@ router.post("/cart/items", async (req, res) => {
   }
   const sessionId = getSessionId(req);
   const { productId, quantity, size, color, variantId } = parsed.data;
+  const personal = personalizationInput.safeParse(parsed.data);
+  if (!personal.success) {
+    res.status(400).json({ error: "Enter a name (1–30 characters) and/or a number (1–3 digits)." });
+    return;
+  }
+  const personalizationName = personal.data.personalizationName ?? null;
+  const personalizationNumber = personal.data.personalizationNumber ?? null;
 
   const [existing] = await db
     .select()
@@ -71,6 +84,8 @@ router.post("/cart/items", async (req, res) => {
       ...(size ? [eq(cartItemsTable.size, size)] : [isNull(cartItemsTable.size)]),
       ...(color ? [eq(cartItemsTable.color,color)] : [isNull(cartItemsTable.color)]),
       ...(variantId ? [eq(cartItemsTable.variantId,variantId)] : [isNull(cartItemsTable.variantId)]),
+      ...(personalizationName ? [eq(cartItemsTable.personalizationName,personalizationName)] : [isNull(cartItemsTable.personalizationName)]),
+      ...(personalizationNumber ? [eq(cartItemsTable.personalizationNumber,personalizationNumber)] : [isNull(cartItemsTable.personalizationNumber)]),
     ));
 
   if (existing) {
@@ -83,7 +98,7 @@ router.post("/cart/items", async (req, res) => {
   } else {
     try { await validateCartProduct(productId, quantity, size, color, variantId); }
     catch (error) { res.status(400).json({ error: (error as Error).message }); return; }
-    await db.insert(cartItemsTable).values({ sessionId, productId, quantity, size: size ?? null,color:color ?? null,variantId:variantId ?? null });
+    await db.insert(cartItemsTable).values({ sessionId, productId, quantity, size: size ?? null,color:color ?? null,variantId:variantId ?? null,personalizationName,personalizationNumber });
   }
 
   const cart = await buildCart(sessionId);

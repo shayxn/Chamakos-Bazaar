@@ -31,9 +31,12 @@ export function ensureCommerceSchema() {
       ADD COLUMN IF NOT EXISTS limited_edition BOOLEAN NOT NULL DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS coming_soon BOOLEAN NOT NULL DEFAULT FALSE`);
     await db.execute(sql`ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS color TEXT,
-      ADD COLUMN IF NOT EXISTS variant_id TEXT, ADD COLUMN IF NOT EXISTS size TEXT`);
+      ADD COLUMN IF NOT EXISTS variant_id TEXT, ADD COLUMN IF NOT EXISTS size TEXT,
+      ADD COLUMN IF NOT EXISTS personalization_name TEXT, ADD COLUMN IF NOT EXISTS personalization_number TEXT`);
     await db.execute(sql`ALTER TABLE order_items ADD COLUMN IF NOT EXISTS color TEXT,
       ADD COLUMN IF NOT EXISTS variant_id TEXT, ADD COLUMN IF NOT EXISTS size TEXT,
+      ADD COLUMN IF NOT EXISTS personalization_name TEXT, ADD COLUMN IF NOT EXISTS personalization_number TEXT,
+      ADD COLUMN IF NOT EXISTS personalization_fee NUMERIC(10,2) NOT NULL DEFAULT 0,
       ADD COLUMN IF NOT EXISTS is_pre_order BOOLEAN NOT NULL DEFAULT FALSE`);
     await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id INTEGER,
       ADD COLUMN IF NOT EXISTS country_code TEXT NOT NULL DEFAULT 'AE',

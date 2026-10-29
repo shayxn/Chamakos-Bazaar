@@ -18,4 +18,14 @@ export interface CartItemInput {
   color?: string | null;
   /** @nullable */
   variantId?: string | null;
+  /**
+     * @maxLength 30
+     * @nullable
+     */
+  personalizationName?: string | null;
+  /**
+     * @nullable
+     * @pattern ^[0-9]{1,3}$
+     */
+  personalizationNumber?: string | null;
 }

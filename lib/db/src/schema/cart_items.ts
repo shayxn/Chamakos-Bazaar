@@ -10,6 +10,8 @@ export const cartItemsTable = pgTable("cart_items", {
   size: text("size"),
   color: text("color"),
   variantId: text("variant_id"),
+  personalizationName: text("personalization_name"),
+  personalizationNumber: text("personalization_number"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

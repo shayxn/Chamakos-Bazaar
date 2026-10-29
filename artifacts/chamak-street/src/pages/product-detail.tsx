@@ -20,6 +20,10 @@ import { trackRecentlyViewed } from "@/components/recently-viewed";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { ProductPreorderDetails } from "@/components/product-preorder-details";
 import { useActiveEvents } from "@/components/event-banner";
+import { PERSONALIZATION_OPTION_FEE } from "@/components/personalization-line";
+import { PersonalisationPanel, validatePersonalName, validatePersonalNumber } from "@/components/personalisation-panel";
+
+
 
 const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -397,6 +401,12 @@ export default function ProductDetail() {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
   const [scrolledPast, setScrolledPast] = useState(false);
+  const [personalChoice, setPersonalChoice] = useState<"no" | "yes">("no");
+  const [wantName, setWantName] = useState(false);
+  const [wantNumber, setWantNumber] = useState(false);
+  const [personalName, setPersonalName] = useState("");
+  const [personalNumber, setPersonalNumber] = useState("");
+  const [personalTouched, setPersonalTouched] = useState(false);
   const { ids: wishlistIds, toggle: toggleWishlist } = useWishlist();
   useEffect(() => {
     setQuantity(1);
@@ -404,6 +414,12 @@ export default function ProductDetail() {
     setSelectedColor("");
     setSelectedMediaIndex(0);
     setScrolledPast(false);
+    setPersonalChoice("no");
+    setWantName(false);
+    setWantNumber(false);
+    setPersonalName("");
+    setPersonalNumber("");
+    setPersonalTouched(false);
   }, [id]);
 
   // Track recently viewed
@@ -449,6 +465,13 @@ export default function ProductDetail() {
   const variantStock = matchedVariant ? matchedVariant.stock : null;
   const effectiveStock = variantStock ?? (variants.length ? Math.max(0, ...variants.map(v => v.stock)) : product?.stock ?? 0);
   const effPrice = matchedVariant && matchedVariant.price != null ? Number(matchedVariant.price) : (product?.price ?? 0);
+  const isPersonalised = personalChoice === "yes";
+  const personalNameError = isPersonalised && wantName ? validatePersonalName(personalName) : null;
+  const personalNumberError = isPersonalised && wantNumber ? validatePersonalNumber(personalNumber) : null;
+  const personalNoneSelected = isPersonalised && !wantName && !wantNumber;
+  const personalInvalid = personalNoneSelected || !!personalNameError || !!personalNumberError;
+  const personalFee = isPersonalised ? ((wantName ? 1 : 0) + (wantNumber ? 1 : 0)) * PERSONALIZATION_OPTION_FEE : 0;
+  const unitTotal = effPrice + personalFee;
   const compareAt = ext.compareAtPrice != null && ext.compareAtPrice !== "" ? Number(ext.compareAtPrice) : null;
   const showCompare = compareAt !== null && Number.isFinite(compareAt) && compareAt > effPrice;
   useEffect(() => {
@@ -525,8 +548,16 @@ export default function ProductDetail() {
       toast({ title: "Not enough stock", description: `Only ${effectiveStock} available for this option. Lower the quantity to continue.`, variant: "destructive" });
       return;
     }
+    if (personalInvalid) {
+      setPersonalTouched(true);
+      toast({ title: "Finish personalisation", description: personalNoneSelected ? "Select Name and/or Number, or choose No." : (personalNameError || personalNumberError || ""), variant: "destructive" });
+      return;
+    }
+    const personalPayload = isPersonalised
+      ? { personalizationName: wantName ? personalName.trim() : undefined, personalizationNumber: wantNumber ? personalNumber : undefined }
+      : {};
     addToCart.mutate(
-      { data: { productId: product.id, quantity, size: selectedSize || undefined, color: selectedColor || undefined, variantId: matchedVariant?.id } as never },
+      { data: { productId: product.id, quantity, size: selectedSize || undefined, color: selectedColor || undefined, variantId: matchedVariant?.id, ...personalPayload } as never },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
@@ -537,7 +568,7 @@ export default function ProductDetail() {
             triggerFly(selectedMedia.url, imgContainerRef.current);
           }
           // Track cart activity
-          trackCartUpdate(quantity, Number(product.price) * quantity);
+          trackCartUpdate(quantity, unitTotal * quantity);
         },
         onError: (error) => {
           toast({ title: "Could not add to cart", description: error.message, variant: "destructive" });
@@ -726,7 +757,7 @@ export default function ProductDetail() {
 
             <MotionItem delay={0.29} className="mt-5">
               <div className="text-3xl font-mono font-black text-primary">
-                <Price v={effPrice} />
+                <Price v={unitTotal} />
                 {showCompare && <span className="ml-3 text-lg text-muted-foreground line-through" data-testid="text-compare-at"><Price v={compareAt!} /></span>}
               </div>
               {variantStock !== null && !isPreOrder && (
@@ -857,6 +888,21 @@ export default function ProductDetail() {
                 )}
               </div>
 
+              <PersonalisationPanel
+                label={product.categoryName?.trim() || product.name}
+                choice={personalChoice} setChoice={setPersonalChoice}
+                wantName={wantName} setWantName={setWantName} wantNumber={wantNumber} setWantNumber={setWantNumber}
+                nameVal={personalName} setNameVal={setPersonalName}
+                numberVal={personalNumber} setNumberVal={setPersonalNumber}
+                nameError={personalNameError} numberError={personalNumberError}
+                noneSelected={personalNoneSelected} showErrors={personalTouched || personalName.length > 0 || personalNumber.length > 0}
+              />
+              {personalFee > 0 && (
+                <p className="text-xs text-muted-foreground -mt-2" data-testid="text-personalise-total">
+                  {formatPrice(effPrice)} + {formatPrice(personalFee)} personalisation = <span className="font-mono font-bold text-primary">{formatPrice(unitTotal)}</span> each · {formatPrice(unitTotal * quantity)} for {quantity}
+                </p>
+              )}
+
               {isPreOrder && <ProductPreorderDetails date={preorderDate} note={product.preOrderNote} label={product.preOrderLabel} />}
 
               {/* Keep the purchase action visible below the pre-order details. */}
@@ -881,7 +927,7 @@ export default function ProductDetail() {
                         ? "opacity-50 cursor-not-allowed"
                         : "fire-gradient border-none hover:brightness-110"
                     }`}
-                    disabled={isOutOfStock || addToCart.isPending}
+                    disabled={isOutOfStock || addToCart.isPending || personalInvalid}
                     onClick={handleAddToCart}
                     data-testid="button-add-to-cart"
                   >
@@ -1022,7 +1068,7 @@ export default function ProductDetail() {
             <div className="px-4 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest truncate">{product.name}</p>
-                <p className="text-primary font-mono font-black text-base leading-tight"><Price v={effPrice} /></p>
+                <p className="text-primary font-mono font-black text-base leading-tight"><Price v={unitTotal} /></p>
                 {selectedSize && (
                   <p className="text-[10px] text-white/35 font-bold mt-0.5">Size: {selectedSize}</p>
                 )}

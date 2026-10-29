@@ -621,6 +621,11 @@ export interface CartItem {
   color?: string | null;
   /** @nullable */
   variantId?: string | null;
+  /** @nullable */
+  personalizationName?: string | null;
+  /** @nullable */
+  personalizationNumber?: string | null;
+  personalizationFee?: number;
 }
 
 export interface Cart {
@@ -640,6 +645,16 @@ export interface CartItemInput {
   color?: string | null;
   /** @nullable */
   variantId?: string | null;
+  /**
+     * @maxLength 30
+     * @nullable
+     */
+  personalizationName?: string | null;
+  /**
+     * @nullable
+     * @pattern ^[0-9]{1,3}$
+     */
+  personalizationNumber?: string | null;
 }
 
 export interface CartItemUpdate {
@@ -651,6 +666,11 @@ export interface CartItemUpdate {
 }
 
 export interface OrderItem {
+  /** @nullable */
+  personalizationName?: string | null;
+  /** @nullable */
+  personalizationNumber?: string | null;
+  personalizationFee?: number;
   id: number;
   productId: number;
   productName: string;

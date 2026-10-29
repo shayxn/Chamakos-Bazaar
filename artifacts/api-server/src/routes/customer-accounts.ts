@@ -211,6 +211,9 @@ router.get("/customers/orders", async (req, res) => {
         quantity: orderItemsTable.quantity,
         price: orderItemsTable.price,
         size: orderItemsTable.size,
+        personalizationName: orderItemsTable.personalizationName,
+        personalizationNumber: orderItemsTable.personalizationNumber,
+        personalizationFee: orderItemsTable.personalizationFee,
       }).from(orderItemsTable).where(inArray(orderItemsTable.orderId, orderIds))
     : [];
 

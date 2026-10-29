@@ -871,7 +871,10 @@ export const GetCartResponse = zod.object({
   "quantity": zod.number(),
   "size": zod.string().nullish(),
   "color": zod.string().nullish(),
-  "variantId": zod.string().nullish()
+  "variantId": zod.string().nullish(),
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional()
 })),
   "total": zod.number()
 })
@@ -882,6 +885,9 @@ export const GetCartResponse = zod.object({
  */
 export const addToCartBodyQuantityMax = 99;
 
+export const addToCartBodyPersonalizationNameMax = 30;
+
+export const addToCartBodyPersonalizationNumberRegExp = new RegExp('^[0-9]{1,3}$');
 
 
 export const AddToCartBody = zod.object({
@@ -889,7 +895,9 @@ export const AddToCartBody = zod.object({
   "quantity": zod.number().min(1).max(addToCartBodyQuantityMax),
   "size": zod.string().optional(),
   "color": zod.string().nullish(),
-  "variantId": zod.string().nullish()
+  "variantId": zod.string().nullish(),
+  "personalizationName": zod.string().max(addToCartBodyPersonalizationNameMax).nullish(),
+  "personalizationNumber": zod.string().regex(addToCartBodyPersonalizationNumberRegExp).nullish()
 })
 
 export const AddToCartResponse = zod.object({
@@ -902,7 +910,10 @@ export const AddToCartResponse = zod.object({
   "quantity": zod.number(),
   "size": zod.string().nullish(),
   "color": zod.string().nullish(),
-  "variantId": zod.string().nullish()
+  "variantId": zod.string().nullish(),
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional()
 })),
   "total": zod.number()
 })
@@ -933,7 +944,10 @@ export const UpdateCartItemResponse = zod.object({
   "quantity": zod.number(),
   "size": zod.string().nullish(),
   "color": zod.string().nullish(),
-  "variantId": zod.string().nullish()
+  "variantId": zod.string().nullish(),
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional()
 })),
   "total": zod.number()
 })
@@ -956,7 +970,10 @@ export const RemoveCartItemResponse = zod.object({
   "quantity": zod.number(),
   "size": zod.string().nullish(),
   "color": zod.string().nullish(),
-  "variantId": zod.string().nullish()
+  "variantId": zod.string().nullish(),
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional()
 })),
   "total": zod.number()
 })
@@ -987,6 +1004,9 @@ export const ListOrdersResponseItem = zod.object({
   "trackingNote": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional(),
   "id": zod.number(),
   "productId": zod.number(),
   "productName": zod.string(),
@@ -1043,6 +1063,9 @@ export const CreateOrderResponse = zod.object({
   "trackingNote": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional(),
   "id": zod.number(),
   "productId": zod.number(),
   "productName": zod.string(),
@@ -1076,6 +1099,9 @@ export const TrackOrderResponse = zod.object({
   "trackingNote": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional(),
   "id": zod.number(),
   "productId": zod.number(),
   "productName": zod.string(),
@@ -1125,6 +1151,9 @@ export const GetOrderResponse = zod.object({
   "trackingNote": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional(),
   "id": zod.number(),
   "productId": zod.number(),
   "productName": zod.string(),
@@ -1178,6 +1207,9 @@ export const UpdateOrderResponse = zod.object({
   "trackingNote": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional(),
   "id": zod.number(),
   "productId": zod.number(),
   "productName": zod.string(),
@@ -1240,6 +1272,9 @@ export const UpdateOrderStatusResponse = zod.object({
   "trackingNote": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional(),
   "id": zod.number(),
   "productId": zod.number(),
   "productName": zod.string(),
@@ -1353,6 +1388,9 @@ export const GetStoreStatsResponse = zod.object({
   "trackingNote": zod.string().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
+  "personalizationName": zod.string().nullish(),
+  "personalizationNumber": zod.string().nullish(),
+  "personalizationFee": zod.number().optional(),
   "id": zod.number(),
   "productId": zod.number(),
   "productName": zod.string(),
