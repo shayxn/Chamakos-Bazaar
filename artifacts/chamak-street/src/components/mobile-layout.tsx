@@ -21,6 +21,8 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   const { cartBounceKey } = useCartFly();
   const [menuOpen, setMenuOpen] = useState(false);
   const cartCount = (cart?.items ?? []).reduce((a, i) => a + i.quantity, 0) || 0;
+  const showAdminEntry = location === "/" || user?.isAdmin;
+  const adminHref = user?.isAdmin ? "/admin" : "/login";
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -51,8 +53,8 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
             <Link href="/wishlist" aria-label="Wishlist" data-testid="link-nav-wishlist" className="grid h-11 w-11 place-items-center">
               <Heart className="h-5 w-5 text-white/75" strokeWidth={1.5} />
             </Link>
-            {user?.isAdmin && (
-              <Link href="/admin" aria-label="Admin workspace" title="Admin" data-testid="link-mobile-admin" className="grid h-11 w-11 place-items-center text-white/75 hover:text-primary">
+            {showAdminEntry && (
+              <Link href={adminHref} aria-label={user?.isAdmin ? "Admin workspace" : "Admin login"} title={user?.isAdmin ? "Admin workspace" : "Admin login"} data-testid="link-mobile-admin" className="grid h-11 w-11 place-items-center text-white/75 hover:text-primary">
                 <Settings className="h-5 w-5" strokeWidth={1.6} />
               </Link>
             )}
