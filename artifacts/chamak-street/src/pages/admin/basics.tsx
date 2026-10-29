@@ -14,7 +14,7 @@ import type { Product, ProductInput } from "@workspace/api-client-react";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
-import { getPrimaryProductMedia, parseProductMedia, serializeProductMedia, type ProductMedia } from "@/lib/product-media";
+import { getPrimaryProductMedia, getAllProductMedia, parseProductMedia, serializeProductMedia, type ProductMedia } from "@/lib/product-media";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -287,10 +287,21 @@ function MediaZone({ items, onChange, uploading, onUpload }: {
                 ) : (
                   <img src={item.url} alt="" className="w-full h-full object-cover" />
                 )}
+                {item.type === "image" && i > 0 && (
+                  <button type="button" disabled={uploading}
+                    onClick={() => onChange([item, ...items.filter((_, index) => index !== i)])}
+                    aria-label={`Set picture ${i + 1} as main`}
+                    className="absolute bottom-0 inset-x-0 z-10 min-h-8 bg-black/85 text-white text-[10px] font-bold hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50">
+                    Set as main
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => remove(i)}
-                  className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                  disabled={uploading}
+                  aria-label={`Remove ${item.type === "video" ? "video" : "picture"} ${i + 1}`}
+                  title="Remove from product"
+                  className="absolute top-0 right-0 z-10 w-8 h-8 rounded-bl-lg bg-black/85 text-white flex items-center justify-center hover:bg-red-500 focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -397,7 +408,7 @@ export default function AdminBasics() {
   const openEdit = (product: BasicsProduct) => {
     setEditingId(product.id);
     setInStock(product.stock > 0);
-    setMediaItems(parseProductMedia(product.imageUrl));
+    setMediaItems(getAllProductMedia(product.imageUrl, product.imageUrls, (product as Product & { videoUrl?: string | null }).videoUrl));
     setFormData({
       name: product.name, price: product.price,
       stock: product.stock > 0 ? 100 : 0,
@@ -425,6 +436,8 @@ export default function AdminBasics() {
     const data = {
       ...formData,
       imageUrl: mediaItems.length > 0 ? serializeProductMedia(mediaItems) : "",
+      imageUrls: "",
+      videoUrl: mediaItems.find(item => item.type === "video")?.url ?? null,
       stock: inStock ? 100 : 0,
       collection: "basics",
     };
@@ -781,7 +794,7 @@ export default function AdminBasics() {
           style={{ background: "#0a0a0a" }}
         >
           {/* Fixed header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/8 shrink-0"
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-white/8 shrink-0"
             style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(12px)" }}>
             <div>
               <div className="flex items-center gap-2">
@@ -797,7 +810,7 @@ export default function AdminBasics() {
                 <p className="text-xs text-white/40 mt-0.5 truncate max-w-[280px]">{formData.name}</p>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end gap-2 shrink-0">
               <Button type="button" variant="outline" size="sm" onClick={() => setSheetOpen(false)}
                 className="text-xs border-white/15 text-white/60 hover:text-white">
                 Cancel

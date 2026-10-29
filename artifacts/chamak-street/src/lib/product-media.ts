@@ -50,6 +50,12 @@ export function serializeProductMedia(media: ProductMedia[]): string {
   return JSON.stringify(media.filter((item) => item.url.trim() !== ""));
 }
 
+export function getAllProductMedia(value?: string | null, gallery?: string | null, videoUrl?: string | null): ProductMedia[] {
+  const all = [...parseProductMedia(value), ...parseProductMedia(gallery)];
+  if (videoUrl?.trim()) all.push({ url: normalizeMediaUrl(videoUrl), type: "video" });
+  return all.filter((item, index) => all.findIndex(other => other.url === item.url) === index);
+}
+
 export function getPrimaryProductMedia(value?: string | null, gallery?: string | null): ProductMedia | null {
   return parseProductMedia(value)[0] ?? parseProductMedia(gallery)[0] ?? null;
 }
